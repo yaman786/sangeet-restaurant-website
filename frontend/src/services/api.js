@@ -117,7 +117,7 @@ const retryApiCall = async (apiCall, attempts = API_CONFIG.RETRY_ATTEMPTS) => {
       // Only retry on network errors or 5xx server errors
       if (error.type === API_ERROR_TYPES.NETWORK || 
           (error.status && error.status >= 500)) {
-        console.log(`Retrying API call (attempt ${i + 2}/${attempts})...`);
+        // Retrying API call...
         await new Promise(resolve => setTimeout(resolve, API_CONFIG.RETRY_DELAY));
         continue;
       }
@@ -400,7 +400,7 @@ export const getTableByQRCode = async (qrCode) => {
 
 // Direct order creation method that bypasses all interceptors
 export const createOrderDirect = async (orderData) => {
-  console.log('🚀 Direct order creation - bypassing all interceptors');
+  // Direct order creation - bypassing all interceptors
   
   // Create a completely fresh axios instance
   const directApi = axios.create({
@@ -417,15 +417,11 @@ export const createOrderDirect = async (orderData) => {
     directApi.defaults.headers.Authorization = `Bearer ${token}`;
   }
   
-  console.log('🔧 Direct API config:', {
-    baseURL: directApi.defaults.baseURL,
-    url: '/orders',
-    fullURL: directApi.defaults.baseURL + '/orders'
-  });
+  // Direct API config
   
   try {
     const response = await directApi.post('/orders', orderData);
-    console.log('✅ Direct order creation successful:', response.data);
+    // Direct order creation successful
     return response.data;
   } catch (error) {
     console.error('❌ Direct order creation failed:', error);
@@ -434,12 +430,7 @@ export const createOrderDirect = async (orderData) => {
 };
 
 export const createOrder = async (orderData) => {
-  console.log('🔧 createOrder - API Config:', {
-    BASE_URL: API_CONFIG.BASE_URL,
-    axiosBaseURL: api.defaults.baseURL,
-    fullUrl: api.defaults.baseURL + '/orders'
-  });
-  console.log('🔧 createOrder - Order Data:', orderData);
+  // createOrder - API Config and Order Data
   return apiCallWrapper(async () => {
     return await api.post('/orders', orderData);
   }, 'createOrder', false);

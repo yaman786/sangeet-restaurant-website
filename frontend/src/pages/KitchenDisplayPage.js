@@ -41,16 +41,12 @@ const KitchenDisplayPage = () => {
     const adminUser = localStorage.getItem('adminUser');
     const kitchenUser = localStorage.getItem('kitchenUser');
     
-    console.log('🔍 Kitchen Display Auth Check:');
-    console.log('Admin Token:', adminToken ? 'Present' : 'Not found');
-    console.log('Kitchen Token:', kitchenToken ? 'Present' : 'Not found');
-    console.log('Admin User:', adminUser ? 'Present' : 'Not found');
-    console.log('Kitchen User:', kitchenUser ? 'Present' : 'Not found');
+    // Kitchen Display Auth Check
     
     if (adminToken && adminUser) {
       try {
         const userData = JSON.parse(adminUser);
-        console.log('👑 Setting as Admin:', userData.username, userData.role);
+        // Setting as Admin
         setKitchenUser(userData);
         setUserType('admin');
       } catch (error) {
@@ -60,7 +56,7 @@ const KitchenDisplayPage = () => {
     } else if (kitchenToken && kitchenUser) {
       try {
         const userData = JSON.parse(kitchenUser);
-        console.log('👨‍🍳 Setting as Kitchen Staff:', userData.username, userData.role);
+        // Setting as Kitchen Staff
         setKitchenUser(userData);
         setUserType('kitchen');
       } catch (error) {
@@ -68,7 +64,7 @@ const KitchenDisplayPage = () => {
         navigate('/login');
       }
     } else {
-      console.log('❌ No valid tokens found, redirecting to login');
+              // No valid tokens found, redirecting to login
       navigate('/login');
     }
   }, [navigate]);

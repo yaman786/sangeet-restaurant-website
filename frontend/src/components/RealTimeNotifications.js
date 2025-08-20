@@ -41,10 +41,10 @@ const RealTimeNotifications = () => {
     const initializeAudio = () => {
       try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        console.log('🔊 Audio context initialized');
+        // Audio context initialized
         return audioContext;
       } catch (error) {
-        console.log('🔊 Could not initialize audio context:', error);
+                  // Could not initialize audio context
         return null;
       }
     };
@@ -57,9 +57,9 @@ const RealTimeNotifications = () => {
     document.addEventListener('click', handleClick);
 
     // Listen for new orders
-    console.log('🔔 RealTimeNotifications: Setting up new-order listener');
+    // RealTimeNotifications: Setting up new-order listener
     socketService.onNewOrder((data) => {
-      console.log('🔔 RealTimeNotifications: New order received:', data);
+              // RealTimeNotifications: New order received
       const notification = {
         id: Date.now(),
         type: 'new-order',
@@ -183,7 +183,7 @@ const RealTimeNotifications = () => {
   const unreadCount = notifications.filter(n => !n.read).length;
   
   // Debug: Log component state
-  console.log('🔔 RealTimeNotifications render:', { isConnected, unreadCount, notificationsCount: notifications.length });
+      // RealTimeNotifications render info
 
   return (
     <div className="relative">

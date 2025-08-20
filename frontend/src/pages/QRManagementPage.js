@@ -308,9 +308,9 @@ const QRManagementPage = () => {
 
   const handleDownloadQR = async (qrCode, format = 'png', design = 'classic', theme = 'modern') => {
     try {
-      console.log(`🔄 Starting download for QR code ${qrCode.id} (Table ${qrCode.table_number})`);
+              // Starting download for QR code
       await downloadPrintableQRCode(qrCode.id, format, design, theme);
-      console.log('✅ Download completed successfully');
+              // Download completed successfully
     } catch (error) {
       console.error('❌ Error downloading QR code:', error);
       toast.error(`Failed to download QR code: ${error.message}`);

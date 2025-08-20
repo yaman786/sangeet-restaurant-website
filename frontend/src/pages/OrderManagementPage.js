@@ -47,11 +47,11 @@ const OrderManagementPage = () => {
   // Setup real-time socket listeners - using a different approach since RealTimeNotifications already handles socket
   const setupSocketListeners = useCallback(() => {
     try {
-      console.log('🔌 OrderManagement: Setting up socket listeners...');
+      // OrderManagement: Setting up socket listeners
       
       // Ensure socket is connected first
       if (!socketService.isConnected) {
-        console.log('🔌 OrderManagement: Socket not connected, connecting...');
+        // OrderManagement: Socket not connected, connecting
         socketService.connect();
       }
       
@@ -60,22 +60,21 @@ const OrderManagementPage = () => {
       
       // Listen for new orders
       socketService.onNewOrder((data) => {
-        console.log('📦 OrderManagement: New order received:', data);
-        console.log('📦 OrderManagement: Reloading data...');
+        // OrderManagement: New order received, reloading data
         // Reload data to get the latest orders
         loadData();
       });
 
       // Listen for order status updates
       socketService.onOrderStatusUpdate((data) => {
-        console.log('📦 OrderManagement: Status update received:', data);
+        // OrderManagement: Status update received
         // Reload data to get the latest status
         loadData();
       });
 
       // Listen for order deletions
       socketService.onOrderDeleted((data) => {
-        console.log('📦 OrderManagement: Order deleted:', data);
+        // OrderManagement: Order deleted
         // Reload data to remove deleted order
         loadData();
       });
@@ -86,12 +85,12 @@ const OrderManagementPage = () => {
   }, []); // Empty dependency array to prevent recreation
 
   useEffect(() => {
-    console.log('🔌 OrderManagement: useEffect triggered - setting up socket listeners');
+    // OrderManagement: useEffect triggered - setting up socket listeners
     // Setup socket listeners immediately
     setupSocketListeners();
 
     return () => {
-      console.log('🔌 OrderManagement: Cleanup - removing socket listeners');
+      // OrderManagement: Cleanup - removing socket listeners
       socketService.removeListener('new-order');
       socketService.removeListener('order-status-update');
       socketService.removeListener('order-deleted');

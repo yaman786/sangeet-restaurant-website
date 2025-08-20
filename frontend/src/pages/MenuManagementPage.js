@@ -220,7 +220,7 @@ const MenuManagementPage = () => {
 
   const handleAddItem = async (e) => {
     e.preventDefault();
-    console.log('Form submitted with data:', formData);
+          // Form submitted with data
     try {
       await createMenuItem(formData);
       toast.success('Menu item created successfully!');
@@ -716,7 +716,7 @@ const MenuManagementPage = () => {
                     <CustomDropdown
                       value={formData.category_id}
                       onChange={(categoryId) => {
-                        console.log('Category selected:', categoryId);
+                        // Category selected
                         setFormData(prev => ({ ...prev, category_id: categoryId }));
                       }}
                       options={[

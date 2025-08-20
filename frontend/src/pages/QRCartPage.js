@@ -206,15 +206,11 @@ const QRCartPage = () => {
         }))
       };
 
-      console.log('=== ORDER SUBMISSION DEBUG ===');
-      console.log('Order data being sent:', orderData);
-      console.log('Cart data:', cart);
-      console.log('Table info:', tableInfo);
+      // Order submission debug info
 
       // Use direct fetch instead of API service
       const orderResponse = await createOrder(orderData);
-      console.log('✅ Order response received:', orderResponse);
-      console.log('📋 Full order response structure:', JSON.stringify(orderResponse, null, 2));
+              // Order response received
       
       const orderId = orderResponse?.order?.id;
       const orderNumber = orderResponse?.order?.order_number;

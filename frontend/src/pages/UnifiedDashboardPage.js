@@ -183,7 +183,7 @@ const UnifiedDashboardPage = () => {
               localStorage.removeItem(`customer_${tableNumber}`);
               localStorage.removeItem(`instructions_${tableNumber}`);
               localStorage.removeItem(`session_timestamp_${tableNumber}`);
-              console.log('⏰ Session expired, cleared old data');
+              // Session expired, cleared old data
               return false;
             }
           }

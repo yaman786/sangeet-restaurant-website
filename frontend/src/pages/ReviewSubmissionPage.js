@@ -123,12 +123,10 @@ const ReviewSubmissionPage = () => {
         table_number: formData.table_number
       };
 
-      console.log('=== REVIEW SUBMISSION DEBUG ===');
-      console.log('Review data being sent:', reviewData);
-      console.log('Form data state:', formData);
+      // Review submission debug info
 
       const response = await submitReview(reviewData);
-      console.log('Review submission response:', response);
+              // Review submission response
       
       toast.success('Thank you for your review!');
       
