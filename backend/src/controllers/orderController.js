@@ -83,6 +83,8 @@ const getTableByQRCode = async (req, res) => {
 // Function to find active order for table/customer
 const findActiveOrder = async (tableId, customerName) => {
   try {
+    console.log('🔍 findActiveOrder called with:', { tableId, customerName });
+    
     const result = await pool.query(`
       SELECT o.*, t.table_number 
       FROM orders o 
@@ -94,9 +96,20 @@ const findActiveOrder = async (tableId, customerName) => {
       LIMIT 1
     `, [tableId, customerName]);
 
+    console.log('🔍 findActiveOrder query result:', {
+      rowCount: result.rows.length,
+      rows: result.rows.map(row => ({
+        id: row.id,
+        order_number: row.order_number,
+        status: row.status,
+        customer_name: row.customer_name,
+        table_id: row.table_id
+      }))
+    });
+
     return result.rows[0] || null;
   } catch (error) {
-    console.error('Error finding active order:', error);
+    console.error('❌ Error finding active order:', error);
     return null;
   }
 };
@@ -160,6 +173,7 @@ const addItemsToExistingOrder = async (orderId, items) => {
 const createOrder = async (req, res) => {
   try {
     console.log('🚀 Starting order creation process...');
+    console.log('📋 Request body:', JSON.stringify(req.body, null, 2));
     
     // Test database connection first
     try {
@@ -172,8 +186,16 @@ const createOrder = async (req, res) => {
     
     const { table_id, customer_name, items, special_instructions } = req.body;
 
+    console.log('🔍 Extracted data:', {
+      table_id,
+      customer_name,
+      items_count: items?.length,
+      special_instructions
+    });
+
     // Validate required fields
     if (!table_id || !customer_name || !items) {
+      console.error('❌ Missing required fields:', { table_id, customer_name, items: !!items });
       return res.status(400).json({ 
         error: 'Missing required fields: table_id, customer_name, and items are required' 
       });
@@ -181,6 +203,7 @@ const createOrder = async (req, res) => {
 
     // Validate items is an array and not empty
     if (!Array.isArray(items) || items.length === 0) {
+      console.error('❌ Invalid items array:', items);
       return res.status(400).json({ 
         error: 'Items must be a non-empty array' 
       });
@@ -193,14 +216,24 @@ const createOrder = async (req, res) => {
     );
 
     if (tableResult.rows.length === 0) {
+      console.error('❌ Table not found:', table_id);
       return res.status(404).json({ error: 'Table not found' });
     }
 
+    console.log('✅ Table found:', tableResult.rows[0]);
+
     // Check for existing active order
+    console.log('🔍 Checking for existing active order...');
     const existingOrder = await findActiveOrder(table_id, customer_name);
     
     if (existingOrder) {
-      console.log('🔄 Found existing order, adding items to it');
+      console.log('🔄 Found existing order:', {
+        orderId: existingOrder.id,
+        orderNumber: existingOrder.order_number,
+        status: existingOrder.status,
+        customerName: existingOrder.customer_name,
+        tableId: existingOrder.table_id
+      });
       
       // Add items to existing order
       const success = await addItemsToExistingOrder(existingOrder.id, items);
@@ -236,7 +269,7 @@ const createOrder = async (req, res) => {
         return;
       }
     } else {
-      console.log('🆕 Creating new order');
+      console.log('🆕 No existing order found, creating new order');
     }
 
     // Calculate total amount
