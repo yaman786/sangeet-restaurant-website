@@ -27,38 +27,6 @@ const analyticsRoutes = require('./routes/analytics');
 // Import socket initialization
 const { initializeSocket } = require('./socket');
 
-// Middleware to handle :1 suffix in URLs
-app.use((req, res, next) => {
-  const originalUrl = req.url;
-  
-  // Check if URL contains :1 suffix
-  if (originalUrl.includes(':1')) {
-    console.log('🔧 Detected :1 suffix in URL:', originalUrl);
-    
-    // Remove :1 suffix from the URL
-    const sanitizedUrl = originalUrl
-      .replace(/:1$/, '')           // Remove :1 at the end
-      .replace(/:1\//, '/')         // Remove :1 before /
-      .replace(/:1\?/, '?')         // Remove :1 before ?
-      .replace(/:1&/, '&')          // Remove :1 before &
-      .replace(/\/api:1/, '/api')   // Remove :1 after /api
-      .replace(/\.com:1/, '.com');  // Remove :1 after .com
-    
-    console.log('🔧 Sanitized URL:', sanitizedUrl);
-    
-    // Update the request URL
-    req.url = sanitizedUrl;
-    
-    // If the URL changed significantly, redirect
-    if (sanitizedUrl !== originalUrl) {
-      console.log('🔧 Redirecting from', originalUrl, 'to', sanitizedUrl);
-      return res.redirect(308, sanitizedUrl);
-    }
-  }
-  
-  next();
-});
-
 // Configuration constants
 const CONFIG = {
   PORT: process.env.PORT || 5001,
@@ -132,6 +100,38 @@ function createApp() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
   }));
+
+  // Middleware to handle :1 suffix in URLs (AFTER CORS)
+  app.use((req, res, next) => {
+    const originalUrl = req.url;
+    
+    // Check if URL contains :1 suffix
+    if (originalUrl.includes(':1')) {
+      console.log('🔧 Detected :1 suffix in URL:', originalUrl);
+      
+      // Remove :1 suffix from the URL
+      const sanitizedUrl = originalUrl
+        .replace(/:1$/, '')           // Remove :1 at the end
+        .replace(/:1\//, '/')         // Remove :1 before /
+        .replace(/:1\?/, '?')         // Remove :1 before ?
+        .replace(/:1&/, '&')          // Remove :1 before &
+        .replace(/\/api:1/, '/api')   // Remove :1 after /api
+        .replace(/\.com:1/, '.com');  // Remove :1 after .com
+      
+      console.log('🔧 Sanitized URL:', sanitizedUrl);
+      
+      // Update the request URL
+      req.url = sanitizedUrl;
+      
+      // If the URL changed significantly, redirect
+      if (sanitizedUrl !== originalUrl) {
+        console.log('🔧 Redirecting from', originalUrl, 'to', sanitizedUrl);
+        return res.redirect(308, sanitizedUrl);
+      }
+    }
+    
+    next();
+  });
 
   // Rate limiting - Disabled for development
   if (CONFIG.NODE_ENV === 'production') {
