@@ -17,7 +17,7 @@ const StaffManagementPage = () => {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -690,7 +690,7 @@ const StaffManagementPage = () => {
       {/* Enhanced Create User Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl border border-sangeet-neutral-600 w-full max-w-lg mx-4 shadow-2xl transform transition-all duration-300">
+          <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl border border-sangeet-neutral-600 w-full max-w-lg mx-4 shadow-2xl transform transition-all duration-300 max-h-[90vh] flex flex-col">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-sangeet-neutral-700">
               <div className="flex items-center gap-3">
@@ -713,7 +713,7 @@ const StaffManagementPage = () => {
               </button>
             </div>
             {/* Modal Body */}
-            <form onSubmit={handleCreateUser} className="p-6 space-y-6">
+            <form onSubmit={handleCreateUser} className="p-6 space-y-6 flex-1 overflow-y-auto">
               {/* Personal Information */}
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold text-sangeet-neutral-200 uppercase tracking-wider flex items-center gap-2">
@@ -830,7 +830,7 @@ const StaffManagementPage = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t border-sangeet-neutral-700">
+              <div className="flex gap-3 pt-4 border-t border-sangeet-neutral-700 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => {
@@ -856,7 +856,7 @@ const StaffManagementPage = () => {
       {/* Enhanced Edit User Modal */}
       {showEditModal && editingUser && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl border border-sangeet-neutral-600 w-full max-w-2xl mx-4 shadow-2xl transform transition-all duration-300">
+          <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl border border-sangeet-neutral-600 w-full max-w-2xl mx-4 shadow-2xl transform transition-all duration-300 max-h-[90vh] flex flex-col">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-sangeet-neutral-700">
               <div className="flex items-center gap-3">
@@ -882,7 +882,7 @@ const StaffManagementPage = () => {
               </button>
             </div>
             {/* Modal Body */}
-            <form onSubmit={handleUpdateUser} className="p-6">
+            <form onSubmit={handleUpdateUser} className="p-6 flex-1 overflow-y-auto">
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
