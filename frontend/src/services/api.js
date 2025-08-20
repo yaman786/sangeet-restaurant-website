@@ -474,7 +474,13 @@ export const fetchAllOrders = async (queryParams = '') => {
 
 export const getTableByNumber = async (tableNumber) => {
   return apiCallWrapper(async () => {
-    return await api.get(`/tables/number/${encodeURIComponent(tableNumber)}`);
+    // Get all tables and find the one with matching table_number
+    const allTables = await api.get('/tables');
+    const table = allTables.find(t => t.table_number === tableNumber);
+    if (!table) {
+      throw new Error('Table not found');
+    }
+    return table;
   }, 'getTableByNumber');
 };
 
