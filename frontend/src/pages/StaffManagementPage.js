@@ -17,7 +17,7 @@ const StaffManagementPage = () => {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
-  const [showCreateModal, setShowCreateModal] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
