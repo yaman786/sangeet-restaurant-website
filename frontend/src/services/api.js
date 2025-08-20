@@ -11,8 +11,20 @@ const API_CONFIG = {
 
 // Function to sanitize URLs and remove :1 suffix
 const sanitizeUrl = (url) => {
-  // Remove :1 suffix if present
-  return url.replace(/:1$/, '').replace(/:1\//, '/');
+  if (!url) return url;
+  
+  // Remove :1 suffix if present (multiple patterns)
+  let sanitized = url
+    .replace(/:1$/, '')           // Remove :1 at the end
+    .replace(/:1\//, '/')         // Remove :1 before /
+    .replace(/:1\?/, '?')         // Remove :1 before ?
+    .replace(/:1&/, '&')          // Remove :1 before &
+    .replace(/:1$/, '')           // Remove :1 at the end again (in case of multiple)
+    .replace(/\/api:1/, '/api')   // Remove :1 after /api
+    .replace(/\.com:1/, '.com');  // Remove :1 after .com
+  
+  console.log('🔧 URL sanitization:', { original: url, sanitized });
+  return sanitized;
 };
 
 // Error types for better error handling
@@ -39,12 +51,32 @@ class ApiError extends Error {
 
 // Create axios instance with URL sanitization
 const api = axios.create({
-  baseURL: 'https://sangeet-restaurant-api.onrender.com/api',
+  baseURL: sanitizeUrl('https://sangeet-restaurant-api.onrender.com/api'),
   timeout: API_CONFIG.TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Override axios request method to ensure URL sanitization
+const originalRequest = api.request;
+api.request = function(config) {
+  // Sanitize URLs in the config
+  if (config.url) {
+    config.url = sanitizeUrl(config.url);
+  }
+  if (config.baseURL) {
+    config.baseURL = sanitizeUrl(config.baseURL);
+  }
+  
+  console.log('🔧 Overridden request method - Config:', {
+    url: config.url,
+    baseURL: config.baseURL,
+    method: config.method
+  });
+  
+  return originalRequest.call(this, config);
+};
 
 // Add request interceptor to sanitize URLs and add auth token
 api.interceptors.request.use(
@@ -57,11 +89,17 @@ api.interceptors.request.use(
       config.baseURL = sanitizeUrl(config.baseURL);
     }
     
+    // Also sanitize the full URL that will be used
+    const fullUrl = (config.baseURL || '') + (config.url || '');
+    const sanitizedFullUrl = sanitizeUrl(fullUrl);
+    
     console.log('🔧 Request interceptor - Sanitized URL:', {
       originalUrl: config.url,
       originalBaseURL: config.baseURL,
       sanitizedUrl: config.url,
-      sanitizedBaseURL: config.baseURL
+      sanitizedBaseURL: config.baseURL,
+      fullUrl: fullUrl,
+      sanitizedFullUrl: sanitizedFullUrl
     });
     
     // Add auth token
