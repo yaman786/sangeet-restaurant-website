@@ -9,6 +9,28 @@ const API_CONFIG = {
   RETRY_DELAY: 1000
 };
 
+// Override XMLHttpRequest to catch :1 suffix at browser level
+const originalXHROpen = XMLHttpRequest.prototype.open;
+XMLHttpRequest.prototype.open = function(method, url, ...args) {
+  if (url && url.includes(':1')) {
+    console.log('🚨 XMLHttpRequest caught :1 suffix:', url);
+    url = url.replace(/:1/g, '');
+    console.log('🔧 XMLHttpRequest corrected URL:', url);
+  }
+  return originalXHROpen.call(this, method, url, ...args);
+};
+
+// Override fetch to catch :1 suffix at browser level
+const originalFetch = window.fetch;
+window.fetch = function(url, options) {
+  if (typeof url === 'string' && url.includes(':1')) {
+    console.log('🚨 Fetch caught :1 suffix:', url);
+    url = url.replace(/:1/g, '');
+    console.log('🔧 Fetch corrected URL:', url);
+  }
+  return originalFetch.call(this, url, options);
+};
+
 // Function to sanitize URLs and remove :1 suffix
 const sanitizeUrl = (url) => {
   if (!url) return url;
@@ -21,7 +43,9 @@ const sanitizeUrl = (url) => {
     .replace(/:1&/, '&')          // Remove :1 before &
     .replace(/:1$/, '')           // Remove :1 at the end again (in case of multiple)
     .replace(/\/api:1/, '/api')   // Remove :1 after /api
-    .replace(/\.com:1/, '.com');  // Remove :1 after .com
+    .replace(/\.com:1/, '.com')   // Remove :1 after .com
+    .replace(/\/orders:1/, '/orders')  // Remove :1 after /orders specifically
+    .replace(/\/orders\/:1/, '/orders'); // Remove :1 after /orders/ specifically
   
   console.log('🔧 URL sanitization:', { original: url, sanitized });
   return sanitized;
@@ -69,10 +93,16 @@ api.request = function(config) {
     config.baseURL = sanitizeUrl(config.baseURL);
   }
   
+  // Also sanitize the full URL that will be constructed
+  const fullUrl = (config.baseURL || '') + (config.url || '');
+  const sanitizedFullUrl = sanitizeUrl(fullUrl);
+  
   console.log('🔧 Overridden request method - Config:', {
     url: config.url,
     baseURL: config.baseURL,
-    method: config.method
+    method: config.method,
+    fullUrl: fullUrl,
+    sanitizedFullUrl: sanitizedFullUrl
   });
   
   return originalRequest.call(this, config);
@@ -194,7 +224,7 @@ const retryApiCall = async (apiCall, attempts = API_CONFIG.RETRY_ATTEMPTS) => {
   }
 };
 
-// Response interceptor
+// Add response interceptor to handle :1 suffix errors
 api.interceptors.response.use(
   (response) => {
     return response.data;
@@ -215,6 +245,18 @@ api.interceptors.response.use(
     // If it's a 404 and the URL contains :1, log it specifically
     if (error.response?.status === 404 && error.config?.url?.includes(':1')) {
       console.error('🚨 DETECTED :1 SUFFIX IN URL - This should be fixed by the interceptor');
+      
+      // Try to retry the request with the correct URL
+      const correctedConfig = { ...error.config };
+      correctedConfig.url = sanitizeUrl(error.config.url);
+      correctedConfig.baseURL = sanitizeUrl(error.config.baseURL);
+      
+      console.log('🔄 Retrying request with corrected URL:', {
+        originalUrl: error.config.url,
+        correctedUrl: correctedConfig.url
+      });
+      
+      return api.request(correctedConfig);
     }
     
     return handleApiError(error);
