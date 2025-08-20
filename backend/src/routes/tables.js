@@ -46,6 +46,30 @@ router.get('/qr/:qrCode', async (req, res, next) => {
 });
 
 /**
+ * GET /api/tables/number/:tableNumber
+ * Get table by table number
+ */
+router.get('/number/:tableNumber', async (req, res, next) => {
+  try {
+    const { tableNumber } = req.params;
+    
+    const result = await pool.query(
+      'SELECT * FROM tables WHERE table_number = $1 AND is_active = true',
+      [tableNumber]
+    );
+    const rows = result.rows;
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Table not found' });
+    }
+    
+    res.json(rows[0]);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * POST /api/tables
  * Create a new table (Admin only)
  */
