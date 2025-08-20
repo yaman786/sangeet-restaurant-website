@@ -19,7 +19,7 @@ class SocketService {
     }
 
     // Use the base URL without /api for socket connection
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+    const baseUrl = 'https://sangeet-restaurant-api.onrender.com';
     const apiUrl = baseUrl.replace('/api', ''); // Remove /api if present
     
     try {

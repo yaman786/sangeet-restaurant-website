@@ -35,7 +35,7 @@ const LoginPage = () => {
 
     try {
       console.log('📡 Making API call to login...');
-      console.log('📡 API URL:', process.env.REACT_APP_API_URL || 'http://localhost:5001/api');
+      console.log('📡 API URL:', 'https://sangeet-restaurant-api.onrender.com/api');
       const response = await loginUser(credentials);
       console.log('✅ Login response:', response);
       
