@@ -1,22 +1,36 @@
 const express = require('express');
 const router = express.Router();
+const { authenticateToken } = require('../middleware/auth');
 const {
-  getAllTables,
-  getTableByQRCode,
   createOrder,
+  getOrders,
   getOrderById,
-  getOrdersByTable,
-  getOrdersByTableNumber,
   updateOrderStatus,
-  getAllOrders,
-  getOrderStats,
-  generateTableQRCode,
-  generateAllTableQRCodes,
   deleteOrder,
-  bulkUpdateOrderStatus,
-  searchOrders
+  getOrdersByTable,
+  getActiveOrders,
+  getCompletedOrders,
+  getOrdersByDateRange,
+  getOrderStats,
+  generateKOT
 } = require('../controllers/orderController');
 const { validateId } = require('../middleware/validation');
+
+// Handle orders endpoint with :1 suffix
+router.post('/orders:1', (req, res) => {
+  console.log('🔧 Intercepted orders:1 request, redirecting to /orders');
+  // Redirect to the correct endpoint
+  req.url = '/orders';
+  return createOrder(req, res);
+});
+
+// Handle orders endpoint with :1 suffix (alternative pattern)
+router.post('/orders/:1', (req, res) => {
+  console.log('🔧 Intercepted orders/:1 request, redirecting to /orders');
+  // Redirect to the correct endpoint
+  req.url = '/orders';
+  return createOrder(req, res);
+});
 
 // QR Code and Table routes
 router.get('/tables', getAllTables);
