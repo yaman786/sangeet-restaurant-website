@@ -607,7 +607,7 @@ const RestaurantWebsiteManagementPage = () => {
                     <div key={item.id} className="bg-sangeet-neutral-800 rounded-lg p-4 border border-sangeet-neutral-600">
                       <div className="aspect-square bg-sangeet-neutral-700 rounded-lg mb-3 overflow-hidden">
                         <img
-                          src={`http://localhost:5001${item.file_path}`}
+                          src={`https://sangeet-restaurant-api.onrender.com${item.file_path}`}
                           alt={item.alt_text || item.file_name}
                           className="w-full h-full object-cover"
                         />
