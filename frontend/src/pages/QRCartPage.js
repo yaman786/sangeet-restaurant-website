@@ -192,9 +192,9 @@ const QRCartPage = () => {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
-      setIsSubmitting(true);
-      
       const orderData = {
         table_id: tableInfo.id,
         customer_name: customerName.trim(),
@@ -250,7 +250,13 @@ const QRCartPage = () => {
       console.error('Error placing order:', error);
       console.error('Error response:', error.response?.data);
       console.error('Error status:', error.response?.status);
-      toast.error(error.response?.data?.error || 'Failed to place order. Please try again.');
+      
+      // Check if it's a validation error about missing fields
+      if (error.response?.data?.error?.includes('Missing required fields')) {
+        toast.error('Order data is incomplete. Please try again.');
+      } else {
+        toast.error(error.response?.data?.error || 'Failed to place order. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
