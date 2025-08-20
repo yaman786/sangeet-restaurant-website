@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { getTableByQRCode } from '../services/api';
+import { createOrder, getTableByQRCode } from '../services/api';
 import socketService from '../services/socketService';
 import { clearCartData } from '../utils/cartUtils';
 
@@ -181,52 +181,6 @@ const QRCartPage = () => {
     return cart.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0);
   };
 
-  // Direct order placement using fetch - bypasses all axios issues
-  const placeOrderDirect = async (orderData) => {
-    console.log('🚀 DIRECT ORDER PLACEMENT - Using fetch, no axios');
-    
-    const url = 'https://sangeet-restaurant-api.onrender.com/api/orders';
-    const token = localStorage.getItem('authToken') || localStorage.getItem('adminToken');
-    
-    const headers = {
-      'Content-Type': 'application/json',
-    };
-    
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-    
-    console.log('🔧 Direct fetch config:', {
-      url,
-      method: 'POST',
-      headers,
-      body: JSON.stringify(orderData)
-    });
-    
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(orderData)
-      });
-      
-      console.log('✅ Direct fetch response status:', response.status);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('❌ Direct fetch error:', errorData);
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-      }
-      
-      const result = await response.json();
-      console.log('✅ Direct fetch success:', result);
-      return result;
-    } catch (error) {
-      console.error('❌ Direct fetch failed:', error);
-      throw error;
-    }
-  };
-
   const handleSubmitOrder = async () => {
     if (!customerName.trim()) {
       toast.error('Please enter your name');
@@ -258,7 +212,7 @@ const QRCartPage = () => {
       console.log('Table info:', tableInfo);
 
       // Use direct fetch instead of API service
-      const orderResponse = await placeOrderDirect(orderData);
+      const orderResponse = await createOrder(orderData);
       console.log('✅ Order response received:', orderResponse);
       console.log('📋 Full order response structure:', JSON.stringify(orderResponse, null, 2));
       

@@ -1,54 +1,12 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// API Configuration - FINAL CACHE BUST v4
+// API Configuration
 const API_CONFIG = {
   BASE_URL: 'https://sangeet-restaurant-api.onrender.com/api',
   TIMEOUT: 10000,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000
-};
-
-// Override XMLHttpRequest to catch :1 suffix at browser level
-const originalXHROpen = XMLHttpRequest.prototype.open;
-XMLHttpRequest.prototype.open = function(method, url, ...args) {
-  if (url && url.includes(':1')) {
-    console.log('🚨 XMLHttpRequest caught :1 suffix:', url);
-    url = url.replace(/:1/g, '');
-    console.log('🔧 XMLHttpRequest corrected URL:', url);
-  }
-  return originalXHROpen.call(this, method, url, ...args);
-};
-
-// Override fetch to catch :1 suffix at browser level
-const originalFetch = window.fetch;
-window.fetch = function(url, options) {
-  if (typeof url === 'string' && url.includes(':1')) {
-    console.log('🚨 Fetch caught :1 suffix:', url);
-    url = url.replace(/:1/g, '');
-    console.log('🔧 Fetch corrected URL:', url);
-  }
-  return originalFetch.call(this, url, options);
-};
-
-// Function to sanitize URLs and remove :1 suffix
-const sanitizeUrl = (url) => {
-  if (!url) return url;
-  
-  // Remove :1 suffix if present (multiple patterns)
-  let sanitized = url
-    .replace(/:1$/, '')           // Remove :1 at the end
-    .replace(/:1\//, '/')         // Remove :1 before /
-    .replace(/:1\?/, '?')         // Remove :1 before ?
-    .replace(/:1&/, '&')          // Remove :1 before &
-    .replace(/:1$/, '')           // Remove :1 at the end again (in case of multiple)
-    .replace(/\/api:1/, '/api')   // Remove :1 after /api
-    .replace(/\.com:1/, '.com')   // Remove :1 after .com
-    .replace(/\/orders:1/, '/orders')  // Remove :1 after /orders specifically
-    .replace(/\/orders\/:1/, '/orders'); // Remove :1 after /orders/ specifically
-  
-  console.log('🔧 URL sanitization:', { original: url, sanitized });
-  return sanitized;
 };
 
 // Error types for better error handling
@@ -73,72 +31,14 @@ class ApiError extends Error {
   }
 }
 
-// Create axios instance with URL sanitization
+// Create axios instance with proper configuration
 const api = axios.create({
-  baseURL: sanitizeUrl('https://sangeet-restaurant-api.onrender.com/api'),
+  baseURL: API_CONFIG.BASE_URL,
   timeout: API_CONFIG.TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
 });
-
-// Override axios request method to ensure URL sanitization
-const originalRequest = api.request;
-api.request = function(config) {
-  // Sanitize URLs in the config
-  if (config.url) {
-    config.url = sanitizeUrl(config.url);
-  }
-  if (config.baseURL) {
-    config.baseURL = sanitizeUrl(config.baseURL);
-  }
-  
-  // Also sanitize the full URL that will be constructed
-  const fullUrl = (config.baseURL || '') + (config.url || '');
-  const sanitizedFullUrl = sanitizeUrl(fullUrl);
-  
-  console.log('🔧 Overridden request method - Config:', {
-    url: config.url,
-    baseURL: config.baseURL,
-    method: config.method,
-    fullUrl: fullUrl,
-    sanitizedFullUrl: sanitizedFullUrl
-  });
-  
-  return originalRequest.call(this, config);
-};
-
-// Add request interceptor to sanitize URLs and add auth token
-api.interceptors.request.use(
-  (config) => {
-    // Sanitize the URL to remove :1 suffix
-    if (config.url) {
-      config.url = sanitizeUrl(config.url);
-    }
-    if (config.baseURL) {
-      config.baseURL = sanitizeUrl(config.baseURL);
-    }
-    
-    // Also sanitize the full URL that will be used
-    const fullUrl = (config.baseURL || '') + (config.url || '');
-    const sanitizedFullUrl = sanitizeUrl(fullUrl);
-    
-    console.log('🔧 Request interceptor - Sanitized URL:', {
-      originalUrl: config.url,
-      originalBaseURL: config.baseURL,
-      sanitizedUrl: config.url,
-      sanitizedBaseURL: config.baseURL,
-      fullUrl: fullUrl,
-      sanitizedFullUrl: sanitizedFullUrl
-    });
-    
-    // Add auth token
-    return addAuthToken(config);
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 /**
  * Get auth token from localStorage
@@ -214,9 +114,11 @@ const retryApiCall = async (apiCall, attempts = API_CONFIG.RETRY_ATTEMPTS) => {
     } catch (error) {
       if (i === attempts - 1) throw error;
       
-      // Only retry network and timeout errors
-      if (error.type === API_ERROR_TYPES.NETWORK || error.type === API_ERROR_TYPES.TIMEOUT) {
-        await new Promise(resolve => setTimeout(resolve, API_CONFIG.RETRY_DELAY * (i + 1)));
+      // Only retry on network errors or 5xx server errors
+      if (error.type === API_ERROR_TYPES.NETWORK || 
+          (error.status && error.status >= 500)) {
+        console.log(`Retrying API call (attempt ${i + 2}/${attempts})...`);
+        await new Promise(resolve => setTimeout(resolve, API_CONFIG.RETRY_DELAY));
         continue;
       }
       throw error;
@@ -224,47 +126,8 @@ const retryApiCall = async (apiCall, attempts = API_CONFIG.RETRY_ATTEMPTS) => {
   }
 };
 
-// Add response interceptor to handle :1 suffix errors
-api.interceptors.response.use(
-  (response) => {
-    return response.data;
-  },
-  (error) => {
-    // Log URL-related errors
-    if (error.config) {
-      console.error('🔧 Response interceptor - Error details:', {
-        url: error.config.url,
-        baseURL: error.config.baseURL,
-        fullURL: error.config.baseURL + error.config.url,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        error: error.message
-      });
-    }
-    
-    // If it's a 404 and the URL contains :1, log it specifically
-    if (error.response?.status === 404 && error.config?.url?.includes(':1')) {
-      console.error('🚨 DETECTED :1 SUFFIX IN URL - This should be fixed by the interceptor');
-      
-      // Try to retry the request with the correct URL
-      const correctedConfig = { ...error.config };
-      correctedConfig.url = sanitizeUrl(error.config.url);
-      correctedConfig.baseURL = sanitizeUrl(error.config.baseURL);
-      
-      console.log('🔄 Retrying request with corrected URL:', {
-        originalUrl: error.config.url,
-        correctedUrl: correctedConfig.url
-      });
-      
-      return api.request(correctedConfig);
-    }
-    
-    return handleApiError(error);
-  }
-);
-
 /**
- * Generic API call wrapper with error handling and retry logic
+ * Wrapper for API calls with error handling and retry logic
  * @param {Function} apiCall - API function to execute
  * @param {string} errorContext - Context for error messages
  * @param {boolean} enableRetry - Whether to enable retry logic
@@ -284,6 +147,26 @@ const apiCallWrapper = async (apiCall, errorContext = 'API call', enableRetry = 
     throw error;
   }
 };
+
+// Add request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    return addAuthToken(config);
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle errors
+api.interceptors.response.use(
+  (response) => {
+    return response.data;
+  },
+  (error) => {
+    return handleApiError(error);
+  }
+);
 
 // Menu API calls
 export const fetchMenuItems = async (filters = {}) => {
