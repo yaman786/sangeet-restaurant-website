@@ -472,6 +472,12 @@ export const fetchAllOrders = async (queryParams = '') => {
   }, 'fetchAllOrders');
 };
 
+export const getTableByNumber = async (tableNumber) => {
+  return apiCallWrapper(async () => {
+    return await api.get(`/tables/number/${encodeURIComponent(tableNumber)}`);
+  }, 'getTableByNumber');
+};
+
 export const fetchOrderStats = async () => {
   return apiCallWrapper(async () => {
     return await api.get('/orders/stats');

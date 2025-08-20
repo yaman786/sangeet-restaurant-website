@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import { getOrdersByTable, createOrder, fetchMenuItems, fetchMenuCategories, getOrderById } from '../services/api';
+import { getOrdersByTable, createOrder, fetchMenuItems, fetchMenuCategories, getOrderById, getTableByNumber } from '../services/api';
 import socketService from '../services/socketService';
 import toast from 'react-hot-toast';
 
@@ -54,6 +54,7 @@ const UnifiedDashboardPage = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [tableInfo, setTableInfo] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [manualMenuNavigation, setManualMenuNavigation] = useState(false);
@@ -231,6 +232,17 @@ const UnifiedDashboardPage = () => {
       
       // Restore session data only if session is valid
       const sessionRestored = sessionValid ? restoreSessionData() : false;
+      
+      // Fetch table information first
+      if (tableNumber) {
+        try {
+          const tableData = await getTableByNumber(tableNumber);
+          setTableInfo(tableData);
+        } catch (error) {
+          console.error('Error fetching table info:', error);
+          toast.error('Failed to load table information');
+        }
+      }
       
       // Load orders for this table
       const tableOrders = await getOrdersByTable(tableNumber);
@@ -581,8 +593,11 @@ const UnifiedDashboardPage = () => {
     try {
       setLoading(true);
       
+      // Use tableInfo.id if available, otherwise fallback to tableNumber
+      const tableId = tableInfo?.id || tableNumber;
+      
       const orderData = {
-        table_id: tableNumber,
+        table_id: tableId,
         customer_name: customerName,
         items: cart.map(item => ({
           menu_item_id: item.id,
