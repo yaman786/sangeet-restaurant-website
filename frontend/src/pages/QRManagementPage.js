@@ -61,7 +61,7 @@ const QRManagementPage = () => {
   });
   const [bulkFormData, setBulkFormData] = useState({
     tableNumbers: '',
-    baseUrl: process.env.REACT_APP_CLIENT_URL || 'http://localhost:3000',
+    baseUrl: 'https://sangeetrestauranthk.netlify.app',
     design: {
       darkColor: '#1d1b16',
       lightColor: '#ffffff',
@@ -253,7 +253,7 @@ const QRManagementPage = () => {
       setShowBulkModal(false);
       setBulkFormData({
         tableNumbers: '',
-        baseUrl: 'http://localhost:3000',
+        baseUrl: 'https://sangeetrestauranthk.netlify.app',
         design: {
           darkColor: '#1d1b16',
           lightColor: '#ffffff',
@@ -611,7 +611,7 @@ const QRManagementPage = () => {
                     placeholder="https://your-restaurant.com/qr/table-1"
                   />
                   <p className="text-xs text-sangeet-neutral-500 mt-1">
-                    Leave empty to use default: {process.env.REACT_APP_CLIENT_URL || 'http://localhost:3000'}/qr/table-[number]
+                    Leave empty to use default: https://sangeetrestauranthk.netlify.app/qr/table-[number]
                   </p>
                 </div>
               </div>

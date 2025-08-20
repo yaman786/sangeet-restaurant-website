@@ -23,7 +23,7 @@ const QRCodeDisplayPage = () => {
   };
 
   const generateQRCode = (tableNumber) => {
-    const qrUrl = `http://localhost:3000/qr/table-${tableNumber}`;
+    const qrUrl = `https://sangeetrestauranthk.netlify.app/qr/table-${tableNumber}`;
     return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}`;
   };
 
