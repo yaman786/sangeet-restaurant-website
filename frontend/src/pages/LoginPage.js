@@ -78,21 +78,7 @@ const LoginPage = () => {
     }
   };
 
-  const fillDemoCredentials = (role) => {
-    if (role === 'admin') {
-      setCredentials({
-        username: 'admin',
-        password: 'admin123'
-      });
-      toast.success('✅ Admin credentials filled! (Verified working)');
-    } else if (role === 'staff') {
-      setCredentials({
-        username: 'kitchen',
-        password: 'kitchen123'
-      });
-      toast.success('✅ Kitchen staff credentials filled! (Verified working)');
-    }
-  };
+  // Demo credentials function removed
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-800 flex items-center justify-center p-4">
@@ -102,20 +88,20 @@ const LoginPage = () => {
         className="w-full max-w-md"
       >
         {/* Large Logo Section */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <motion.div 
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-sangeet-400 to-sangeet-500 rounded-full flex items-center justify-center shadow-2xl"
+            className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-sangeet-400 to-sangeet-500 rounded-full flex items-center justify-center shadow-2xl"
           >
-            <span className="text-6xl">🍽️</span>
+            <span className="text-4xl">🍽️</span>
           </motion.div>
           <motion.h1 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-4xl font-bold text-sangeet-400 mb-2"
+            className="text-3xl font-bold text-sangeet-400 mb-1"
           >
             Sangeet Restaurant
           </motion.h1>
@@ -123,7 +109,7 @@ const LoginPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-sangeet-neutral-400 text-lg"
+            className="text-sangeet-neutral-400 text-base"
           >
             Staff Portal Login
           </motion.p>
@@ -136,12 +122,12 @@ const LoginPage = () => {
           transition={{ delay: 0.5 }}
           className="bg-sangeet-neutral-900 rounded-2xl shadow-2xl border border-sangeet-neutral-700 p-8"
         >
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-sangeet-400 mb-2">Welcome Back</h2>
-            <p className="text-sangeet-neutral-400">Sign in to access your dashboard</p>
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-bold text-sangeet-400 mb-1">Welcome Back</h2>
+            <p className="text-sangeet-neutral-400 text-sm">Sign in to access your dashboard</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Username Field */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
@@ -193,63 +179,12 @@ const LoginPage = () => {
             </button>
           </form>
 
-          {/* Role-based Demo Credentials */}
-          <div className="mt-6 space-y-4">
-            <div className="p-4 bg-gradient-to-r from-sangeet-400/10 to-sangeet-500/10 rounded-lg border border-sangeet-400/20">
-              <h3 className="text-sm font-semibold text-sangeet-400 mb-3 text-center">🔑 Demo Credentials</h3>
-              
-              {/* Admin Credentials */}
-              <div className="bg-sangeet-neutral-800 rounded-lg p-3 mb-3 border border-sangeet-neutral-600">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-sangeet-neutral-300">👨‍💼 Administrator</span>
-                  <button
-                    type="button"
-                    onClick={() => fillDemoCredentials('admin')}
-                    className="bg-sangeet-400/20 hover:bg-sangeet-400/30 text-sangeet-400 px-3 py-1 rounded text-xs font-medium transition-colors duration-200 border border-sangeet-400/30"
-                  >
-                    Use Admin
-                  </button>
-                </div>
-                                            <div className="text-xs text-sangeet-neutral-400 space-y-1">
-                              <div>Username: <span className="text-sangeet-400 font-mono">admin</span> ✅</div>
-                              <div>Password: <span className="text-sangeet-400 font-mono">admin123</span> ✅</div>
-                              <div>Access: Full admin dashboard, all management features</div>
-                              <div className="text-green-400 text-xs">✓ Verified working</div>
-                            </div>
-              </div>
-
-              {/* Staff Credentials */}
-              <div className="bg-sangeet-neutral-800 rounded-lg p-3 border border-sangeet-neutral-600">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-sangeet-neutral-300">👨‍🍳 Kitchen Staff</span>
-                  <button
-                    type="button"
-                    onClick={() => fillDemoCredentials('staff')}
-                    className="bg-orange-400/20 hover:bg-orange-400/30 text-orange-400 px-3 py-1 rounded text-xs font-medium transition-colors duration-200 border border-orange-400/30"
-                  >
-                    Use Staff
-                  </button>
-                </div>
-                                            <div className="text-xs text-sangeet-neutral-400 space-y-1">
-                              <div>Username: <span className="text-orange-400 font-mono">kitchen</span> ✅</div>
-                              <div>Password: <span className="text-orange-400 font-mono">kitchen123</span> ✅</div>
-                              <div>Access: Kitchen display system, order management</div>
-                              <div className="text-green-400 text-xs">✓ Verified working</div>
-                            </div>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <p className="text-xs text-sangeet-neutral-500">
-                Your dashboard will be determined automatically based on your role
-              </p>
-            </div>
-          </div>
+                      {/* Demo credentials section removed */}
         </motion.div>
 
         {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-sangeet-neutral-500 text-sm">
+        <div className="text-center mt-4">
+          <p className="text-sangeet-neutral-500 text-xs">
             © 2024 Sangeet Restaurant. All rights reserved.
           </p>
         </div>
