@@ -902,7 +902,8 @@ const UnifiedDashboardPage = () => {
 
             {/* Navigation Buttons */}
             <div className="flex items-center space-x-3">
-              {!hasCancelledOrder && (
+              {/* Continue Ordering - Hide when already in menu view */}
+              {!hasCancelledOrder && currentView !== 'menu' && (
                 <button
                   type="button"
                   onClick={(e) => {
@@ -944,17 +945,21 @@ const UnifiedDashboardPage = () => {
                   {loading ? 'Loading...' : 'Continue Ordering'}
                 </button>
               )}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setCurrentView('tracking');
-                }}
-                className="px-4 py-2 bg-sangeet-neutral-700 text-sangeet-400 font-semibold rounded-lg hover:bg-sangeet-neutral-600 transition-colors duration-200"
-              >
-                Track Orders
-              </button>
+              
+              {/* Track Orders - Hide when already in tracking view */}
+              {currentView !== 'tracking' && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setCurrentView('tracking');
+                  }}
+                  className="px-4 py-2 bg-sangeet-neutral-700 text-sangeet-400 font-semibold rounded-lg hover:bg-sangeet-neutral-600 transition-colors duration-200"
+                >
+                  Track Orders
+                </button>
+              )}
 
 
               {currentView === 'menu' && cart.length > 0 && (
