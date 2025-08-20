@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
-import { createOrder, getTableByQRCode } from '../services/api';
+import { createOrderDirect, getTableByQRCode } from '../services/api';
 import socketService from '../services/socketService';
 import toast from 'react-hot-toast';
 import { clearCartData } from '../utils/cartUtils';
@@ -211,7 +211,7 @@ const QRCartPage = () => {
       console.log('Cart data:', cart);
       console.log('Table info:', tableInfo);
 
-      const orderResponse = await createOrder(orderData);
+      const orderResponse = await createOrderDirect(orderData);
       console.log('✅ Order response received:', orderResponse);
       console.log('📋 Full order response structure:', JSON.stringify(orderResponse, null, 2));
       

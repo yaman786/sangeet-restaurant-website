@@ -515,6 +515,41 @@ export const getTableByQRCode = async (qrCode) => {
   }, 'getTableByQRCode');
 };
 
+// Direct order creation method that bypasses all interceptors
+export const createOrderDirect = async (orderData) => {
+  console.log('🚀 Direct order creation - bypassing all interceptors');
+  
+  // Create a completely fresh axios instance
+  const directApi = axios.create({
+    baseURL: 'https://sangeet-restaurant-api.onrender.com/api',
+    timeout: 10000,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  
+  // Add auth token directly
+  const token = localStorage.getItem('authToken') || localStorage.getItem('adminToken');
+  if (token) {
+    directApi.defaults.headers.Authorization = `Bearer ${token}`;
+  }
+  
+  console.log('🔧 Direct API config:', {
+    baseURL: directApi.defaults.baseURL,
+    url: '/orders',
+    fullURL: directApi.defaults.baseURL + '/orders'
+  });
+  
+  try {
+    const response = await directApi.post('/orders', orderData);
+    console.log('✅ Direct order creation successful:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Direct order creation failed:', error);
+    throw error;
+  }
+};
+
 export const createOrder = async (orderData) => {
   console.log('🔧 createOrder - API Config:', {
     BASE_URL: API_CONFIG.BASE_URL,
