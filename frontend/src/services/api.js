@@ -9,9 +9,11 @@ const API_CONFIG = {
   RETRY_DELAY: 1000
 };
 
-
-
-
+// Function to sanitize URLs and remove :1 suffix
+const sanitizeUrl = (url) => {
+  // Remove :1 suffix if present
+  return url.replace(/:1$/, '').replace(/:1\//, '/');
+};
 
 // Error types for better error handling
 export const API_ERROR_TYPES = {
@@ -35,9 +37,7 @@ class ApiError extends Error {
   }
 }
 
-/**
- * Create axios instance with base configuration
- */
+// Create axios instance with URL sanitization
 const api = axios.create({
   baseURL: 'https://sangeet-restaurant-api.onrender.com/api',
   timeout: API_CONFIG.TIMEOUT,
@@ -45,6 +45,32 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Add request interceptor to sanitize URLs and add auth token
+api.interceptors.request.use(
+  (config) => {
+    // Sanitize the URL to remove :1 suffix
+    if (config.url) {
+      config.url = sanitizeUrl(config.url);
+    }
+    if (config.baseURL) {
+      config.baseURL = sanitizeUrl(config.baseURL);
+    }
+    
+    console.log('🔧 Request interceptor - Sanitized URL:', {
+      originalUrl: config.url,
+      originalBaseURL: config.baseURL,
+      sanitizedUrl: config.url,
+      sanitizedBaseURL: config.baseURL
+    });
+    
+    // Add auth token
+    return addAuthToken(config);
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 /**
  * Get auth token from localStorage
@@ -130,22 +156,31 @@ const retryApiCall = async (apiCall, attempts = API_CONFIG.RETRY_ATTEMPTS) => {
   }
 };
 
-// Request interceptor
-api.interceptors.request.use(
-  (config) => {
-    return addAuthToken(config);
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
     return response.data;
   },
-  handleApiError
+  (error) => {
+    // Log URL-related errors
+    if (error.config) {
+      console.error('🔧 Response interceptor - Error details:', {
+        url: error.config.url,
+        baseURL: error.config.baseURL,
+        fullURL: error.config.baseURL + error.config.url,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        error: error.message
+      });
+    }
+    
+    // If it's a 404 and the URL contains :1, log it specifically
+    if (error.response?.status === 404 && error.config?.url?.includes(':1')) {
+      console.error('🚨 DETECTED :1 SUFFIX IN URL - This should be fixed by the interceptor');
+    }
+    
+    return handleApiError(error);
+  }
 );
 
 /**
