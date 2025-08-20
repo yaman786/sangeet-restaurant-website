@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { loginUser } from '../services/api';
 import toast from 'react-hot-toast';
+import logoImage from '../assets/images/logo.png';
 
 const LoginPage = () => {
   const [credentials, setCredentials] = useState({
@@ -93,9 +94,13 @@ const LoginPage = () => {
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-sangeet-400 to-sangeet-500 rounded-full flex items-center justify-center shadow-2xl"
+            className="w-32 h-32 mx-auto mb-4 bg-white rounded-full flex items-center justify-center shadow-2xl p-2"
           >
-            <span className="text-4xl">🍽️</span>
+            <img 
+              src={logoImage} 
+              alt="Sangeet Restaurant Logo" 
+              className="w-full h-full object-contain rounded-full"
+            />
           </motion.div>
           <motion.h1 
             initial={{ opacity: 0 }}
