@@ -1,0 +1,20 @@
+services:
+  # Backend API Service
+  - type: web
+    name: sangeet-restaurant-api
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        value: https://sangeet-restaurant-testing-frontend.vercel.app
+      - key: FRONTEND_URL
+        value: https://sangeet-restaurant-testing-frontend.vercel.app
+    healthCheckPath: /api/health

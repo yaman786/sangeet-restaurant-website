@@ -1,0 +1,31 @@
+<svg width="200" height="80" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle for the icon -->
+  <circle cx="100" cy="25" r="20" fill="#e6bc68" stroke="#d4a94a" stroke-width="2"/>
+  
+  <!-- Spoon -->
+  <path d="M85 15 L85 35 M80 15 L90 15" stroke="#8b6f2a" stroke-width="2" fill="none"/>
+  
+  <!-- Bowl/Pot -->
+  <ellipse cx="115" cy="30" rx="8" ry="6" fill="#8b6f2a"/>
+  <ellipse cx="115" cy="28" rx="6" ry="4" fill="#6b5f4a"/>
+  
+  <!-- Flames -->
+  <path d="M110 20 Q112 18 114 20 Q116 22 114 24" stroke="#ff6b35" stroke-width="1.5" fill="none"/>
+  <path d="M115 18 Q117 16 119 18 Q121 20 119 22" stroke="#ff6b35" stroke-width="1.5" fill="none"/>
+  <path d="M120 20 Q122 18 124 20 Q126 22 124 24" stroke="#ff6b35" stroke-width="1.5" fill="none"/>
+  
+  <!-- Small bird/figure -->
+  <circle cx="100" cy="25" r="3" fill="#8b6f2a"/>
+  <path d="M98 23 L96 21 M102 23 L104 21" stroke="#8b6f2a" stroke-width="1" fill="none"/>
+  
+  <!-- Sangeet Text -->
+  <text x="100" y="60" text-anchor="middle" font-family="serif" font-size="24" font-weight="bold" fill="#dc2626">
+    Sangeet
+  </text>
+  
+  <!-- Decorative swirl on S -->
+  <path d="M85 55 Q83 53 85 51 Q87 49 89 51" stroke="#dc2626" stroke-width="1.5" fill="none"/>
+  
+  <!-- Extended stroke on t -->
+  <path d="M125 45 L135 45" stroke="#dc2626" stroke-width="2" fill="none"/>
+</svg> 
