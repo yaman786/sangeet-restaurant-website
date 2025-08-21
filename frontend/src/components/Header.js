@@ -51,7 +51,29 @@ const Header = () => {
   // Memoized menu toggle handler
   const handleMenuToggle = useCallback(() => {
     console.log('Mobile menu toggle clicked, current state:', isMenuOpen);
+    console.log('Window width:', window.innerWidth);
+    console.log('Is mobile device:', window.innerWidth < 768);
     setIsMenuOpen(prev => !prev);
+  }, [isMenuOpen]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMenuOpen && !event.target.closest('#mobile-menu') && !event.target.closest('button[aria-controls="mobile-menu"]')) {
+        console.log('Clicking outside mobile menu, closing...');
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, [isMenuOpen]);
 
   // Update time every second
@@ -76,13 +98,15 @@ const Header = () => {
       {/* Mobile menu button - Fork, Plate, Knife Sticky Icon - Outside Header */}
       <button
         onClick={handleMenuToggle}
-        className="md:hidden fixed left-1/2 transform -translate-x-1/2 top-4 p-3 rounded-xl text-white hover:text-sangeet-400 hover:bg-sangeet-neutral-800/50 focus:outline-none transition-all duration-300 touch-manipulation z-[99999] bg-sangeet-neutral-900/80 backdrop-blur-sm border border-sangeet-neutral-700/50"
+        className="md:hidden fixed left-1/2 transform -translate-x-1/2 top-4 p-3 rounded-xl text-white hover:text-sangeet-400 hover:bg-sangeet-neutral-800/50 focus:outline-none transition-all duration-300 touch-manipulation z-[99999] bg-sangeet-neutral-900/80 backdrop-blur-sm border border-sangeet-neutral-700/50 active:scale-95"
         aria-label="Toggle menu"
         aria-expanded={isMenuOpen}
         aria-controls="mobile-menu"
         style={{ 
           WebkitTapHighlightColor: 'transparent',
-          touchAction: 'manipulation'
+          touchAction: 'manipulation',
+          minHeight: '44px',
+          minWidth: '44px'
         }}
       >
         <div className="w-7 h-7 flex items-center justify-center relative">
@@ -246,7 +270,10 @@ const Header = () => {
                   <Link
                     key={item.path}
                     to={item.path}
-                    onClick={handleMenuToggle}
+                    onClick={() => {
+                      console.log('Mobile menu item clicked:', item.path);
+                      handleMenuToggle();
+                    }}
                     className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 ${
                       isActive(item.path)
                         ? 'text-sangeet-400 bg-sangeet-neutral-800/50 font-semibold'
