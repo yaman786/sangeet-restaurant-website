@@ -36,16 +36,18 @@ const KitchenDisplayPage = () => {
 
   useEffect(() => {
     // Check if admin or kitchen user is logged in (admin takes priority)
-    const adminToken = localStorage.getItem('adminToken');
+    const token = localStorage.getItem('token'); // New admin token format
+    const adminToken = localStorage.getItem('adminToken'); // Old admin token format
     const kitchenToken = localStorage.getItem('kitchenToken');
-    const adminUser = localStorage.getItem('adminUser');
+    const user = localStorage.getItem('user'); // New admin user format
+    const adminUser = localStorage.getItem('adminUser'); // Old admin user format
     const kitchenUser = localStorage.getItem('kitchenUser');
     
-    // Kitchen Display Auth Check
+    // Kitchen Display Auth Check - Prioritize new token format
     
-    if (adminToken && adminUser) {
+    if ((token || adminToken) && (user || adminUser)) {
       try {
-        const userData = JSON.parse(adminUser);
+        const userData = user ? JSON.parse(user) : JSON.parse(adminUser);
         // Setting as Admin
         setKitchenUser(userData);
         setUserType('admin');
@@ -64,7 +66,7 @@ const KitchenDisplayPage = () => {
         navigate('/login');
       }
     } else {
-              // No valid tokens found, redirecting to login
+      // No valid tokens found, redirecting to login
       navigate('/login');
     }
   }, [navigate]);
