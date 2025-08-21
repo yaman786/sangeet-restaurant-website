@@ -100,11 +100,20 @@ const OrderManagementPage = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      
+      // Debug: Check authentication
+      const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+      console.log('Auth token present:', !!token);
+      
       const [ordersData, tablesData, statsData] = await Promise.all([
         fetchAllOrders(filters),
         fetchTables(),
         fetchOrderStats()
       ]);
+      
+      console.log('API Response - Orders:', ordersData);
+      console.log('API Response - Tables:', tablesData);
+      console.log('API Response - Stats:', statsData);
       
       // Separate completed orders from active orders
       const activeOrders = (ordersData || []).filter(order => order.status !== 'completed');

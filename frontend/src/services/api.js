@@ -456,9 +456,17 @@ export const updateOrderStatus = async (orderId, status) => {
 
 
 
-export const fetchAllOrders = async (queryParams = '') => {
+export const fetchAllOrders = async (filters = {}) => {
   return apiCallWrapper(async () => {
-    const url = queryParams ? `/orders?${queryParams}` : '/orders';
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value);
+      }
+    });
+    
+    const queryString = params.toString();
+    const url = queryString ? `/orders?${queryString}` : '/orders';
     return await api.get(url);
   }, 'fetchAllOrders');
 };
