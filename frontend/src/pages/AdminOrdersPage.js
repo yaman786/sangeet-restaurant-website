@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { isNewItem, getTimeSinceAdded, sortItemsByNewness, hasMultipleSessions } from '../utils/itemUtils';
 import { 
@@ -102,17 +102,77 @@ const AdminOrdersPage = () => {
       }
       socketService.joinAdminRoom();
 
-      const handleNewOrder = () => {
-        toast.success('New order received');
-        loadDashboardData();
+      const handleNewOrder = (orderData) => {
+        // Real-time addition to state instead of full refresh
+        if (orderData && orderData.id) {
+          // Add new order to the beginning of active orders
+          setOrders(prevOrders => [orderData, ...prevOrders]);
+          
+          // Show success notification
+          toast.success(`New order #${orderData.order_number || orderData.id} received from ${orderData.customer_name || 'Customer'}`, {
+            duration: 5000,
+            icon: '🔔'
+          });
+        } else {
+          // Fallback to refresh if no order data
+          loadDashboardData();
+          toast.success('New order received');
+        }
       };
 
       const handleStatusUpdate = (data) => {
-        loadDashboardData();
+        // Real-time status update instead of full refresh
+        const { orderId, status } = data;
+        
+        // Update in active orders
+        setOrders(prevOrders => 
+          prevOrders.map(order => 
+            order.id === orderId 
+              ? { ...order, status, updated_at: new Date().toISOString() }
+              : order
+          )
+        );
+        
+        // Update in completed orders if it exists there
+        setCompletedOrders(prevCompleted => 
+          prevCompleted.map(order => 
+            order.id === orderId 
+              ? { ...order, status, updated_at: new Date().toISOString() }
+              : order
+          )
+        );
+        
+        // If order is completed, move it from active to completed after a delay
+        if (status === 'completed') {
+          setTimeout(() => {
+            const orderToMove = orders.find(order => order.id === orderId);
+            if (orderToMove) {
+              const updatedOrder = { ...orderToMove, status: 'completed', updated_at: new Date().toISOString() };
+              setCompletedOrders(prev => [updatedOrder, ...prev]);
+              setOrders(prev => prev.filter(order => order.id !== orderId));
+            }
+          }, 2000); // 2 second delay to show status change before moving
+        }
       };
 
       const handleOrderDeleted = (data) => {
-        loadDashboardData();
+        // Real-time removal from state instead of full refresh
+        const deletedOrderId = data.orderId;
+        
+        // Remove from active orders
+        setOrders(prevOrders => prevOrders.filter(order => order.id !== deletedOrderId));
+        
+        // Remove from completed orders
+        setCompletedOrders(prevCompleted => prevCompleted.filter(order => order.id !== deletedOrderId));
+        
+        // Remove from selected orders if it was selected
+        setSelectedOrders(prevSelected => prevSelected.filter(id => id !== deletedOrderId));
+        
+        // Show success message
+        toast.success(`Order #${data.orderId} deleted successfully`, {
+          duration: 4000,
+          icon: '🗑️'
+        });
       };
 
       socketService.onNewOrder(handleNewOrder);
@@ -253,14 +313,14 @@ const AdminOrdersPage = () => {
   const confirmDeleteOrder = async () => {
     try {
       await deleteOrder(deleteModal.orderId);
-      toast.success('Order deleted successfully');
+      
+      // Close modal immediately - real-time update will handle the removal
       setDeleteModal({ isOpen: false, orderId: null, orderNumber: null, customerName: null, tableNumber: null });
       
-      // Fallback: reload data after a short delay if socket doesn't work
-      setTimeout(() => {
-        loadDashboardData();
-      }, 1000);
+      // The socket event will handle the real-time removal and show success toast
+      // No need to refresh or show duplicate toast here
     } catch (error) {
+      console.error('Error deleting order:', error);
       toast.error('Failed to delete order');
     }
   };
@@ -539,11 +599,15 @@ const AdminOrdersPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-sangeet-neutral-700">
-                {(viewMode === 'completed' ? completedOrders : orders).map((order) => (
+                <AnimatePresence mode="wait">
+                  {(viewMode === 'completed' ? completedOrders : orders).map((order) => (
                   <motion.tr
-                    key={`${order.id}-${order.status}-${order.updated_at || order.created_at}`}
+                    key={order.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    layout
+                    transition={{ duration: 0.2 }}
                     className="hover:bg-sangeet-neutral-800 transition-colors"
                   >
                     <td className="px-6 py-4">
@@ -641,7 +705,8 @@ const AdminOrdersPage = () => {
                       </div>
                     </td>
                   </motion.tr>
-                ))}
+                  ))}
+                </AnimatePresence>
               </tbody>
             </table>
           </div>
