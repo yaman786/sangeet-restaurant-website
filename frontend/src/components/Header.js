@@ -108,7 +108,7 @@ const Header = () => {
       {/* Mobile menu button - Fork, Plate, Knife Sticky Icon - Outside Header */}
       <button
         onClick={handleMenuToggle}
-        className="md:hidden fixed left-1/2 transform -translate-x-1/2 top-4 p-3 rounded-xl text-white hover:text-sangeet-400 hover:bg-sangeet-neutral-800/50 focus:outline-none transition-all duration-300 touch-manipulation z-[99999] bg-sangeet-neutral-900/90 backdrop-blur-md border border-sangeet-neutral-700/50 active:scale-95 shadow-lg"
+        className="md:hidden fixed left-1/2 transform -translate-x-1/2 top-4 p-3 rounded-xl text-white hover:text-sangeet-400 hover:bg-sangeet-neutral-800/50 focus:outline-none transition-all duration-300 touch-manipulation z-[999999] bg-sangeet-neutral-900/90 backdrop-blur-md border border-sangeet-neutral-700/50 active:scale-95 shadow-lg"
         aria-label={isMenuOpen ? "Close menu" : "Open menu"}
         aria-expanded={isMenuOpen}
         aria-controls="mobile-menu"
@@ -169,7 +169,7 @@ const Header = () => {
       {isMenuOpen && (
         <div
           id="mobile-menu"
-          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[99999]"
+          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[99998]"
           onClick={() => {
             console.log('Clicking outside menu, closing...');
             setIsMenuOpen(false);
@@ -179,7 +179,7 @@ const Header = () => {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="bg-gradient-to-b from-sangeet-neutral-900 to-sangeet-neutral-950 border-t border-sangeet-neutral-800 fixed top-0 left-0 right-0 z-[99999] shadow-2xl"
+            className="bg-gradient-to-b from-sangeet-neutral-900 to-sangeet-neutral-950 border-t border-sangeet-neutral-800 fixed top-0 left-0 right-0 z-[99998] shadow-2xl"
             onClick={(e) => e.stopPropagation()}
             style={{ 
               paddingTop: '4rem',
