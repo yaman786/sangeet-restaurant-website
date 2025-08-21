@@ -102,7 +102,7 @@ const OrderManagementPage = () => {
       setLoading(true);
       
       // Debug: Check authentication
-      const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('adminToken');
       console.log('Auth token present:', !!token);
       
       const [ordersData, tablesData, statsData] = await Promise.all([

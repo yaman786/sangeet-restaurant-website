@@ -45,7 +45,7 @@ const api = axios.create({
  * @returns {string|null} Auth token or null
  */
 const getAuthToken = () => {
-  return localStorage.getItem('authToken') || localStorage.getItem('adminToken');
+  return localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('adminToken');
 };
 
 /**
