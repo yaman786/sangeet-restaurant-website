@@ -108,7 +108,7 @@ const Header = () => {
       {/* Mobile menu button - Fork, Plate, Knife Sticky Icon - Outside Header */}
       <button
         onClick={handleMenuToggle}
-        className="md:hidden fixed left-1/2 transform -translate-x-1/2 top-4 p-3 rounded-xl text-white hover:text-sangeet-400 hover:bg-sangeet-neutral-800/50 focus:outline-none transition-all duration-300 touch-manipulation z-[99999] bg-sangeet-neutral-900/80 backdrop-blur-sm border border-sangeet-neutral-700/50 active:scale-95"
+        className="md:hidden fixed left-1/2 transform -translate-x-1/2 top-4 p-3 rounded-xl text-white hover:text-sangeet-400 hover:bg-sangeet-neutral-800/50 focus:outline-none transition-all duration-300 touch-manipulation z-[99999] bg-sangeet-neutral-900/90 backdrop-blur-md border border-sangeet-neutral-700/50 active:scale-95 shadow-lg"
         aria-label="Toggle menu"
         aria-expanded={isMenuOpen}
         aria-controls="mobile-menu"
@@ -159,8 +159,8 @@ const Header = () => {
             transition={{ duration: 0.2 }}
             className="absolute inset-0 flex items-center justify-center pointer-events-none"
           >
-            <div className="w-5 h-0.5 bg-red-400 rounded-full rotate-45"></div>
-            <div className="w-5 h-0.5 bg-red-400 rounded-full -rotate-45 absolute"></div>
+            <div className="w-5 h-0.5 bg-sangeet-400 rounded-full rotate-45"></div>
+            <div className="w-5 h-0.5 bg-sangeet-400 rounded-full -rotate-45 absolute"></div>
           </motion.div>
         </div>
       </button>
@@ -169,7 +169,7 @@ const Header = () => {
       {isMenuOpen && (
         <div
           id="mobile-menu"
-          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-[99999]"
+          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[99999]"
           onClick={() => {
             console.log('Clicking outside menu, closing...');
             setIsMenuOpen(false);
@@ -179,7 +179,7 @@ const Header = () => {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="bg-sangeet-neutral-900 border-t border-sangeet-neutral-800 fixed top-0 left-0 right-0 z-[99999] shadow-2xl"
+            className="bg-gradient-to-b from-sangeet-neutral-900 to-sangeet-neutral-950 border-t border-sangeet-neutral-800 fixed top-0 left-0 right-0 z-[99999] shadow-2xl"
             onClick={(e) => e.stopPropagation()}
             style={{ 
               paddingTop: '4rem',
@@ -208,11 +208,6 @@ const Header = () => {
             </div>
             
             <div className="px-2 pt-2 pb-3 space-y-1">
-              {/* Test indicator */}
-              <div className="px-4 py-2 bg-green-500 text-white text-center font-bold rounded-lg mb-2">
-                🎉 MOBILE MENU IS WORKING! 🎉
-              </div>
-              
               {NAVIGATION_ITEMS.map((item) => (
                 <Link
                   key={item.path}
@@ -221,16 +216,54 @@ const Header = () => {
                     console.log('Mobile menu item clicked:', item.path);
                     setIsMenuOpen(false);
                   }}
-                  className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 ${
+                  className={`block px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 ${
                     isActive(item.path)
-                      ? 'text-sangeet-400 bg-sangeet-neutral-800/50 font-semibold'
-                      : 'text-sangeet-neutral-300 hover:text-sangeet-400 hover:bg-sangeet-neutral-800/50'
+                      ? 'text-sangeet-400 bg-sangeet-neutral-800/50 font-semibold shadow-lg'
+                      : 'text-sangeet-neutral-300 hover:text-sangeet-400 hover:bg-sangeet-neutral-800/30'
                   }`}
                   aria-current={isActive(item.path) ? 'page' : undefined}
                 >
-                  {item.label}
+                  <div className="flex items-center space-x-3">
+                    <span className="text-lg">
+                      {item.path === '/' && '🏠'}
+                      {item.path === '/menu' && '🍽️'}
+                      {item.path === '/reservations' && '📅'}
+                      {item.path === '/about' && 'ℹ️'}
+                      {item.path === '/contact' && '📞'}
+                    </span>
+                    <span>{item.label}</span>
+                  </div>
                 </Link>
               ))}
+              
+              {/* Quick Actions Section */}
+              <div className="mt-6 pt-4 border-t border-sangeet-neutral-700/50">
+                <h3 className="px-4 py-2 text-xs font-semibold text-sangeet-neutral-400 uppercase tracking-wider">
+                  Quick Actions
+                </h3>
+                <div className="space-y-2">
+                  <a
+                    href="tel:+852-1234-5678"
+                    className="block px-4 py-3 rounded-lg text-base font-medium text-sangeet-neutral-300 hover:text-sangeet-400 hover:bg-sangeet-neutral-800/30 transition-all duration-200"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-lg">📞</span>
+                      <span>Call Now</span>
+                    </div>
+                  </a>
+                  <a
+                    href="https://maps.google.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block px-4 py-3 rounded-lg text-base font-medium text-sangeet-neutral-300 hover:text-sangeet-400 hover:bg-sangeet-neutral-800/30 transition-all duration-200"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-lg">📍</span>
+                      <span>Get Directions</span>
+                    </div>
+                  </a>
+                </div>
+              </div>
             </div>
           </motion.nav>
         </div>
