@@ -366,8 +366,6 @@ const UnifiedDashboardPage = () => {
           );
           
           if (!hasActiveOrders) {
-            
-            
             // Clear all customer data
             localStorage.removeItem(`cart_${tableNumber}`);
             localStorage.removeItem(`orderId_${tableNumber}`);
@@ -405,8 +403,6 @@ const UnifiedDashboardPage = () => {
           };
           localStorage.setItem(`cancelledOrder_${tableNumber}`, JSON.stringify(cancelledOrderData));
           
-
-          
           // Keep the order in tracking view to show cancelled status
           // Don't clear state or redirect immediately
           
@@ -433,9 +429,9 @@ const UnifiedDashboardPage = () => {
         
         // Play notification sound
         try {
-        socketService.playNotificationSound('notification');
+          socketService.playNotificationSound('notification');
         } catch (error) {
-  
+          // Ignore sound errors
         }
         
         // Show browser notification if available
@@ -470,7 +466,6 @@ const UnifiedDashboardPage = () => {
         
         // If no more active orders, clear customer data and redirect
         if (updatedOrders.length === 0) {
-          
           // Clear all customer data
           localStorage.removeItem(`cart_${tableNumber}`);
           localStorage.removeItem(`orderId_${tableNumber}`);
@@ -488,7 +483,7 @@ const UnifiedDashboardPage = () => {
           
           // Show completion message
           toast.success('🎉 All orders completed! Thank you for dining with us!', {
-        duration: 6000
+            duration: 6000
           });
           
           // Redirect to home page
@@ -507,7 +502,56 @@ const UnifiedDashboardPage = () => {
       
       socketService.playNotificationSound('completion');
     });
-  }, [tableNumber, orderStatuses]);
+
+    // Listen for order deletion events
+    socketService.onOrderDeleted((data) => {
+      // Check if this deletion affects our table
+      if (data.tableNumber && tableNumber && 
+          data.tableNumber.toString() === tableNumber.toString()) {
+        
+        // Remove the deleted order from the orders list
+        setOrders(prevOrders => {
+          const filteredOrders = prevOrders.filter(order => order.id !== data.orderId);
+          return filteredOrders;
+        });
+        
+        // If this was our current order, clear state
+        if (data.orderId && orderId && 
+            data.orderId.toString() === orderId.toString()) {
+          
+          // Clear all customer data and state
+          setCart([]);
+          setOrderId(null);
+          setOrderNumber(null);
+          setTotalAmount(null);
+          setOrderItems([]);
+          
+          // Clear localStorage data
+          try {
+            localStorage.removeItem(`cart_${tableNumber}`);
+            localStorage.removeItem(`customer_${tableNumber}`);
+            localStorage.removeItem(`instructions_${tableNumber}`);
+          } catch (error) {
+            console.error('❌ Error clearing localStorage:', error);
+          }
+          
+          // Auto-redirect to main website for complete fresh start
+          toast.success('Order has been cancelled. Please scan QR code again for fresh start! 🍽️');
+          
+          // Redirect to main website after a short delay
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 2000);
+        } else {
+          // Just show notification for other orders
+          toast.success(`Order #${data.orderId} has been cancelled`, {
+            duration: 3000,
+            icon: '🗑️'
+          });
+        }
+      }
+    });
+  }, [tableNumber, orderStatuses, orderId]);
 
   // Load order items when orderId changes
   useEffect(() => {
@@ -764,119 +808,7 @@ const UnifiedDashboardPage = () => {
 
 
 
-  // Socket connection and order deletion listener
-  useEffect(() => {
-    // Connect to socket service
-    socketService.connect();
-    
-    // Join table room for order notifications
-    if (tableNumber) {
-      socketService.joinTable(tableNumber);
-    }
-    
-    // Join customer room for specific order notifications
-    if (orderId) {
-      socketService.joinCustomer(orderId);
-    }
 
-    // Listen for order deletion events
-    const handleOrderDeleted = (data) => {
-      // Check if this deletion affects our table and specific order
-      if (data.tableNumber && tableNumber && 
-          data.tableNumber.toString() === tableNumber.toString() &&
-          data.orderId && orderId && 
-          data.orderId.toString() === orderId.toString()) {
-        
-        // Clear all customer data and state
-        setCart([]);
-        setOrderId(null);
-        setOrderNumber(null);
-        setTotalAmount(null);
-        setOrderItems([]);
-        
-        // Clear localStorage data
-        try {
-          localStorage.removeItem(`cart_${tableNumber}`);
-          localStorage.removeItem(`customer_${tableNumber}`);
-          localStorage.removeItem(`instructions_${tableNumber}`);
-        } catch (error) {
-          console.error('❌ Error clearing localStorage:', error);
-        }
-        
-        // Remove the deleted order from the orders list
-        setOrders(prevOrders => {
-          const filteredOrders = prevOrders.filter(order => order.id !== data.orderId);
-          return filteredOrders;
-        });
-        
-        // Auto-redirect to main website for complete fresh start
-        toast.success('Order has been cancelled. Please scan QR code again for fresh start! 🍽️');
-        
-        // Redirect to main website after a short delay
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 2000);
-      }
-    };
-
-    // Listen for order status updates
-    const handleStatusUpdate = (updateData) => {
-      // Check if this status update affects our table and specific order
-      if (updateData.tableNumber && tableNumber && 
-          updateData.tableNumber.toString() === tableNumber.toString() &&
-          updateData.orderId && orderId && 
-          updateData.orderId.toString() === orderId.toString()) {
-        
-        // Update the order status in our local state
-        setOrders(prevOrders => {
-          const updatedOrders = prevOrders.map(order => {
-            const isSameOrder = order?.id?.toString() === updateData?.orderId?.toString();
-            return isSameOrder
-              ? { ...order, status: updateData.status, updated_at: updateData.timestamp }
-              : order;
-          });
-          return updatedOrders;
-        });
-        
-        // If status is changed to 'completed', clear customer data and redirect
-        if (updateData.status === 'completed') {
-          
-          // Clear all customer data and state
-          setCart([]);
-          setOrderId(null);
-          setOrderNumber(null);
-          setTotalAmount(null);
-          setOrderItems([]);
-          
-          // Clear localStorage data
-          try {
-            localStorage.removeItem(`cart_${tableNumber}`);
-            localStorage.removeItem(`customer_${tableNumber}`);
-            localStorage.removeItem(`instructions_${tableNumber}`);
-          } catch (error) {
-            console.error('❌ Error clearing localStorage:', error);
-          }
-          
-          // Show success message and redirect to main website
-          toast.success('Order completed! Thank you for dining with us. Please scan QR code again for fresh start! 🍽️');
-          
-          // Redirect to main website after a short delay
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 3000);
-        }
-      }
-    };
-
-    socketService.onOrderDeleted(handleOrderDeleted);
-    socketService.onOrderStatusUpdate(handleStatusUpdate);
-
-    // Cleanup function
-    return () => {
-      socketService.removeListener('order-deleted');
-      socketService.removeListener('order-status-update');
-    };
-  }, [tableNumber, loadDashboardData]);
 
 
 
