@@ -47,11 +47,8 @@ const OrderManagementPage = () => {
   // Setup real-time socket listeners - using a different approach since RealTimeNotifications already handles socket
   const setupSocketListeners = useCallback(() => {
     try {
-      // OrderManagement: Setting up socket listeners
-      
       // Ensure socket is connected first
       if (!socketService.isConnected) {
-        // OrderManagement: Socket not connected, connecting
         socketService.connect();
       }
       
@@ -60,35 +57,24 @@ const OrderManagementPage = () => {
       
       // Listen for new orders
       socketService.onNewOrder((data) => {
-        // OrderManagement: New order received, reloading data
         // Reload data to get the latest orders
         loadData();
       });
 
       // Listen for order status updates
       socketService.onOrderStatusUpdate((data) => {
-        // OrderManagement: Status update received
         // Reload data to get the latest status
         loadData();
       });
 
       // Listen for order deletions
       socketService.onOrderDeleted((data) => {
-        console.log('🔔 OrderManagement: Order deleted event received:', data);
         // Remove the order from local state immediately
         const deletedOrderId = data.orderId;
         
-        setOrders(prevOrders => {
-          const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
-          console.log(`Order ${deletedOrderId} removed from active orders. Remaining: ${updatedOrders.length}`);
-          return updatedOrders;
-        });
+        setOrders(prevOrders => prevOrders.filter(order => order.id !== deletedOrderId));
         
-        setCompletedOrders(prevCompleted => {
-          const updatedCompleted = prevCompleted.filter(order => order.id !== deletedOrderId);
-          console.log(`Order ${deletedOrderId} removed from completed orders. Remaining: ${updatedCompleted.length}`);
-          return updatedCompleted;
-        });
+        setCompletedOrders(prevCompleted => prevCompleted.filter(order => order.id !== deletedOrderId));
         
         // Update stats if needed
         setStats(prevStats => ({
@@ -106,12 +92,10 @@ const OrderManagementPage = () => {
   }, []); // Empty dependency array to prevent recreation
 
   useEffect(() => {
-    // OrderManagement: useEffect triggered - setting up socket listeners
     // Setup socket listeners immediately
     setupSocketListeners();
 
     return () => {
-      // OrderManagement: Cleanup - removing socket listeners
       socketService.removeListener('new-order');
       socketService.removeListener('order-status-update');
       socketService.removeListener('order-deleted');
@@ -122,19 +106,11 @@ const OrderManagementPage = () => {
     try {
       setLoading(true);
       
-      // Debug: Check authentication
-      const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('adminToken');
-      console.log('Auth token present:', !!token);
-      
       const [ordersData, tablesData, statsData] = await Promise.all([
         fetchAllOrders(filters),
         fetchTables(),
         fetchOrderStats()
       ]);
-      
-      console.log('API Response - Orders:', ordersData);
-      console.log('API Response - Tables:', tablesData);
-      console.log('API Response - Stats:', statsData);
       
       // Separate completed orders from active orders
       const activeOrders = (ordersData || []).filter(order => order.status !== 'completed');
@@ -907,6 +883,7 @@ const OrderManagementPage = () => {
             </div>
           </div>
         )}
+        </div>
       )}
     </div>
   );

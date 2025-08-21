@@ -60,7 +60,6 @@ const AdminOrdersPage = () => {
 
   const loadDashboardData = async () => {
     try {
-      console.log('📊 Loading admin dashboard data...');
       setLoading(true);
       // Load orders based on filters and view mode
       let searchParams = { ...filters };
@@ -68,13 +67,10 @@ const AdminOrdersPage = () => {
         searchParams.status = viewMode;
       }
       
-      console.log('🔍 Fetching orders with params:', searchParams);
       const [ordersData, tablesData] = await Promise.all([
         fetchAllOrders(searchParams),
         fetchTables()
       ]);
-      console.log('📦 Orders data received:', ordersData?.length || 0, 'orders');
-      console.log('📋 Tables data received:', tablesData?.length || 0, 'tables');
       
       // Separate completed orders from active orders
       const activeOrders = (ordersData || []).filter(order => order.status !== 'completed');
@@ -105,7 +101,6 @@ const AdminOrdersPage = () => {
         toast.error(`Failed to load dashboard data: ${error.message || 'Unknown error'}`);
       }
     } finally {
-      console.log('✅ Admin dashboard loading completed');
       setLoading(false);
     }
   };
@@ -120,16 +115,12 @@ const AdminOrdersPage = () => {
   // Socket setup for realtime updates - minimal: reload on any event
   useEffect(() => {
     try {
-      console.log('🔌 Setting up admin dashboard socket connection...');
       if (!socketService.isConnected) {
-        console.log('🔌 Connecting to socket server...');
         socketService.connect();
       }
-      console.log('🔌 Joining admin room...');
       socketService.joinAdminRoom();
 
       const handleNewOrder = (orderData) => {
-        console.log('🔔 Admin dashboard received new order:', orderData);
         // Real-time addition to state instead of full refresh
         if (orderData && orderData.id) {
           // Add new order to the beginning of active orders
@@ -148,7 +139,6 @@ const AdminOrdersPage = () => {
       };
 
       const handleStatusUpdate = (data) => {
-        console.log('🔄 Admin dashboard received status update:', data);
         // Real-time status update instead of full refresh
         const { orderId, status } = data;
         
@@ -187,23 +177,14 @@ const AdminOrdersPage = () => {
       };
 
       const handleOrderDeleted = (data) => {
-        console.log('🗑️ Admin dashboard received order deletion:', data);
         // Real-time removal from state instead of full refresh
         const deletedOrderId = data.orderId;
         
         // Remove from active orders
-        setOrders(prevOrders => {
-          const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
-          console.log(`Order ${deletedOrderId} removed from active orders via socket. Remaining: ${updatedOrders.length}`);
-          return updatedOrders;
-        });
+        setOrders(prevOrders => prevOrders.filter(order => order.id !== deletedOrderId));
         
         // Remove from completed orders
-        setCompletedOrders(prevCompleted => {
-          const updatedCompleted = prevCompleted.filter(order => order.id !== deletedOrderId);
-          console.log(`Order ${deletedOrderId} removed from completed orders via socket. Remaining: ${updatedCompleted.length}`);
-          return updatedCompleted;
-        });
+        setCompletedOrders(prevCompleted => prevCompleted.filter(order => order.id !== deletedOrderId));
         
         // Remove from selected orders if it was selected
         setSelectedOrders(prevSelected => prevSelected.filter(id => id !== deletedOrderId));
@@ -359,13 +340,11 @@ const AdminOrdersPage = () => {
       
       setOrders(prevOrders => {
         const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
-        console.log(`Order ${deletedOrderId} removed from active orders. Remaining: ${updatedOrders.length}`);
         return updatedOrders;
       });
       
       setCompletedOrders(prevCompleted => {
         const updatedCompleted = prevCompleted.filter(order => order.id !== deletedOrderId);
-        console.log(`Order ${deletedOrderId} removed from completed orders. Remaining: ${updatedCompleted.length}`);
         return updatedCompleted;
       });
       
