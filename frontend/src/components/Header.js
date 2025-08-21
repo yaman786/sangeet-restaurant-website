@@ -53,7 +53,9 @@ const Header = () => {
     console.log('Mobile menu toggle clicked, current state:', isMenuOpen);
     console.log('Window width:', window.innerWidth);
     console.log('Is mobile device:', window.innerWidth < 768);
-    setIsMenuOpen(prev => !prev);
+    const newState = !isMenuOpen;
+    console.log('Setting menu state to:', newState);
+    setIsMenuOpen(newState);
   }, [isMenuOpen]);
 
   // Close menu when clicking outside
@@ -74,6 +76,14 @@ const Header = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
+  }, [isMenuOpen]);
+
+  // Debug menu state changes
+  useEffect(() => {
+    console.log('Menu state changed to:', isMenuOpen);
+    if (isMenuOpen) {
+      console.log('Mobile menu should be visible now');
+    }
   }, [isMenuOpen]);
 
   // Update time every second
@@ -233,15 +243,16 @@ const Header = () => {
           {isMenuOpen && (
             <motion.nav
               id="mobile-menu"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden border-t border-sangeet-neutral-800 bg-sangeet-neutral-900/95 backdrop-blur-md fixed top-14 sm:top-16 left-0 right-0 z-[99998] md:top-16 shadow-2xl"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="lg:hidden border-t border-sangeet-neutral-800 bg-sangeet-neutral-900/95 backdrop-blur-md fixed top-0 left-0 right-0 z-[99998] shadow-2xl"
               role="navigation"
               aria-label="Mobile navigation"
               style={{ 
-                maxHeight: 'calc(100vh - 4rem)',
-                overflowY: 'auto'
+                maxHeight: '100vh',
+                overflowY: 'auto',
+                paddingTop: '4rem'
               }}
             >
               {/* Restaurant Status Banner for Mobile */}
