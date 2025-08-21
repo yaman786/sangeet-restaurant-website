@@ -74,9 +74,30 @@ const OrderManagementPage = () => {
 
       // Listen for order deletions
       socketService.onOrderDeleted((data) => {
-        // OrderManagement: Order deleted
-        // Reload data to remove deleted order
-        loadData();
+        console.log('🔔 OrderManagement: Order deleted event received:', data);
+        // Remove the order from local state immediately
+        const deletedOrderId = data.orderId;
+        
+        setOrders(prevOrders => {
+          const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
+          console.log(`Order ${deletedOrderId} removed from active orders. Remaining: ${updatedOrders.length}`);
+          return updatedOrders;
+        });
+        
+        setCompletedOrders(prevCompleted => {
+          const updatedCompleted = prevCompleted.filter(order => order.id !== deletedOrderId);
+          console.log(`Order ${deletedOrderId} removed from completed orders. Remaining: ${updatedCompleted.length}`);
+          return updatedCompleted;
+        });
+        
+        // Update stats if needed
+        setStats(prevStats => ({
+          ...prevStats,
+          total_orders: (prevStats.total_orders || 0) - 1
+        }));
+        
+        // Show success message if not already shown by the delete function
+        toast.success(`Order #${data.orderId} has been deleted`);
       });
 
     } catch (error) {
@@ -211,8 +232,20 @@ const OrderManagementPage = () => {
       toast.success('Order deleted successfully');
       setShowDeleteModal(false);
       setSelectedOrder(null);
-      loadData();
+      
+      // Immediately remove the order from local state instead of reloading
+      setOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
+      setCompletedOrders(prevCompleted => prevCompleted.filter(order => order.id !== orderId));
+      
+      // Update stats if needed
+      if (stats) {
+        setStats(prevStats => ({
+          ...prevStats,
+          total_orders: (prevStats.total_orders || 0) - 1
+        }));
+      }
     } catch (error) {
+      console.error('Error deleting order:', error);
       toast.error('Failed to delete order');
     }
   };
@@ -306,12 +339,6 @@ const OrderManagementPage = () => {
         </div>
       ) : (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-  return (
-    <div className="min-h-screen bg-sangeet-neutral-50">
-      <AdminHeader />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Role-based Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-sangeet-neutral-900 mb-2">
@@ -849,38 +876,37 @@ const OrderManagementPage = () => {
             )}
           </div>
         </div>
-      )}
-    </div>
 
-      {/* Delete Confirmation Modal - Admin Only */}
-      {userRole === 'admin' && showDeleteModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-sangeet-neutral-900 mb-4">
-              Delete Order
-            </h3>
-            <p className="text-sangeet-neutral-600 mb-6">
-              Are you sure you want to delete Order #{selectedOrder.order_number} for {selectedOrder.customer_name}?
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setSelectedOrder(null);
-                }}
-                className="px-4 py-2 text-sangeet-neutral-600 border border-sangeet-neutral-300 rounded-md hover:bg-sangeet-neutral-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(selectedOrder.id)}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-              >
-                Delete
-              </button>
+        {/* Delete Confirmation Modal - Admin Only */}
+        {userRole === 'admin' && showDeleteModal && selectedOrder && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold text-sangeet-neutral-900 mb-4">
+                Delete Order
+              </h3>
+              <p className="text-sangeet-neutral-600 mb-6">
+                Are you sure you want to delete Order #{selectedOrder.order_number} for {selectedOrder.customer_name}?
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setSelectedOrder(null);
+                  }}
+                  className="px-4 py-2 text-sangeet-neutral-600 border border-sangeet-neutral-300 rounded-md hover:bg-sangeet-neutral-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(selectedOrder.id)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       )}
     </div>
   );

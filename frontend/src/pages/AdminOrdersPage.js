@@ -192,19 +192,24 @@ const AdminOrdersPage = () => {
         const deletedOrderId = data.orderId;
         
         // Remove from active orders
-        setOrders(prevOrders => prevOrders.filter(order => order.id !== deletedOrderId));
+        setOrders(prevOrders => {
+          const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
+          console.log(`Order ${deletedOrderId} removed from active orders via socket. Remaining: ${updatedOrders.length}`);
+          return updatedOrders;
+        });
         
         // Remove from completed orders
-        setCompletedOrders(prevCompleted => prevCompleted.filter(order => order.id !== deletedOrderId));
+        setCompletedOrders(prevCompleted => {
+          const updatedCompleted = prevCompleted.filter(order => order.id !== deletedOrderId);
+          console.log(`Order ${deletedOrderId} removed from completed orders via socket. Remaining: ${updatedCompleted.length}`);
+          return updatedCompleted;
+        });
         
         // Remove from selected orders if it was selected
         setSelectedOrders(prevSelected => prevSelected.filter(id => id !== deletedOrderId));
         
-        // Show success message
-        toast.success(`Order #${data.orderId} deleted successfully`, {
-          duration: 4000,
-          icon: '🗑️'
-        });
+        // Show success message if not already shown by the delete function
+        toast.success(`Order #${deletedOrderId} has been deleted`);
       };
 
       socketService.onNewOrder(handleNewOrder);
@@ -346,11 +351,27 @@ const AdminOrdersPage = () => {
     try {
       await deleteOrder(deleteModal.orderId);
       
-      // Close modal immediately - real-time update will handle the removal
+      // Close modal immediately
       setDeleteModal({ isOpen: false, orderId: null, orderNumber: null, customerName: null, tableNumber: null });
       
-      // The socket event will handle the real-time removal and show success toast
-      // No need to refresh or show duplicate toast here
+      // Immediately remove the order from local state
+      const deletedOrderId = deleteModal.orderId;
+      
+      setOrders(prevOrders => {
+        const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
+        console.log(`Order ${deletedOrderId} removed from active orders. Remaining: ${updatedOrders.length}`);
+        return updatedOrders;
+      });
+      
+      setCompletedOrders(prevCompleted => {
+        const updatedCompleted = prevCompleted.filter(order => order.id !== deletedOrderId);
+        console.log(`Order ${deletedOrderId} removed from completed orders. Remaining: ${updatedCompleted.length}`);
+        return updatedCompleted;
+      });
+      
+      // Show success message
+      toast.success(`Order #${deleteModal.orderNumber} deleted successfully`);
+      
     } catch (error) {
       console.error('Error deleting order:', error);
       toast.error('Failed to delete order');
