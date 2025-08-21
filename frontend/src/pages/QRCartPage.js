@@ -234,9 +234,9 @@ const QRCartPage = () => {
         toast.success('Order placed successfully!');
       }
       
-      // Navigate to unified dashboard page
+      // Navigate to unified dashboard page using React Router instead of window.location.href
       const dashboardUrl = `/dashboard?orderId=${orderId}&table=${tableInfo?.table_number}&customerName=${encodeURIComponent(customerName)}&orderNumber=${orderNumber || ''}&totalAmount=${getTotalAmount().toFixed(2)}`;
-      window.location.href = dashboardUrl;
+      navigate(dashboardUrl, { replace: true });
       
     } catch (error) {
       console.error('Error placing order:', error);

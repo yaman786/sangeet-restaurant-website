@@ -118,16 +118,21 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
 
   const setupSocketListeners = useCallback(() => {
     try {
+      console.log('🔌 OrderQueue: Setting up socket listeners...');
+      
       // Ensure socket is connected before setting up listeners
       if (!socketService.isConnected) {
+        console.log('🔌 OrderQueue: Socket not connected, connecting...');
         socketService.connect();
       }
       
       // Join kitchen room to receive notifications
+      console.log('🔌 OrderQueue: Joining kitchen room...');
       socketService.joinKitchen();
 
       // Listen for new orders → real-time addition
       socketService.onNewOrder((orderData) => {
+        console.log('🔔 OrderQueue: New order received:', orderData);
         if (soundEnabled) socketService.playNotificationSound('notification');
         
         if (orderData && orderData.id) {
@@ -147,6 +152,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
 
       // Listen for status updates → real-time update
       socketService.onOrderStatusUpdate((data) => {
+        console.log('🔄 OrderQueue: Status update received:', data);
         if (data.status === 'ready' && soundEnabled) socketService.playNotificationSound('completion');
         
         const { orderId, status } = data;
@@ -188,13 +194,22 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
 
       // Listen for order deletions → real-time removal
       socketService.onOrderDeleted((data) => {
+        console.log('🗑️ OrderQueue: Order deleted event received:', data);
         const deletedOrderId = data.orderId;
         
         // Remove from active orders
-        setOrders(prevOrders => prevOrders.filter(order => order.id !== deletedOrderId));
+        setOrders(prevOrders => {
+          const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
+          console.log(`Order ${deletedOrderId} removed from active orders. Remaining: ${updatedOrders.length}`);
+          return updatedOrders;
+        });
         
         // Remove from completed orders
-        setCompletedOrders(prevCompleted => prevCompleted.filter(order => order.id !== deletedOrderId));
+        setCompletedOrders(prevCompleted => {
+          const updatedCompleted = prevCompleted.filter(order => order.id !== deletedOrderId);
+          console.log(`Order ${deletedOrderId} removed from completed orders. Remaining: ${updatedCompleted.length}`);
+          return updatedCompleted;
+        });
         
         // Show success message
         toast.success(`Order #${data.orderId} deleted`, {
@@ -205,6 +220,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
 
       // Listen for new items added to existing orders
       socketService.onNewItemsAdded((data) => {
+        console.log('➕ OrderQueue: New items added to order:', data);
         // Show notification for kitchen
         toast.success(`New items added to Order #${data.orderId}!`, {
           duration: 4000,
@@ -216,9 +232,9 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
       });
 
     } catch (error) {
-      console.error('Error setting up socket listeners:', error);
+      console.error('❌ OrderQueue: Error setting up socket listeners:', error);
     }
-  }, [soundEnabled, sortOrders]);
+  }, [soundEnabled, sortOrders, loadOrders]);
 
   useEffect(() => {
     loadOrders();
