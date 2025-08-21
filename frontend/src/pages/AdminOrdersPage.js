@@ -60,6 +60,7 @@ const AdminOrdersPage = () => {
 
   const loadDashboardData = async () => {
     try {
+      console.log('📊 Loading admin dashboard data...');
       setLoading(true);
       // Load orders based on filters and view mode
       let searchParams = { ...filters };
@@ -67,10 +68,13 @@ const AdminOrdersPage = () => {
         searchParams.status = viewMode;
       }
       
+      console.log('🔍 Fetching orders with params:', searchParams);
       const [ordersData, tablesData] = await Promise.all([
         fetchAllOrders(searchParams),
         fetchTables()
       ]);
+      console.log('📦 Orders data received:', ordersData?.length || 0, 'orders');
+      console.log('📋 Tables data received:', tablesData?.length || 0, 'tables');
       
       // Separate completed orders from active orders
       const activeOrders = (ordersData || []).filter(order => order.status !== 'completed');
@@ -80,9 +84,28 @@ const AdminOrdersPage = () => {
       setCompletedOrders(completedOrders);
       setTables(tablesData);
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      toast.error('Failed to load dashboard data');
+      console.error('❌ Error loading admin dashboard data:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        type: error.type,
+        status: error.status,
+        stack: error.stack
+      });
+      
+      // Show specific error message based on error type
+      if (error.type === 'NETWORK_ERROR') {
+        toast.error('Network error: Please check your internet connection');
+      } else if (error.type === 'TIMEOUT_ERROR') {
+        toast.error('Request timeout: Server is taking too long to respond');
+      } else if (error.status === 401) {
+        toast.error('Authentication required: Please log in again');
+      } else if (error.status >= 500) {
+        toast.error('Server error: Please try again later');
+      } else {
+        toast.error(`Failed to load dashboard data: ${error.message || 'Unknown error'}`);
+      }
     } finally {
+      console.log('✅ Admin dashboard loading completed');
       setLoading(false);
     }
   };

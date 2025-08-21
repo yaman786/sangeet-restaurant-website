@@ -1,36 +1,69 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, X, CheckCircle, AlertCircle, Clock, Package } from 'lucide-react';
+import { Bell, X, CheckCircle, AlertCircle, Clock, Package, Wifi, WifiOff } from 'lucide-react';
 import socketService from '../services/socketService';
 import toast from 'react-hot-toast';
 
 const RealTimeNotifications = () => {
   const [notifications, setNotifications] = useState([]);
-  const [isConnected, setIsConnected] = useState(true); // Start as connected to avoid immediate warnings
+  const [isConnected, setIsConnected] = useState(false); // Start as disconnected
   const [showNotifications, setShowNotifications] = useState(false);
   const [connectionError, setConnectionError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
+  const retryTimeoutRef = useRef(null);
+
+  // Connection status check with retry logic
+  const checkConnectionStatus = () => {
+    const connected = socketService.isConnected;
+    setIsConnected(connected);
+    
+    if (!connected && retryCount < maxRetries) {
+      setConnectionError(`Connection failed. Retrying... (${retryCount + 1}/${maxRetries})`);
+      
+      // Retry connection after delay
+      retryTimeoutRef.current = setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        socketService.connect();
+        checkConnectionStatus();
+      }, 2000 * (retryCount + 1)); // Exponential backoff
+    } else if (!connected && retryCount >= maxRetries) {
+      setConnectionError('Real-time updates unavailable. Please refresh the page.');
+    } else {
+      setConnectionError(null);
+      setRetryCount(0);
+    }
+  };
 
   useEffect(() => {
     // Connect to WebSocket for real-time notifications
     try {
+      console.log('🔌 RealTimeNotifications: Initializing socket connection...');
       socketService.connect();
       socketService.joinAdmin();
       
-      // Check connection status after a longer delay to allow for connection
+      // Check connection status after initial delay
       setTimeout(() => {
-        setIsConnected(socketService.isConnected);
-        if (!socketService.isConnected) {
-          setConnectionError('Socket connection failed');
-        } else {
-          setConnectionError(null);
+        checkConnectionStatus();
+      }, 3000);
+      
+      // Set up periodic connection checks
+      const connectionCheckInterval = setInterval(() => {
+        if (!socketService.isConnected && retryCount < maxRetries) {
+          checkConnectionStatus();
         }
-      }, 5000); // Increased delay to 5 seconds
+      }, 10000); // Check every 10 seconds
+      
+      return () => {
+        clearInterval(connectionCheckInterval);
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current);
+        }
+      };
     } catch (error) {
       console.error('Real-time notifications connection error:', error);
-      setConnectionError(error.message);
+      setConnectionError('Failed to initialize real-time updates');
     }
-
-
 
     // Request notification permission
     if ('Notification' in window && Notification.permission === 'default') {
@@ -41,10 +74,9 @@ const RealTimeNotifications = () => {
     const initializeAudio = () => {
       try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        // Audio context initialized
         return audioContext;
       } catch (error) {
-                  // Could not initialize audio context
+        console.warn('Could not initialize audio context:', error);
         return null;
       }
     };
@@ -57,14 +89,13 @@ const RealTimeNotifications = () => {
     document.addEventListener('click', handleClick);
 
     // Listen for new orders
-    // RealTimeNotifications: Setting up new-order listener
     socketService.onNewOrder((data) => {
-              // RealTimeNotifications: New order received
+      console.log('🔔 RealTimeNotifications: New order received:', data);
       const notification = {
         id: Date.now(),
         type: 'new-order',
         title: 'New Order Received!',
-        message: `Order #${data.orderNumber} from Table ${data.tableNumber}`,
+        message: `Order #${data.orderNumber || data.id} from Table ${data.tableNumber || 'Unknown'}`,
         data: data,
         timestamp: new Date(),
         read: false
@@ -73,11 +104,12 @@ const RealTimeNotifications = () => {
       addNotification(notification);
       playNotificationSound('notification');
       showBrowserNotification(notification.title, notification.message);
-      toast.success(`New order from Table ${data.tableNumber}!`);
+      toast.success(`New order from Table ${data.tableNumber || 'Unknown'}!`);
     });
 
     // Listen for order status updates
     socketService.onOrderStatusUpdate((data) => {
+      console.log('🔄 RealTimeNotifications: Status update received:', data);
       const statusMessages = {
         'confirmed': 'Order confirmed',
         'preparing': 'Order is being prepared',
@@ -107,9 +139,10 @@ const RealTimeNotifications = () => {
 
     // Listen for order completion
     socketService.onOrderCompleted((data) => {
+      console.log('✅ RealTimeNotifications: Order completed:', data);
       const notification = {
         id: Date.now(),
-        type: 'completed',
+        type: 'order-completed',
         title: 'Order Completed!',
         message: `Order #${data.orderId} has been completed`,
         data: data,
@@ -140,12 +173,14 @@ const RealTimeNotifications = () => {
       toast.error(`Order #${data.orderId} cancelled`);
     });
 
+    // Cleanup function
     return () => {
-      socketService.removeAllListeners();
-      socketService.disconnect();
       document.removeEventListener('click', handleClick);
+      socketService.removeListener('new-order');
+      socketService.removeListener('order-status-update');
+      socketService.removeListener('order-completed');
     };
-  }, []);
+  }, [retryCount]);
 
   const addNotification = (notification) => {
     setNotifications(prev => [notification, ...prev.slice(0, 9)]); // Keep last 10 notifications
@@ -189,15 +224,17 @@ const RealTimeNotifications = () => {
     <div className="relative">
       {/* Professional connection status indicator */}
       {!isConnected && (
-        <div className="absolute -top-8 right-0 text-xs text-amber-400 bg-amber-900/20 px-2 py-1 rounded border border-amber-500/30 whitespace-nowrap">
-          ⚠️ Real-time updates unavailable
+        <div className="absolute -top-8 right-0 text-xs text-amber-400 bg-amber-900/20 px-2 py-1 rounded border border-amber-500/30 whitespace-nowrap flex items-center gap-1">
+          <WifiOff className="h-3 w-3" />
+          {connectionError || 'Real-time updates unavailable'}
         </div>
       )}
       
-      {/* Notification Bell */}
+      {/* Notification Bell with connection status */}
       <button
         onClick={() => setShowNotifications(!showNotifications)}
-        className="relative p-2 text-sangeet-neutral-400 hover:text-sangeet-400 transition-colors"
+        className="relative p-2 text-sangeet-neutral-400 hover:text-sangeet-400 transition-colors group"
+        title={isConnected ? 'Real-time updates connected' : 'Real-time updates disconnected'}
       >
         <Bell className="h-6 w-6" />
         {unreadCount > 0 && (
@@ -205,7 +242,15 @@ const RealTimeNotifications = () => {
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
-        <div className={`absolute top-2 right-2 w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+        {/* Connection status dot */}
+        <div className={`absolute top-2 right-2 w-2 h-2 rounded-full transition-colors ${
+          isConnected ? 'bg-green-500' : 'bg-red-500'
+        }`} />
+        
+        {/* Connection status tooltip */}
+        <div className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs bg-sangeet-neutral-800 text-sangeet-neutral-200 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          {isConnected ? 'Connected' : 'Disconnected'}
+        </div>
       </button>
 
       {/* Notifications Panel */}
@@ -218,12 +263,25 @@ const RealTimeNotifications = () => {
             className="absolute right-0 top-12 w-80 bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto"
           >
             <div className="p-4 border-b border-sangeet-neutral-700">
-              <h3 className="text-lg font-semibold text-sangeet-neutral-100">
-                Notifications
-              </h3>
-              <p className="text-sm text-sangeet-neutral-400">
-                {notifications.length} notification{notifications.length !== 1 ? 's' : ''}
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-sangeet-neutral-100">
+                    Notifications
+                  </h3>
+                  <p className="text-sm text-sangeet-neutral-400">
+                    {notifications.length} notification{notifications.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+                {/* Connection status in panel */}
+                <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded ${
+                  isConnected 
+                    ? 'text-green-400 bg-green-900/20 border border-green-500/30' 
+                    : 'text-red-400 bg-red-900/20 border border-red-500/30'
+                }`}>
+                  {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+                  {isConnected ? 'Connected' : 'Disconnected'}
+                </div>
+              </div>
             </div>
 
             <div className="p-2">
@@ -231,6 +289,11 @@ const RealTimeNotifications = () => {
                 <div className="text-center py-8">
                   <Bell className="h-12 w-12 text-sangeet-neutral-600 mx-auto mb-2" />
                   <p className="text-sangeet-neutral-400">No notifications yet</p>
+                  {!isConnected && (
+                    <p className="text-xs text-amber-400 mt-2">
+                      Real-time updates are currently unavailable
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -262,7 +325,7 @@ const RealTimeNotifications = () => {
                         </div>
                         <button
                           onClick={() => removeNotification(notification.id)}
-                          className="text-sangeet-neutral-500 hover:text-sangeet-neutral-300"
+                          className="text-sangeet-neutral-500 hover:text-sangeet-neutral-300 transition-colors"
                         >
                           <X className="h-4 w-4" />
                         </button>

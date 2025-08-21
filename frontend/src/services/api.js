@@ -1,9 +1,9 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// API Configuration
+// API Configuration - Use environment variables with fallbacks
 const API_CONFIG = {
-  BASE_URL: 'https://sangeet-restaurant-api.onrender.com/api',
+  BASE_URL: process.env.REACT_APP_API_URL || 'https://sangeet-restaurant-api.onrender.com/api',
   TIMEOUT: 10000,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000
@@ -45,7 +45,21 @@ const api = axios.create({
  * @returns {string|null} Auth token or null
  */
 const getAuthToken = () => {
-  return localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('adminToken');
+  const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('adminToken');
+  
+  // Validate token format (basic check)
+  if (token && token.split('.').length === 3) {
+    return token;
+  }
+  
+  // Clear invalid token
+  if (token) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('adminToken');
+  }
+  
+  return null;
 };
 
 /**
@@ -59,6 +73,22 @@ const addAuthToken = (config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+};
+
+/**
+ * Handle authentication failure
+ */
+const handleAuthFailure = () => {
+  // Clear all auth tokens
+  localStorage.removeItem('token');
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('adminToken');
+  localStorage.removeItem('user');
+  
+  // Redirect to login if not already there
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
 };
 
 /**
@@ -80,6 +110,11 @@ const handleApiError = (error) => {
       errorType = API_ERROR_TYPES.SERVER;
     } else if (status >= 400) {
       errorType = API_ERROR_TYPES.CLIENT;
+      
+      // Handle authentication errors
+      if (status === 401) {
+        handleAuthFailure();
+      }
     }
   } else if (error.request) {
     // Network error

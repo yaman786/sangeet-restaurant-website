@@ -5,6 +5,8 @@ class SocketService {
     this.socket = null;
     this.isConnected = false;
     this.listeners = new Map();
+    this.connectionAttempts = 0;
+    this.maxConnectionAttempts = 5;
   }
 
   connect() {
@@ -18,18 +20,20 @@ class SocketService {
       this.socket = null;
     }
 
-    // Use the base URL without /api for socket connection
-    const baseUrl = 'https://sangeet-restaurant-api.onrender.com';
+    // Use environment variable with fallback
+    const baseUrl = process.env.REACT_APP_SOCKET_URL || 'https://sangeet-restaurant-api.onrender.com';
     const apiUrl = baseUrl.replace('/api', ''); // Remove /api if present
     
     try {
+      console.log('🔌 Attempting socket connection to:', apiUrl);
       this.socket = io(apiUrl, {
         transports: ['websocket', 'polling'],
         timeout: 20000,
         forceNew: false,
         reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000
+        reconnectionAttempts: this.maxConnectionAttempts,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000
       });
     } catch (error) {
       console.error('Socket connection error:', error);
@@ -38,25 +42,39 @@ class SocketService {
 
     this.socket.on('connect', () => {
       this.isConnected = true;
+      this.connectionAttempts = 0;
       console.log('🔌 Socket connected successfully');
       // Do not auto-join any room. Pages/components must opt-in.
     });
 
-    this.socket.on('disconnect', () => {
+    this.socket.on('disconnect', (reason) => {
       this.isConnected = false;
+      console.log('🔌 Socket disconnected:', reason);
     });
 
     this.socket.on('connect_error', (error) => {
+      this.connectionAttempts++;
       console.error('WebSocket connection error:', error);
       this.isConnected = false;
+      
+      if (this.connectionAttempts >= this.maxConnectionAttempts) {
+        console.error('🔌 Max connection attempts reached. Socket connection failed.');
+      }
     });
 
     this.socket.on('reconnect', (attemptNumber) => {
       this.isConnected = true;
+      this.connectionAttempts = 0;
+      console.log('🔌 Socket reconnected after', attemptNumber, 'attempts');
     });
 
     this.socket.on('reconnect_error', (error) => {
       console.error('WebSocket reconnection error:', error);
+      this.isConnected = false;
+    });
+
+    this.socket.on('reconnect_failed', () => {
+      console.error('🔌 Socket reconnection failed after all attempts');
       this.isConnected = false;
     });
   }
