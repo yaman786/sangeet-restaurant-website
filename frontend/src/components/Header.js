@@ -188,6 +188,24 @@ const Header = () => {
           >
             {/* Restaurant Status Banner for Mobile */}
             <div className="px-4 py-3 border-b border-sangeet-neutral-800 bg-sangeet-neutral-800/30">
+              {/* Logo Section */}
+              <div className="flex items-center justify-center mb-3">
+                <Link 
+                  to="/" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center space-x-2"
+                >
+                  <img 
+                    src={logo} 
+                    alt="Sangeet Restaurant Logo" 
+                    className="h-8 w-auto"
+                  />
+                  <span className="text-xl font-bold text-white">
+                    Sangeet
+                  </span>
+                </Link>
+              </div>
+              
               <div className="flex items-center justify-between bg-sangeet-neutral-800/50 backdrop-blur-sm rounded-full px-4 py-2 border border-sangeet-neutral-600/30">
                 <div className="flex items-center space-x-2">
                   <div 
