@@ -301,7 +301,7 @@ const UnifiedDashboardPage = () => {
         
         // Load order items for the first order
         try {
-          const orderDetails = await getOrderById(firstOrder.id);
+          const orderDetails = await getOrderById(firstOrder.id, tableNumber);
           if (orderDetails && orderDetails.items) {
             setOrderItems(orderDetails.items);
           }
@@ -311,7 +311,7 @@ const UnifiedDashboardPage = () => {
       } else if (orderId) {
       // If we have an orderId, load the specific order items
         try {
-          const orderDetails = await getOrderById(orderId);
+          const orderDetails = await getOrderById(orderId, tableNumber);
           if (orderDetails && orderDetails.items) {
             setOrderItems(orderDetails.items);
           }

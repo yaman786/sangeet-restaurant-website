@@ -221,9 +221,15 @@ export const fetchVerifiedReviews = async () => {
   }, 'fetchVerifiedReviews');
 };
 
-export const getOrderById = async (orderId) => {
+export const getOrderById = async (orderId, tableNumber = null) => {
   return apiCallWrapper(async () => {
-    return await api.get(`/orders/${orderId}`);
+    const params = new URLSearchParams();
+    if (tableNumber) {
+      params.append('tableNumber', tableNumber);
+    }
+    const queryString = params.toString();
+    const url = queryString ? `/orders/${orderId}?${queryString}` : `/orders/${orderId}`;
+    return await api.get(url);
   }, 'getOrderById');
 };
 

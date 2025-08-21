@@ -409,14 +409,21 @@ const getOrderWithItems = async (orderId) => {
   }
 };
 
-// Get order by ID
+// Get order by ID (public access with table validation)
 const getOrderById = async (req, res) => {
   try {
     const { id } = req.params;
+    const { tableNumber } = req.query; // Get table number from query params
+    
     const order = await getOrderWithItems(id);
 
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // If tableNumber is provided, validate that the order belongs to this table
+    if (tableNumber && order.table_number !== tableNumber) {
+      return res.status(403).json({ error: 'Access denied. Order does not belong to this table.' });
     }
 
     res.json(order);
