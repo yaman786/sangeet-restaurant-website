@@ -6,7 +6,7 @@ import {
   updateOrderStatus, 
   deleteOrder, 
   bulkUpdateOrderStatus,
-  searchOrders,
+  fetchAllOrders,
   fetchTables,
   getOrderById
 } from '../services/api';
@@ -68,7 +68,7 @@ const AdminOrdersPage = () => {
       }
       
       const [ordersData, tablesData] = await Promise.all([
-        searchOrders(searchParams),
+        fetchAllOrders(searchParams),
         fetchTables()
       ]);
       
