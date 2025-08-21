@@ -165,6 +165,77 @@ const Header = () => {
         </div>
       </button>
 
+      {/* Mobile Navigation Menu - Rendered Outside Header */}
+      {isMenuOpen && (
+        <div
+          id="mobile-menu"
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-[99999]"
+          onClick={() => {
+            console.log('Clicking outside menu, closing...');
+            setIsMenuOpen(false);
+          }}
+        >
+          <motion.nav
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="bg-sangeet-neutral-900 border-t border-sangeet-neutral-800 fixed top-0 left-0 right-0 z-[99999] shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+            style={{ 
+              paddingTop: '4rem',
+              minHeight: '50vh'
+            }}
+          >
+            {/* Restaurant Status Banner for Mobile */}
+            <div className="px-4 py-3 border-b border-sangeet-neutral-800 bg-sangeet-neutral-800/30">
+              <div className="flex items-center justify-between bg-sangeet-neutral-800/50 backdrop-blur-sm rounded-full px-4 py-2 border border-sangeet-neutral-600/30">
+                <div className="flex items-center space-x-2">
+                  <div 
+                    className={`w-3 h-3 rounded-full ${restaurantStatus.indicatorColor} animate-pulse shadow-sm`}
+                    aria-hidden="true"
+                  />
+                  <span className={`text-sm font-semibold ${restaurantStatus.statusColor}`}>
+                    {restaurantStatus.statusText}
+                  </span>
+                </div>
+                <div className="text-xs text-sangeet-neutral-400">
+                  {restaurantStatus.displayTime}
+                </div>
+                <div className="text-xs text-sangeet-neutral-400">
+                  📍 {RESTAURANT_HOURS.LOCATION}
+                </div>
+              </div>
+            </div>
+            
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {/* Test indicator */}
+              <div className="px-4 py-2 bg-green-500 text-white text-center font-bold rounded-lg mb-2">
+                🎉 MOBILE MENU IS WORKING! 🎉
+              </div>
+              
+              {NAVIGATION_ITEMS.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => {
+                    console.log('Mobile menu item clicked:', item.path);
+                    setIsMenuOpen(false);
+                  }}
+                  className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 ${
+                    isActive(item.path)
+                      ? 'text-sangeet-400 bg-sangeet-neutral-800/50 font-semibold'
+                      : 'text-sangeet-neutral-300 hover:text-sangeet-400 hover:bg-sangeet-neutral-800/50'
+                  }`}
+                  aria-current={isActive(item.path) ? 'page' : undefined}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </motion.nav>
+        </div>
+      )}
+
       <header className={`bg-gradient-to-r from-sangeet-neutral-950/98 to-sangeet-neutral-900/98 backdrop-blur-2xl md:fixed md:top-0 md:left-0 md:right-0 z-50 border-b border-sangeet-neutral-600/50 shadow-2xl shadow-black/50 md:transition-all md:duration-300 ${
         isScrolled ? 'md:from-sangeet-neutral-950/99 md:to-sangeet-neutral-900/99 md:shadow-2xl' : 'md:from-sangeet-neutral-950/98 md:to-sangeet-neutral-900/98 md:shadow-xl'
       }`}>
@@ -177,27 +248,52 @@ const Header = () => {
               aria-label="Sangeet Restaurant Home"
             >
               <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="flex items-center"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center space-x-2"
               >
                 <img 
                   src={logo} 
-                  alt="Sangeet Restaurant" 
-                  className="h-12 w-auto logo-navbar-dark"
-                  loading="eager"
+                  alt="Sangeet Restaurant Logo" 
+                  className="h-8 w-auto"
                 />
+                <span className="text-xl font-bold text-white hidden lg:block">
+                  Sangeet
+                </span>
+              </motion.div>
+            </Link>
+
+            {/* Mobile Logo - Centered */}
+            <Link 
+              to="/" 
+              className="md:hidden flex items-center justify-center flex-1"
+              aria-label="Sangeet Restaurant Home"
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center space-x-2"
+              >
+                <img 
+                  src={logo} 
+                  alt="Sangeet Restaurant Logo" 
+                  className="h-6 w-auto"
+                />
+                <span className="text-lg font-bold text-white">
+                  Sangeet
+                </span>
               </motion.div>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8" role="navigation" aria-label="Main navigation">
+            <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
               {NAVIGATION_ITEMS.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`relative px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 rounded ${
+                  className={`relative px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 ${
                     isActive(item.path)
-                      ? 'text-sangeet-400 font-semibold'
+                      ? 'text-sangeet-400'
                       : 'text-sangeet-neutral-300 hover:text-sangeet-400'
                   }`}
                   aria-current={isActive(item.path) ? 'page' : undefined}
@@ -206,7 +302,7 @@ const Header = () => {
                   {isActive(item.path) && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-sangeet-400"
+                      className="absolute inset-0 bg-sangeet-neutral-800/50 rounded-lg -z-10"
                       initial={false}
                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     />
@@ -238,72 +334,6 @@ const Header = () => {
               </div>
             </nav>
           </div>
-
-          {/* Mobile Navigation Menu */}
-          {isMenuOpen && (
-            <div
-              id="mobile-menu"
-              className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-[99999]"
-              onClick={() => {
-                console.log('Clicking outside menu, closing...');
-                setIsMenuOpen(false);
-              }}
-            >
-              <motion.nav
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -50 }}
-                className="bg-sangeet-neutral-900 border-t border-sangeet-neutral-800 fixed top-0 left-0 right-0 z-[99999] shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-                style={{ 
-                  paddingTop: '4rem',
-                  minHeight: '50vh'
-                }}
-              >
-                {/* Restaurant Status Banner for Mobile */}
-                <div className="px-4 py-3 border-b border-sangeet-neutral-800 bg-sangeet-neutral-800/30">
-                  <div className="flex items-center justify-between bg-sangeet-neutral-800/50 backdrop-blur-sm rounded-full px-4 py-2 border border-sangeet-neutral-600/30">
-                    <div className="flex items-center space-x-2">
-                      <div 
-                        className={`w-3 h-3 rounded-full ${restaurantStatus.indicatorColor} animate-pulse shadow-sm`}
-                        aria-hidden="true"
-                      />
-                      <span className={`text-sm font-semibold ${restaurantStatus.statusColor}`}>
-                        {restaurantStatus.statusText}
-                      </span>
-                    </div>
-                    <div className="text-xs text-sangeet-neutral-400">
-                      {restaurantStatus.displayTime}
-                    </div>
-                    <div className="text-xs text-sangeet-neutral-400">
-                      📍 {RESTAURANT_HOURS.LOCATION}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="px-2 pt-2 pb-3 space-y-1">
-                  {NAVIGATION_ITEMS.map((item) => (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      onClick={() => {
-                        console.log('Mobile menu item clicked:', item.path);
-                        setIsMenuOpen(false);
-                      }}
-                      className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 ${
-                        isActive(item.path)
-                          ? 'text-sangeet-400 bg-sangeet-neutral-800/50 font-semibold'
-                          : 'text-sangeet-neutral-300 hover:text-sangeet-400 hover:bg-sangeet-neutral-800/50'
-                      }`}
-                      aria-current={isActive(item.path) ? 'page' : undefined}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              </motion.nav>
-            </div>
-          )}
         </div>
       </header>
       
