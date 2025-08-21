@@ -241,62 +241,68 @@ const Header = () => {
 
           {/* Mobile Navigation Menu */}
           {isMenuOpen && (
-            <motion.nav
+            <div
               id="mobile-menu"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="lg:hidden border-t border-sangeet-neutral-800 bg-sangeet-neutral-900/95 backdrop-blur-md fixed top-0 left-0 right-0 z-[99998] shadow-2xl"
-              role="navigation"
-              aria-label="Mobile navigation"
-              style={{ 
-                maxHeight: '100vh',
-                overflowY: 'auto',
-                paddingTop: '4rem'
+              className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-[99999]"
+              onClick={() => {
+                console.log('Clicking outside menu, closing...');
+                setIsMenuOpen(false);
               }}
             >
-              {/* Restaurant Status Banner for Mobile */}
-              <div className="px-4 py-3 border-b border-sangeet-neutral-800 bg-sangeet-neutral-800/30">
-                <div className="flex items-center justify-between bg-sangeet-neutral-800/50 backdrop-blur-sm rounded-full px-4 py-2 border border-sangeet-neutral-600/30">
-                  <div className="flex items-center space-x-2">
-                    <div 
-                      className={`w-3 h-3 rounded-full ${restaurantStatus.indicatorColor} animate-pulse shadow-sm`}
-                      aria-hidden="true"
-                    />
-                    <span className={`text-sm font-semibold ${restaurantStatus.statusColor}`}>
-                      {restaurantStatus.statusText}
-                    </span>
-                  </div>
-                  <div className="text-xs text-sangeet-neutral-400">
-                    {restaurantStatus.displayTime}
-                  </div>
-                  <div className="text-xs text-sangeet-neutral-400">
-                    📍 {RESTAURANT_HOURS.LOCATION}
+              <motion.nav
+                initial={{ opacity: 0, y: -50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                className="bg-sangeet-neutral-900 border-t border-sangeet-neutral-800 fixed top-0 left-0 right-0 z-[99999] shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+                style={{ 
+                  paddingTop: '4rem',
+                  minHeight: '50vh'
+                }}
+              >
+                {/* Restaurant Status Banner for Mobile */}
+                <div className="px-4 py-3 border-b border-sangeet-neutral-800 bg-sangeet-neutral-800/30">
+                  <div className="flex items-center justify-between bg-sangeet-neutral-800/50 backdrop-blur-sm rounded-full px-4 py-2 border border-sangeet-neutral-600/30">
+                    <div className="flex items-center space-x-2">
+                      <div 
+                        className={`w-3 h-3 rounded-full ${restaurantStatus.indicatorColor} animate-pulse shadow-sm`}
+                        aria-hidden="true"
+                      />
+                      <span className={`text-sm font-semibold ${restaurantStatus.statusColor}`}>
+                        {restaurantStatus.statusText}
+                      </span>
+                    </div>
+                    <div className="text-xs text-sangeet-neutral-400">
+                      {restaurantStatus.displayTime}
+                    </div>
+                    <div className="text-xs text-sangeet-neutral-400">
+                      📍 {RESTAURANT_HOURS.LOCATION}
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="px-2 pt-2 pb-3 space-y-1">
-                {NAVIGATION_ITEMS.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => {
-                      console.log('Mobile menu item clicked:', item.path);
-                      handleMenuToggle();
-                    }}
-                    className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 ${
-                      isActive(item.path)
-                        ? 'text-sangeet-400 bg-sangeet-neutral-800/50 font-semibold'
-                        : 'text-sangeet-neutral-300 hover:text-sangeet-400 hover:bg-sangeet-neutral-800/50'
-                    }`}
-                    aria-current={isActive(item.path) ? 'page' : undefined}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </motion.nav>
+                
+                <div className="px-2 pt-2 pb-3 space-y-1">
+                  {NAVIGATION_ITEMS.map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => {
+                        console.log('Mobile menu item clicked:', item.path);
+                        setIsMenuOpen(false);
+                      }}
+                      className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 ${
+                        isActive(item.path)
+                          ? 'text-sangeet-400 bg-sangeet-neutral-800/50 font-semibold'
+                          : 'text-sangeet-neutral-300 hover:text-sangeet-400 hover:bg-sangeet-neutral-800/50'
+                      }`}
+                      aria-current={isActive(item.path) ? 'page' : undefined}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </motion.nav>
+            </div>
           )}
         </div>
       </header>
