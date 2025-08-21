@@ -321,9 +321,7 @@ function App() {
               element={
                 <ErrorBoundary>
                   <AnimatedRoute>
-                    <ProtectedRoute requiredRole="kitchen">
-                      <KitchenDisplayPage />
-                    </ProtectedRoute>
+                    <KitchenDisplayPage />
                   </AnimatedRoute>
                 </ErrorBoundary>
               }
