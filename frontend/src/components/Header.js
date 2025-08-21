@@ -122,7 +122,7 @@ const Header = () => {
         <div className="w-7 h-7 flex items-center justify-center relative">
           {/* Plate */}
           <motion.div
-            animate={isMenuOpen ? { scale: 0.8, rotate: 15 } : { scale: 1, rotate: 0 }}
+            animate={isMenuOpen ? { scale: 0.6, rotate: 15 } : { scale: 1, rotate: 0 }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
             className="w-5 h-5 border-2 border-white rounded-full relative"
           >
@@ -132,7 +132,7 @@ const Header = () => {
           
           {/* Fork */}
           <motion.div
-            animate={isMenuOpen ? { x: -8, y: -8, rotate: -45, opacity: 0.7 } : { x: 0, y: 0, rotate: 0, opacity: 1 }}
+            animate={isMenuOpen ? { x: -10, y: -10, rotate: -45, opacity: 0.5 } : { x: 0, y: 0, rotate: 0, opacity: 1 }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
             className="absolute left-0 top-0 w-0.5 h-4 bg-white rounded-full"
           >
@@ -145,7 +145,7 @@ const Header = () => {
           
           {/* Knife */}
           <motion.div
-            animate={isMenuOpen ? { x: 8, y: -8, rotate: 45, opacity: 0.7 } : { x: 0, y: 0, rotate: 0, opacity: 1 }}
+            animate={isMenuOpen ? { x: 10, y: -10, rotate: 45, opacity: 0.5 } : { x: 0, y: 0, rotate: 0, opacity: 1 }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
             className="absolute right-0 top-0 w-0.5 h-4 bg-white rounded-full"
           >
@@ -188,24 +188,6 @@ const Header = () => {
           >
             {/* Restaurant Status Banner for Mobile */}
             <div className="px-4 py-3 border-b border-sangeet-neutral-800 bg-sangeet-neutral-800/30">
-              {/* Logo Section */}
-              <div className="flex items-center justify-center mb-3">
-                <Link 
-                  to="/" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center space-x-2"
-                >
-                  <img 
-                    src={logo} 
-                    alt="Sangeet Restaurant Logo" 
-                    className="h-8 w-auto"
-                  />
-                  <span className="text-xl font-bold text-white">
-                    Sangeet
-                  </span>
-                </Link>
-              </div>
-              
               <div className="flex items-center justify-between bg-sangeet-neutral-800/50 backdrop-blur-sm rounded-full px-4 py-2 border border-sangeet-neutral-600/30">
                 <div className="flex items-center space-x-2">
                   <div 
