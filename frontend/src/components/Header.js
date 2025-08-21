@@ -50,8 +50,9 @@ const Header = () => {
 
   // Memoized menu toggle handler
   const handleMenuToggle = useCallback(() => {
+    console.log('Mobile menu toggle clicked, current state:', isMenuOpen);
     setIsMenuOpen(prev => !prev);
-  }, []);
+  }, [isMenuOpen]);
 
   // Update time every second
   useEffect(() => {
@@ -75,10 +76,14 @@ const Header = () => {
       {/* Mobile menu button - Fork, Plate, Knife Sticky Icon - Outside Header */}
       <button
         onClick={handleMenuToggle}
-        className="md:hidden fixed left-1/2 transform -translate-x-1/2 top-4 p-3 rounded-xl text-white hover:text-sangeet-400 hover:bg-sangeet-neutral-800/50 focus:outline-none transition-all duration-300 touch-manipulation z-[9999]"
+        className="md:hidden fixed left-1/2 transform -translate-x-1/2 top-4 p-3 rounded-xl text-white hover:text-sangeet-400 hover:bg-sangeet-neutral-800/50 focus:outline-none transition-all duration-300 touch-manipulation z-[99999] bg-sangeet-neutral-900/80 backdrop-blur-sm border border-sangeet-neutral-700/50"
         aria-label="Toggle menu"
         aria-expanded={isMenuOpen}
         aria-controls="mobile-menu"
+        style={{ 
+          WebkitTapHighlightColor: 'transparent',
+          touchAction: 'manipulation'
+        }}
       >
         <div className="w-7 h-7 flex items-center justify-center relative">
           {/* Plate */}
@@ -207,9 +212,13 @@ const Header = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden border-t border-sangeet-neutral-800 bg-sangeet-neutral-900/95 backdrop-blur-md fixed top-14 sm:top-16 left-0 right-0 z-40 md:top-16"
+              className="lg:hidden border-t border-sangeet-neutral-800 bg-sangeet-neutral-900/95 backdrop-blur-md fixed top-14 sm:top-16 left-0 right-0 z-[99998] md:top-16 shadow-2xl"
               role="navigation"
               aria-label="Mobile navigation"
+              style={{ 
+                maxHeight: 'calc(100vh - 4rem)',
+                overflowY: 'auto'
+              }}
             >
               {/* Restaurant Status Banner for Mobile */}
               <div className="px-4 py-3 border-b border-sangeet-neutral-800 bg-sangeet-neutral-800/30">
