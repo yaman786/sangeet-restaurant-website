@@ -235,7 +235,7 @@ export const getOrderById = async (orderId, tableNumber = null) => {
 
 export const getOrdersByTable = async (tableNumber) => {
   return apiCallWrapper(async () => {
-    return await api.get(`/orders/table/${tableNumber}`);
+    return await api.get(`/orders/table-number/${tableNumber}`);
   }, 'getOrdersByTable');
 };
 

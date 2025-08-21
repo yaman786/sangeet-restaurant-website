@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { createOrder, getOrderById, getOrdersByTable, updateOrderStatus, getAllOrders, getOrderStats, searchOrders, deleteOrder } = require('../controllers/orderController');
+const { createOrder, getOrderById, getOrdersByTable, getOrdersByTableNumber, updateOrderStatus, getAllOrders, getOrderStats, searchOrders, deleteOrder } = require('../controllers/orderController');
 const { authenticateToken } = require('../middleware/auth');
 
 // Public routes (no authentication required)
 router.post('/', createOrder);
-router.get('/table/:tableId', getOrdersByTable); // Public - customers can view their table orders
+router.get('/table/:tableId', getOrdersByTable); // Public - customers can view their table orders by ID
+router.get('/table-number/:tableNumber', getOrdersByTableNumber); // Public - customers can view their table orders by number
 
 // Protected routes (authentication required)
 router.get('/stats', authenticateToken, getOrderStats);
