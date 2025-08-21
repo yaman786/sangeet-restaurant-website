@@ -130,6 +130,9 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
       console.log('🔌 OrderQueue: Joining kitchen room...');
       socketService.joinKitchen();
 
+      // Log connection status
+      console.log('🔌 OrderQueue: Socket connection status:', socketService.isConnected);
+
       // Listen for new orders → real-time addition
       socketService.onNewOrder((orderData) => {
         console.log('🔔 OrderQueue: New order received:', orderData);
@@ -195,19 +198,21 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
       // Listen for order deletions → real-time removal
       socketService.onOrderDeleted((data) => {
         console.log('🗑️ OrderQueue: Order deleted event received:', data);
+        console.log('🗑️ OrderQueue: Socket connection status during deletion:', socketService.isConnected);
+        
         const deletedOrderId = data.orderId;
         
         // Remove from active orders
         setOrders(prevOrders => {
           const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
-          console.log(`Order ${deletedOrderId} removed from active orders. Remaining: ${updatedOrders.length}`);
+          console.log(`🗑️ OrderQueue: Order ${deletedOrderId} removed from active orders. Remaining: ${updatedOrders.length}`);
           return updatedOrders;
         });
         
         // Remove from completed orders
         setCompletedOrders(prevCompleted => {
           const updatedCompleted = prevCompleted.filter(order => order.id !== deletedOrderId);
-          console.log(`Order ${deletedOrderId} removed from completed orders. Remaining: ${updatedCompleted.length}`);
+          console.log(`🗑️ OrderQueue: Order ${deletedOrderId} removed from completed orders. Remaining: ${updatedCompleted.length}`);
           return updatedCompleted;
         });
         
@@ -230,6 +235,8 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
         // Reload orders for new items (this is complex to update in-place)
         loadOrders();
       });
+
+      console.log('✅ OrderQueue: Socket listeners setup completed successfully');
 
     } catch (error) {
       console.error('❌ OrderQueue: Error setting up socket listeners:', error);
