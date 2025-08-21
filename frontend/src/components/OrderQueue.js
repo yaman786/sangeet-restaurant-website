@@ -312,14 +312,25 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
   return (
     <div className="p-4">
       {/* Orders Grid - Optimized for Kitchen */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <AnimatePresence>
+      <motion.div 
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+        layout
+        transition={{ duration: 0.3 }}
+      >
+        <AnimatePresence mode="wait">
           {filteredOrders.map((order) => (
             <motion.div
-              key={`${order.id}-${order.status}-${order.updated_at || order.created_at}`}
+              key={order.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
+              layout
+              transition={{ 
+                type: "spring", 
+                stiffness: 300, 
+                damping: 30,
+                layout: { duration: 0.3 }
+              }}
               className={`bg-sangeet-neutral-800 rounded-lg p-4 border ${
                 order.status === 'ready' 
                   ? 'border-green-500 bg-green-500/10 shadow-lg shadow-green-500/20' 
@@ -489,7 +500,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
             </motion.div>
           ))}
         </AnimatePresence>
-      </div>
+      </motion.div>
 
       {filteredOrders.length === 0 && (
         <div className="text-center py-8">
