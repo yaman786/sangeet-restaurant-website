@@ -158,6 +158,7 @@ const UnifiedDashboardPage = () => {
   // Load all dashboard data
   const loadDashboardData = useCallback(async () => {
     try {
+      console.log('🚀 Loading dashboard data for table:', tableNumber);
       setLoading(true);
       
       // Check for cancelled order timeout first
@@ -245,8 +246,24 @@ const UnifiedDashboardPage = () => {
       }
       
       // Load orders for this table
+      console.log('📡 Fetching orders for table:', tableNumber);
       const tableOrders = await getOrdersByTable(tableNumber);
+      console.log('📦 Received orders:', tableOrders);
       
+      const activeOrders = tableOrders.filter(order => 
+        order.status !== 'completed' && order.status !== 'cancelled'
+      );
+      
+      // Remove duplicates based on order ID
+      const uniqueOrders = activeOrders.reduce((acc, order) => {
+        const existingOrder = acc.find(o => o.id === order.id);
+        if (existingOrder) {
+          return acc;
+        }
+        return [...acc, order];
+      }, []);
+      setOrders(uniqueOrders);
+
       // Show welcome back message if session was restored
       if (sessionRestored) {
         const savedCart = localStorage.getItem(`cart_${tableNumber}`);
@@ -267,22 +284,6 @@ const UnifiedDashboardPage = () => {
           }
         }
       }
-      
-      const activeOrders = tableOrders.filter(order => 
-        order.status !== 'completed' && order.status !== 'cancelled'
-      );
-      
-
-      
-      // Remove duplicates based on order ID
-      const uniqueOrders = activeOrders.reduce((acc, order) => {
-        const existingOrder = acc.find(o => o.id === order.id);
-        if (existingOrder) {
-          return acc;
-        }
-        return [...acc, order];
-      }, []);
-      setOrders(uniqueOrders);
 
       // Smart view selection: If there are active orders, prioritize tracking view
       if (uniqueOrders.length > 0 && currentView === 'menu') {
@@ -326,21 +327,43 @@ const UnifiedDashboardPage = () => {
       }
 
       // Load menu items and categories
+      console.log('🍽️ Fetching menu data...');
       const [menuData, categoriesData] = await Promise.all([
         fetchMenuItems(),
         fetchMenuCategories()
       ]);
+      console.log('🍽️ Menu items received:', menuData?.length || 0);
+      console.log('📋 Categories received:', categoriesData?.length || 0);
       
       setMenuItems(menuData || []);
       setCategories(categoriesData || []);
       
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      toast.error('Failed to load dashboard data');
+      console.error('❌ Error loading dashboard data:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        type: error.type,
+        status: error.status,
+        stack: error.stack
+      });
+      
+      // Show specific error message based on error type
+      if (error.type === 'NETWORK_ERROR') {
+        toast.error('Network error: Please check your internet connection');
+      } else if (error.type === 'TIMEOUT_ERROR') {
+        toast.error('Request timeout: Server is taking too long to respond');
+      } else if (error.status >= 500) {
+        toast.error('Server error: Please try again later');
+      } else if (error.status === 404) {
+        toast.error('Data not found: Please try refreshing the page');
+      } else {
+        toast.error(`Failed to load dashboard data: ${error.message || 'Unknown error'}`);
+      }
     } finally {
+      console.log('✅ Dashboard loading completed');
       setLoading(false);
     }
-  }, [tableNumber, orderId]);
+  }, [tableNumber, orderId, checkCancelledOrderTimeout]);
 
   // Setup real-time updates
   const setupRealTimeUpdates = useCallback(() => {
