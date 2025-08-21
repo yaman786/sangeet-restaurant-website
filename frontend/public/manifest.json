@@ -1,0 +1,30 @@
+{
+  "short_name": "Sangeet Restaurant",
+  "name": "Sangeet Restaurant - Authentic Indian & Nepali Cuisine",
+  "description": "Experience authentic Indian & Nepali cuisine with digital menu, online ordering, and table reservations.",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#dc2626",
+  "background_color": "#0f0f0f",
+  "orientation": "portrait-primary",
+  "categories": ["food", "restaurant", "dining"],
+  "lang": "en"
+}
