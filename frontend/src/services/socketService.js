@@ -38,6 +38,7 @@ class SocketService {
 
     this.socket.on('connect', () => {
       this.isConnected = true;
+      console.log('🔌 Socket connected successfully');
       // Do not auto-join any room. Pages/components must opt-in.
     });
 
@@ -82,6 +83,7 @@ class SocketService {
     }
     
     if (this.socket) {
+      console.log('🔌 Joining admin room...');
       this.socket.emit('join-admin');
     }
   }

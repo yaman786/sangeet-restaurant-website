@@ -97,12 +97,16 @@ const AdminOrdersPage = () => {
   // Socket setup for realtime updates - minimal: reload on any event
   useEffect(() => {
     try {
+      console.log('🔌 Setting up admin dashboard socket connection...');
       if (!socketService.isConnected) {
+        console.log('🔌 Connecting to socket server...');
         socketService.connect();
       }
+      console.log('🔌 Joining admin room...');
       socketService.joinAdminRoom();
 
       const handleNewOrder = (orderData) => {
+        console.log('🔔 Admin dashboard received new order:', orderData);
         // Real-time addition to state instead of full refresh
         if (orderData && orderData.id) {
           // Add new order to the beginning of active orders
@@ -121,6 +125,7 @@ const AdminOrdersPage = () => {
       };
 
       const handleStatusUpdate = (data) => {
+        console.log('🔄 Admin dashboard received status update:', data);
         // Real-time status update instead of full refresh
         const { orderId, status } = data;
         
@@ -145,17 +150,21 @@ const AdminOrdersPage = () => {
         // If order is completed, move it from active to completed after a delay
         if (status === 'completed') {
           setTimeout(() => {
-            const orderToMove = orders.find(order => order.id === orderId);
-            if (orderToMove) {
-              const updatedOrder = { ...orderToMove, status: 'completed', updated_at: new Date().toISOString() };
-              setCompletedOrders(prev => [updatedOrder, ...prev]);
-              setOrders(prev => prev.filter(order => order.id !== orderId));
-            }
+            setOrders(prevOrders => {
+              const orderToMove = prevOrders.find(order => order.id === orderId);
+              if (orderToMove) {
+                const updatedOrder = { ...orderToMove, status: 'completed', updated_at: new Date().toISOString() };
+                setCompletedOrders(prev => [updatedOrder, ...prev]);
+                return prevOrders.filter(order => order.id !== orderId);
+              }
+              return prevOrders;
+            });
           }, 2000); // 2 second delay to show status change before moving
         }
       };
 
       const handleOrderDeleted = (data) => {
+        console.log('🗑️ Admin dashboard received order deletion:', data);
         // Real-time removal from state instead of full refresh
         const deletedOrderId = data.orderId;
         
@@ -187,7 +196,7 @@ const AdminOrdersPage = () => {
     } catch (error) {
       console.error('Error setting up socket:', error);
     }
-  }, []);
+  }, [loadDashboardData]);
 
 
   // Validate status transitions to prevent backward movement
