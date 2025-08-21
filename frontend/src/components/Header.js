@@ -296,28 +296,6 @@ const Header = () => {
               </motion.div>
             </Link>
 
-            {/* Mobile Logo - Centered */}
-            <Link 
-              to="/" 
-              className="md:hidden flex items-center justify-center flex-1"
-              aria-label="Sangeet Restaurant Home"
-            >
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center space-x-2"
-              >
-                <img 
-                  src={logo} 
-                  alt="Sangeet Restaurant Logo" 
-                  className="h-6 w-auto"
-                />
-                <span className="text-lg font-bold text-white">
-                  Sangeet
-                </span>
-              </motion.div>
-            </Link>
-
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
               {NAVIGATION_ITEMS.map((item) => (
