@@ -79,9 +79,6 @@ const StaffManagementPage = () => {
       setUsers(usersResponse.users || []);
       setStats(statsResponse.stats || {});
     } catch (error) {
-      console.error('Error loading data:', error);
-      console.log('Using fallback data - API may not be available');
-      
       // Fallback data if API fails
       setUsers([
         {

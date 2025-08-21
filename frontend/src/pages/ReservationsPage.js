@@ -102,10 +102,18 @@ const ReservationsPage = () => {
       {/* Header */}
       <div className="bg-gradient-to-b from-sangeet-neutral-900 to-sangeet-neutral-950 py-8 sm:py-12 md:py-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center space-x-2 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4"
+          >
+            <span className="text-xl md:text-2xl">📅</span>
+            <span className="text-sangeet-400 font-semibold text-sm md:text-base">Reservations</span>
+          </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-sangeet-neutral-100 mb-4 sm:mb-6"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-sangeet-400 mb-4 sm:mb-6"
           >
             Make a Reservation
           </motion.h1>
@@ -123,6 +131,7 @@ const ReservationsPage = () => {
       {/* Reservation Form */}
       <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12 md:py-16">
         <motion.div
+          id="reservation-form"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}

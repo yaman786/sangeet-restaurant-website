@@ -126,11 +126,10 @@ const MenuPage = () => {
           >
             <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4">
               <span className="text-xl md:text-2xl">🍽️</span>
-              <span className="text-sangeet-400 font-semibold text-sm md:text-base">Our Menu</span>
+              <span className="text-sangeet-400 font-semibold text-sm md:text-base">Culinary Excellence</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-sangeet-400 mb-3 md:mb-4">Our Menu</h1>
             <p className="text-sangeet-neutral-400 text-base md:text-lg max-w-2xl mx-auto">
-              Discover authentic Indian & Nepali flavors
+              Experience the finest Indian & Nepali cuisine crafted with passion
             </p>
           </motion.div>
 

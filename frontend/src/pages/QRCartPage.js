@@ -210,16 +210,12 @@ const QRCartPage = () => {
 
       // Use direct fetch instead of API service
       const orderResponse = await createOrder(orderData);
-              // Order response received
       
       const orderId = orderResponse?.order?.id;
       const orderNumber = orderResponse?.order?.order_number;
       const isMerged = orderResponse?.merged || false;
       
-      console.log('📋 Extracted order details:', { orderId, orderNumber, isMerged });
-      
       if (!orderId) {
-        console.error('❌ No order ID found in response');
         throw new Error('Order ID not found in response');
       }
       
@@ -240,7 +236,6 @@ const QRCartPage = () => {
       
       // Navigate to unified dashboard page
       const dashboardUrl = `/dashboard?orderId=${orderId}&table=${tableInfo?.table_number}&customerName=${encodeURIComponent(customerName)}&orderNumber=${orderNumber || ''}&totalAmount=${getTotalAmount().toFixed(2)}`;
-      console.log('🚀 Navigating to:', dashboardUrl);
       window.location.href = dashboardUrl;
       
     } catch (error) {

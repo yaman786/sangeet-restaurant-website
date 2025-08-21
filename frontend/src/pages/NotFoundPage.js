@@ -14,7 +14,6 @@ const NotFoundPage = () => {
     const isProtectedRoute = protectedPaths.some(path => location.pathname.startsWith(path));
     
     if (isProtectedRoute && !isAuthenticated()) {
-      console.log('🔒 Redirecting unauthenticated user to login');
       navigate('/login', { replace: true });
     }
   }, [location.pathname, navigate]);

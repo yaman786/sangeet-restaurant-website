@@ -191,13 +191,9 @@ const QRMenuPage = () => {
 
     // Listen for order deletion events
     const handleOrderDeleted = (data) => {
-      console.log('🗑️ Order deleted event received:', data);
-      
       // Check if this deletion affects our table
       if (data.tableNumber && tableInfo?.table_number && 
           data.tableNumber.toString() === tableInfo.table_number.toString()) {
-        
-        console.log('🗑️ Clearing cart for deleted order on table', tableInfo.table_number);
         
         // Clear cart state
         setCart([]);
@@ -206,7 +202,6 @@ const QRMenuPage = () => {
         const success = clearCartData(qrCode, tableInfo.table_number);
         
         if (success) {
-          console.log('✅ Cart data cleared successfully');
           toast.success('Previous order has been cancelled. Your cart has been cleared.');
         } else {
           console.error('❌ Failed to clear cart data');

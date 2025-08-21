@@ -39,8 +39,6 @@ const ReservationManagementPage = () => {
         fetchReservationStats(),
         fetchTables()
       ]);
-      console.log('Loaded stats:', statsData);
-      console.log('Loaded reservations:', reservationsData);
       setReservations(reservationsData);
       setStats(statsData);
       setTables(tablesData);

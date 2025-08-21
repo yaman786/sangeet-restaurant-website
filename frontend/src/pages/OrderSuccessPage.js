@@ -39,6 +39,15 @@ const OrderSuccessPage = () => {
         {/* Success Header */}
         <div className="text-center">
           <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center space-x-2 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4"
+          >
+            <span className="text-xl md:text-2xl">✅</span>
+            <span className="text-sangeet-400 font-semibold text-sm md:text-base">Order Success</span>
+          </motion.div>
+          
+          <motion.div
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}

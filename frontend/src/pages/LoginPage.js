@@ -11,6 +11,7 @@ const LoginPage = () => {
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {
@@ -29,50 +30,31 @@ const LoginPage = () => {
       return;
     }
 
-    console.log('🔐 Attempting unified login with:', credentials);
-    console.log('🔐 Credentials type:', typeof credentials);
-    console.log('🔐 Credentials keys:', Object.keys(credentials));
     setIsLoading(true);
+    setError('');
 
     try {
-      console.log('📡 Making API call to login...');
-      console.log('📡 API URL:', 'https://sangeet-restaurant-api.onrender.com/api');
       const response = await loginUser(credentials);
-      console.log('✅ Login response:', response);
-      
       const { user, token } = response;
-      
-      // Store token and user info
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('authUser', JSON.stringify(user));
-      
-      console.log('💾 Token saved to localStorage');
-      console.log('👤 User role:', user.role);
-      
-      // Role-based redirection
+
+      // Store token and user data
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      // Show success message
+      toast.success(`Welcome back, ${user.first_name}!`);
+
+      // Redirect based on user role
       if (user.role === 'admin') {
-        // Admin users go to admin dashboard
-        localStorage.setItem('adminToken', token);
-        localStorage.setItem('adminUser', JSON.stringify(user));
-        toast.success(`Welcome back, ${user.first_name}! Redirecting to Admin Dashboard...`);
         navigate('/admin/dashboard');
       } else if (user.role === 'staff') {
-        // Staff users go to kitchen display
-        localStorage.setItem('kitchenToken', token);
-        localStorage.setItem('kitchenUser', JSON.stringify(user));
-        toast.success(`Welcome back, ${user.first_name}! Redirecting to Kitchen Display...`);
-        navigate('/kitchen/display');
+        navigate('/admin/orders');
       } else {
-        // Unknown role
-        toast.error('Access denied. Invalid user role.');
-        console.error('Unknown user role:', user.role);
+        navigate('/admin/dashboard');
       }
-      
     } catch (error) {
-      console.error('❌ Login error:', error);
-      console.error('❌ Error response:', error.response);
-      console.error('❌ Error message:', error.message);
-      const errorMessage = error.response?.data?.error || 'Login failed. Please try again.';
+      const errorMessage = error.response?.data?.error || error.message || 'Login failed. Please try again.';
+      setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -182,6 +164,13 @@ const LoginPage = () => {
                 'Sign In'
               )}
             </button>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mt-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+                <p className="text-red-400 text-sm text-center">{error}</p>
+              </div>
+            )}
           </form>
 
                       {/* Demo credentials section removed */}

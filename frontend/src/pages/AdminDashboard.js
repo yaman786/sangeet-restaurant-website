@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getProfile } from '../services/api';
-import toast from 'react-hot-toast';
 import AdminHeader from '../components/AdminHeader';
 
 const AdminDashboard = () => {
@@ -19,40 +18,24 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-
       try {
-        const response = await getProfile();
-        setUser(response.user);
-      } catch (error) {
-        console.error('Auth check error:', error);
-        console.log('Using fallback user data - API may not be available');
-        
-        // Check if it's an authentication error
-        if (error.status === 401 || error.message?.includes('token')) {
-          console.log('Authentication failed - redirecting to login');
-          localStorage.removeItem('adminToken');
-          localStorage.removeItem('adminUser');
+        const token = localStorage.getItem('token');
+        if (!token) {
           navigate('/login');
-          toast.error('Session expired. Please login again.');
           return;
         }
-        
-        // Fallback user data if API fails for other reasons
-        const fallbackUser = {
-          first_name: 'Admin',
-          last_name: 'User',
-          email: 'admin@sangeet.com',
-          role: 'admin'
-        };
-        setUser(fallbackUser);
-        
-        // Don't redirect to login if we have a token, just use fallback data
-        // This allows the dashboard to work even if the API is temporarily unavailable
+
+        // Try to get user data from API
+        const userData = await getProfile();
+        setUser(userData.user);
+      } catch (error) {
+        // Fallback to localStorage if API fails
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        } else {
+          navigate('/login');
+        }
       } finally {
         setLoading(false);
       }

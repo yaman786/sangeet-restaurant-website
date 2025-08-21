@@ -50,11 +50,7 @@ const Header = () => {
 
   // Memoized menu toggle handler
   const handleMenuToggle = useCallback(() => {
-    console.log('Mobile menu toggle clicked, current state:', isMenuOpen);
-    console.log('Window width:', window.innerWidth);
-    console.log('Is mobile device:', window.innerWidth < 768);
     const newState = !isMenuOpen;
-    console.log('Setting menu state to:', newState);
     setIsMenuOpen(newState);
   }, [isMenuOpen]);
 
@@ -62,7 +58,6 @@ const Header = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (isMenuOpen && !event.target.closest('#mobile-menu') && !event.target.closest('button[aria-controls="mobile-menu"]')) {
-        console.log('Clicking outside mobile menu, closing...');
         setIsMenuOpen(false);
       }
     };
@@ -76,14 +71,6 @@ const Header = () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, [isMenuOpen]);
-
-  // Debug menu state changes
-  useEffect(() => {
-    console.log('Menu state changed to:', isMenuOpen);
-    if (isMenuOpen) {
-      console.log('Mobile menu should be visible now');
-    }
   }, [isMenuOpen]);
 
   // Update time every second
@@ -171,7 +158,6 @@ const Header = () => {
           id="mobile-menu"
           className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[99998]"
           onClick={() => {
-            console.log('Clicking outside menu, closing...');
             setIsMenuOpen(false);
           }}
         >
@@ -213,7 +199,6 @@ const Header = () => {
                   key={item.path}
                   to={item.path}
                   onClick={() => {
-                    console.log('Mobile menu item clicked:', item.path);
                     setIsMenuOpen(false);
                   }}
                   className={`block px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 ${

@@ -65,63 +65,74 @@ const UnifiedOrderPage = () => {
       socketService.connect();
       socketService.joinCustomer(orderId);
       
-      // Listen for real-time order status updates
-      socketService.onOrderStatusUpdate((updateData) => {
-        console.log('🔔 Real-time order update received:', updateData);
-        
-        // Update order status immediately
-        setOrder(prevOrder => {
-          if (prevOrder && prevOrder.id === updateData.orderId) {
-            return {
-              ...prevOrder,
-              status: updateData.status,
-              updated_at: updateData.timestamp
-            };
-          }
-          return prevOrder;
-        });
-        
-        // Show notification for status changes
-        const statusConfig = orderStatuses[updateData.status];
-        if (statusConfig) {
-          toast.success(`Order ${statusConfig.label.toLowerCase()}!`, {
-            duration: 4000,
-            icon: statusConfig.icon
+      // Listen for real-time order updates
+      const handleOrderUpdate = (updateData) => {
+        // Check if this update affects our order
+        if (updateData.orderId && orderId && 
+            updateData.orderId.toString() === orderId.toString()) {
+          
+          // Update order status
+          setOrder(prevOrder => {
+            if (prevOrder && prevOrder.id === updateData.orderId) {
+              return {
+                ...prevOrder,
+                status: updateData.status,
+                updated_at: updateData.timestamp
+              };
+            }
+            return prevOrder;
           });
           
-          // Play notification sound
-          socketService.playNotificationSound('notification');
+          // Show toast notification for status changes
+          const statusMessages = {
+            'preparing': 'Your order is now being prepared! 👨‍🍳',
+            'ready': 'Your order is ready for pickup! ✅',
+            'completed': 'Thank you for dining with us! 🎉',
+            'cancelled': 'Your order has been cancelled.'
+          };
+          
+          if (statusMessages[updateData.status]) {
+            if (updateData.status === 'cancelled') {
+              toast.error(statusMessages[updateData.status]);
+            } else {
+              toast.success(statusMessages[updateData.status]);
+            }
+          }
         }
-      });
-      
-      // Listen for order completion
-      socketService.onOrderCompleted((data) => {
-        if (data.orderId === orderId) {
-          console.log('🎉 Order completed via WebSocket');
-          toast.success('🎉 Your order is completed! Thank you for dining with us!', {
-            duration: 6000
-          });
-          socketService.playNotificationSound('completion');
-        }
-      });
+      };
 
-      // Listen for order deletion
-      socketService.onOrderDeleted((data) => {
-        console.log('🗑️ Order deleted event received:', data);
-        
-        // Check if this deletion affects our order
+      // Listen for order completion
+      const handleOrderCompleted = (data) => {
         if (data.orderId && orderId && 
             data.orderId.toString() === orderId.toString()) {
-          
-          console.log('🗑️ Order was deleted:', orderId);
-          
-          // Clear order state
+          setOrder(prevOrder => {
+            if (prevOrder && prevOrder.id === orderId) {
+              return {
+                ...prevOrder,
+                status: 'completed',
+                updated_at: data.timestamp
+              };
+            }
+            return prevOrder;
+          });
+          toast.success('Thank you for dining with us! 🎉');
+        }
+      };
+
+      // Listen for order deletion
+      const handleOrderDeleted = (data) => {
+        if (data.orderId && orderId && 
+            data.orderId.toString() === orderId.toString()) {
           setOrder(null);
           setError('This order has been cancelled by the restaurant.');
-          
           toast.error('This order has been cancelled by the restaurant.');
         }
-      });
+      };
+
+      // Register event listeners
+      socketService.onOrderStatusUpdate(handleOrderUpdate);
+      socketService.onOrderCompleted(handleOrderCompleted);
+      socketService.onOrderDeleted(handleOrderDeleted);
       
       // Cleanup function
       return () => {
