@@ -9,8 +9,10 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
 
   useEffect(() => {
     const checkAuth = () => {
+      const token = localStorage.getItem('token');
       const adminToken = localStorage.getItem('adminToken');
       const kitchenToken = localStorage.getItem('kitchenToken');
+      const user = localStorage.getItem('user');
       const adminUser = localStorage.getItem('adminUser');
       const kitchenUser = localStorage.getItem('kitchenUser');
 
@@ -18,13 +20,13 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
       let role = null;
 
       // Check admin authentication first (admin can access everything)
-      if (adminToken && adminUser) {
+      if ((token || adminToken) && (user || adminUser)) {
         try {
-          JSON.parse(adminUser); // Validate JSON format
+          const userData = user ? JSON.parse(user) : JSON.parse(adminUser);
           authenticated = true;
-          role = 'admin';
+          role = userData.role || 'admin';
         } catch (error) {
-          console.error('Error parsing admin user data:', error);
+          console.error('Error parsing user data:', error);
         }
       }
       // Check kitchen authentication

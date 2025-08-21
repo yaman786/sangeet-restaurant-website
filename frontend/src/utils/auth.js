@@ -7,6 +7,8 @@ import toast from 'react-hot-toast';
 export const logout = (navigate) => {
   try {
     // Clear all possible authentication tokens and user data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     localStorage.removeItem('authToken');
     localStorage.removeItem('authUser');
     localStorage.removeItem('adminToken');
@@ -32,11 +34,12 @@ export const logout = (navigate) => {
  * Check if user is authenticated (any role)
  */
 export const isAuthenticated = () => {
+  const token = localStorage.getItem('token');
   const authToken = localStorage.getItem('authToken');
   const adminToken = localStorage.getItem('adminToken');
   const kitchenToken = localStorage.getItem('kitchenToken');
   
-  return !!(authToken || adminToken || kitchenToken);
+  return !!(token || authToken || adminToken || kitchenToken);
 };
 
 /**
@@ -47,7 +50,9 @@ export const getCurrentUser = () => {
     // Try to get user from different storage locations
     let user = null;
     
-    if (localStorage.getItem('authUser')) {
+    if (localStorage.getItem('user')) {
+      user = JSON.parse(localStorage.getItem('user'));
+    } else if (localStorage.getItem('authUser')) {
       user = JSON.parse(localStorage.getItem('authUser'));
     } else if (localStorage.getItem('adminUser')) {
       user = JSON.parse(localStorage.getItem('adminUser'));
