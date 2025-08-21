@@ -126,21 +126,81 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
       // Join kitchen room to receive notifications
       socketService.joinKitchen();
 
-      // Listen for new orders → minimal: reload
-      socketService.onNewOrder(() => {
+      // Listen for new orders → real-time addition
+      socketService.onNewOrder((orderData) => {
         if (soundEnabled) socketService.playNotificationSound('notification');
-        loadOrders();
+        
+        if (orderData && orderData.id) {
+          // Add new order to the beginning of active orders
+          setOrders(prevOrders => sortOrders([orderData, ...prevOrders]));
+          
+          // Show notification
+          toast.success(`New order #${orderData.order_number || orderData.id} received!`, {
+            duration: 4000,
+            icon: '🔔'
+          });
+        } else {
+          // Fallback to refresh if no order data
+          loadOrders();
+        }
       });
 
-      // Listen for status updates → minimal: reload
+      // Listen for status updates → real-time update
       socketService.onOrderStatusUpdate((data) => {
         if (data.status === 'ready' && soundEnabled) socketService.playNotificationSound('completion');
-        loadOrders();
+        
+        const { orderId, status } = data;
+        
+        // Update in active orders
+        setOrders(prevOrders => {
+          const updatedOrders = prevOrders.map(order => 
+            order.id === orderId 
+              ? { ...order, status, updated_at: new Date().toISOString() }
+              : order
+          );
+          return sortOrders(updatedOrders);
+        });
+        
+        // Update in completed orders if it exists there
+        setCompletedOrders(prevCompleted => 
+          prevCompleted.map(order => 
+            order.id === orderId 
+              ? { ...order, status, updated_at: new Date().toISOString() }
+              : order
+          )
+        );
+        
+        // If order is completed, move it from active to completed after a delay
+        if (status === 'completed') {
+          setTimeout(() => {
+            setOrders(prevOrders => {
+              const orderToMove = prevOrders.find(order => order.id === orderId);
+              if (orderToMove) {
+                const updatedOrder = { ...orderToMove, status: 'completed', updated_at: new Date().toISOString() };
+                setCompletedOrders(prev => sortOrders([updatedOrder, ...prev]));
+                return prevOrders.filter(order => order.id !== orderId);
+              }
+              return prevOrders;
+            });
+          }, 3000); // 3 second delay for kitchen display
+        }
       });
 
-      // Listen for order deletions → minimal: reload
+      // Listen for order deletions → real-time removal
       socketService.onOrderDeleted((data) => {
-        loadOrders();
+        const deletedOrderId = data.orderId;
+        
+        // Remove from active orders
+        setOrders(prevOrders => prevOrders.filter(order => order.id !== deletedOrderId));
+        
+        // Remove from completed orders
+        setCompletedOrders(prevCompleted => prevCompleted.filter(order => order.id !== deletedOrderId));
+        
+        // Show success message
+        toast.success(`Order #${data.orderId} deleted`, {
+          duration: 3000,
+          icon: '🗑️'
+        });
       });
 
       // Listen for new items added to existing orders
@@ -150,6 +210,8 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
           duration: 4000,
           icon: '➕'
         });
+        
+        // Reload orders for new items (this is complex to update in-place)
         loadOrders();
       });
 
