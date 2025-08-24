@@ -126,13 +126,24 @@ const OrderTrackingPage = () => {
         
         if (statusMessages[data.status]) {
           if (data.status === 'cancelled') {
-            toast.error(statusMessages[data.status], {
+            toast.error('Order cancelled. Auto-redirecting to home in 2 minutes.', {
               duration: 5000,
               icon: '❌'
             });
             
-            // The 5-minute timeout will handle the fresh start automatically
-            // Customer can see cancelled status and choose to wait or reset manually
+            // Set timeout to redirect to home after 2 minutes
+            setTimeout(() => {
+              // Show redirect message
+              toast.success('Redirecting to home page for fresh start! 🏠', {
+                duration: 3000,
+                icon: '🔄'
+              });
+              
+              // Redirect to home page
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 1000);
+            }, 2 * 60 * 1000); // 2 minutes
           } else {
             toast.success(statusMessages[data.status]);
           }

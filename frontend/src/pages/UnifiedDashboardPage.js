@@ -430,13 +430,32 @@ const UnifiedDashboardPage = () => {
           // Don't clear state or redirect immediately
           
           // Show cancellation message
-          toast.error('Order cancelled. You can wait for fresh start or use the button below.', {
+          toast.error('Order cancelled. Auto-redirecting to home in 2 minutes.', {
             duration: 6000,
             icon: '❌'
           });
           
-          // The 5-minute timeout will handle the fresh start automatically
-          // Customer can see cancelled status and choose to wait or reset manually
+          // Set timeout to redirect to home after 2 minutes
+          setTimeout(() => {
+            // Clear all data
+            localStorage.removeItem(`cancelledOrder_${tableNumber}`);
+            localStorage.removeItem(`cart_${tableNumber}`);
+            localStorage.removeItem(`orderId_${tableNumber}`);
+            localStorage.removeItem(`orderNumber_${tableNumber}`);
+            localStorage.removeItem(`customerName_${tableNumber}`);
+            localStorage.removeItem(`session_timestamp_${tableNumber}`);
+            
+            // Show redirect message
+            toast.success('Redirecting to home page for fresh start! 🏠', {
+              duration: 3000,
+              icon: '🔄'
+            });
+            
+            // Redirect to home page
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 1000);
+          }, CANCELLED_ORDER_TIMEOUT);
         }
         
         return updatedOrders;

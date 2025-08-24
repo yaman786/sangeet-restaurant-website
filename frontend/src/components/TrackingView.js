@@ -211,7 +211,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-400 rounded-full animate-pulse"></div>
                 <p className="text-red-300 text-xs">
-                  Auto fresh start in 2 minutes
+                  Auto-redirect to home in 2 minutes
                 </p>
               </div>
             </div>
