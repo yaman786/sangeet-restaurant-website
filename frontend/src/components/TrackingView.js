@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import ReviewModal from './ReviewModal';
 import { groupItemsBySession, getSessionTitle, hasMultipleSessions } from '../utils/itemUtils';
 
@@ -23,31 +24,26 @@ const TrackingView = ({
   });
   const [reviewedOrders, setReviewedOrders] = useState(new Set());
 
-  // Check for ready orders and show review modal
-  useEffect(() => {
-    const readyOrders = orders.filter(order => 
-      order.status === 'ready' && 
-      !reviewedOrders.has(order.id)
-    );
-
-    if (readyOrders.length > 0) {
-      // Show review modal for the first ready order
-      const orderToReview = readyOrders[0];
+  const handleReviewClick = (order) => {
+    // Only show review if not already reviewed
+    if (!reviewedOrders.has(order.id)) {
       setReviewModal({
         isOpen: true,
-        order: orderToReview
+        order: order
       });
     }
-  }, [orders, reviewedOrders]);
+  };
 
   const handleReviewClose = () => {
     setReviewModal({ isOpen: false, order: null });
   };
 
   const handleReviewSubmitted = () => {
+    // Review submitted successfully
     if (reviewModal.order) {
       setReviewedOrders(prev => new Set([...prev, reviewModal.order.id]));
     }
+    setReviewModal({ isOpen: false, order: null });
   };
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -108,15 +104,17 @@ const TrackingView = ({
       ) : (
         <div className="space-y-4 sm:space-y-6">
           {orders.map(order => (
-            <OrderCard
-              key={`${order.id}-${order.status}-${order.updated_at}`}
-              order={order}
-              orderStatuses={orderStatuses}
-              getStatusStep={getStatusStep}
-              formatTime={formatTime}
-              formatDate={formatDate}
-              tableNumber={tableNumber}
-            />
+                          <OrderCard
+                key={`${order.id}-${order.status}-${order.updated_at}`}
+                order={order}
+                orderStatuses={orderStatuses}
+                getStatusStep={getStatusStep}
+                formatTime={formatTime}
+                formatDate={formatDate}
+                tableNumber={tableNumber}
+                onReviewClick={handleReviewClick}
+                reviewedOrders={reviewedOrders}
+              />
           ))}
         </div>
       )}
@@ -144,7 +142,7 @@ const TrackingView = ({
   );
 };
 
-const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate, tableNumber }) => {
+const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate, tableNumber, onReviewClick, reviewedOrders }) => {
   const currentStatus = orderStatuses[order.status] || orderStatuses.pending;
   const statusStep = getStatusStep(order.status);
 
@@ -375,6 +373,35 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
           {order.status === 'completed' ? 'Order Completed' : '15-20 minutes'}
         </p>
       </div>
+
+      {/* Professional Review Link - Strategic Placement */}
+      {(order.status === 'ready' || order.status === 'completed') && !reviewedOrders.has(order.id) && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-4 sm:mt-6 bg-gradient-to-r from-sangeet-400/10 to-sangeet-500/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-sangeet-400/30 backdrop-blur-sm"
+        >
+          <div className="text-center">
+            <div className="flex items-center justify-center space-x-2 mb-3">
+              <span className="text-2xl sm:text-3xl">⭐</span>
+              <h4 className="text-base sm:text-lg font-semibold text-sangeet-400">
+                Rate Your Dining Experience
+              </h4>
+            </div>
+            <p className="text-sangeet-neutral-300 text-sm sm:text-base mb-4">
+              Your feedback is invaluable to us. Help us improve our service and share your thoughts about your meal.
+            </p>
+            <button
+              onClick={() => onReviewClick(order)}
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-500 hover:to-sangeet-600 text-sangeet-neutral-950 py-2 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <span>📝</span>
+              <span>Submit Review</span>
+            </button>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };

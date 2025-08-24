@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { getOrderById } from '../services/api';
 import socketService from '../services/socketService';
 import toast from 'react-hot-toast';
+import ReviewModal from '../components/ReviewModal';
 
 const UnifiedOrderPage = () => {
   const location = useLocation();
@@ -19,6 +20,11 @@ const UnifiedOrderPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showSuccess, setShowSuccess] = useState(true);
+  const [reviewModal, setReviewModal] = useState({
+    isOpen: false,
+    order: null
+  });
+  const [reviewedOrders, setReviewedOrders] = useState(new Set());
 
 
   // Order status configuration
@@ -524,27 +530,29 @@ const UnifiedOrderPage = () => {
               </motion.div>
             )}
 
-            {/* Review Section - Show when order is ready or completed */}
-            {order && (order.status === 'ready' || order.status === 'completed') && (
+            {/* Professional Review Section - Strategic Placement */}
+            {order && (order.status === 'ready' || order.status === 'completed') && !reviewedOrders.has(order.id) && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
-                className="bg-gradient-to-r from-yellow-900/20 to-orange-900/20 rounded-2xl p-8 border border-yellow-500/30 backdrop-blur-xl"
+                className="bg-gradient-to-r from-sangeet-400/10 to-sangeet-500/10 rounded-2xl p-8 border border-sangeet-400/30 backdrop-blur-xl"
               >
                 <div className="text-center">
                   <div className="text-4xl mb-4">⭐</div>
-                  <h3 className="text-2xl font-semibold text-yellow-400 mb-3">
-                    How was your dining experience?
+                  <h3 className="text-2xl font-semibold text-sangeet-400 mb-3">
+                    Rate Your Dining Experience
                   </h3>
                   <p className="text-sangeet-neutral-300 mb-6 text-lg">
-                    We'd love to hear about your meal! Your feedback helps us improve and serve you better.
+                    Your feedback is invaluable to us. Help us improve our service and share your thoughts about your meal.
                   </p>
-                  <button
-                    onClick={() => window.location.href = `/review?orderId=${orderId}&table=${order.table_number}&customerName=${encodeURIComponent(order.customer_name)}`}
-                    className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-300 hover:to-orange-400 text-sangeet-neutral-950 py-4 px-8 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl text-lg"
+                                    <button
+                    onClick={() => {
+                      setReviewModal({ isOpen: true, order: order });
+                    }}
+                    className="bg-gradient-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-500 hover:to-sangeet-600 text-sangeet-neutral-950 py-4 px-8 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl text-lg"
                   >
-                    Share Your Experience
+                    📝 Submit Review
                   </button>
                 </div>
               </motion.div>
@@ -585,6 +593,23 @@ const UnifiedOrderPage = () => {
             </motion.div>
           </div>
         )}
+
+        {/* Review Modal */}
+        <ReviewModal
+          isOpen={reviewModal.isOpen}
+          onClose={() => setReviewModal({ isOpen: false, order: null })}
+          order={reviewModal.order}
+          customerName={order?.customer_name}
+          tableNumber={order?.table_number}
+          onReviewSubmitted={() => {
+            if (reviewModal.order) {
+              setReviewedOrders(prev => new Set([...prev, reviewModal.order.id]));
+            }
+            setReviewModal({ isOpen: false, order: null });
+            // Scroll to top after review submission
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
       </div>
     </div>
   );
