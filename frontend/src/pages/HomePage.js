@@ -18,27 +18,27 @@ import ReviewsSection from '../components/ReviewsSection';
  */
 const HomePage = ({ menuItems, reviews, events }) => {
   const navigate = useNavigate();
-  
+
   // Navigation functions for quick actions
   const handleBookTable = () => {
     navigate('/reservations');
   };
-  
+
   const handleViewMenu = () => {
     navigate('/menu');
   };
-  
+
   const handleCallNow = () => {
     window.location.href = 'tel:+85223456789';
   };
-  
+
   const handleDirections = () => {
     // Open Google Maps with restaurant location
     const address = encodeURIComponent('Wanchai, Hong Kong');
     const url = `https://www.google.com/maps/search/?api=1&query=${address}`;
     window.open(url, '_blank');
   };
-  
+
   // State management for carousel functionality
   // eslint-disable-next-line no-unused-vars
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -59,7 +59,7 @@ const HomePage = ({ menuItems, reviews, events }) => {
   // eslint-disable-next-line no-unused-vars
   const DINING_AREAS = [
     {
-      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=800&fit=crop",
+      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop",
       title: "Main Dining Hall",
       subtitle: "Elegant & Spacious",
       description: "Our grand dining hall accommodates 150+ guests with sophisticated decor and warm lighting, perfect for family gatherings and celebrations",
@@ -68,7 +68,7 @@ const HomePage = ({ menuItems, reviews, events }) => {
       features: ["Sophisticated Decor", "Warm Lighting", "Group Seating"]
     },
     {
-      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&h=800&fit=crop",
+      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop",
       title: "Bar & Lounge",
       subtitle: "Modern & Casual",
       description: "Contemporary bar area with craft cocktails and casual dining, perfect for pre-dinner drinks or light meals",
@@ -77,7 +77,7 @@ const HomePage = ({ menuItems, reviews, events }) => {
       features: ["Craft Cocktails", "Casual Seating", "Bar Service"]
     },
     {
-      image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=1200&h=800&fit=crop",
+      image: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&h=600&fit=crop",
       title: "Private Dining Room",
       subtitle: "Exclusive & Intimate",
       description: "Exclusive private dining space for intimate gatherings, business meetings, and special occasions",
@@ -247,7 +247,7 @@ const HomePage = ({ menuItems, reviews, events }) => {
       setCurrentSlide((prev) => (prev + 1) % 3);
       setMobileCurrentSlide((prev) => (prev + 1) % 3);
     }, 5000);
-    
+
     // Cleanup on component unmount
     return () => {
       clearInterval(interval);
@@ -270,11 +270,10 @@ const HomePage = ({ menuItems, reviews, events }) => {
       whileHover={{ scale: 1.05, y: -2 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className={`flex items-center space-x-2 px-5 py-3 rounded-full font-semibold transition-all duration-300 shadow-lg ${
-        isPrimary 
-          ? 'bg-gradient-to-r from-sangeet-400 to-sangeet-500 text-sangeet-neutral-950 hover:from-sangeet-300 hover:to-sangeet-400 ring-2 ring-sangeet-400/20' 
-          : 'bg-sangeet-neutral-800/80 text-sangeet-400 hover:bg-sangeet-neutral-700/90 border border-sangeet-neutral-600/50 hover:border-sangeet-neutral-500'
-      }`}
+      className={`flex items-center space-x-2 px-5 py-3 rounded-full font-semibold transition-all duration-300 shadow-lg ${isPrimary
+        ? 'bg-gradient-to-r from-sangeet-400 to-sangeet-500 text-sangeet-neutral-950 hover:from-sangeet-300 hover:to-sangeet-400 ring-2 ring-sangeet-400/20'
+        : 'bg-sangeet-neutral-800/80 text-sangeet-400 hover:bg-sangeet-neutral-700/90 border border-sangeet-neutral-600/50 hover:border-sangeet-neutral-500'
+        }`}
     >
       <span className="text-lg">{icon}</span>
       <span className="tracking-wide">{text}</span>
@@ -345,7 +344,7 @@ const HomePage = ({ menuItems, reviews, events }) => {
             </div>
           </div>
         </motion.div>
-        
+
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -361,7 +360,7 @@ const HomePage = ({ menuItems, reviews, events }) => {
             <span className="text-base md:text-xs">📅</span>
             <span className="text-xs font-bold">Book</span>
           </motion.button>
-          
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -371,7 +370,7 @@ const HomePage = ({ menuItems, reviews, events }) => {
             <span className="text-base md:text-xs">📋</span>
             <span className="text-xs font-bold">Menu</span>
           </motion.button>
-          
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -381,7 +380,7 @@ const HomePage = ({ menuItems, reviews, events }) => {
             <span className="text-base md:text-xs">📞</span>
             <span className="text-xs font-bold">Call</span>
           </motion.button>
-          
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -407,41 +406,41 @@ const HomePage = ({ menuItems, reviews, events }) => {
             poster="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop"
           >
             <source src="https://player.vimeo.com/external/434045526.sd.mp4?s=c27eecc69a27dbc4ff2b87d38afc35f1a9e7c02d&profile_id=164&oauth2_token_id=57447761" type="video/mp4" />
-            <img 
-              src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop" 
+            <img
+              src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop"
               alt="Restaurant ambiance"
               className="w-full h-full object-cover"
             />
           </video>
         </div>
-        
+
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-sangeet-neutral-900/80 via-sangeet-neutral-800/70 to-sangeet-neutral-900/80 z-10"></div>
-        
+
         {/* Mobile Scroll Indicator - Bottom Right */}
         <motion.div
           animate={{ y: [0, 6, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className="absolute bottom-24 right-6 z-20 md:hidden"
         >
-                      <div className="flex flex-col items-center space-y-2">
-              <div className="w-8 h-12 border-2 border-white/80 rounded-full flex justify-center shadow-lg">
-                <motion.div
-                  animate={{ y: [0, 16, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  className="w-1.5 h-4 bg-white/90 rounded-full mt-2"
-                />
-              </div>
-              <span className="text-sm text-white/90 font-bold">Scroll</span>
+          <div className="flex flex-col items-center space-y-2">
+            <div className="w-8 h-12 border-2 border-white/80 rounded-full flex justify-center shadow-lg">
+              <motion.div
+                animate={{ y: [0, 16, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="w-1.5 h-4 bg-white/90 rounded-full mt-2"
+              />
             </div>
+            <span className="text-sm text-white/90 font-bold">Scroll</span>
+          </div>
         </motion.div>
-        
-                                {/* Main Content */}
-                <motion.div
-                  style={{ y, opacity }}
-                  className="relative z-20 text-center text-white px-4 max-w-6xl mx-auto flex flex-col justify-start md:justify-start items-center h-full pt-32 md:pt-40"
-                >
-          
+
+        {/* Main Content */}
+        <motion.div
+          style={{ y, opacity }}
+          className="relative z-20 text-center text-white px-4 max-w-6xl mx-auto flex flex-col justify-start md:justify-start items-center h-full pt-32 md:pt-40"
+        >
+
 
           {/* Logo Animation - Mobile Only */}
           <motion.div
@@ -452,51 +451,51 @@ const HomePage = ({ menuItems, reviews, events }) => {
           >
             <div className="relative inline-block">
               <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/40 via-orange-400/30 to-red-500/40 rounded-full blur-2xl animate-pulse"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/20 via-orange-300/15 to-red-400/20 rounded-full blur-xl animate-pulse" style={{animationDelay: '0.5s'}}></div>
-              <img 
-                src={logo} 
-                alt="Sangeet Restaurant" 
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/20 via-orange-300/15 to-red-400/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+              <img
+                src={logo}
+                alt="Sangeet Restaurant"
                 className="relative h-48 sm:h-64 w-auto logo-navbar-dark drop-shadow-2xl brightness-150 contrast-150 filter drop-shadow-lg"
               />
             </div>
           </motion.div>
-        
 
-        
+
+
           {/* Mobile-First Main Heading */}
-                                  <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-2xl sm:text-3xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-4 sm:mb-4 md:mb-6 px-4"
-            >
-              <span className="text-white">Experience</span>
-              <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-300 to-red-400 drop-shadow-lg font-extrabold">
-                South Asian Elegance<span className="hidden md:inline"> at</span>
-              </span>
-            </motion.h1>
-            
-            {/* Logo Below Heading - Desktop Only */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="hidden md:flex justify-center mb-2"
-            >
-              <div className="relative inline-block">
-                <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/40 via-orange-400/30 to-red-500/40 rounded-full blur-2xl animate-pulse"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/20 via-orange-300/15 to-red-400/20 rounded-full blur-xl animate-pulse" style={{animationDelay: '0.5s'}}></div>
-                <img 
-                  src={logo} 
-                  alt="Sangeet Restaurant" 
-                  className="relative h-20 md:h-24 lg:h-28 xl:h-32 w-auto logo-navbar-dark drop-shadow-2xl brightness-150 contrast-150 filter drop-shadow-lg"
-                />
-              </div>
-            </motion.div>
-            
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="text-2xl sm:text-3xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-4 sm:mb-4 md:mb-6 px-4"
+          >
+            <span className="text-white">Experience</span>
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-300 to-red-400 drop-shadow-lg font-extrabold">
+              South Asian Elegance<span className="hidden md:inline"> at</span>
+            </span>
+          </motion.h1>
 
-          
+          {/* Logo Below Heading - Desktop Only */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="hidden md:flex justify-center mb-2"
+          >
+            <div className="relative inline-block">
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-300/40 via-orange-400/30 to-red-500/40 rounded-full blur-2xl animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/20 via-orange-300/15 to-red-400/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+              <img
+                src={logo}
+                alt="Sangeet Restaurant"
+                className="relative h-20 md:h-24 lg:h-28 xl:h-32 w-auto logo-navbar-dark drop-shadow-2xl brightness-150 contrast-150 filter drop-shadow-lg"
+              />
+            </div>
+          </motion.div>
+
+
+
           {/* Subtitle */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -581,8 +580,8 @@ const HomePage = ({ menuItems, reviews, events }) => {
             <div className="relative">
               {/* Carousel Container */}
               <div className="relative overflow-hidden rounded-2xl">
-                <div 
-                  className="flex transition-transform duration-500 ease-in-out" 
+                <div
+                  className="flex transition-transform duration-500 ease-in-out"
                   style={{ transform: `translateX(-${currentEventsSlide * 100}%)` }}
                 >
                   {UPCOMING_EVENTS.map((event, index) => (
@@ -591,10 +590,11 @@ const HomePage = ({ menuItems, reviews, events }) => {
                         <img
                           src={event.image_url}
                           alt={event.title}
+                          loading="lazy"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-sangeet-neutral-900/90 via-sangeet-neutral-900/30 to-transparent"></div>
-                        
+
                         {/* Content Overlay - Compact */}
                         <div className="absolute bottom-6 left-6 right-6">
                           <div className="bg-sangeet-neutral-900/95 backdrop-blur-md rounded-xl p-6 border border-sangeet-neutral-700">
@@ -607,13 +607,13 @@ const HomePage = ({ menuItems, reviews, events }) => {
                                 {event.price}
                               </div>
                             </div>
-                            
+
                             {/* Event Title */}
                             <h3 className="text-xl font-bold text-sangeet-400 mb-2 line-clamp-1">{event.title}</h3>
-                            
+
                             {/* Event Description - Truncated */}
                             <p className="text-sangeet-neutral-300 text-sm mb-3 leading-relaxed line-clamp-2">{event.description}</p>
-                            
+
                             {/* Date, Time & Category - Compact */}
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-3">
@@ -653,7 +653,7 @@ const HomePage = ({ menuItems, reviews, events }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              
+
               <button
                 onClick={() => navigateEventsCarousel(1)}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-sangeet-neutral-900/80 backdrop-blur-md text-sangeet-400 p-3 rounded-full hover:bg-sangeet-neutral-800 transition-all duration-300 z-10"
@@ -670,9 +670,8 @@ const HomePage = ({ menuItems, reviews, events }) => {
                   <button
                     key={index}
                     onClick={() => goToEventsSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                      index === currentEventsSlide ? 'bg-sangeet-400' : 'bg-sangeet-neutral-600 hover:bg-sangeet-neutral-500'
-                    }`}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentEventsSlide ? 'bg-sangeet-400' : 'bg-sangeet-neutral-600 hover:bg-sangeet-neutral-500'
+                      }`}
                     aria-label={`Go to event ${index + 1}`}
                   />
                 ))}
@@ -695,10 +694,11 @@ const HomePage = ({ menuItems, reviews, events }) => {
                     <img
                       src={event.image_url}
                       alt={event.title}
+                      loading="lazy"
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-sangeet-neutral-900/70 to-transparent"></div>
-                    
+
                     {/* Badge & Price - Compact */}
                     <div className="absolute top-2 left-2 right-2 flex justify-between">
                       <div className="bg-gradient-to-r from-sangeet-red-500 to-sangeet-400 text-white px-2 py-1 rounded-full font-bold text-xs">
@@ -709,11 +709,11 @@ const HomePage = ({ menuItems, reviews, events }) => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="p-3">
                     <h3 className="text-base font-bold text-sangeet-400 mb-1 line-clamp-1">{event.title}</h3>
                     <p className="text-sangeet-neutral-400 text-xs mb-2 line-clamp-2 leading-relaxed">{event.description}</p>
-                    
+
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center space-x-1">
                         <span className="text-sangeet-400 text-xs">📅</span>
@@ -792,6 +792,7 @@ const HomePage = ({ menuItems, reviews, events }) => {
                 <img
                   src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&h=600&fit=crop"
                   alt="Chef preparing authentic South Asian dishes"
+                  loading="lazy"
                   className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-sangeet-neutral-900/60 via-transparent to-transparent"></div>
@@ -926,7 +927,7 @@ const HomePage = ({ menuItems, reviews, events }) => {
             backgroundSize: '60px 60px'
           }}></div>
         </div>
-        
+
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -949,15 +950,15 @@ const HomePage = ({ menuItems, reviews, events }) => {
                 </span>
               </h2>
               <p className="text-xl md:text-2xl text-orange-200 font-semibold mb-8 max-w-4xl mx-auto leading-relaxed">
-                Book your table today and embark on a culinary journey through India and Nepal. 
+                Book your table today and embark on a culinary journey through India and Nepal.
                 <span className="text-yellow-300 font-bold"> Every meal is a celebration of culture and tradition.</span>
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md mx-auto mb-12">
               {/* Primary CTA - Book Table */}
-              <motion.div 
-                whileHover={{ scale: 1.02 }} 
+              <motion.div
+                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full sm:w-auto"
               >
@@ -975,10 +976,10 @@ const HomePage = ({ menuItems, reviews, events }) => {
                   </motion.span>
                 </Link>
               </motion.div>
-              
+
               {/* Secondary CTA - Call Now */}
-              <motion.div 
-                whileHover={{ scale: 1.02 }} 
+              <motion.div
+                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full sm:w-auto"
               >

@@ -1,11 +1,12 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const pool = require('../src/config/database');
 
 async function createAdminUser() {
   try {
     const username = 'admin';
     const email = 'admin@sangeet.com';
-    const password = 'admin123';
+    const password = process.env.ADMIN_PASSWORD || crypto.randomBytes(12).toString('hex');
     const firstName = 'Admin';
     const lastName = 'User';
 
@@ -37,7 +38,7 @@ async function createAdminUser() {
 
     console.log('📋 Admin Login Credentials:');
     console.log('Username: admin');
-    console.log('Password: admin123');
+    console.log(`Password: ${password}`);
     console.log('Email: admin@sangeet.com');
 
     process.exit(0);

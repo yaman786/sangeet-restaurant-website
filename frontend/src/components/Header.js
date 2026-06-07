@@ -14,6 +14,7 @@ const NAVIGATION_ITEMS = [
   { path: '/', label: 'Home' },
   { path: '/menu', label: 'Menu' },
   { path: '/reservations', label: 'Reservations' },
+  { path: '/location', label: 'Location' },
   { path: '/about', label: 'About' },
   { path: '/contact', label: 'Contact' }
 ];
@@ -32,7 +33,7 @@ const Header = () => {
   const restaurantStatus = useMemo(() => {
     const currentHour = currentTime.getHours();
     const isOpen = currentHour >= RESTAURANT_HOURS.OPEN && currentHour < RESTAURANT_HOURS.CLOSE;
-    
+
     return {
       isOpen,
       statusText: isOpen ? 'OPEN NOW' : 'CLOSED',
@@ -99,7 +100,7 @@ const Header = () => {
         aria-label={isMenuOpen ? "Close menu" : "Open menu"}
         aria-expanded={isMenuOpen}
         aria-controls="mobile-menu"
-        style={{ 
+        style={{
           WebkitTapHighlightColor: 'transparent',
           touchAction: 'manipulation',
           minHeight: '44px',
@@ -116,7 +117,7 @@ const Header = () => {
             {/* Plate inner circle */}
             <div className="absolute inset-1 border border-white rounded-full opacity-60"></div>
           </motion.div>
-          
+
           {/* Fork */}
           <motion.div
             animate={isMenuOpen ? { x: -10, y: -10, rotate: -45, opacity: 0.5 } : { x: 0, y: 0, rotate: 0, opacity: 1 }}
@@ -129,7 +130,7 @@ const Header = () => {
             <div className="absolute -top-1 left-2 w-0.5 h-1 bg-white rounded-full"></div>
             <div className="absolute -top-1 left-3 w-0.5 h-1 bg-white rounded-full"></div>
           </motion.div>
-          
+
           {/* Knife */}
           <motion.div
             animate={isMenuOpen ? { x: 10, y: -10, rotate: 45, opacity: 0.5 } : { x: 0, y: 0, rotate: 0, opacity: 1 }}
@@ -139,7 +140,7 @@ const Header = () => {
             {/* Knife blade */}
             <div className="absolute -top-1 right-0 w-2.5 h-0.5 bg-white rounded-full transform rotate-45 origin-left"></div>
           </motion.div>
-          
+
           {/* X overlay when open - Made more visible */}
           <motion.div
             animate={isMenuOpen ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
@@ -167,7 +168,7 @@ const Header = () => {
             exit={{ opacity: 0, y: -50 }}
             className="bg-gradient-to-b from-sangeet-neutral-900 to-sangeet-neutral-950 border-t border-sangeet-neutral-800 fixed top-0 left-0 right-0 z-[99998] shadow-2xl"
             onClick={(e) => e.stopPropagation()}
-            style={{ 
+            style={{
               paddingTop: '4rem',
               minHeight: '50vh'
             }}
@@ -176,7 +177,7 @@ const Header = () => {
             <div className="px-4 py-3 border-b border-sangeet-neutral-800 bg-sangeet-neutral-800/30">
               <div className="flex items-center justify-between bg-sangeet-neutral-800/50 backdrop-blur-sm rounded-full px-4 py-2 border border-sangeet-neutral-600/30">
                 <div className="flex items-center space-x-2">
-                  <div 
+                  <div
                     className={`w-3 h-3 rounded-full ${restaurantStatus.indicatorColor} animate-pulse shadow-sm`}
                     aria-hidden="true"
                   />
@@ -192,7 +193,7 @@ const Header = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="px-2 pt-2 pb-3 space-y-1">
               {NAVIGATION_ITEMS.map((item) => (
                 <Link
@@ -201,11 +202,10 @@ const Header = () => {
                   onClick={() => {
                     setIsMenuOpen(false);
                   }}
-                  className={`block px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 ${
-                    isActive(item.path)
+                  className={`block px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 touch-manipulation focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 ${isActive(item.path)
                       ? 'text-sangeet-400 bg-sangeet-neutral-800/50 font-semibold shadow-lg'
                       : 'text-sangeet-neutral-300 hover:text-sangeet-400 hover:bg-sangeet-neutral-800/30'
-                  }`}
+                    }`}
                   aria-current={isActive(item.path) ? 'page' : undefined}
                 >
                   <div className="flex items-center space-x-3">
@@ -220,7 +220,7 @@ const Header = () => {
                   </div>
                 </Link>
               ))}
-              
+
               {/* Quick Actions Section */}
               <div className="mt-6 pt-4 border-t border-sangeet-neutral-700/50">
                 <h3 className="px-4 py-2 text-xs font-semibold text-sangeet-neutral-400 uppercase tracking-wider">
@@ -254,14 +254,13 @@ const Header = () => {
         </div>
       )}
 
-      <header className={`bg-gradient-to-r from-sangeet-neutral-950/98 to-sangeet-neutral-900/98 backdrop-blur-2xl md:fixed md:top-0 md:left-0 md:right-0 z-50 border-b border-sangeet-neutral-600/50 shadow-2xl shadow-black/50 md:transition-all md:duration-300 ${
-        isScrolled ? 'md:from-sangeet-neutral-950/99 md:to-sangeet-neutral-900/99 md:shadow-2xl' : 'md:from-sangeet-neutral-950/98 md:to-sangeet-neutral-900/98 md:shadow-xl'
-      }`}>
+      <header className={`bg-gradient-to-r from-sangeet-neutral-950/98 to-sangeet-neutral-900/98 backdrop-blur-2xl md:fixed md:top-0 md:left-0 md:right-0 z-50 border-b border-sangeet-neutral-600/50 shadow-2xl shadow-black/50 md:transition-all md:duration-300 ${isScrolled ? 'md:from-sangeet-neutral-950/99 md:to-sangeet-neutral-900/99 md:shadow-2xl' : 'md:from-sangeet-neutral-950/98 md:to-sangeet-neutral-900/98 md:shadow-xl'
+        }`}>
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16 relative">
             {/* Logo - Only on Desktop */}
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="hidden md:flex items-center"
               aria-label="Sangeet Restaurant Home"
             >
@@ -270,9 +269,9 @@ const Header = () => {
                 whileTap={{ scale: 0.95 }}
                 className="flex items-center space-x-2"
               >
-                <img 
-                  src={logo} 
-                  alt="Sangeet Restaurant Logo" 
+                <img
+                  src={logo}
+                  alt="Sangeet Restaurant Logo"
                   className="h-8 w-auto"
                 />
                 <span className="text-xl font-bold text-white hidden lg:block">
@@ -287,11 +286,10 @@ const Header = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`relative px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 ${
-                    isActive(item.path)
+                  className={`relative px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 ${isActive(item.path)
                       ? 'text-sangeet-400'
                       : 'text-sangeet-neutral-300 hover:text-sangeet-400'
-                  }`}
+                    }`}
                   aria-current={isActive(item.path) ? 'page' : undefined}
                 >
                   {item.label}
@@ -305,15 +303,15 @@ const Header = () => {
                   )}
                 </Link>
               ))}
-              
+
               {/* Restaurant Status Indicator */}
-              <div 
+              <div
                 className="flex items-center space-x-2 lg:space-x-4 bg-sangeet-neutral-800/50 backdrop-blur-sm rounded-full px-3 lg:px-4 py-2 border border-sangeet-neutral-600/30"
                 role="status"
                 aria-live="polite"
               >
                 <div className="flex items-center space-x-2">
-                  <div 
+                  <div
                     className={`w-2 lg:w-3 h-2 lg:h-3 rounded-full ${restaurantStatus.indicatorColor} animate-pulse shadow-sm`}
                     aria-hidden="true"
                   />
@@ -332,7 +330,7 @@ const Header = () => {
           </div>
         </div>
       </header>
-      
+
       {/* Spacer for fixed header on desktop */}
       <div className="hidden md:block h-16"></div>
     </>

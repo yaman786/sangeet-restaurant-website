@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  getAllUsers, 
-  createUser, 
-  updateUser, 
-  deleteUser, 
-  toggleUserStatus, 
-  getUserStats 
+import {
+  getAllUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  toggleUserStatus,
+  getUserStats
 } from '../services/api';
 import { getProfile } from '../services/api';
 import toast from 'react-hot-toast';
@@ -38,7 +38,7 @@ const StaffManagementPage = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
       if (!token) {
         navigate('/login');
         return;
@@ -47,7 +47,7 @@ const StaffManagementPage = () => {
       try {
         const response = await getProfile();
         setCurrentUser(response.user);
-        
+
         if (response.user.role !== 'admin') {
           toast.error('Access denied. Admin role required.');
           navigate('/admin/dashboard');
@@ -75,7 +75,7 @@ const StaffManagementPage = () => {
         getAllUsers(),
         getUserStats()
       ]);
-      
+
       setUsers(usersResponse.users || []);
       setStats(statsResponse.stats || {});
     } catch (error) {
@@ -115,10 +115,10 @@ const StaffManagementPage = () => {
           created_at: '2025-08-07T07:20:55.061Z'
         }
       ]);
-      
+
       // Show error message instead of demo data
       toast.error('Failed to load staff data. Please check your connection and try again.');
-      
+
       setStats({
         total: 0,
         active: 0,
@@ -132,7 +132,7 @@ const StaffManagementPage = () => {
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.username || !formData.email || !formData.password || !formData.first_name || !formData.last_name) {
       toast.error('Please fill in all required fields');
       return;
@@ -152,7 +152,7 @@ const StaffManagementPage = () => {
 
   const handleUpdateUser = async (e) => {
     e.preventDefault();
-    
+
     if (!editingUser) return;
 
     try {
@@ -160,7 +160,7 @@ const StaffManagementPage = () => {
       if (!updateData.password) {
         delete updateData.password; // Don't send password if not changed
       }
-      
+
       await updateUser(editingUser.id, updateData);
       toast.success('User updated successfully');
       setShowEditModal(false);
@@ -200,7 +200,7 @@ const StaffManagementPage = () => {
     const user = users.find(u => u.id === userId);
     const action = user.is_active ? 'disable' : 'enable';
     const actionPast = user.is_active ? 'disabled' : 'enabled';
-    
+
     setConfirmAction({
       type: 'toggle',
       user: user,
@@ -252,14 +252,14 @@ const StaffManagementPage = () => {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase());
-    
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesRole = filterRole === 'all' || user.role === filterRole;
-    const matchesStatus = filterStatus === 'all' || 
-                         (filterStatus === 'active' && user.is_active) ||
-                         (filterStatus === 'inactive' && !user.is_active);
-    
+    const matchesStatus = filterStatus === 'all' ||
+      (filterStatus === 'active' && user.is_active) ||
+      (filterStatus === 'inactive' && !user.is_active);
+
     return matchesSearch && matchesRole && matchesStatus;
   });
 
@@ -302,7 +302,7 @@ const StaffManagementPage = () => {
             <div className="text-sm text-sangeet-neutral-200 font-medium">All Team Members</div>
             <div className="text-xs text-sangeet-neutral-400 mt-1">Everyone in your restaurant</div>
           </div>
-          
+
           <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-green-400/30 transition-all duration-300 group">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center group-hover:bg-green-400/30 transition-colors">
@@ -316,7 +316,7 @@ const StaffManagementPage = () => {
             <div className="text-sm text-sangeet-neutral-200 font-medium">Active Users</div>
             <div className="text-xs text-sangeet-neutral-400 mt-1">Can access the system</div>
           </div>
-          
+
           <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-red-400/30 transition-all duration-300 group">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-12 h-12 bg-red-400/20 rounded-lg flex items-center justify-center group-hover:bg-red-400/30 transition-colors">
@@ -330,7 +330,7 @@ const StaffManagementPage = () => {
             <div className="text-sm text-sangeet-neutral-200 font-medium">Inactive Users</div>
             <div className="text-xs text-sangeet-neutral-400 mt-1">Account disabled</div>
           </div>
-          
+
           <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-purple-400/30 transition-all duration-300 group">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-12 h-12 bg-purple-400/20 rounded-lg flex items-center justify-center group-hover:bg-purple-400/30 transition-colors">
@@ -344,7 +344,7 @@ const StaffManagementPage = () => {
             <div className="text-sm text-sangeet-neutral-200 font-medium">Administrators</div>
             <div className="text-xs text-sangeet-neutral-400 mt-1">Full system access</div>
           </div>
-          
+
           <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-blue-400/30 transition-all duration-300 group">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-12 h-12 bg-blue-400/20 rounded-lg flex items-center justify-center group-hover:bg-blue-400/30 transition-colors">
@@ -358,7 +358,7 @@ const StaffManagementPage = () => {
             <div className="text-sm text-sangeet-neutral-200 font-medium">Staff Members</div>
             <div className="text-xs text-sangeet-neutral-400 mt-1">Kitchen & service access</div>
           </div>
-          
+
           <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-orange-400/30 transition-all duration-300 group">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-12 h-12 bg-orange-400/20 rounded-lg flex items-center justify-center group-hover:bg-orange-400/30 transition-colors">
@@ -400,7 +400,7 @@ const StaffManagementPage = () => {
                 )}
               </div>
             </div>
-            
+
             {/* Filters */}
             <div className="flex gap-3">
               <div className="relative">
@@ -417,7 +417,7 @@ const StaffManagementPage = () => {
                   <span className="text-sangeet-neutral-400">▼</span>
                 </div>
               </div>
-              
+
               <div className="relative">
                 <select
                   value={filterStatus}
@@ -433,7 +433,7 @@ const StaffManagementPage = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Add User Button */}
             <button
               onClick={() => setShowCreateModal(true)}
@@ -443,7 +443,7 @@ const StaffManagementPage = () => {
               Add New User
             </button>
           </div>
-          
+
           {/* Filter Summary */}
           {(searchTerm || filterRole !== 'all' || filterStatus !== 'all') && (
             <div className="mt-4 pt-4 border-t border-sangeet-neutral-700">
@@ -561,21 +561,19 @@ const StaffManagementPage = () => {
                     <td className="px-6 py-5">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
-                            user.role === 'admin' 
-                              ? 'bg-purple-400/20 text-purple-400 border border-purple-400/30' 
+                          <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${user.role === 'admin'
+                              ? 'bg-purple-400/20 text-purple-400 border border-purple-400/30'
                               : 'bg-blue-400/20 text-blue-400 border border-blue-400/30'
-                          }`}>
+                            }`}>
                             <span className="mr-1">{user.role === 'admin' ? '👑' : '👤'}</span>
                             {user.role === 'admin' ? 'Administrator' : 'Staff Member'}
                           </span>
                         </div>
                         <div>
-                          <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
-                            user.is_active 
-                              ? 'bg-green-400/20 text-green-400 border border-green-400/30' 
+                          <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${user.is_active
+                              ? 'bg-green-400/20 text-green-400 border border-green-400/30'
                               : 'bg-red-400/20 text-red-400 border border-red-400/30'
-                          }`}>
+                            }`}>
                             <span className="mr-1">{user.is_active ? '✅' : '🚫'}</span>
                             {user.is_active ? 'Active Account' : 'Disabled Account'}
                           </span>
@@ -588,7 +586,7 @@ const StaffManagementPage = () => {
                       <div className="text-sm text-sangeet-neutral-400">
                         <div>{new Date(user.created_at).toLocaleDateString()}</div>
                         <div className="text-xs text-sangeet-neutral-500 mt-1">
-                          {new Date(user.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          {new Date(user.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
                     </td>
@@ -603,25 +601,23 @@ const StaffManagementPage = () => {
                           <span>✏️</span>
                           Edit
                         </button>
-                        
+
                         <button
                           onClick={() => handleToggleStatus(user.id)}
-                          className={`px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium ${
-                            user.is_active 
-                              ? 'text-red-400 hover:text-red-300 hover:bg-red-400/10' 
+                          className={`px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium ${user.is_active
+                              ? 'text-red-400 hover:text-red-300 hover:bg-red-400/10'
                               : 'text-green-400 hover:text-green-300 hover:bg-green-400/10'
-                          } ${user.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            } ${user.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                           disabled={user.id === currentUser?.id}
                         >
                           <span>{user.is_active ? '🚫' : '✅'}</span>
                           {user.is_active ? 'Disable' : 'Enable'}
                         </button>
-                        
+
                         <button
                           onClick={() => handleDeleteUser(user.id)}
-                          className={`px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium ${
-                            user.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
+                          className={`px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium ${user.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
                           disabled={user.id === currentUser?.id}
                         >
                           <span>🗑️</span>
@@ -634,7 +630,7 @@ const StaffManagementPage = () => {
               </tbody>
             </table>
           </div>
-          
+
           {/* Enhanced Empty State */}
           {filteredUsers.length === 0 && (
             <div className="text-center py-16">
@@ -642,13 +638,13 @@ const StaffManagementPage = () => {
                 {searchTerm || filterRole !== 'all' || filterStatus !== 'all' ? '🔍' : '👥'}
               </div>
               <h3 className="text-xl font-semibold text-sangeet-neutral-200 mb-3">
-                {searchTerm || filterRole !== 'all' || filterStatus !== 'all' 
+                {searchTerm || filterRole !== 'all' || filterStatus !== 'all'
                   ? 'No matching users found'
                   : 'No team members yet'
                 }
               </h3>
               <p className="text-sangeet-neutral-400 mb-6 max-w-md mx-auto">
-                {searchTerm || filterRole !== 'all' || filterStatus !== 'all' 
+                {searchTerm || filterRole !== 'all' || filterStatus !== 'all'
                   ? 'Try adjusting your search terms or filters to find the team member you\'re looking for.'
                   : 'Start building your team by adding administrators and staff members who will help manage your restaurant operations.'
                 }
@@ -724,7 +720,7 @@ const StaffManagementPage = () => {
                     <input
                       type="text"
                       value={formData.first_name}
-                      onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                       className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200"
                       placeholder="Enter first name"
                       required
@@ -737,7 +733,7 @@ const StaffManagementPage = () => {
                     <input
                       type="text"
                       value={formData.last_name}
-                      onChange={(e) => setFormData({...formData, last_name: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                       className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200"
                       placeholder="Enter last name"
                       required
@@ -751,7 +747,7 @@ const StaffManagementPage = () => {
                   <input
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200"
                     placeholder="Enter phone number (optional)"
                   />
@@ -770,7 +766,7 @@ const StaffManagementPage = () => {
                   <input
                     type="text"
                     value={formData.username}
-                    onChange={(e) => setFormData({...formData, username: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                     className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200"
                     placeholder="Enter username"
                     required
@@ -783,7 +779,7 @@ const StaffManagementPage = () => {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200"
                     placeholder="Enter email address"
                     required
@@ -796,7 +792,7 @@ const StaffManagementPage = () => {
                   <input
                     type="password"
                     value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200"
                     placeholder="Enter secure password"
                     required
@@ -809,7 +805,7 @@ const StaffManagementPage = () => {
                   <div className="relative">
                     <select
                       value={formData.role}
-                      onChange={(e) => setFormData({...formData, role: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                       className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200 appearance-none cursor-pointer"
                       required
                     >
@@ -888,7 +884,7 @@ const StaffManagementPage = () => {
                   <input
                     type="text"
                     value={formData.first_name}
-                    onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                     className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-md text-sangeet-neutral-100 focus:border-sangeet-400 focus:outline-none"
                     required
                   />
@@ -900,13 +896,13 @@ const StaffManagementPage = () => {
                   <input
                     type="text"
                     value={formData.last_name}
-                    onChange={(e) => setFormData({...formData, last_name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                     className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-md text-sangeet-neutral-100 focus:border-sangeet-400 focus:outline-none"
                     required
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
@@ -915,7 +911,7 @@ const StaffManagementPage = () => {
                   <input
                     type="text"
                     value={formData.username}
-                    onChange={(e) => setFormData({...formData, username: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                     className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-md text-sangeet-neutral-100 focus:border-sangeet-400 focus:outline-none"
                     required
                   />
@@ -927,13 +923,13 @@ const StaffManagementPage = () => {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-md text-sangeet-neutral-100 focus:border-sangeet-400 focus:outline-none"
                     required
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
@@ -942,7 +938,7 @@ const StaffManagementPage = () => {
                   <input
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-md text-sangeet-neutral-100 focus:border-sangeet-400 focus:outline-none"
                   />
                 </div>
@@ -952,7 +948,7 @@ const StaffManagementPage = () => {
                   </label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({...formData, role: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-md text-sangeet-neutral-100 focus:border-sangeet-400 focus:outline-none"
                     required
                   >
@@ -966,7 +962,7 @@ const StaffManagementPage = () => {
                   </label>
                   <select
                     value={formData.is_active}
-                    onChange={(e) => setFormData({...formData, is_active: e.target.value === 'true'})}
+                    onChange={(e) => setFormData({ ...formData, is_active: e.target.value === 'true' })}
                     className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-md text-sangeet-neutral-100 focus:border-sangeet-400 focus:outline-none"
                     required
                   >
@@ -975,7 +971,7 @@ const StaffManagementPage = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
                   New Password (leave blank to keep current)
@@ -983,7 +979,7 @@ const StaffManagementPage = () => {
                 <input
                   type="password"
                   value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-md text-sangeet-neutral-100 focus:border-sangeet-400 focus:outline-none"
                 />
               </div>
@@ -1039,7 +1035,7 @@ const StaffManagementPage = () => {
               <p className="text-sangeet-neutral-300 leading-relaxed">
                 {confirmAction.message}
               </p>
-              
+
               {confirmAction.type === 'delete' && (
                 <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
                   <div className="flex items-center gap-2 text-red-400 text-sm font-medium">

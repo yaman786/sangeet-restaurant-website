@@ -41,7 +41,7 @@ const AboutPage = () => {
       description: "Relax with premium spirits and handcrafted cocktails in our elegant bar area",
       category: "dining"
     },
-    
+
     // Celebrations
     {
       url: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&h=600&fit=crop",
@@ -61,7 +61,7 @@ const AboutPage = () => {
       description: "Warm family gatherings celebrating special moments and traditions",
       category: "celebrations"
     },
-    
+
     // Cultural Experience
     {
       url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop",
@@ -81,7 +81,7 @@ const AboutPage = () => {
       description: "Authentic South Asian decor and traditional elements throughout our space",
       category: "cultural"
     },
-    
+
     // Culinary Journey
     {
       url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&h=600&fit=crop",
@@ -98,8 +98,8 @@ const AboutPage = () => {
   ];
 
   // Filter gallery images based on active filter
-  const filteredImages = activeFilter === 'all' 
-    ? galleryImages 
+  const filteredImages = activeFilter === 'all'
+    ? galleryImages
     : galleryImages.filter(image => image.category === activeFilter);
 
   // Unique story highlights with diverse focus
@@ -197,12 +197,12 @@ const AboutPage = () => {
 
         {/* Floating Elements - Better Positioned */}
         <motion.div
-          animate={{ 
+          animate={{
             y: [0, -20, 0],
             rotate: [0, 5, 0]
           }}
-          transition={{ 
-            duration: 6, 
+          transition={{
+            duration: 6,
             repeat: Infinity,
             ease: "easeInOut"
           }}
@@ -210,14 +210,14 @@ const AboutPage = () => {
         >
           🌟
         </motion.div>
-        
+
         <motion.div
-          animate={{ 
+          animate={{
             y: [0, 15, 0],
             rotate: [0, -5, 0]
           }}
-          transition={{ 
-            duration: 8, 
+          transition={{
+            duration: 8,
             repeat: Infinity,
             ease: "easeInOut",
             delay: 1
@@ -228,12 +228,12 @@ const AboutPage = () => {
         </motion.div>
 
         <motion.div
-          animate={{ 
+          animate={{
             y: [0, -10, 0],
             rotate: [0, 3, 0]
           }}
-          transition={{ 
-            duration: 7, 
+          transition={{
+            duration: 7,
             repeat: Infinity,
             ease: "easeInOut",
             delay: 2
@@ -246,7 +246,7 @@ const AboutPage = () => {
         {/* Main Content Container - Better Centered */}
         <div className="relative z-20 flex items-center justify-center min-h-screen px-4 py-16">
           <div className="max-w-5xl mx-auto text-center">
-            
+
             {/* Story Badge - Better Spacing */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -284,9 +284,9 @@ const AboutPage = () => {
               transition={{ duration: 1, delay: 0.6 }}
               className="text-lg md:text-xl text-sangeet-neutral-300 mb-16 max-w-4xl mx-auto leading-relaxed px-4"
             >
-              Welcome to Sangeet, where the soul of South Asia comes alive in the heart of Wanchai. 
-              <span className="text-sangeet-400 font-semibold"> Rooted in vibrant traditions of music, dance, and culinary artistry</span>, 
-              we're more than a dining destination—we're an immersive celebration of culture, community, and connection. 
+              Welcome to Sangeet, where the soul of South Asia comes alive in the heart of Wanchai.
+              <span className="text-sangeet-400 font-semibold"> Rooted in vibrant traditions of music, dance, and culinary artistry</span>,
+              we're more than a dining destination—we're an immersive celebration of culture, community, and connection.
               Every moment at Sangeet is crafted to create unforgettable memories.
             </motion.p>
 
@@ -302,13 +302,13 @@ const AboutPage = () => {
                 <h3 className="text-sangeet-400 font-bold text-lg md:text-xl mb-3">Chef's Signature</h3>
                 <p className="text-sangeet-neutral-400 text-sm md:text-base">Chef Rajesh Kumar's innovative take on traditional South Asian flavors</p>
               </div>
-              
+
               <div className="bg-sangeet-neutral-900/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300">
                 <div className="text-3xl md:text-4xl mb-4">🏛️</div>
                 <h3 className="text-sangeet-400 font-bold text-lg md:text-xl mb-3">Sophisticated Spaces</h3>
                 <p className="text-sangeet-neutral-400 text-sm md:text-base">Multiple dining areas designed for intimate dinners and grand celebrations</p>
               </div>
-              
+
               <div className="bg-sangeet-neutral-900/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300">
                 <div className="text-3xl md:text-4xl mb-4">🎭</div>
                 <h3 className="text-sangeet-400 font-bold text-lg md:text-xl mb-3">Cultural Immersion</h3>
@@ -338,7 +338,7 @@ const AboutPage = () => {
                   →
                 </motion.span>
               </motion.button>
-              
+
               {/* Secondary CTA - Contact */}
               <motion.button
                 whileHover={{ scale: 1.05, y: -3 }}
@@ -480,11 +480,10 @@ const AboutPage = () => {
                 onClick={() => setActiveFilter(filter.id)}
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                className={`inline-flex items-center space-x-2 px-6 py-3 rounded-full font-semibold text-lg transition-all duration-300 ${
-                  activeFilter === filter.id
-                    ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-lg'
-                    : 'bg-sangeet-neutral-800/50 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700/50 hover:text-sangeet-300'
-                }`}
+                className={`inline-flex items-center space-x-2 px-6 py-3 rounded-full font-semibold text-lg transition-all duration-300 ${activeFilter === filter.id
+                  ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-lg'
+                  : 'bg-sangeet-neutral-800/50 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700/50 hover:text-sangeet-300'
+                  }`}
               >
                 <span className="text-2xl">{filter.icon}</span>
                 <span>{filter.label}</span>
@@ -500,11 +499,10 @@ const AboutPage = () => {
                   key={filter.id}
                   onClick={() => setActiveFilter(filter.id)}
                   whileTap={{ scale: 0.95 }}
-                  className={`flex-shrink-0 inline-flex items-center space-x-2 px-4 py-2 rounded-full font-semibold text-sm transition-all duration-300 ${
-                    activeFilter === filter.id
-                      ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-lg'
-                      : 'bg-sangeet-neutral-800/50 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700/50'
-                  }`}
+                  className={`flex-shrink-0 inline-flex items-center space-x-2 px-4 py-2 rounded-full font-semibold text-sm transition-all duration-300 ${activeFilter === filter.id
+                    ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-lg'
+                    : 'bg-sangeet-neutral-800/50 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700/50'
+                    }`}
                 >
                   <span className="text-lg">{filter.icon}</span>
                   <span>{filter.label}</span>
@@ -514,7 +512,7 @@ const AboutPage = () => {
           </div>
 
           {/* Gallery Grid */}
-          <motion.div 
+          <motion.div
             layout
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           >
@@ -533,17 +531,18 @@ const AboutPage = () => {
                   <img
                     src={image.url}
                     alt={image.title}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-sangeet-neutral-900/80 via-transparent to-transparent"></div>
-                  
+
                   {/* Category Badge */}
                   <div className="absolute top-4 left-4">
                     <div className="bg-sangeet-400/90 backdrop-blur-md text-sangeet-neutral-950 px-3 py-1 rounded-full text-xs font-semibold">
                       {galleryFilters.find(f => f.id === image.category)?.label}
                     </div>
                   </div>
-                  
+
                   {/* Content Overlay */}
                   <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                     <h3 className="text-xl font-bold mb-2 group-hover:text-sangeet-400 transition-colors">
@@ -605,6 +604,7 @@ const AboutPage = () => {
                       <img
                         src={member.image}
                         alt={member.name}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     </div>
@@ -670,7 +670,7 @@ const AboutPage = () => {
               Your Journey Begins Here
             </h2>
             <p className="text-sangeet-neutral-400 text-xl mb-8 max-w-3xl mx-auto leading-relaxed">
-              Whether it's a romantic dinner, family celebration, or corporate event, we're here to make it extraordinary. 
+              Whether it's a romantic dinner, family celebration, or corporate event, we're here to make it extraordinary.
               <span className="text-sangeet-400 font-semibold"> Reserve your table</span> and let us create memories that last a lifetime.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
@@ -690,7 +690,7 @@ const AboutPage = () => {
                   →
                 </motion.span>
               </motion.button>
-              
+
               {/* Secondary CTA - View Menu */}
               <motion.button
                 onClick={() => navigate('/menu')}

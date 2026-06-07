@@ -22,6 +22,7 @@ import QRCodeDisplayPage from './pages/QRCodeDisplayPage';
 import ReservationsPage from './pages/ReservationsPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import LocationPage from './pages/LocationPage';
 import QRCartPage from './pages/QRCartPage';
 import AdminDashboard from './pages/AdminDashboard';
 import MenuManagementPage from './pages/MenuManagementPage';
@@ -106,7 +107,7 @@ function App() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const location = useLocation();
 
   // Memoized route checks for performance
@@ -123,14 +124,14 @@ function App() {
         fetchReviews(),
         fetchEvents()
       ]);
-      
+
       setMenuItems(menuData || []);
       setReviews(reviewsData || []);
       setEvents(eventsData || []);
     } catch (error) {
       console.error('Error loading data:', error);
       console.log('Using fallback data - API may not be available');
-      
+
       // Fallback data if API fails
       setMenuItems([
         {
@@ -158,7 +159,7 @@ function App() {
           preparation_time: 15
         }
       ]);
-      
+
       setReviews([
         {
           id: 1,
@@ -177,7 +178,7 @@ function App() {
           is_verified: true
         }
       ]);
-      
+
       setEvents([
         {
           id: 1,
@@ -196,7 +197,7 @@ function App() {
           is_featured: true
         }
       ]);
-      
+
       // Don't show error, just use fallback data
       console.log('Using fallback data successfully');
     } finally {
@@ -211,26 +212,26 @@ function App() {
   // Global order deletion listener - clears cart data when order is deleted
   useEffect(() => {
     // Connect to socket service
-    
+
     socketService.connect();
-    
+
     // Check socket connection status
     setTimeout(() => {
-      
+
     }, 1000);
 
     // Listen for order deletion events globally
     const handleOrderDeleted = (data) => {
-      
-      
+
+
       // Clear all cart data when any order is deleted
       const success = clearAllCartData();
-      
+
       if (success) {
-        
+
         toast.success('Order has been cancelled. Your cart has been cleared.');
       } else {
-        
+
       }
     };
 
@@ -253,7 +254,7 @@ function App() {
       <div className="min-h-screen bg-sangeet-neutral-950 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-400 mb-4">{error}</p>
-          <button 
+          <button
             onClick={loadData}
             className="bg-sangeet-400 text-sangeet-neutral-950 px-4 py-2 rounded-lg hover:bg-sangeet-300 transition-colors"
           >
@@ -409,7 +410,7 @@ function App() {
                 <ErrorBoundary>
                   <AnimatedRoute>
                     {(() => {
-              
+
                       return <AdminOrdersPage />;
                     })()}
                   </AnimatedRoute>
@@ -420,7 +421,9 @@ function App() {
               path="/admin/menu-management"
               element={
                 <AnimatedRoute>
-                  <MenuManagementPage />
+                  <ProtectedRoute requiredRole="admin">
+                    <MenuManagementPage />
+                  </ProtectedRoute>
                 </AnimatedRoute>
               }
             />
@@ -493,121 +496,129 @@ function App() {
     <div className={CONTAINER_CLASSES}>
       <ScrollToTop />
       <Header />
-      
+
       <AnimatePresence mode="wait">
         <Routes>
-          <Route 
-            path="/" 
+          <Route
+            path="/"
             element={
               <AnimatedRoute>
-                <HomePage 
+                <HomePage
                   menuItems={menuItems}
                   reviews={reviews}
                   events={events}
                 />
               </AnimatedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/menu" 
+          <Route
+            path="/menu"
             element={
               <AnimatedRoute>
                 <MenuPage />
               </AnimatedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/admin/orders" 
+          <Route
+            path="/admin/orders"
             element={
               <AnimatedRoute>
                 <AdminOrdersPage />
               </AnimatedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/kitchen" 
+          <Route
+            path="/kitchen"
             element={
               <AnimatedRoute>
                 <KitchenDisplayPage />
               </AnimatedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/qr-codes" 
+          <Route
+            path="/qr-codes"
             element={
               <AnimatedRoute>
                 <QRCodeDisplayPage />
               </AnimatedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/reservations" 
+          <Route
+            path="/reservations"
             element={
               <AnimatedRoute>
                 <ReservationsPage />
               </AnimatedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/about" 
+          <Route
+            path="/about"
             element={
               <AnimatedRoute>
                 <AboutPage />
               </AnimatedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/contact" 
+          <Route
+            path="/contact"
             element={
               <AnimatedRoute>
                 <ContactPage />
               </AnimatedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/review" 
+          <Route
+            path="/location"
+            element={
+              <AnimatedRoute>
+                <LocationPage />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/review"
             element={
               <AnimatedRoute>
                 <ReviewSubmissionPage />
               </AnimatedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/order-success" 
+          <Route
+            path="/order-success"
             element={
               <AnimatedRoute>
                 <OrderSuccessPage />
               </AnimatedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/track-order" 
+          <Route
+            path="/track-order"
             element={
               <AnimatedRoute>
                 <OrderTrackingPage />
               </AnimatedRoute>
-            } 
+            }
           />
 
-          <Route 
-            path="/login" 
+          <Route
+            path="/login"
             element={
               <AnimatedRoute>
                 <LoginPage />
               </AnimatedRoute>
-            } 
+            }
           />
-          <Route 
-            path="*" 
+          <Route
+            path="*"
             element={
               <AnimatedRoute>
                 <NotFoundPage />
               </AnimatedRoute>
-            } 
+            }
           />
         </Routes>
       </AnimatePresence>
-      
+
       <Footer />
     </div>
   );

@@ -16,9 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert default admin user (password: admin123)
-INSERT INTO users (username, email, password_hash, role, first_name, last_name) VALUES 
-('admin', 'admin@sangeet.com', '$2b$10$rQZ8K9mN2pL1vX3yA4bC5dE6fG7hH8iI9jJ0kK1lL2mM3nN4oO5pP6qQ7rR8sS9tT0uU1vV2wW3xX4yY5zZ', 'admin', 'Admin', 'User');
+
 
 -- Create index for faster lookups
 CREATE INDEX idx_users_username ON users(username);

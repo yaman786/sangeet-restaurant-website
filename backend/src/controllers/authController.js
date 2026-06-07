@@ -3,7 +3,10 @@ const jwt = require('jsonwebtoken');
 const pool = require('../config/database');
 
 // JWT Secret (in production, use environment variable)
-const JWT_SECRET = process.env.JWT_SECRET || 'sangeet-restaurant-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'development' ? 'sangeet-restaurant-secret-key' : null);
+if (!JWT_SECRET) {
+  throw new Error('FATAL ERROR: JWT_SECRET is not defined in production.');
+}
 
 // Login admin/staff
 const login = async (req, res) => {
@@ -20,12 +23,12 @@ const login = async (req, res) => {
     let userResult;
     if (username) {
       userResult = await pool.query(
-        'SELECT * FROM users WHERE username = $1 AND is_active = true',
+        'SELECT * FROM users WHERE username = $1 AND is_active = true AND deleted_at IS NULL',
         [username]
       );
     } else {
       userResult = await pool.query(
-        'SELECT * FROM users WHERE email = $1 AND is_active = true',
+        'SELECT * FROM users WHERE email = $1 AND is_active = true AND deleted_at IS NULL',
         [email]
       );
     }
@@ -60,7 +63,7 @@ const login = async (req, res) => {
 
     // Return user info (without password) and token
     const { password_hash, ...userInfo } = user;
-    
+
     res.json({
       message: 'Login successful',
       user: userInfo,
@@ -81,7 +84,7 @@ const getProfile = async (req, res) => {
     const userId = req.user.id;
 
     const userResult = await pool.query(
-      'SELECT id, username, email, role, first_name, last_name, phone, created_at FROM users WHERE id = $1',
+      'SELECT id, username, email, role, first_name, last_name, phone, created_at FROM users WHERE id = $1 AND deleted_at IS NULL',
       [userId]
     );
 
@@ -117,7 +120,7 @@ const changePassword = async (req, res) => {
 
     // Get current user
     const userResult = await pool.query(
-      'SELECT password_hash FROM users WHERE id = $1',
+      'SELECT password_hash FROM users WHERE id = $1 AND deleted_at IS NULL',
       [userId]
     );
 
@@ -167,7 +170,7 @@ const getAllUsers = async (req, res) => {
     }
 
     const usersResult = await pool.query(
-      'SELECT id, username, email, role, first_name, last_name, phone, is_active, created_at FROM users ORDER BY created_at DESC'
+      'SELECT id, username, email, role, first_name, last_name, phone, is_active, created_at FROM users WHERE deleted_at IS NULL ORDER BY created_at DESC'
     );
 
     res.json({
@@ -199,9 +202,12 @@ const createUser = async (req, res) => {
       });
     }
 
-    // Check if username or email already exists
+    // Check if username or email already exists (excluding deleted users?)
+    // Ideally we should allow reusing emails if the user was deleted, OR enforce uniqueness globally.
+    // For safety, let's enforce uniqueness globally to avoid confusion, or check deleted_at IS NULL.
+    // Let's check ONLY active/non-deleted users for conflict.
     const existingUser = await pool.query(
-      'SELECT id FROM users WHERE username = $1 OR email = $2',
+      'SELECT id FROM users WHERE (username = $1 OR email = $2) AND deleted_at IS NULL',
       [username, email]
     );
 
@@ -248,7 +254,7 @@ const updateUser = async (req, res) => {
 
     // Check if user exists
     const existingUser = await pool.query(
-      'SELECT id FROM users WHERE id = $1',
+      'SELECT id FROM users WHERE id = $1 AND deleted_at IS NULL',
       [id]
     );
 
@@ -260,7 +266,7 @@ const updateUser = async (req, res) => {
 
     // Check if username or email already exists for other users
     const duplicateCheck = await pool.query(
-      'SELECT id FROM users WHERE (username = $1 OR email = $2) AND id != $3',
+      'SELECT id FROM users WHERE (username = $1 OR email = $2) AND id != $3 AND deleted_at IS NULL',
       [username, email, id]
     );
 
@@ -276,7 +282,7 @@ const updateUser = async (req, res) => {
       const bcrypt = require('bcryptjs');
       const saltRounds = 10;
       const passwordHash = await bcrypt.hash(password, saltRounds);
-      
+
       updateQuery = 'UPDATE users SET username = $1, email = $2, password_hash = $3, role = $4, first_name = $5, last_name = $6, phone = $7, is_active = $8, updated_at = CURRENT_TIMESTAMP WHERE id = $9 RETURNING id, username, email, role, first_name, last_name, phone, is_active, created_at';
       updateParams = [username, email, passwordHash, role, first_name, last_name, phone, is_active, id];
     } else {
@@ -320,7 +326,7 @@ const deleteUser = async (req, res) => {
 
     // Check if user exists
     const existingUser = await pool.query(
-      'SELECT id, role FROM users WHERE id = $1',
+      'SELECT id, role FROM users WHERE id = $1 AND deleted_at IS NULL',
       [id]
     );
 
@@ -333,10 +339,10 @@ const deleteUser = async (req, res) => {
     // Prevent deletion of the last admin
     if (existingUser.rows[0].role === 'admin') {
       const adminCount = await pool.query(
-        'SELECT COUNT(*) FROM users WHERE role = $1 AND is_active = true',
+        'SELECT COUNT(*) FROM users WHERE role = $1 AND is_active = true AND deleted_at IS NULL',
         ['admin']
       );
-      
+
       if (parseInt(adminCount.rows[0].count) <= 1) {
         return res.status(400).json({
           error: 'Cannot delete the last admin user'
@@ -344,9 +350,9 @@ const deleteUser = async (req, res) => {
       }
     }
 
-    // Soft delete by setting is_active to false
+    // Soft delete by setting deleted_at to NOW() (and is_active to false for good measure)
     await pool.query(
-      'UPDATE users SET is_active = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1',
+      'UPDATE users SET deleted_at = CURRENT_TIMESTAMP, is_active = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1',
       [id]
     );
 
@@ -382,7 +388,7 @@ const toggleUserStatus = async (req, res) => {
 
     // Check if user exists
     const existingUser = await pool.query(
-      'SELECT id, role, is_active FROM users WHERE id = $1',
+      'SELECT id, role, is_active FROM users WHERE id = $1 AND deleted_at IS NULL',
       [id]
     );
 
@@ -398,10 +404,10 @@ const toggleUserStatus = async (req, res) => {
     // Prevent deactivation of the last admin
     if (existingUser.rows[0].role === 'admin' && newStatus === false) {
       const adminCount = await pool.query(
-        'SELECT COUNT(*) FROM users WHERE role = $1 AND is_active = true',
+        'SELECT COUNT(*) FROM users WHERE role = $1 AND is_active = true AND deleted_at IS NULL',
         ['admin']
       );
-      
+
       if (parseInt(adminCount.rows[0].count) <= 1) {
         return res.status(400).json({
           error: 'Cannot deactivate the last admin user'
@@ -437,19 +443,19 @@ const getUserStats = async (req, res) => {
       });
     }
 
-    // Get total users count
-    const totalUsers = await pool.query('SELECT COUNT(*) FROM users');
-    
+    // Get total users count (excluding deleted)
+    const totalUsers = await pool.query('SELECT COUNT(*) FROM users WHERE deleted_at IS NULL');
+
     // Get active users count
-    const activeUsers = await pool.query('SELECT COUNT(*) FROM users WHERE is_active = true');
-    
+    const activeUsers = await pool.query('SELECT COUNT(*) FROM users WHERE is_active = true AND deleted_at IS NULL');
+
     // Get users by role
-    const adminUsers = await pool.query('SELECT COUNT(*) FROM users WHERE role = $1 AND is_active = true', ['admin']);
-    const staffUsers = await pool.query('SELECT COUNT(*) FROM users WHERE role = $1 AND is_active = true', ['staff']);
-    
+    const adminUsers = await pool.query('SELECT COUNT(*) FROM users WHERE role = $1 AND is_active = true AND deleted_at IS NULL', ['admin']);
+    const staffUsers = await pool.query('SELECT COUNT(*) FROM users WHERE role = $1 AND is_active = true AND deleted_at IS NULL', ['staff']);
+
     // Get recent users (last 30 days)
     const recentUsers = await pool.query(
-      'SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL \'30 days\''
+      'SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL \'30 days\' AND deleted_at IS NULL'
     );
 
     res.json({

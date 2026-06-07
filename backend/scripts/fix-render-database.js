@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { Pool } = require('pg');
 
 // Use the same database configuration as the API
@@ -25,7 +26,8 @@ async function fixRenderDatabase() {
     console.log('Current admin user:', adminResult.rows[0] || 'Not found');
 
     // Generate new password hash
-    const newPasswordHash = await bcrypt.hash('admin123', 10);
+    const adminPassword = process.env.ADMIN_PASSWORD || crypto.randomBytes(12).toString('hex');
+    const newPasswordHash = await bcrypt.hash(adminPassword, 10);
     console.log('✅ Generated new password hash');
 
     // Update admin user
@@ -55,14 +57,14 @@ async function fixRenderDatabase() {
     // Verify the update
     const verifyResult = await pool.query('SELECT password_hash FROM users WHERE username = $1', ['admin']);
     if (verifyResult.rows.length > 0) {
-      const isValid = await bcrypt.compare('admin123', verifyResult.rows[0].password_hash);
+      const isValid = await bcrypt.compare(adminPassword, verifyResult.rows[0].password_hash);
       console.log('✅ Password verification test:', isValid ? 'PASSED' : 'FAILED');
     }
 
     console.log('\n🎉 Render database fixed!');
     console.log('📋 Login Credentials:');
     console.log('Username: admin');
-    console.log('Password: admin123');
+    console.log(`Password: ${adminPassword}`);
 
   } catch (error) {
     console.error('❌ Error fixing database:', error);

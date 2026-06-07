@@ -80,7 +80,9 @@ async function simpleMigrate() {
     // Create admin user
     console.log('👤 Creating admin user...');
     const bcrypt = require('bcryptjs');
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const crypto = require('crypto');
+    const adminPassword = process.env.ADMIN_PASSWORD || crypto.randomBytes(12).toString('hex');
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
     
     await pool.query(`
       INSERT INTO users (username, email, password_hash, role, is_active)
@@ -90,7 +92,7 @@ async function simpleMigrate() {
     
     console.log('✅ Admin user created');
     console.log('📧 Email: admin@sangeetrestaurant.com');
-    console.log('🔑 Password: admin123');
+    console.log(`🔑 Password: ${adminPassword}`);
 
     // Add sample categories
     console.log('📊 Adding sample categories...');
@@ -119,7 +121,7 @@ async function simpleMigrate() {
     console.log('- Users table with admin user');
     console.log('- Menu categories and items');
     console.log('- Orders table');
-    console.log('\n🔑 Admin login: admin@sangeetrestaurant.com / admin123');
+    console.log(`\n🔑 Admin login: admin@sangeetrestaurant.com / ${adminPassword}`);
 
   } catch (error) {
     console.error('❌ Migration failed:', error);

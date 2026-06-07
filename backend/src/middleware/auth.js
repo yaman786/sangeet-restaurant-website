@@ -1,7 +1,10 @@
 const jwt = require('jsonwebtoken');
 
 // JWT Secret (in production, use environment variable)
-const JWT_SECRET = process.env.JWT_SECRET || 'sangeet-restaurant-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'development' ? 'sangeet-restaurant-secret-key' : null);
+if (!JWT_SECRET) {
+  throw new Error('FATAL ERROR: JWT_SECRET is not defined in production.');
+}
 
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {

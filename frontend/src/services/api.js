@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 
 // API Configuration - Use environment variables with fallbacks
 const API_CONFIG = {
-  BASE_URL: process.env.REACT_APP_API_URL || 'https://sangeet-restaurant-api.onrender.com/api',
+  BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
   TIMEOUT: 10000,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000
@@ -46,19 +46,19 @@ const api = axios.create({
  */
 const getAuthToken = () => {
   const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('adminToken');
-  
+
   // Validate token format (basic check)
   if (token && token.split('.').length === 3) {
     return token;
   }
-  
+
   // Clear invalid token
   if (token) {
     localStorage.removeItem('token');
     localStorage.removeItem('authToken');
     localStorage.removeItem('adminToken');
   }
-  
+
   return null;
 };
 
@@ -84,7 +84,7 @@ const handleAuthFailure = () => {
   localStorage.removeItem('authToken');
   localStorage.removeItem('adminToken');
   localStorage.removeItem('user');
-  
+
   // Redirect to login if not already there
   if (window.location.pathname !== '/login') {
     window.location.href = '/login';
@@ -105,12 +105,12 @@ const handleApiError = (error) => {
     // Server responded with error status
     status = error.response.status;
     message = error.response.data?.message || `Server error: ${status}`;
-    
+
     if (status >= 500) {
       errorType = API_ERROR_TYPES.SERVER;
     } else if (status >= 400) {
       errorType = API_ERROR_TYPES.CLIENT;
-      
+
       // Handle authentication errors
       if (status === 401) {
         handleAuthFailure();
@@ -148,10 +148,10 @@ const retryApiCall = async (apiCall, attempts = API_CONFIG.RETRY_ATTEMPTS) => {
       return await apiCall();
     } catch (error) {
       if (i === attempts - 1) throw error;
-      
+
       // Only retry on network errors or 5xx server errors
-      if (error.type === API_ERROR_TYPES.NETWORK || 
-          (error.status && error.status >= 500)) {
+      if (error.type === API_ERROR_TYPES.NETWORK ||
+        (error.status && error.status >= 500)) {
         // Retrying API call...
         await new Promise(resolve => setTimeout(resolve, API_CONFIG.RETRY_DELAY));
         continue;
@@ -212,7 +212,7 @@ export const fetchMenuItems = async (filters = {}) => {
         params.append(key, value);
       }
     });
-    
+
     const queryString = params.toString();
     const url = queryString ? `/menu/items?${queryString}` : '/menu/items';
     return await api.get(url);
@@ -322,7 +322,7 @@ export const fetchAllReservations = async (filters = {}) => {
         params.append(key, value);
       }
     });
-    
+
     const queryString = params.toString();
     const url = queryString ? `/reservations?${queryString}` : '/reservations';
     return await api.get(url);
@@ -420,7 +420,7 @@ export const searchOrders = async (searchParams = {}) => {
         params.append(key, value);
       }
     });
-    
+
     const queryString = params.toString();
     const url = queryString ? `/orders/search?${queryString}` : '/orders/search';
     return await api.get(url);
@@ -442,24 +442,24 @@ export const getTableByQRCode = async (qrCode) => {
 // Direct order creation method that bypasses all interceptors
 export const createOrderDirect = async (orderData) => {
   // Direct order creation - bypassing all interceptors
-  
+
   // Create a completely fresh axios instance
   const directApi = axios.create({
-    baseURL: 'https://sangeet-restaurant-api.onrender.com/api',
+    baseURL: API_CONFIG.BASE_URL,
     timeout: 10000,
     headers: {
       'Content-Type': 'application/json',
     },
   });
-  
+
   // Add auth token directly
   const token = localStorage.getItem('authToken') || localStorage.getItem('adminToken');
   if (token) {
     directApi.defaults.headers.Authorization = `Bearer ${token}`;
   }
-  
+
   // Direct API config
-  
+
   try {
     const response = await directApi.post('/orders', orderData);
     // Direct order creation successful
@@ -505,7 +505,7 @@ export const fetchAllOrders = async (filters = {}) => {
         params.append(key, value);
       }
     });
-    
+
     const queryString = params.toString();
     const url = queryString ? `/orders?${queryString}` : '/orders';
     return await api.get(url);
@@ -688,11 +688,11 @@ export const downloadPrintableQRCode = async (qrCodeId, format = 'png', design =
   try {
     const timestamp = Date.now(); // Add timestamp for cache busting
     console.log(`Downloading QR code: ${qrCodeId}, format: ${format}, design: ${design}, theme: ${theme}`);
-    
+
     const token = getAuthToken();
     console.log('🔑 Auth token:', token ? 'Present' : 'Missing');
     console.log('🌐 API URL:', `${API_CONFIG.BASE_URL}/qr-codes/print/${qrCodeId}/${format}?design=${design}&theme=${theme}&t=${timestamp}`);
-    
+
     const response = await fetch(`${API_CONFIG.BASE_URL}/qr-codes/print/${qrCodeId}/${format}?design=${design}&theme=${theme}&t=${timestamp}`, {
       method: 'GET',
       headers: {
@@ -709,7 +709,7 @@ export const downloadPrintableQRCode = async (qrCodeId, format = 'png', design =
     // Check if the response is actually an image
     const contentType = response.headers.get('content-type');
     console.log('Response content type:', contentType);
-    
+
     if (!contentType || !contentType.startsWith('image/')) {
       console.error('Invalid content type:', contentType);
       throw new Error('Server did not return an image');
@@ -718,7 +718,7 @@ export const downloadPrintableQRCode = async (qrCodeId, format = 'png', design =
     const blob = await response.blob();
     console.log('Blob size:', blob.size, 'bytes');
     console.log('Blob type:', blob.type);
-    
+
     if (blob.size === 0) {
       throw new Error('Downloaded file is empty');
     }

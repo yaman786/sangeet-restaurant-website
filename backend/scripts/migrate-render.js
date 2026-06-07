@@ -81,7 +81,9 @@ async function runMigrations() {
     console.log('\n👤 Creating admin user...');
     try {
       const bcrypt = require('bcryptjs');
-      const hashedPassword = await bcrypt.hash('admin123', 10);
+      const crypto = require('crypto');
+      const adminPassword = process.env.ADMIN_PASSWORD || crypto.randomBytes(12).toString('hex');
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
       
       await pool.query(`
         INSERT INTO users (username, email, password_hash, role, is_active)
@@ -91,7 +93,7 @@ async function runMigrations() {
       
       console.log('✅ Admin user created');
       console.log('📧 Email: admin@sangeetrestaurant.com');
-      console.log('🔑 Password: admin123');
+      console.log(`🔑 Password: ${adminPassword}`);
     } catch (error) {
       console.log('⚠️  Admin user creation skipped:', error.message);
     }

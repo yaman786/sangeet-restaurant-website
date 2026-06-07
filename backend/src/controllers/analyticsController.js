@@ -31,11 +31,11 @@ const getBusinessAnalytics = async (req, res) => {
           COUNT(*) FILTER (WHERE status = 'confirmed') as confirmed_reservations,
           COUNT(*) FILTER (WHERE status = 'pending') as pending_reservations,
           COUNT(*) FILTER (WHERE status = 'cancelled') as cancelled_reservations,
-          COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '${daysAgo} days') as recent_reservations,
+          COUNT(*) FILTER (WHERE created_at >= NOW() - ($1 || ' days')::interval) as recent_reservations,
           AVG(guests) as avg_party_size,
           SUM(guests) as total_guests
         FROM reservations
-      `),
+      `, [daysAgo]),
       
       // Review analytics
       pool.query(`
@@ -43,9 +43,9 @@ const getBusinessAnalytics = async (req, res) => {
           COUNT(*) as total_reviews,
           AVG(rating) as avg_rating,
           COUNT(*) FILTER (WHERE is_verified = true) as verified_reviews,
-          COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '${daysAgo} days') as recent_reviews
+          COUNT(*) FILTER (WHERE created_at >= NOW() - ($1 || ' days')::interval) as recent_reviews
         FROM customer_reviews
-      `),
+      `, [daysAgo]),
       
       // Event analytics
       pool.query(`
@@ -100,6 +100,7 @@ const getReservationTrends = async (req, res) => {
         interval = '30 days';
     }
 
+    // Note: TO_CHAR format string must be literal, so we safely construct it in JS
     const trends = await pool.query(`
       SELECT 
         TO_CHAR(date, '${dateFormat}') as period,
@@ -109,10 +110,10 @@ const getReservationTrends = async (req, res) => {
         SUM(guests) as total_guests,
         AVG(guests) as avg_party_size
       FROM reservations 
-      WHERE date >= CURRENT_DATE - INTERVAL '${interval}'
+      WHERE date >= CURRENT_DATE - CAST($1 AS interval)
       GROUP BY TO_CHAR(date, '${dateFormat}')
       ORDER BY period
-    `);
+    `, [interval]);
 
     res.json({
       message: 'Reservation trends retrieved successfully',

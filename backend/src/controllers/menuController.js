@@ -4,7 +4,7 @@ const pool = require('../config/database');
 const getAllMenuItems = async (req, res) => {
   try {
     const { category, search, sort = 'name', order = 'ASC' } = req.query;
-    
+
     let query = `
       SELECT 
         mi.*,
@@ -13,7 +13,7 @@ const getAllMenuItems = async (req, res) => {
       LEFT JOIN categories c ON mi.category_id = c.id
       WHERE mi.is_active = true
     `;
-    
+
     const params = [];
     let paramCount = 0;
 
@@ -31,8 +31,14 @@ const getAllMenuItems = async (req, res) => {
       params.push(`%${search}%`);
     }
 
-    // Add sorting
-    query += ` ORDER BY mi.${sort} ${order}`;
+    // Add sorting (with strictly whitelisted parameters to prevent SQL injection)
+    const allowedSortFields = ['id', 'name', 'price', 'category_id', 'is_popular', 'is_vegetarian', 'is_spicy'];
+    const allowedOrder = ['ASC', 'DESC'];
+    
+    const safeSort = allowedSortFields.includes(sort) ? sort : 'name';
+    const safeOrder = allowedOrder.includes(order ? order.toUpperCase() : '') ? order.toUpperCase() : 'ASC';
+
+    query += ` ORDER BY mi.${safeSort} ${safeOrder}`;
 
     const result = await pool.query(query, params);
     res.json(result.rows);
@@ -69,12 +75,12 @@ const getMenuItemById = async (req, res) => {
 // Create new menu item
 const createMenuItem = async (req, res) => {
   try {
-    const { 
-      name, 
-      description, 
-      price, 
-      category_id, 
-      image_url, 
+    const {
+      name,
+      description,
+      price,
+      category_id,
+      image_url,
       is_vegetarian = false,
       is_spicy = false,
       is_popular = false,
@@ -83,14 +89,14 @@ const createMenuItem = async (req, res) => {
 
     // Validate required fields
     if (!name || !price || !category_id) {
-      return res.status(400).json({ 
-        error: 'Name, price, and category are required' 
+      return res.status(400).json({
+        error: 'Name, price, and category are required'
       });
     }
 
-    // Validate category exists
+    // Validate category exists and get name
     const categoryResult = await pool.query(
-      'SELECT id FROM categories WHERE id = $1',
+      'SELECT id, name FROM categories WHERE id = $1',
       [category_id]
     );
 
@@ -98,14 +104,16 @@ const createMenuItem = async (req, res) => {
       return res.status(400).json({ error: 'Category not found' });
     }
 
+    const categoryName = categoryResult.rows[0].name;
+
     const result = await pool.query(`
       INSERT INTO menu_items (
-        name, description, price, category_id, image_url, 
+        name, description, price, category_id, category, image_url, 
         is_vegetarian, is_spicy, is_popular, preparation_time
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
     `, [
-      name, description, price, category_id, image_url,
+      name, description, price, category_id, categoryName, image_url,
       is_vegetarian, is_spicy, is_popular, preparation_time
     ]);
 
@@ -120,12 +128,12 @@ const createMenuItem = async (req, res) => {
 const updateMenuItem = async (req, res) => {
   try {
     const { id } = req.params;
-    const { 
-      name, 
-      description, 
-      price, 
-      category_id, 
-      image_url, 
+    const {
+      name,
+      description,
+      price,
+      category_id,
+      image_url,
       is_vegetarian,
       is_spicy,
       is_popular,
@@ -288,8 +296,8 @@ const deleteCategory = async (req, res) => {
     );
 
     if (parseInt(itemsResult.rows[0].count) > 0) {
-      return res.status(400).json({ 
-        error: 'Cannot delete category with active menu items' 
+      return res.status(400).json({
+        error: 'Cannot delete category with active menu items'
       });
     }
 

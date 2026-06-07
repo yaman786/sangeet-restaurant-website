@@ -1,6 +1,6 @@
 const { Server } = require('socket.io');
 
-let io;
+let ioInstance = null;
 
 const initializeSocket = (server) => {
   // CORS configuration for socket.io - allow multiple origins
@@ -40,8 +40,7 @@ const initializeSocket = (server) => {
     }
   });
 
-  // Make io globally available for other modules
-  global.io = io;
+  ioInstance = io;
 
   io.on('connection', (socket) => {
     // Join admin room for order notifications
@@ -70,18 +69,15 @@ const initializeSocket = (server) => {
 
 // Emit new order notification
 const emitNewOrder = (orderData) => {
-  const socketIo = global.io || io;
-  
-  if (socketIo) {
+  if (ioInstance) {
     // Send the order data directly to match frontend expectations
-    socketIo.to('admin-room').to('kitchen-room').emit('new-order', orderData);
+    ioInstance.to('admin-room').to('kitchen-room').emit('new-order', orderData);
   }
 };
 
 // Emit order status update
 const emitOrderStatusUpdate = (orderId, status, tableNumber = null, estimatedTime = null) => {
-  const socketIo = global.io || io;
-  if (socketIo) {
+  if (ioInstance) {
     const updateData = {
       type: 'status-update',
       orderId: Number(orderId),
@@ -92,22 +88,21 @@ const emitOrderStatusUpdate = (orderId, status, tableNumber = null, estimatedTim
     };
 
     // Send to admin and kitchen
-    socketIo.to('admin-room').to('kitchen-room').emit('order-status-update', updateData);
+    ioInstance.to('admin-room').to('kitchen-room').emit('order-status-update', updateData);
     
     // Send to customer room
-    socketIo.to(`customer-${orderId}`).emit('order-status-update', updateData);
+    ioInstance.to(`customer-${orderId}`).emit('order-status-update', updateData);
     
     // Send to table room
     if (tableNumber) {
-      socketIo.to(`table-${tableNumber}`).emit('order-status-update', updateData);
+      ioInstance.to(`table-${tableNumber}`).emit('order-status-update', updateData);
     }
   }
 };
 
 // Emit new items added to existing order
 const emitNewItemsAdded = (orderId, newItems, tableNumber = null) => {
-  const socketIo = global.io || io;
-  if (socketIo) {
+  if (ioInstance) {
     const updateData = {
       type: 'new-items-added',
       orderId: Number(orderId),
@@ -117,18 +112,17 @@ const emitNewItemsAdded = (orderId, newItems, tableNumber = null) => {
     };
 
     // Send to kitchen for immediate attention
-    socketIo.to('kitchen-room').emit('new-items-added', updateData);
+    ioInstance.to('kitchen-room').emit('new-items-added', updateData);
     
     // Send to admin
-    socketIo.to('admin-room').emit('new-items-added', updateData);
+    ioInstance.to('admin-room').emit('new-items-added', updateData);
   }
 };
 
 // Emit order completion
 const emitOrderCompleted = (orderId) => {
-  const socketIo = global.io || io;
-  if (socketIo) {
-    socketIo.to('admin-room').to('kitchen-room').emit('order-completed', {
+  if (ioInstance) {
+    ioInstance.to('admin-room').to('kitchen-room').emit('order-completed', {
       type: 'order-completed',
       orderId,
       timestamp: new Date().toISOString(),
@@ -139,9 +133,8 @@ const emitOrderCompleted = (orderId) => {
 
 // Emit order cancellation
 const emitOrderCancelled = (orderId, reason) => {
-  const socketIo = global.io || io;
-  if (socketIo) {
-    socketIo.to('admin-room').to('kitchen-room').emit('order-cancelled', {
+  if (ioInstance) {
+    ioInstance.to('admin-room').to('kitchen-room').emit('order-cancelled', {
       type: 'order-cancelled',
       orderId,
       reason,
@@ -152,10 +145,9 @@ const emitOrderCancelled = (orderId, reason) => {
 
 // Emit order deletion notification
 const emitOrderDeleted = (orderId, tableNumber) => {
-  const socketIo = global.io || io;
-  if (socketIo) {
+  if (ioInstance) {
     // Send to admin and kitchen
-    socketIo.to('admin-room').to('kitchen-room').emit('order-deleted', {
+    ioInstance.to('admin-room').to('kitchen-room').emit('order-deleted', {
       type: 'order-deleted',
       orderId,
       tableNumber,
@@ -164,7 +156,7 @@ const emitOrderDeleted = (orderId, tableNumber) => {
     
     // Send to specific table room to clear cart data
     if (tableNumber) {
-      socketIo.to(`table-${tableNumber}`).emit('order-deleted', {
+      ioInstance.to(`table-${tableNumber}`).emit('order-deleted', {
         type: 'order-deleted',
         orderId,
         tableNumber,

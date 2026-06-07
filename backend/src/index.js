@@ -55,7 +55,7 @@ function createApp() {
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
-        imgSrc: ["'self'", "data:", "https:"],
+        imgSrc: ["'self'", "data:", "https:", "https://images.unsplash.com"],
         connectSrc: ["'self'", CONFIG.CLIENT_URL]
       }
     },
@@ -80,7 +80,7 @@ function createApp() {
     origin: function (origin, callback) {
       // Allow requests with no origin (mobile apps, curl, etc.)
       if (!origin) return callback(null, true);
-      
+
       const isAllowed = allowedOrigins.some(allowedOrigin => {
         if (typeof allowedOrigin === 'string') {
           return allowedOrigin === origin;
@@ -89,7 +89,7 @@ function createApp() {
         }
         return false;
       });
-      
+
       if (isAllowed) {
         callback(null, true);
       } else {
@@ -122,18 +122,7 @@ function createApp() {
     });
   });
 
-  // Temporary migration endpoint (remove after use)
-  app.post('/api/migrate', async (req, res) => {
-    try {
-      console.log('🚀 Starting migration via API endpoint...');
-      const { runMigrations } = require('../scripts/migrate-render');
-      await runMigrations();
-      res.json({ success: true, message: 'Migration completed successfully' });
-    } catch (error) {
-      console.error('Migration failed:', error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
+
 
 
 

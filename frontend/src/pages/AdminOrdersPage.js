@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { isNewItem, getTimeSinceAdded, sortItemsByNewness, hasMultipleSessions } from '../utils/itemUtils';
-import { 
-  updateOrderStatus, 
-  deleteOrder, 
+import {
+  updateOrderStatus,
+  deleteOrder,
   bulkUpdateOrderStatus,
   fetchAllOrders,
   fetchTables,
@@ -17,7 +17,7 @@ import CustomDropdown from '../components/CustomDropdown';
 
 const AdminOrdersPage = () => {
 
-  
+
   // eslint-disable-next-line no-unused-vars
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
@@ -66,16 +66,16 @@ const AdminOrdersPage = () => {
       if (viewMode !== 'all') {
         searchParams.status = viewMode;
       }
-      
+
       const [ordersData, tablesData] = await Promise.all([
         fetchAllOrders(searchParams),
         fetchTables()
       ]);
-      
+
       // Separate completed orders from active orders
       const activeOrders = (ordersData || []).filter(order => order.status !== 'completed');
       const completedOrders = (ordersData || []).filter(order => order.status === 'completed');
-      
+
       setOrders(activeOrders);
       setCompletedOrders(completedOrders);
       setTables(tablesData);
@@ -87,7 +87,7 @@ const AdminOrdersPage = () => {
         status: error.status,
         stack: error.stack
       });
-      
+
       // Show specific error message based on error type
       if (error.type === 'NETWORK_ERROR') {
         toast.error('Network error: Please check your internet connection');
@@ -106,12 +106,12 @@ const AdminOrdersPage = () => {
   };
 
 
-  
+
   // Data loading useEffect - ALWAYS RUN
   useEffect(() => {
     loadDashboardData(); // eslint-disable-line react-hooks/exhaustive-deps
   }, [filters, viewMode]); // eslint-disable-line react-hooks/exhaustive-deps
-  
+
   // Socket setup for realtime updates - minimal: reload on any event
   useEffect(() => {
     try {
@@ -123,9 +123,14 @@ const AdminOrdersPage = () => {
       const handleNewOrder = (orderData) => {
         // Real-time addition to state instead of full refresh
         if (orderData && orderData.id) {
-          // Add new order to the beginning of active orders
-          setOrders(prevOrders => [orderData, ...prevOrders]);
-          
+          // Add new order to the beginning of active orders if not already present
+          setOrders(prevOrders => {
+            if (prevOrders.some(order => order.id === orderData.id)) {
+              return prevOrders;
+            }
+            return [orderData, ...prevOrders];
+          });
+
           // Show success notification
           toast.success(`New order #${orderData.order_number || orderData.id} received from ${orderData.customer_name || 'Customer'}`, {
             duration: 5000,
@@ -141,25 +146,25 @@ const AdminOrdersPage = () => {
       const handleStatusUpdate = (data) => {
         // Real-time status update instead of full refresh
         const { orderId, status } = data;
-        
+
         // Update in active orders
-        setOrders(prevOrders => 
-          prevOrders.map(order => 
-            order.id === orderId 
+        setOrders(prevOrders =>
+          prevOrders.map(order =>
+            order.id === orderId
               ? { ...order, status, updated_at: new Date().toISOString() }
               : order
           )
         );
-        
+
         // Update in completed orders if it exists there
-        setCompletedOrders(prevCompleted => 
-          prevCompleted.map(order => 
-            order.id === orderId 
+        setCompletedOrders(prevCompleted =>
+          prevCompleted.map(order =>
+            order.id === orderId
               ? { ...order, status, updated_at: new Date().toISOString() }
               : order
           )
         );
-        
+
         // If order is completed, move it from active to completed after a delay
         if (status === 'completed') {
           setTimeout(() => {
@@ -179,16 +184,16 @@ const AdminOrdersPage = () => {
       const handleOrderDeleted = (data) => {
         // Real-time removal from state instead of full refresh
         const deletedOrderId = data.orderId;
-        
+
         // Remove from active orders
         setOrders(prevOrders => prevOrders.filter(order => order.id !== deletedOrderId));
-        
+
         // Remove from completed orders
         setCompletedOrders(prevCompleted => prevCompleted.filter(order => order.id !== deletedOrderId));
-        
+
         // Remove from selected orders if it was selected
         setSelectedOrders(prevSelected => prevSelected.filter(id => id !== deletedOrderId));
-        
+
         // Show success message if not already shown by the delete function
         toast.success(`Order #${deletedOrderId} has been deleted`);
       };
@@ -217,29 +222,29 @@ const AdminOrdersPage = () => {
       'completed': [], // No further transitions allowed
       'cancelled': [] // No further transitions allowed
     };
-    
+
     return statusFlow[currentStatus]?.includes(newStatus) || false;
   };
 
   // Check if order can be completed (no other active orders for same customer)
   const canCompleteOrder = (order) => {
     // Check if customer has other active orders
-    const otherActiveOrders = orders.filter(o => 
-      o.id !== order.id && 
+    const otherActiveOrders = orders.filter(o =>
+      o.id !== order.id &&
       o.customer_name === order.customer_name &&
-      o.status !== 'completed' && 
+      o.status !== 'completed' &&
       o.status !== 'cancelled'
     );
-    
+
     return otherActiveOrders.length === 0;
   };
 
   // Get other active orders for a customer
   const getOtherActiveOrders = (order) => {
-    return orders.filter(o => 
-      o.id !== order.id && 
+    return orders.filter(o =>
+      o.id !== order.id &&
       o.customer_name === order.customer_name &&
-      o.status !== 'completed' && 
+      o.status !== 'completed' &&
       o.status !== 'cancelled'
     );
   };
@@ -268,9 +273,9 @@ const AdminOrdersPage = () => {
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
       // Find the current order to get its status
-      const currentOrder = orders.find(order => order.id === orderId) || 
-                          completedOrders.find(order => order.id === orderId);
-      
+      const currentOrder = orders.find(order => order.id === orderId) ||
+        completedOrders.find(order => order.id === orderId);
+
       if (!currentOrder) {
         toast.error('Order not found');
         return;
@@ -287,22 +292,22 @@ const AdminOrdersPage = () => {
       // Don't reload data since socket will handle the update
     } catch (error) {
       console.error('Error updating order status:', error);
-      
+
       // Handle specific error for active orders
       if (error.response?.data?.error?.includes('other active orders')) {
         const activeOrders = error.response.data.activeOrders;
         const customerName = error.response.data.customerName;
-        
+
         // Show detailed error with active orders list
         toast.error(`Cannot complete order. ${customerName} has other active orders.`, {
           duration: 8000
         });
-        
+
         // Show active orders details
-        const activeOrdersList = activeOrders.map(order => 
+        const activeOrdersList = activeOrders.map(order =>
           `Order #${order.order_number} (${order.status})`
         ).join(', ');
-        
+
         toast.success(`Active orders: ${activeOrdersList}`, {
           duration: 10000
         });
@@ -314,9 +319,9 @@ const AdminOrdersPage = () => {
 
   const handleDeleteOrder = async (orderId) => {
     // Find the order details to show in modal
-    const orderToDelete = orders.find(order => order.id === orderId) || 
-                         completedOrders.find(order => order.id === orderId);
-    
+    const orderToDelete = orders.find(order => order.id === orderId) ||
+      completedOrders.find(order => order.id === orderId);
+
     if (orderToDelete) {
       setDeleteModal({
         isOpen: true,
@@ -331,26 +336,26 @@ const AdminOrdersPage = () => {
   const confirmDeleteOrder = async () => {
     try {
       await deleteOrder(deleteModal.orderId);
-      
+
       // Close modal immediately
       setDeleteModal({ isOpen: false, orderId: null, orderNumber: null, customerName: null, tableNumber: null });
-      
+
       // Immediately remove the order from local state
       const deletedOrderId = deleteModal.orderId;
-      
+
       setOrders(prevOrders => {
         const updatedOrders = prevOrders.filter(order => order.id !== deletedOrderId);
         return updatedOrders;
       });
-      
+
       setCompletedOrders(prevCompleted => {
         const updatedCompleted = prevCompleted.filter(order => order.id !== deletedOrderId);
         return updatedCompleted;
       });
-      
+
       // Show success message
       toast.success(`Order #${deleteModal.orderNumber} deleted successfully`);
-      
+
     } catch (error) {
       console.error('Error deleting order:', error);
       toast.error('Failed to delete order');
@@ -391,27 +396,27 @@ const AdminOrdersPage = () => {
   const handleClearCompletedOrders = () => {
     // Show confirmation dialog
     const confirmed = window.confirm('Clear completed orders from screen? (Data will be kept for analytics)');
-    
+
     if (!confirmed) {
       return;
     }
 
     // Clear completed orders from local state only (keep in database)
     setCompletedOrders([]);
-    
+
     toast.success('Completed orders cleared from screen');
   };
 
-    const handleOrderSelection = (orderId) => {
+  const handleOrderSelection = (orderId) => {
     // Find the order to check its status
     const order = orders.find(o => o.id === orderId) || completedOrders.find(o => o.id === orderId);
-    
+
     // Prevent selection of completed or cancelled orders
     if (order && (order.status === 'completed' || order.status === 'cancelled')) {
       toast.error('Cannot select completed or cancelled orders for bulk actions');
       return;
     }
-    
+
     setSelectedOrders(prev =>
       prev.includes(orderId)
         ? prev.filter(id => id !== orderId)
@@ -422,10 +427,10 @@ const AdminOrdersPage = () => {
   const handleSelectAll = () => {
     const currentOrders = viewMode === 'completed' ? completedOrders : orders;
     // Filter out completed and cancelled orders from bulk selection
-    const selectableOrders = currentOrders.filter(order => 
+    const selectableOrders = currentOrders.filter(order =>
       order.status !== 'completed' && order.status !== 'cancelled'
     );
-    
+
     if (selectedOrders.length === selectableOrders.length) {
       setSelectedOrders([]);
     } else {
@@ -450,7 +455,7 @@ const AdminOrdersPage = () => {
   };
 
 
-  
+
   if (loading) {
     return (
       <div className="min-h-screen bg-sangeet-neutral-950 flex items-center justify-center">
@@ -463,7 +468,7 @@ const AdminOrdersPage = () => {
   }
 
 
-  
+
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
       <AdminHeader />
@@ -489,11 +494,10 @@ const AdminOrdersPage = () => {
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  viewMode === mode
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${viewMode === mode
                     ? 'bg-sangeet-400 text-sangeet-neutral-950'
                     : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700'
-                }`}
+                  }`}
               >
                 {mode.charAt(0).toUpperCase() + mode.slice(1)}
                 {mode === 'completed' && completedOrders.length > 0 && (
@@ -503,14 +507,14 @@ const AdminOrdersPage = () => {
                 )}
               </button>
             ))}
-                          {viewMode === 'completed' && completedOrders.length > 0 && (
-                <button
-                  onClick={handleClearCompletedOrders}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
-                >
-                  Clear
-                </button>
-              )}
+            {viewMode === 'completed' && completedOrders.length > 0 && (
+              <button
+                onClick={handleClearCompletedOrders}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+              >
+                Clear
+              </button>
+            )}
           </div>
 
           {/* Search and Table Filter Row */}
@@ -533,9 +537,9 @@ const AdminOrdersPage = () => {
                 onChange={(tableId) => setFilters(prev => ({ ...prev, table_id: tableId }))}
                 options={[
                   { value: '', label: 'All Tables' },
-                  ...tables.map(table => ({ 
-                    value: table.id, 
-                    label: `Table ${table.table_number}` 
+                  ...tables.map(table => ({
+                    value: table.id,
+                    label: `Table ${table.table_number}`
                   }))
                 ]}
                 className="w-full"
@@ -612,7 +616,7 @@ const AdminOrdersPage = () => {
                       type="checkbox"
                       checked={(() => {
                         const currentOrders = viewMode === 'completed' ? completedOrders : orders;
-                        const selectableOrders = currentOrders.filter(order => 
+                        const selectableOrders = currentOrders.filter(order =>
                           order.status !== 'completed' && order.status !== 'cancelled'
                         );
                         return selectedOrders.length === selectableOrders.length && selectableOrders.length > 0;
@@ -633,110 +637,109 @@ const AdminOrdersPage = () => {
               <tbody className="divide-y divide-sangeet-neutral-700">
                 <AnimatePresence mode="wait">
                   {(viewMode === 'completed' ? completedOrders : orders).map((order) => (
-                  <motion.tr
-                    key={order.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    layout
-                    transition={{ duration: 0.2 }}
-                    className="hover:bg-sangeet-neutral-800 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedOrders.includes(order.id)}
-                        onChange={() => handleOrderSelection(order.id)}
-                        disabled={order.status === 'completed' || order.status === 'cancelled'}
-                        className={`rounded border-sangeet-neutral-600 focus:ring-sangeet-400 ${
-                          order.status === 'completed' || order.status === 'cancelled'
-                            ? 'bg-sangeet-neutral-700 text-sangeet-neutral-500 cursor-not-allowed'
-                            : 'bg-sangeet-neutral-800 text-sangeet-400'
-                        }`}
-                        title={order.status === 'completed' || order.status === 'cancelled' 
-                          ? `Cannot select ${order.status} orders for bulk actions` 
-                          : 'Select for bulk actions'
-                        }
-                      />
-                    </td>
-                    <td className="px-6 py-4 text-sangeet-400 font-medium">
-                      <div className="flex items-center space-x-2">
-                        <span>{order.order_number}</span>
-                        {order.items && hasMultipleSessions(order.items) && (
-                          <span className="bg-blue-500 text-white px-1 py-0.5 rounded text-xs font-medium" title="Merged Order">
-                            🔄
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sangeet-neutral-300">{order.customer_name}</td>
-                    <td className="px-6 py-4 text-sangeet-neutral-300">Table {order.table_number}</td>
-                    <td className="px-6 py-4 text-sangeet-400 font-medium">${order.total_amount}</td>
-                    <td className="px-6 py-4">
-                      <div className="relative">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(order.status)} transition-all duration-300`}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                        </span>
-                        {order.updated_at && order.updated_at !== order.created_at && (
-                          <div className="text-xs text-sangeet-neutral-500 mt-1">
-                            Updated: {formatDate(order.updated_at)}
-                          </div>
-                        )}
-                        {/* Update indicator */}
-                        {order.updated_at && order.updated_at !== order.created_at && (
-                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
-                        )}
-                        {/* Lock indicator for completed/cancelled orders */}
-                        {(order.status === 'completed' || order.status === 'cancelled') && (
-                          <div className="absolute -top-1 -left-1 w-3 h-3 bg-sangeet-neutral-600 rounded-full flex items-center justify-center">
-                            <span className="text-xs">🔒</span>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sangeet-neutral-400 text-sm">
-                      {formatDate(order.created_at)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex space-x-2">
+                    <motion.tr
+                      key={order.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      layout
+                      transition={{ duration: 0.2 }}
+                      className="hover:bg-sangeet-neutral-800 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedOrders.includes(order.id)}
+                          onChange={() => handleOrderSelection(order.id)}
+                          disabled={order.status === 'completed' || order.status === 'cancelled'}
+                          className={`rounded border-sangeet-neutral-600 focus:ring-sangeet-400 ${order.status === 'completed' || order.status === 'cancelled'
+                              ? 'bg-sangeet-neutral-700 text-sangeet-neutral-500 cursor-not-allowed'
+                              : 'bg-sangeet-neutral-800 text-sangeet-400'
+                            }`}
+                          title={order.status === 'completed' || order.status === 'cancelled'
+                            ? `Cannot select ${order.status} orders for bulk actions`
+                            : 'Select for bulk actions'
+                          }
+                        />
+                      </td>
+                      <td className="px-6 py-4 text-sangeet-400 font-medium">
+                        <div className="flex items-center space-x-2">
+                          <span>{order.order_number}</span>
+                          {order.items && hasMultipleSessions(order.items) && (
+                            <span className="bg-blue-500 text-white px-1 py-0.5 rounded text-xs font-medium" title="Merged Order">
+                              🔄
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sangeet-neutral-300">{order.customer_name}</td>
+                      <td className="px-6 py-4 text-sangeet-neutral-300">Table {order.table_number}</td>
+                      <td className="px-6 py-4 text-sangeet-400 font-medium">${order.total_amount}</td>
+                      <td className="px-6 py-4">
                         <div className="relative">
-                          <CustomDropdown
-                            value={order.status}
-                            onChange={(newStatus) => handleStatusUpdate(order.id, newStatus)}
-                            options={statusOptions}
-                            className={`text-xs ${order.status === 'completed' || order.status === 'cancelled' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            disabled={order.status === 'completed' || order.status === 'cancelled'}
-                          />
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(order.status)} transition-all duration-300`}>
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </span>
+                          {order.updated_at && order.updated_at !== order.created_at && (
+                            <div className="text-xs text-sangeet-neutral-500 mt-1">
+                              Updated: {formatDate(order.updated_at)}
+                            </div>
+                          )}
+                          {/* Update indicator */}
+                          {order.updated_at && order.updated_at !== order.created_at && (
+                            <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
+                          )}
+                          {/* Lock indicator for completed/cancelled orders */}
                           {(order.status === 'completed' || order.status === 'cancelled') && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-sangeet-neutral-600 rounded-full flex items-center justify-center">
+                            <div className="absolute -top-1 -left-1 w-3 h-3 bg-sangeet-neutral-600 rounded-full flex items-center justify-center">
                               <span className="text-xs">🔒</span>
                             </div>
                           )}
-                          {!canCompleteOrder(order) && order.status !== 'completed' && order.status !== 'cancelled' && (
-                            <button
-                              onClick={() => showActiveOrdersModal(order)}
-                              className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors cursor-pointer"
-                              title="Cannot complete - customer has other active orders. Click to view details."
-                            >
-                              <span className="text-xs">⚠️</span>
-                            </button>
-                          )}
                         </div>
-                        <button
-                          onClick={() => handleViewOrderDetails(order.id)}
-                          className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleDeleteOrder(order.id)}
-                          className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
+                      </td>
+                      <td className="px-6 py-4 text-sangeet-neutral-400 text-sm">
+                        {formatDate(order.created_at)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex space-x-2">
+                          <div className="relative">
+                            <CustomDropdown
+                              value={order.status}
+                              onChange={(newStatus) => handleStatusUpdate(order.id, newStatus)}
+                              options={statusOptions}
+                              className={`text-xs ${order.status === 'completed' || order.status === 'cancelled' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              disabled={order.status === 'completed' || order.status === 'cancelled'}
+                            />
+                            {(order.status === 'completed' || order.status === 'cancelled') && (
+                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-sangeet-neutral-600 rounded-full flex items-center justify-center">
+                                <span className="text-xs">🔒</span>
+                              </div>
+                            )}
+                            {!canCompleteOrder(order) && order.status !== 'completed' && order.status !== 'cancelled' && (
+                              <button
+                                onClick={() => showActiveOrdersModal(order)}
+                                className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors cursor-pointer"
+                                title="Cannot complete - customer has other active orders. Click to view details."
+                              >
+                                <span className="text-xs">⚠️</span>
+                              </button>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleViewOrderDetails(order.id)}
+                            className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleDeleteOrder(order.id)}
+                            className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </motion.tr>
                   ))}
                 </AnimatePresence>
               </tbody>

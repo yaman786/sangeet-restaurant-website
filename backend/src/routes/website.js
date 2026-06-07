@@ -3,24 +3,20 @@ const router = express.Router();
 const websiteController = require('../controllers/websiteController');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
-// All website management routes require admin authentication
-router.use(authenticateToken);
-router.use(requireAdmin);
-
-// Restaurant Settings Routes
+// Restaurant Settings Routes (Public GET, Protected PUT)
 router.get('/settings', websiteController.getRestaurantSettings);
-router.put('/settings', websiteController.updateRestaurantSettings);
+router.put('/settings', authenticateToken, requireAdmin, websiteController.updateRestaurantSettings);
 
-// Website Content Routes
+// Website Content Routes (Public GET, Protected PUT)
 router.get('/content', websiteController.getWebsiteContent);
-router.put('/content', websiteController.updateWebsiteContent);
+router.put('/content', authenticateToken, requireAdmin, websiteController.updateWebsiteContent);
 
-// Website Media Routes
+// Website Media Routes (Public GET, Protected POST/DELETE)
 router.get('/media', websiteController.getWebsiteMedia);
-router.post('/media/upload', ...websiteController.uploadWebsiteMedia);
-router.delete('/media/:id', websiteController.deleteWebsiteMedia);
+router.post('/media/upload', authenticateToken, requireAdmin, ...websiteController.uploadWebsiteMedia);
+router.delete('/media/:id', authenticateToken, requireAdmin, websiteController.deleteWebsiteMedia);
 
-// Website Stats Route
-router.get('/stats', websiteController.getWebsiteStats);
+// Website Stats Route (Protected GET)
+router.get('/stats', authenticateToken, requireAdmin, websiteController.getWebsiteStats);
 
 module.exports = router;
