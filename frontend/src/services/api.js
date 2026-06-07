@@ -4,9 +4,9 @@ import toast from 'react-hot-toast';
 // API Configuration - Use environment variables with fallbacks
 const API_CONFIG = {
   BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
-  TIMEOUT: 10000,
-  RETRY_ATTEMPTS: 3,
-  RETRY_DELAY: 1000
+  TIMEOUT: 5000,
+  RETRY_ATTEMPTS: 1,
+  RETRY_DELAY: 500
 };
 
 // Error types for better error handling
