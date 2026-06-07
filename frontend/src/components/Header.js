@@ -70,9 +70,6 @@ const Header = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2.5" aria-label="Sangeet Restaurant Home">
               <img src={logo} alt="Sangeet" className="h-8 w-auto logo-image-header" />
-              <span className="text-heading-sm text-sangeet-neutral-100 font-display hidden sm:block">
-                Sangeet
-              </span>
             </Link>
 
             {/* Desktop Navigation */}
