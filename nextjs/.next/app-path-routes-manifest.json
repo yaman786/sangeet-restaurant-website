@@ -1,0 +1,17 @@
+{
+  "/(public)/about/page": "/about",
+  "/(public)/contact/page": "/contact",
+  "/(public)/location/page": "/location",
+  "/(public)/menu/page": "/menu",
+  "/(public)/page": "/",
+  "/(public)/reservations/page": "/reservations",
+  "/(public)/reviews/page": "/reviews",
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/admin/page": "/admin",
+  "/favicon.ico/route": "/favicon.ico",
+  "/kds/page": "/kds",
+  "/login/page": "/login",
+  "/qr/[tableNumber]/cart/page": "/qr/[tableNumber]/cart",
+  "/qr/[tableNumber]/page": "/qr/[tableNumber]"
+}
