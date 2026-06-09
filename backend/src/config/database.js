@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/sangeet_restaurant',
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:Sangeetresturant%402026@db.frgaeohzohrejxvxpeov.supabase.co:5432/postgres',
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   max: 20, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
