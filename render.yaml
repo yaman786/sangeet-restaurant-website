@@ -17,4 +17,6 @@ services:
         value: https://sangeet-restaurant-testing-frontend.vercel.app
       - key: FRONTEND_URL
         value: https://sangeet-restaurant-testing-frontend.vercel.app
+      - key: DATABASE_URL
+        value: postgresql://postgres:Sangeetresturant%402026@db.frgaeohzohrejxvxpeov.supabase.co:5432/postgres
     healthCheckPath: /api/health
