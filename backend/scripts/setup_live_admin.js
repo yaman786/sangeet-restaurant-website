@@ -4,7 +4,7 @@ const { Pool } = require('pg');
 
 // Use the live database URL from Render
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://sangeet_user:HDZKow9rZHJo8Tk5zs49reKXukJw4Qfo@dpg-d2bmmdhr0fns73fri8tg-a.oregon-postgres.render.com/sangeet_restaurant',
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:Sangeetresturant%402026@db.frgaeohzohrejxvxpeov.supabase.co:5432/postgres',
   ssl: { rejectUnauthorized: false }
 });
 
