@@ -1,10 +1,16 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
+let baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+// Fix Vercel URL if user forgot to add /api to the environment variable
+if (!baseUrl.endsWith('/api')) {
+  baseUrl = `${baseUrl.replace(/\/$/, '')}/api`;
+}
+
 // API Configuration - Use environment variables with fallbacks
 const API_CONFIG = {
-  BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
-  TIMEOUT: 5000,
+  BASE_URL: baseUrl,
+  TIMEOUT: 15000,
   RETRY_ATTEMPTS: 1,
   RETRY_DELAY: 500
 };
