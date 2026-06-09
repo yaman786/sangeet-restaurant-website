@@ -134,6 +134,31 @@ code {
            focus:outline-none focus:border-sangeet-400/50 focus:ring-2 focus:ring-sangeet-400/15 focus:bg-sangeet-neutral-800;
   }
 
+  /* ---- Filter Tabs ---- */
+  .filter-tab {
+    @apply flex-shrink-0 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300 ease-out-expo touch-manipulation min-h-[44px];
+  }
+  .filter-tab-active {
+    @apply bg-sangeet-400 text-sangeet-neutral-950 shadow-[0_0_15px_rgba(212,175,55,0.3)] border border-sangeet-400;
+  }
+  .filter-tab-inactive {
+    @apply bg-sangeet-neutral-800/80 text-sangeet-neutral-300 hover:text-sangeet-100 hover:bg-sangeet-neutral-700/80 border border-sangeet-neutral-700/50 hover:border-sangeet-neutral-600/50;
+  }
+
+  /* ---- Dietary Badges ---- */
+  .badge-dietary {
+    @apply flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold tracking-widest uppercase backdrop-blur-md border;
+  }
+  .badge-veg {
+    @apply bg-green-500/10 text-green-400 border-green-500/20 shadow-[0_0_10px_rgba(74,222,128,0.1)];
+  }
+  .badge-spicy {
+    @apply bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_10px_rgba(248,113,113,0.1)];
+  }
+  .badge-signature {
+    @apply bg-sangeet-400/10 text-sangeet-400 border-sangeet-400/20 shadow-[0_0_10px_rgba(212,175,55,0.1)];
+  }
+
   /* ---- Layout ---- */
   .section-padding {
     @apply py-20 sm:py-24 lg:py-30;

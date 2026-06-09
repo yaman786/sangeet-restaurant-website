@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Leaf, Flame, Star, ChefHat, Search } from 'lucide-react';
 import { fetchMenuItems, fetchMenuCategories } from '../services/api';
 
 /**
@@ -125,7 +126,7 @@ const MenuPage = () => {
             className="text-center mb-8 md:mb-12"
           >
             <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4">
-              <span className="text-xl md:text-2xl">🍽️</span>
+              <ChefHat className="w-5 h-5 text-sangeet-400" />
               <span className="text-sangeet-400 font-semibold text-sm md:text-base">Culinary Excellence</span>
             </div>
             <p className="text-sangeet-neutral-400 text-base md:text-lg max-w-2xl mx-auto">
@@ -141,37 +142,25 @@ const MenuPage = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setFilters(prev => ({ ...prev, vegetarian: !prev.vegetarian }))}
-                className={`px-3 md:px-4 py-2 md:py-2 rounded-full font-medium transition-all duration-200 text-xs md:text-sm touch-manipulation min-h-[44px] ${
-                  filters.vegetarian
-                    ? 'bg-green-600 text-white shadow-lg'
-                    : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700 border border-sangeet-neutral-600'
-                }`}
+                className={`filter-tab ${filters.vegetarian ? 'filter-tab-active' : 'filter-tab-inactive'}`}
               >
-                🌱 Vegetarian
+                <Leaf className="w-4 h-4" /> Vegetarian
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setFilters(prev => ({ ...prev, spicy: !prev.spicy }))}
-                className={`px-3 md:px-4 py-2 md:py-2 rounded-full font-medium transition-all duration-200 text-xs md:text-sm touch-manipulation min-h-[44px] ${
-                  filters.spicy
-                    ? 'bg-red-600 text-white shadow-lg'
-                    : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700 border border-sangeet-neutral-600'
-                }`}
+                className={`filter-tab ${filters.spicy ? 'filter-tab-active' : 'filter-tab-inactive'}`}
               >
-                🔥 Spicy
+                <Flame className="w-4 h-4" /> Spicy
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setFilters(prev => ({ ...prev, popular: !prev.popular }))}
-                className={`px-3 md:px-4 py-2 md:py-2 rounded-full font-medium transition-all duration-200 text-xs md:text-sm touch-manipulation min-h-[44px] ${
-                  filters.popular
-                    ? 'bg-yellow-600 text-white shadow-lg'
-                    : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700 border border-sangeet-neutral-600'
-                }`}
+                className={`filter-tab ${filters.popular ? 'filter-tab-active' : 'filter-tab-inactive'}`}
               >
-                ⭐ Popular
+                <Star className="w-4 h-4" /> Chef's Signature
               </motion.button>
             </div>
 
@@ -182,11 +171,7 @@ const MenuPage = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setSelectedCategory('all')}
-                  className={`flex-shrink-0 px-3 md:px-4 py-2 md:py-2 rounded-full font-medium transition-all duration-200 text-xs md:text-sm touch-manipulation min-h-[44px] ${
-                    selectedCategory === 'all'
-                      ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-lg'
-                      : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700 border border-sangeet-neutral-600'
-                  }`}
+                  className={`filter-tab ${selectedCategory === 'all' ? 'filter-tab-active' : 'filter-tab-inactive'}`}
                 >
                   All Items
                 </motion.button>
@@ -196,11 +181,7 @@ const MenuPage = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedCategory(category.name)}
-                    className={`flex-shrink-0 px-3 md:px-4 py-2 md:py-2 rounded-full font-medium transition-all duration-200 text-xs md:text-sm touch-manipulation min-h-[44px] ${
-                      selectedCategory === category.name
-                        ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-lg'
-                        : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700 border border-sangeet-neutral-600'
-                    }`}
+                    className={`filter-tab ${selectedCategory === category.name ? 'filter-tab-active' : 'filter-tab-inactive'}`}
                   >
                     {category.name}
                   </motion.button>
@@ -225,80 +206,84 @@ const MenuPage = () => {
           </motion.div>
         )}
 
-        {/* Menu Grid - Mobile First */}
+        {/* Menu Grid - Mobile First with Fluid Layout Animations */}
         {!loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
-            {filteredMenuItems.map((item, index) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ y: -4, scale: 1.02 }}
-                className="group bg-sangeet-neutral-900 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-sangeet-neutral-800 hover:border-sangeet-400/30"
-              >
-                {/* Image Container */}
-                <div className="relative h-48 md:h-56 overflow-hidden">
-                  <img
-                    src={item.image_url || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop'}
-                    alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-                  
-                  {/* Price Badge */}
-                  <div className="absolute top-3 right-3 bg-sangeet-400 text-sangeet-neutral-950 px-2 py-1 rounded-full font-bold text-sm shadow-lg">
-                    ${item.price}
+          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+            <AnimatePresence mode="popLayout">
+              {filteredMenuItems.map((item) => (
+                <motion.div
+                  layout
+                  key={item.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={{ y: -4 }}
+                  className="group bg-sangeet-neutral-900 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border border-sangeet-neutral-800 hover:border-sangeet-400/30 flex flex-col h-full"
+                >
+                  {/* Image Container */}
+                  <div className="relative h-48 md:h-56 overflow-hidden flex-shrink-0">
+                    <img
+                      src={item.image_url || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop'}
+                      alt={item.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out-expo"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    
+                    {/* Price Badge */}
+                    <div className="absolute top-3 right-3 bg-sangeet-neutral-950/80 backdrop-blur-md text-sangeet-400 border border-sangeet-400/20 px-3 py-1.5 rounded-full font-semibold text-sm shadow-glass">
+                      ${item.price}
+                    </div>
+                    
+                    {/* Premium Dietary Badges */}
+                    <div className="absolute bottom-3 left-3 flex gap-2 flex-wrap">
+                      {item.is_vegetarian && (
+                        <span className="badge-dietary badge-veg">
+                          <Leaf className="w-3 h-3" /> Veg
+                        </span>
+                      )}
+                      {item.is_spicy && (
+                        <span className="badge-dietary badge-spicy">
+                          <Flame className="w-3 h-3" /> Spicy
+                        </span>
+                      )}
+                      {item.is_popular && (
+                        <span className="badge-dietary badge-signature">
+                          <Star className="w-3 h-3" /> Signature
+                        </span>
+                      )}
+                    </div>
                   </div>
                   
-                  {/* Dietary Badges */}
-                  <div className="absolute bottom-3 left-3 flex gap-1 md:gap-2 flex-wrap">
-                    {item.is_vegetarian && (
-                      <span className="px-2 py-1 bg-green-600 text-white text-xs rounded-full font-medium shadow-sm">🌱 Veg</span>
-                    )}
-                    {item.is_spicy && (
-                      <span className="px-2 py-1 bg-red-600 text-white text-xs rounded-full font-medium shadow-sm">🔥 Spicy</span>
-                    )}
-                    {item.is_popular && (
-                      <span className="px-2 py-1 bg-yellow-600 text-white text-xs rounded-full font-medium shadow-sm">⭐ Popular</span>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Content */}
-                <div className="p-4 md:p-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg md:text-xl font-bold text-sangeet-400 group-hover:text-sangeet-300 transition-colors">
+                  {/* Content (Removed fast-food prep time) */}
+                  <div className="p-4 md:p-6 flex-grow flex flex-col">
+                    <h3 className="text-lg md:text-xl font-display font-semibold text-sangeet-neutral-100 group-hover:text-sangeet-300 transition-colors mb-2">
                       {item.name}
                     </h3>
+                    <p className="text-sangeet-neutral-400 text-sm md:text-base leading-relaxed line-clamp-3">
+                      {item.description}
+                    </p>
                   </div>
-                  <p className="text-sangeet-neutral-400 text-sm md:text-base mb-3 leading-relaxed">
-                    {item.description}
-                  </p>
-                  
-                  {/* Preparation Time */}
-                  <div className="flex items-center text-sangeet-neutral-500 text-xs">
-                    <span className="mr-1">⏱️</span>
-                    <span>Ready in {item.preparation_time || 15} minutes</span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
 
-        {/* Empty State */}
+        {/* Premium Empty State */}
         {!loading && filteredMenuItems.length === 0 && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12 md:py-20"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-16 md:py-24"
           >
-            <div className="text-6xl mb-4">🍽️</div>
-            <h3 className="text-xl md:text-2xl font-bold text-white mb-2">No items found</h3>
-            <p className="text-sangeet-neutral-400 text-base md:text-lg">
-              No menu items match your current filters. Try adjusting your selection.
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-sangeet-neutral-900 border border-sangeet-neutral-800 mb-6 shadow-glass">
+              <Search className="w-8 h-8 text-sangeet-neutral-500" />
+            </div>
+            <h3 className="text-heading-md font-display text-sangeet-neutral-100 mb-3">No culinary selections found</h3>
+            <p className="text-sangeet-neutral-400 text-body-lg max-w-md mx-auto">
+              We couldn't find any items matching your precise preferences. Please adjust your filters to explore our full menu.
             </p>
           </motion.div>
         )}

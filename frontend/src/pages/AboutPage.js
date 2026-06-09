@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { ImageIcon, Building2, UtensilsCrossed, PartyPopper, Theater, History, Star, Users, Award, ChefHat } from 'lucide-react';
 
 /**
  * AboutPage Component - Streamlined Essential Sections
@@ -9,15 +10,15 @@ import { useNavigate } from 'react-router-dom';
 const AboutPage = () => {
   const navigate = useNavigate();
   // Gallery filter state
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [activeFilter, setActiveFilter] = 'all';
 
   // Gallery filter options
   const galleryFilters = [
-    { id: 'all', label: 'All', icon: '🖼️' },
-    { id: 'dining', label: 'Dining Areas', icon: '🏛️' },
-    { id: 'celebrations', label: 'Celebrations', icon: '🎉' },
-    { id: 'cultural', label: 'Cultural Experience', icon: '🎭' },
-    { id: 'culinary', label: 'Culinary Journey', icon: '🍳' }
+    { id: 'all', label: 'All', icon: ImageIcon },
+    { id: 'dining', label: 'Dining Areas', icon: Building2 },
+    { id: 'celebrations', label: 'Celebrations', icon: PartyPopper },
+    { id: 'cultural', label: 'Cultural Experience', icon: Theater },
+    { id: 'culinary', label: 'Culinary Journey', icon: UtensilsCrossed }
   ];
 
   // Enhanced gallery images with categories
@@ -105,17 +106,17 @@ const AboutPage = () => {
   // Unique story highlights with diverse focus
   const storyHighlights = [
     {
-      icon: "🌟",
+      icon: Star,
       title: "Innovation Meets Tradition",
       description: "Chef Rajesh Kumar's creative approach to classic South Asian recipes, blending authentic flavors with contemporary techniques"
     },
     {
-      icon: "🏛️",
+      icon: Building2,
       title: "Versatile Venue",
       description: "Multiple dining spaces designed for every occasion - from romantic dinners to corporate events and cultural celebrations"
     },
     {
-      icon: "🎭",
+      icon: Theater,
       title: "Living Culture",
       description: "Daily live performances featuring traditional music, dance, and cultural storytelling that bring South Asian heritage to life"
     }
@@ -123,9 +124,9 @@ const AboutPage = () => {
 
   // Key statistics
   const keyStats = [
-    { number: "150+", label: "Seat Capacity", icon: "🍽️" },
-    { number: "5,300", label: "Sq Ft Space", icon: "🏛️" },
-    { number: "100+", label: "Family Recipes", icon: "📜" }
+    { number: "150+", label: "Seat Capacity", icon: UtensilsCrossed },
+    { number: "5,300", label: "Sq Ft Space", icon: Building2 },
+    { number: "100+", label: "Family Recipes", icon: History }
   ];
 
   // Enhanced team members with strategic positioning
@@ -153,22 +154,22 @@ const AboutPage = () => {
   // Enhanced awards and recognition with strategic positioning
   const awards = [
     {
-      icon: "🏆",
+      icon: Award,
       title: "Best New Restaurant 2024",
       description: "Hong Kong Food Awards - Excellence in South Asian Cuisine"
     },
     {
-      icon: "⭐",
+      icon: Star,
       title: "4.8/5 Customer Rating",
       description: "Based on 500+ verified reviews - Outstanding Service & Quality"
     },
     {
-      icon: "🎭",
+      icon: Theater,
       title: "Cultural Excellence Award",
       description: "Hong Kong Tourism Board - Best Cultural Dining Experience"
     },
     {
-      icon: "🍽️",
+      icon: UtensilsCrossed,
       title: "Chef's Choice Award",
       description: "Hong Kong Culinary Association - Innovation in Traditional Cuisine"
     }
@@ -208,7 +209,7 @@ const AboutPage = () => {
           }}
           className="absolute top-32 left-8 md:left-16 text-4xl md:text-6xl opacity-20 z-10"
         >
-          🌟
+          <Star />
         </motion.div>
 
         <motion.div
@@ -224,7 +225,7 @@ const AboutPage = () => {
           }}
           className="absolute top-48 right-8 md:right-16 text-3xl md:text-5xl opacity-20 z-10"
         >
-          🎭
+          <Theater />
         </motion.div>
 
         <motion.div
@@ -240,7 +241,7 @@ const AboutPage = () => {
           }}
           className="absolute bottom-32 left-8 md:left-16 text-xl md:text-3xl opacity-15 z-10"
         >
-          🍽️
+          <UtensilsCrossed />
         </motion.div>
 
         {/* Main Content Container - Better Centered */}
@@ -255,9 +256,9 @@ const AboutPage = () => {
               className="mb-12"
             >
               <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-8 py-4">
-                <span className="text-2xl">📖</span>
+                <span className="text-2xl"><History className="text-sangeet-400" /></span>
                 <span className="text-sangeet-400 font-semibold text-lg">Our Story</span>
-                <span className="text-2xl">✨</span>
+                <span className="text-2xl"><Star className="text-sangeet-400" /></span>
               </div>
             </motion.div>
 
@@ -298,19 +299,19 @@ const AboutPage = () => {
               className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-16 max-w-5xl mx-auto px-4"
             >
               <div className="bg-sangeet-neutral-900/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300">
-                <div className="text-3xl md:text-4xl mb-4">👨‍🍳</div>
+                <div className="text-3xl md:text-4xl mb-4 text-sangeet-400"><ChefHat /></div>
                 <h3 className="text-sangeet-400 font-bold text-lg md:text-xl mb-3">Chef's Signature</h3>
                 <p className="text-sangeet-neutral-400 text-sm md:text-base">Chef Rajesh Kumar's innovative take on traditional South Asian flavors</p>
               </div>
 
               <div className="bg-sangeet-neutral-900/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300">
-                <div className="text-3xl md:text-4xl mb-4">🏛️</div>
+                <div className="text-3xl md:text-4xl mb-4 text-sangeet-400"><Building2 /></div>
                 <h3 className="text-sangeet-400 font-bold text-lg md:text-xl mb-3">Sophisticated Spaces</h3>
                 <p className="text-sangeet-neutral-400 text-sm md:text-base">Multiple dining areas designed for intimate dinners and grand celebrations</p>
               </div>
 
               <div className="bg-sangeet-neutral-900/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300">
-                <div className="text-3xl md:text-4xl mb-4">🎭</div>
+                <div className="text-3xl md:text-4xl mb-4 text-sangeet-400"><Theater /></div>
                 <h3 className="text-sangeet-400 font-bold text-lg md:text-xl mb-3">Cultural Immersion</h3>
                 <p className="text-sangeet-neutral-400 text-sm md:text-base">Live performances and authentic decor that transport you to South Asia</p>
               </div>
@@ -329,14 +330,8 @@ const AboutPage = () => {
                 whileTap={{ scale: 0.95 }}
                 className="bg-gradient-to-r from-sangeet-400 to-sangeet-500 text-sangeet-neutral-950 px-8 md:px-10 py-4 rounded-2xl font-bold text-lg md:text-xl hover:from-sangeet-300 hover:to-sangeet-400 transition-all duration-300 shadow-2xl hover:shadow-sangeet-400/30 flex items-center space-x-3"
               >
-                <span className="text-xl md:text-2xl">📖</span>
+                <span className="text-xl md:text-2xl"><History /></span>
                 <span>Read Our Story</span>
-                <motion.span
-                  animate={{ x: [0, 8, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  →
-                </motion.span>
               </motion.button>
 
               {/* Secondary CTA - Contact */}
@@ -345,7 +340,7 @@ const AboutPage = () => {
                 whileTap={{ scale: 0.95 }}
                 className="bg-sangeet-neutral-800/80 backdrop-blur-md text-sangeet-400 px-6 md:px-8 py-4 rounded-2xl font-bold text-lg hover:bg-sangeet-neutral-700/80 transition-all duration-300 border border-sangeet-neutral-600 flex items-center space-x-3"
               >
-                <span className="text-lg md:text-xl">💬</span>
+                <span className="text-lg md:text-xl"><Users /></span>
                 <span>Get in Touch</span>
               </motion.button>
             </motion.div>
@@ -358,19 +353,19 @@ const AboutPage = () => {
               className="flex flex-wrap justify-center items-center gap-6 md:gap-8 text-sangeet-neutral-400 px-4"
             >
               <div className="flex items-center space-x-2">
-                <span className="text-lg">🌶️</span>
+                <span className="text-lg text-sangeet-400"><UtensilsCrossed className="w-5 h-5" /></span>
                 <span className="text-sm md:text-base">Authentic Spices</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-lg">🎵</span>
+                <span className="text-lg text-sangeet-400"><Theater className="w-5 h-5" /></span>
                 <span className="text-sm md:text-base">Traditional Music</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-lg">💎</span>
+                <span className="text-lg text-sangeet-400"><Star className="w-5 h-5" /></span>
                 <span className="text-sm md:text-base">Luxury Experience</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-lg">❤️</span>
+                <span className="text-lg text-sangeet-400"><Users className="w-5 h-5" /></span>
                 <span className="text-sm md:text-base">Warm Hospitality</span>
               </div>
             </motion.div>
@@ -396,8 +391,6 @@ const AboutPage = () => {
         </motion.div>
       </section>
 
-
-
       {/* Enhanced Our Story Section */}
       <section className="py-20 bg-gradient-to-br from-sangeet-neutral-900 via-sangeet-neutral-800 to-sangeet-neutral-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -408,7 +401,7 @@ const AboutPage = () => {
             className="text-center mb-16"
           >
             <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-6 py-2 mb-4">
-              <span className="text-2xl">🌟</span>
+              <span className="text-2xl text-sangeet-400"><Star /></span>
               <span className="text-sangeet-400 font-semibold">Our Story</span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-sangeet-400 mb-4">Follow Our Journey</h2>
@@ -427,7 +420,7 @@ const AboutPage = () => {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="bg-sangeet-neutral-900/50 backdrop-blur-md rounded-2xl p-8 border border-sangeet-neutral-700 text-center"
               >
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{highlight.icon}</div>
+                <div className="text-4xl mb-4 text-sangeet-400 flex justify-center"><highlight.icon className="w-10 h-10" /></div>
                 <h3 className="text-2xl font-bold text-sangeet-400 mb-3 group-hover:text-sangeet-300 transition-colors">{highlight.title}</h3>
                 <p className="text-sangeet-neutral-300 text-sm leading-relaxed">{highlight.description}</p>
               </motion.div>
@@ -444,7 +437,7 @@ const AboutPage = () => {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="bg-sangeet-neutral-900/50 backdrop-blur-md rounded-2xl p-8 border border-sangeet-neutral-700 text-center"
               >
-                <div className="text-4xl mb-2">{stat.icon}</div>
+                <div className="text-4xl mb-2 text-sangeet-400 flex justify-center"><stat.icon className="w-10 h-10" /></div>
                 <div className="text-sangeet-400 font-bold text-3xl">{stat.number}</div>
                 <div className="text-sangeet-neutral-400 text-sm">{stat.label}</div>
               </motion.div>
