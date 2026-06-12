@@ -134,13 +134,7 @@ class SocketService {
     }
     
     if (this.socket) {
-      this.socket.on('new-order', (data) => {
-        try {
-          callback(data);
-        } catch (error) {
-          console.error('Error in new-order callback:', error);
-        }
-      });
+      this.socket.on('new-order', callback);
       this.listeners.set('new-order', callback);
     }
   }
@@ -148,16 +142,12 @@ class SocketService {
   // Listen for order status updates
   onOrderStatusUpdate(callback) {
     if (this.socket) {
-      this.socket.on('order-status-update', (data) => {
-        callback(data);
-      });
+      this.socket.on('order-status-update', callback);
       this.listeners.set('order-status-update', callback);
     } else {
       this.connect();
       if (this.socket) {
-        this.socket.on('order-status-update', (data) => {
-          callback(data);
-        });
+        this.socket.on('order-status-update', callback);
         this.listeners.set('order-status-update', callback);
       }
     }
