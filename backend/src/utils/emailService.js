@@ -1,22 +1,6 @@
-const nodemailer = require('nodemailer');
-
-// Create transporter for email sending
-const createTransporter = () => {
-  // Use environment variables for flexibility
-  const emailUser = process.env.EMAIL_USER || 'your-email@gmail.com';
-  const emailPassword = process.env.EMAIL_PASSWORD || 'your-app-password';
-  
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: emailUser,
-      pass: emailPassword
-    },
-    tls: {
-      rejectUnauthorized: false
-    }
-  });
-};
+// Brevo Email Configuration
+const getSenderEmail = () => process.env.EMAIL_USER || 'ranayaman66@gmail.com';
+const getApiKey = () => process.env.BREVO_API_KEY || '';
 
 // Test email function (logs instead of sending)
 const sendTestEmail = async (to, template, data) => {
@@ -337,42 +321,52 @@ const emailTemplates = {
   })
 };
 
-// Send email function
+// Send email function using Brevo REST API
 const sendEmail = async (to, template, data) => {
   try {
     const emailContent = emailTemplates[template](data);
+    const apiKey = getApiKey();
     
-    // Check if we have proper email credentials
-    const hasEmailCredentials = process.env.EMAIL_USER && process.env.EMAIL_PASSWORD;
-    
-    if (!hasEmailCredentials) {
-      // Log the email instead of sending (for development/production without email setup)
-      console.log('📧 EMAIL LOGGED (not sent - no credentials):');
+    // Check if we have proper API credentials
+    if (!apiKey) {
+      console.log('📧 EMAIL LOGGED (not sent - missing BREVO_API_KEY):');
       console.log('📧 To:', to);
       console.log('📧 Subject:', emailContent.subject);
-      console.log('📧 Content length:', emailContent.html.length, 'characters');
-      console.log('📧 To enable real emails, set EMAIL_USER and EMAIL_PASSWORD environment variables');
-      
       return { success: true, messageId: 'logged-' + Date.now() };
     }
     
-    const transporter = createTransporter();
-    
-    const mailOptions = {
-      from: {
+    const payload = {
+      sender: {
         name: 'Sangeet Restaurant',
-        address: process.env.EMAIL_USER
+        email: getSenderEmail()
       },
-      to: to,
+      to: [
+        { email: to }
+      ],
       subject: emailContent.subject,
-      html: emailContent.html
+      htmlContent: emailContent.html
     };
 
-    const result = await transporter.sendMail(mailOptions);
-    console.log('📧 Email sent successfully:', result.messageId);
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': apiKey
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Brevo API Error: ${JSON.stringify(errorData)}`);
+    }
+
+    const result = await response.json();
+    console.log('📧 Email sent successfully via Brevo:', result.messageId);
     return { success: true, messageId: result.messageId };
   } catch (error) {
-    console.error('❌ Error sending email:', error);
+    console.error('❌ Error sending email via Brevo:', error);
     return { success: false, error: error.message };
   }
 };
@@ -393,15 +387,16 @@ const sendReservationCancelledEmail = async (reservation) => {
 // Test email configuration
 const testEmailConfig = async () => {
   try {
-    const transporter = createTransporter();
-    console.log('📧 Testing email configuration...');
-    console.log('📧 Email User:', process.env.EMAIL_USER);
-    console.log('📧 Email Password:', process.env.EMAIL_PASSWORD ? '***SET***' : '***NOT SET***');
+    const apiKey = getApiKey();
+    console.log('📧 Testing Brevo API configuration...');
+    console.log('📧 API Key:', apiKey ? '***SET***' : '***NOT SET***');
     
-    // Verify transporter
-    await transporter.verify();
-    console.log('✅ Email configuration is valid');
-    return true;
+    if (apiKey) {
+      console.log('✅ Brevo configuration looks good');
+      return true;
+    } else {
+      return false;
+    }
   } catch (error) {
     console.error('❌ Email configuration error:', error.message);
     return false;
