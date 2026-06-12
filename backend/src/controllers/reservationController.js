@@ -8,7 +8,7 @@ const getAllReservations = async (req, res) => {
     let query = `
       SELECT r.*, rt.table_number, rt.capacity, rt.table_type
       FROM reservations r 
-      LEFT JOIN restaurant_tables rt ON r.table_id = rt.id 
+      LEFT JOIN tables rt ON r.table_id = rt.id 
       WHERE 1=1
     `;
     const params = [];
@@ -49,7 +49,7 @@ const getReservationById = async (req, res) => {
     const query = `
       SELECT r.*, rt.table_number, rt.capacity, rt.table_type
       FROM reservations r 
-      LEFT JOIN restaurant_tables rt ON r.table_id = rt.id 
+      LEFT JOIN tables rt ON r.table_id = rt.id 
       WHERE r.id = $1
     `;
     const result = await pool.query(query, [id]);
@@ -74,7 +74,20 @@ const getAvailableTables = async (req, res) => {
       return res.status(400).json({ error: 'Date, time, and guests are required' });
     }
 
-    const query = `SELECT * FROM get_available_tables($1, $2, $3)`;
+    const query = `
+      SELECT rt.id, rt.table_number, rt.capacity, rt.table_type
+      FROM tables rt
+      WHERE rt.is_active = true
+        AND rt.capacity >= $3
+        AND NOT EXISTS (
+            SELECT 1 FROM reservations r
+            WHERE r.table_id = rt.id
+              AND r.date = $1
+              AND r.time = $2
+              AND r.status NOT IN ('cancelled', 'no-show')
+        )
+      ORDER BY rt.capacity ASC, rt.table_number ASC
+    `;
     const result = await pool.query(query, [date, time, guests]);
 
     res.json({
@@ -143,7 +156,7 @@ const createReservation = async (req, res) => {
       // Simple query to find available table
       const availableTablesQuery = `
         SELECT rt.id, rt.table_number, rt.capacity
-        FROM restaurant_tables rt
+        FROM tables rt
         WHERE rt.is_active = true
           AND rt.capacity >= $1
           AND NOT EXISTS (
@@ -175,7 +188,7 @@ const createReservation = async (req, res) => {
               AND r.time = $4
               AND r.status NOT IN ('cancelled', 'no-show')
           ) as is_available
-        FROM restaurant_tables rt
+        FROM tables rt
         WHERE rt.id = $2 AND rt.is_active = true
       `;
       const availabilityResult = await pool.query(availabilityQuery, [guests, finalTableId, date, time]);
@@ -248,7 +261,14 @@ const updateReservation = async (req, res) => {
       const newGuests = guests || existingReservation.rows[0].guests;
 
       const availabilityQuery = `
-        SELECT check_table_availability($1, $2, $3, $4, $5)
+        SELECT NOT EXISTS (
+            SELECT 1 FROM reservations r
+            WHERE r.table_id = $1
+              AND r.date = $2
+              AND r.time = $3
+              AND r.id != $5
+              AND r.status NOT IN ('cancelled', 'no-show')
+        ) as check_table_availability
       `;
       const availabilityResult = await pool.query(availabilityQuery, [newTableId, newDate, newTime, newGuests, id]);
       
@@ -362,8 +382,16 @@ const checkAvailability = async (req, res) => {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    const query = `SELECT check_table_availability($1, $2, $3, $4)`;
-    const result = await pool.query(query, [table_id, date, time, guests]);
+    const query = `
+      SELECT NOT EXISTS (
+        SELECT 1 FROM reservations r
+        WHERE r.table_id = $1
+          AND r.date = $2
+          AND r.time = $3
+          AND r.status NOT IN ('cancelled', 'no-show')
+      ) as check_table_availability
+    `;
+    const result = await pool.query(query, [table_id, date, time]);
 
     res.json({
       available: result.rows[0].check_table_availability
