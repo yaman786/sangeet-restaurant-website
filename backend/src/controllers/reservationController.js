@@ -213,13 +213,10 @@ const createReservation = async (req, res) => {
 
     const newReservation = result.rows[0];
 
-    // Send email notification for new reservation
-    try {
-      await sendReservationCreatedEmail(newReservation);
-    } catch (emailError) {
+    // Send email notification for new reservation in background
+    sendReservationCreatedEmail(newReservation).catch(emailError => {
       console.error('Error sending reservation created email:', emailError);
-      // Don't fail the request if email fails
-    }
+    });
 
     res.status(201).json({
       message: 'Reservation created successfully',
@@ -330,17 +327,12 @@ const updateReservationStatus = async (req, res) => {
 
     const updatedReservation = result.rows[0];
 
-    // Send email notification based on status change
-            try {
-          if (status === 'confirmed') {
-            await sendReservationConfirmedEmail(updatedReservation);
-          } else if (status === 'cancelled') {
-            await sendReservationCancelledEmail(updatedReservation);
-          }
-        } catch (emailError) {
-          console.error('Error sending status update email:', emailError);
-          // Don't fail the request if email fails
-        }
+    // Send email notification based on status change in background
+    if (status === 'confirmed') {
+      sendReservationConfirmedEmail(updatedReservation).catch(e => console.error(e));
+    } else if (status === 'cancelled') {
+      sendReservationCancelledEmail(updatedReservation).catch(e => console.error(e));
+    }
 
     res.json({
       message: 'Reservation status updated successfully',
