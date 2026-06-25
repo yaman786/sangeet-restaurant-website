@@ -19,4 +19,7 @@ router.delete('/categories/:id', authenticateToken, requireAuth, menuController.
 
 router.get('/stats', authenticateToken, requireAuth, menuController.getMenuStats);
 
-module.exports = router; 
+// Temporary migration route (will remove after running)
+router.post('/migrate-categories', authenticateToken, requireAuth, menuController.migrateCategories);
+
+module.exports = router;
