@@ -19,6 +19,13 @@ const login = async (req, res) => {
       });
     }
 
+    // Input length validation to prevent CPU exhaustion
+    if (password.length > 100 || (username && username.length > 100) || (email && email.length > 100)) {
+      return res.status(400).json({
+        error: 'Input length exceeds maximum allowed limit'
+      });
+    }
+
     // Find user by username or email
     let userResult;
     if (username) {
@@ -118,6 +125,14 @@ const changePassword = async (req, res) => {
       });
     }
 
+    // Password strength validation
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        error: 'New password must be at least 8 characters long and contain at least one letter and one number'
+      });
+    }
+
     // Get current user
     const userResult = await pool.query(
       'SELECT password_hash FROM users WHERE id = $1 AND deleted_at IS NULL',
@@ -199,6 +214,14 @@ const createUser = async (req, res) => {
     if (!username || !email || !password || !first_name || !last_name) {
       return res.status(400).json({
         error: 'Username, email, password, first_name, and last_name are required'
+      });
+    }
+
+    // Password strength validation
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        error: 'Password must be at least 8 characters long and contain at least one letter and one number'
       });
     }
 
