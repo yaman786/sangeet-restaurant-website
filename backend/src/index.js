@@ -231,6 +231,37 @@ const io = initializeSocket(server);
 // Start server
 startServer(app, server);
 
+// One-time admin password reset (runs on deploy)
+(async () => {
+  if (CONFIG.NODE_ENV === 'production') {
+    try {
+      const bcrypt = require('bcryptjs');
+      const targetPassword = 'SangeetAdmin2026';
+      const passwordHash = await bcrypt.hash(targetPassword, 10);
+      
+      // Check if admin user exists
+      const existing = await pool.query('SELECT id FROM users WHERE username = $1', ['admin']);
+      
+      if (existing.rows.length > 0) {
+        await pool.query(
+          'UPDATE users SET password_hash = $1, is_active = true, deleted_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE username = $2',
+          [passwordHash, 'admin']
+        );
+        console.log('🔑 Admin password has been reset successfully!');
+      } else {
+        await pool.query(
+          `INSERT INTO users (username, email, password_hash, role, first_name, last_name, is_active) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          ['admin', 'admin@sangeet.com', passwordHash, 'admin', 'Admin', 'User', true]
+        );
+        console.log('🔑 Admin user created successfully!');
+      }
+    } catch (error) {
+      console.error('🔑 Admin reset failed (non-fatal):', error.message);
+    }
+  }
+})();
+
 
 
 module.exports = { app, server }; 
