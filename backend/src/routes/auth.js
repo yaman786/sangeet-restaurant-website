@@ -2,9 +2,18 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const { authenticateToken, requireAdmin, requireAuth } = require('../middleware/auth');
+const rateLimit = require('express-rate-limit');
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 login requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many login attempts from this IP, please try again after 15 minutes' }
+});
 
 // Public routes
-router.post('/login', authController.login);
+router.post('/login', loginLimiter, authController.login);
 
 // Protected routes
 router.get('/profile', authenticateToken, requireAuth, authController.getProfile);

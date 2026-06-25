@@ -68,15 +68,13 @@ function createApp() {
   // Compression middleware
   app.use(compression());
 
-  // CORS configuration - Allow multiple origins for production
+  // CORS configuration - Allow specific origins for production
   const allowedOrigins = [
     CONFIG.CLIENT_URL,
     'http://localhost:3000',
     'https://localhost:3000',
     'https://sangeet-restaurant-testing-frontend.vercel.app',
-    /https:\/\/.*\.onrender\.com$/,
-    /https:\/\/.*\.vercel\.app$/,
-    /https:\/\/.*\.netlify\.app$/
+    'https://frontend-six-xi-10.vercel.app'
   ];
 
   app.use(cors({
@@ -138,6 +136,16 @@ function createApp() {
 
 
 
+
+  // Global rate limiter for all API routes
+  const globalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 300, // Limit each IP to 300 requests per windowMs
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests from this IP, please try again after 15 minutes' }
+  });
+  app.use('/api', globalLimiter);
 
   // API routes
   app.use('/api/auth', authRoutes);
