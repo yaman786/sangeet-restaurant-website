@@ -159,6 +159,25 @@ function startServer(app, server) {
     console.log(`🔌 WebSocket server initialized`);
     console.log(`🌍 Environment: ${CONFIG.NODE_ENV}`);
     console.log(`⏰ Started at: ${new Date().toISOString()}`);
+
+    // Self-ping to prevent Render free tier from sleeping (every 4 minutes)
+    if (CONFIG.NODE_ENV === 'production') {
+      const SELF_PING_INTERVAL = 4 * 60 * 1000; // 4 minutes
+      const RENDER_URL = process.env.RENDER_EXTERNAL_URL || `https://sangeet-restaurant-api.onrender.com`;
+      
+      setInterval(async () => {
+        try {
+          const response = await fetch(`${RENDER_URL}/api/health`);
+          if (response.ok) {
+            console.log(`🏓 Self-ping successful at ${new Date().toISOString()}`);
+          }
+        } catch (error) {
+          console.log(`🏓 Self-ping failed: ${error.message}`);
+        }
+      }, SELF_PING_INTERVAL);
+      
+      console.log(`🏓 Self-ping enabled: pinging every 4 minutes to prevent sleep`);
+    }
   });
 
   // Graceful shutdown handling
