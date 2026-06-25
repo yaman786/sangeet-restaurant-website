@@ -382,52 +382,6 @@ const getMenuStats = async (req, res) => {
   }
 };
 
-// Temporary data migration
-const migrateCategories = async (req, res) => {
-  try {
-    // 1. Create Nepali Specialties category
-    const resCat = await pool.query(`
-      INSERT INTO categories (name, description, display_order, is_active)
-      VALUES ('Nepali Specialties', 'Authentic flavors from Nepal', 9, true)
-      ON CONFLICT DO NOTHING
-      RETURNING id;
-    `);
-    
-    // Get all categories to build mapping
-    const categories = await pool.query('SELECT id, name FROM categories');
-    const catMap = {};
-    categories.rows.forEach(c => {
-      catMap[c.name] = c.id;
-    });
-    
-    const mapping = {
-      'Starters': catMap['Appetizers'],
-      'Main Courses': catMap['Main Course'],
-      'Breads': catMap['Breads'],
-      'Desserts': catMap['Desserts'],
-      'Beverages': catMap['Beverages'],
-      'Nepali Specialties': catMap['Nepali Specialties'] || resCat.rows[0]?.id
-    };
-    
-    // 2. Update menu items
-    let totalUpdated = 0;
-    for (const [oldCat, newId] of Object.entries(mapping)) {
-      if (newId) {
-        const updateRes = await pool.query(
-          'UPDATE menu_items SET category_id = $1 WHERE category = $2 AND category_id IS NULL',
-          [newId, oldCat]
-        );
-        totalUpdated += updateRes.rowCount;
-      }
-    }
-    
-    res.json({ message: 'Migration complete', updatedCount: totalUpdated });
-  } catch (error) {
-    console.error('Migration failed:', error);
-    res.status(500).json({ error: 'Migration failed' });
-  }
-};
-
 module.exports = {
   getAllMenuItems,
   getMenuItemById,
@@ -438,6 +392,5 @@ module.exports = {
   createCategory,
   updateCategory,
   deleteCategory,
-  getMenuStats,
-  migrateCategories
+  getMenuStats
 };
