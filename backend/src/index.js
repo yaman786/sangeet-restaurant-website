@@ -27,6 +27,9 @@ const analyticsRoutes = require('./routes/analytics');
 // Import socket initialization
 const { initializeSocket } = require('./socket');
 
+// Import database pool (for health check pings)
+const pool = require('./config/database');
+
 // Configuration constants
 const CONFIG = {
   PORT: process.env.PORT || 5001,
@@ -110,15 +113,25 @@ function createApp() {
     app.use(requestLogger);
   }
 
-  // Health check endpoint
-  app.get('/api/health', (req, res) => {
+  // Health check endpoint (also pings database to prevent Supabase free-tier pause)
+  app.get('/api/health', async (req, res) => {
+    let dbStatus = 'unknown';
+    try {
+      const result = await pool.query('SELECT 1 AS alive');
+      dbStatus = result.rows[0]?.alive === 1 ? 'connected' : 'error';
+    } catch (error) {
+      dbStatus = 'disconnected';
+      console.error('🔴 Health check DB ping failed:', error.message);
+    }
+
     res.status(200).json({
       status: 'OK',
       timestamp: new Date().toISOString(),
       environment: CONFIG.NODE_ENV,
       service: 'Sangeet Restaurant API',
       version: process.env.npm_package_version || '1.0.0',
-      uptime: process.uptime()
+      uptime: process.uptime(),
+      database: dbStatus
     });
   });
 
