@@ -13,11 +13,12 @@ const {
   validateReview,
   validateId
 } = require('../middleware/validation');
+const { formSubmitLimiter } = require('../middleware/rateLimiter');
 
 // Public routes
 router.get('/', getAllReviews);
 router.get('/verified', getVerifiedReviews);
-router.post('/', validateReview, createReview);
+router.post('/', formSubmitLimiter, validateReview, createReview);
 router.get('/:id', validateId, getReviewById);
 
 // Admin routes

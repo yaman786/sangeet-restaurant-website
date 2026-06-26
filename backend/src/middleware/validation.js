@@ -44,6 +44,30 @@ const eventSchema = Joi.object({
   is_featured: Joi.boolean().default(false)
 });
 
+// Order validation schema
+const orderItemSchema = Joi.object({
+  menu_item_id: Joi.number().integer().positive().required(),
+  quantity: Joi.number().integer().min(1).max(99).required(),
+  special_instructions: Joi.string().max(500).allow('', null).optional()
+});
+
+const orderSchema = Joi.object({
+  table_id: Joi.number().integer().positive().required(),
+  customer_name: Joi.string().min(1).max(255).required(),
+  items: Joi.array().items(orderItemSchema).min(1).max(50).required(),
+  special_instructions: Joi.string().max(500).allow('', null).optional(),
+  order_type: Joi.string().valid('dine-in', 'takeaway', 'delivery').default('dine-in')
+});
+
+// Contact form validation schema
+const contactFormSchema = Joi.object({
+  name: Joi.string().min(2).max(255).required(),
+  email: Joi.string().email().max(255).required(),
+  phone: Joi.string().max(20).allow('', null).optional(),
+  subject: Joi.string().min(2).max(255).required(),
+  message: Joi.string().min(10).max(2000).required()
+});
+
 // Table validation schema
 const tableSchema = Joi.object({
   table_number: Joi.string().min(1).max(50).required(),
@@ -72,6 +96,8 @@ const validateReservation = validateRequest(reservationSchema);
 const validateReview = validateRequest(reviewSchema);
 const validateEvent = validateRequest(eventSchema);
 const validateTableData = validateRequest(tableSchema);
+const validateOrder = validateRequest(orderSchema);
+const validateContactForm = validateRequest(contactFormSchema);
 
 // ID validation middleware
 const validateId = (req, res, next) => {
@@ -114,6 +140,8 @@ module.exports = {
   validateReview,
   validateEvent,
   validateTableData,
+  validateOrder,
+  validateContactForm,
   validateId,
   validateReservationDate
 }; 
