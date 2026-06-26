@@ -110,16 +110,24 @@ const handleApiError = (error) => {
   if (error.response) {
     // Server responded with error status
     status = error.response.status;
-    message = error.response.data?.message || `Server error: ${status}`;
+    // Check for error.response.data.error first (used by rate limiter), then message
+    message = error.response.data?.error || error.response.data?.message || `Server error: ${status}`;
 
     if (status >= 500) {
       errorType = API_ERROR_TYPES.SERVER;
     } else if (status >= 400) {
       errorType = API_ERROR_TYPES.CLIENT;
 
-      // Handle authentication errors
+      // Handle authentication errors, but not for the login endpoint itself
       if (status === 401) {
-        handleAuthFailure();
+        const isLoginRequest = error.config && error.config.url && error.config.url.includes('/auth/login');
+        if (!isLoginRequest) {
+          handleAuthFailure();
+        }
+      }
+      // Explicitly handle rate limiting
+      else if (status === 429) {
+        message = error.response.data?.error || 'Too many requests. Please try again later.';
       }
     }
   } else if (error.request) {
@@ -155,8 +163,9 @@ const retryApiCall = async (apiCall, attempts = API_CONFIG.RETRY_ATTEMPTS) => {
     } catch (error) {
       if (i === attempts - 1) throw error;
 
-      // Only retry on network errors or 5xx server errors
+      // Retry on network errors, timeouts (cold starts), or 5xx server errors
       if (error.type === API_ERROR_TYPES.NETWORK ||
+          error.type === API_ERROR_TYPES.TIMEOUT ||
         (error.status && error.status >= 500)) {
         // Retrying API call...
         await new Promise(resolve => setTimeout(resolve, API_CONFIG.RETRY_DELAY));
