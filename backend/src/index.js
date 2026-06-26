@@ -133,7 +133,19 @@ function createApp() {
     });
   });
 
-
+  // Lightweight keep-alive endpoint for external cron services (cron-job.org)
+  // This endpoint is NOT behind the global rate limiter so external pingers never get blocked.
+  // It also pings the database in the background to prevent Supabase free-tier pause.
+  app.get('/api/keep-alive', (req, res) => {
+    // Background DB ping (fire-and-forget) to keep Supabase alive
+    pool.query('SELECT 1').catch(() => {});
+    
+    res.status(200).json({
+      status: 'alive',
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor(process.uptime())
+    });
+  });
 
 
 
