@@ -2,14 +2,14 @@ const express = require('express');
 const router = express.Router();
 const reservationController = require('../controllers/reservationController');
 const { authenticateToken, requireAuth } = require('../middleware/auth');
-const { formSubmitLimiter } = require('../middleware/rateLimiter');
+const { reservationLimiter } = require('../middleware/rateLimiter');
 const { validateReservation, validateReservationDate } = require('../middleware/validation');
 
 // Public routes (no authentication required)
 router.get('/availability', reservationController.checkAvailability);
 router.get('/available-tables', reservationController.getAvailableTables);
 router.get('/available-time-slots', reservationController.getAvailableTimeSlots);
-router.post('/', formSubmitLimiter, validateReservation, validateReservationDate, reservationController.createReservation);
+router.post('/', reservationLimiter, validateReservation, validateReservationDate, reservationController.createReservation);
 // Protected routes (require authentication)
 router.get('/', authenticateToken, requireAuth, reservationController.getAllReservations);
 router.get('/stats', authenticateToken, requireAuth, reservationController.getReservationStats);
