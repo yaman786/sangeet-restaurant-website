@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { createOrder, getOrderById, getOrdersByTable, getOrdersByTableNumber, updateOrderStatus, getAllOrders, getOrderStats, searchOrders, deleteOrder } = require('../controllers/orderController');
 const { authenticateToken } = require('../middleware/auth');
-const { formSubmitLimiter } = require('../middleware/rateLimiter');
+const { orderLimiter } = require('../middleware/rateLimiter');
 const { validateOrder } = require('../middleware/validation');
 
 // Public routes (no authentication required)
-router.post('/', formSubmitLimiter, validateOrder, createOrder);
+router.post('/', orderLimiter, validateOrder, createOrder);
 router.get('/table/:tableId', getOrdersByTable); // Public - customers can view their table orders by ID
 router.get('/table-number/:tableNumber', getOrdersByTableNumber); // Public - customers can view their table orders by number
 
