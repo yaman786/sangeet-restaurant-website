@@ -48,7 +48,7 @@ const eventSchema = Joi.object({
 const orderItemSchema = Joi.object({
   menu_item_id: Joi.number().integer().positive().required(),
   quantity: Joi.number().integer().min(1).max(99).required(),
-  special_instructions: Joi.string().max(500).allow('', null).optional()
+  special_requests: Joi.string().max(500).allow('', null).optional()
 });
 
 const orderSchema = Joi.object({
