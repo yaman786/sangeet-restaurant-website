@@ -254,7 +254,7 @@ const QRCartPage = () => {
     }
   };
 
-  const handleContinueShopping = () => {
+  const handleContinueOrdering = () => {
     navigate(`/qr/${qrCode}`);
   };
 
@@ -277,7 +277,7 @@ const QRCartPage = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button
-                onClick={handleContinueShopping}
+                onClick={handleContinueOrdering}
                 className="w-10 h-10 bg-sangeet-neutral-700 rounded-full flex items-center justify-center hover:bg-sangeet-neutral-600 transition-colors"
               >
                 <span className="text-sangeet-400 text-lg">←</span>
@@ -339,10 +339,10 @@ const QRCartPage = () => {
             <h3 className="text-xl font-semibold text-sangeet-400 mb-2">Your cart is empty</h3>
             <p className="text-sangeet-neutral-400 mb-6">Add some delicious items to get started!</p>
             <button
-              onClick={handleContinueShopping}
+              onClick={handleContinueOrdering}
               className="bg-sangeet-400 text-sangeet-neutral-950 px-8 py-3 rounded-lg font-semibold hover:bg-sangeet-300 transition-colors shadow-lg hover:shadow-xl"
             >
-              Continue Shopping
+              Continue Ordering
             </button>
           </div>
         ) : (
@@ -424,10 +424,10 @@ const QRCartPage = () => {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={handleContinueShopping}
+                onClick={handleContinueOrdering}
                 className="flex-1 bg-sangeet-neutral-700 text-sangeet-400 px-8 py-4 rounded-lg font-semibold hover:bg-sangeet-neutral-600 transition-colors"
               >
-                Continue Shopping
+                Continue Ordering
               </button>
               <button
                 onClick={handleSubmitOrder}
