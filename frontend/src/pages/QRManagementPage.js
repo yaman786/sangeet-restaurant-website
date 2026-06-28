@@ -46,6 +46,7 @@ const QRManagementPage = () => {
   });
   const [formData, setFormData] = useState({
     tableNumber: '',
+    capacity: 4,
     customUrl: '',
     purpose: '',
     targetUrl: '',
@@ -61,6 +62,7 @@ const QRManagementPage = () => {
   });
   const [bulkFormData, setBulkFormData] = useState({
     tableNumbers: '',
+    capacity: 4,
     baseUrl: 'https://sangeetrestauranthk.netlify.app',
     design: {
       darkColor: '#1d1b16',
@@ -210,6 +212,7 @@ const QRManagementPage = () => {
       setShowGenerateModal(false);
       setFormData({
         tableNumber: '',
+        capacity: 4,
         customUrl: '',
         design: {
           darkColor: '#1d1b16',
@@ -253,7 +256,8 @@ const QRManagementPage = () => {
       setShowBulkModal(false);
       setBulkFormData({
         tableNumbers: '',
-        baseUrl: 'https://sangeetrestauranthk.netlify.app',
+        capacity: 4,
+        baseUrl: process.env.REACT_APP_CLIENT_URL || 'https://sangeetrestauranthk.netlify.app',
         design: {
           darkColor: '#1d1b16',
           lightColor: '#ffffff',
@@ -601,6 +605,20 @@ const QRManagementPage = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                    Table Capacity *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={formData.capacity}
+                    onChange={(e) => setFormData({...formData, capacity: parseInt(e.target.value) || 4})}
+                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
+                    placeholder="e.g., 4"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
                     Custom URL (Optional)
                   </label>
                   <input
@@ -659,6 +677,20 @@ const QRManagementPage = () => {
                   <p className="text-xs text-sangeet-neutral-500 mt-1">
                     Enter table numbers separated by commas
                   </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                    Default Capacity (for all) *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={bulkFormData.capacity}
+                    onChange={(e) => setBulkFormData({...bulkFormData, capacity: parseInt(e.target.value) || 4})}
+                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
+                    placeholder="e.g., 4"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">

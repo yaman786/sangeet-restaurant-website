@@ -26,7 +26,7 @@ const getTableByQRCode = async (req, res) => {
 // Generate QR code for a table
 const generateTableQRCode = async (req, res) => {
   try {
-    const { tableNumber, customUrl, design } = req.body;
+    const { tableNumber, customUrl, design, capacity = 4 } = req.body;
     
     if (!tableNumber) {
       return res.status(400).json({ error: 'Table number is required' });
@@ -67,9 +67,9 @@ const generateTableQRCode = async (req, res) => {
       
       const result = await pool.query(
         `UPDATE tables 
-         SET qr_code_url = $1, qr_code_data = $2, design_settings = $3, is_active = true, updated_at = NOW()
-         WHERE table_number = $4 RETURNING *`,
-        [qrUrl, qrCodeDataURL, JSON.stringify(design || {}), tableNumber]
+         SET qr_code_url = $1, qr_code_data = $2, design_settings = $3, capacity = $4, is_active = true, updated_at = NOW()
+         WHERE table_number = $5 RETURNING *`,
+        [qrUrl, qrCodeDataURL, JSON.stringify(design || {}), capacity, tableNumber]
       );
 
       res.json({
@@ -120,19 +120,19 @@ const generateTableQRCode = async (req, res) => {
 
     let result;
     if (existingTableCheck.rows.length > 0) {
-      // Update existing table with new QR code
+      // Update existing table with new QR code and capacity
       result = await pool.query(
         `UPDATE tables 
-         SET qr_code_url = $1, qr_code_data = $2, design_settings = $3, is_active = true, updated_at = NOW()
-         WHERE table_number = $4 RETURNING *`,
-        [qrUrl, qrCodeDataURL, JSON.stringify(design || {}), tableNumber]
+         SET qr_code_url = $1, qr_code_data = $2, design_settings = $3, capacity = $4, is_active = true, updated_at = NOW()
+         WHERE table_number = $5 RETURNING *`,
+        [qrUrl, qrCodeDataURL, JSON.stringify(design || {}), capacity, tableNumber]
       );
     } else {
-      // Insert new table with QR code
+      // Insert new table with QR code and capacity
       result = await pool.query(
-        `INSERT INTO tables (table_number, qr_code_url, qr_code_data, design_settings)
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [tableNumber, qrUrl, qrCodeDataURL, JSON.stringify(design || {})]
+        `INSERT INTO tables (table_number, qr_code_url, qr_code_data, design_settings, capacity)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [tableNumber, qrUrl, qrCodeDataURL, JSON.stringify(design || {}), capacity]
       );
     }
 
@@ -366,7 +366,7 @@ const generatePrintableQRCode = async (req, res) => {
 // Bulk generate QR codes for tables
 const bulkGenerateTableQRCodes = async (req, res) => {
   try {
-    const { tableNumbers, baseUrl, design } = req.body;
+    const { tableNumbers, baseUrl, design, capacity = 4 } = req.body;
     
     if (!Array.isArray(tableNumbers) || tableNumbers.length === 0) {
       return res.status(400).json({ error: 'Table numbers array is required' });
@@ -411,9 +411,9 @@ const bulkGenerateTableQRCodes = async (req, res) => {
           
           const result = await pool.query(
             `UPDATE tables 
-             SET qr_code_url = $1, qr_code_data = $2, design_settings = $3, is_active = true, updated_at = NOW()
-             WHERE table_number = $4 RETURNING *`,
-            [qrUrl, qrCodeDataURL, JSON.stringify(design || {}), tableNumber]
+             SET qr_code_url = $1, qr_code_data = $2, design_settings = $3, capacity = $4, is_active = true, updated_at = NOW()
+             WHERE table_number = $5 RETURNING *`,
+            [qrUrl, qrCodeDataURL, JSON.stringify(design || {}), capacity, tableNumber]
           );
 
           results.push(result.rows[0]);
@@ -436,9 +436,9 @@ const bulkGenerateTableQRCodes = async (req, res) => {
         
         // Save to database
         const result = await pool.query(
-          `INSERT INTO tables (table_number, qr_code_url, qr_code_data, design_settings)
-           VALUES ($1, $2, $3, $4) RETURNING *`,
-          [tableNumber, qrUrl, qrCodeDataURL, JSON.stringify(design || {})]
+          `INSERT INTO tables (table_number, qr_code_url, qr_code_data, design_settings, capacity)
+           VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+          [tableNumber, qrUrl, qrCodeDataURL, JSON.stringify(design || {}), capacity]
         );
 
         results.push(result.rows[0]);
