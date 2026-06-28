@@ -285,7 +285,8 @@ const updateReservation = async (req, res) => {
           time = COALESCE($6, time),
           guests = COALESCE($7, guests),
           special_requests = COALESCE($8, special_requests),
-          status = COALESCE($9, status)
+          status = COALESCE($9, status),
+          updated_at = CURRENT_TIMESTAMP
       WHERE id = $10
       RETURNING *
     `;
@@ -314,7 +315,7 @@ const updateReservationStatus = async (req, res) => {
 
     const query = `
       UPDATE reservations 
-      SET status = $1
+      SET status = $1, updated_at = CURRENT_TIMESTAMP
       WHERE id = $2
       RETURNING *
     `;

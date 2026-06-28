@@ -248,6 +248,11 @@ const { app, server } = createApp();
 // Initialize Socket.IO
 const io = initializeSocket(server);
 
+// Ensure database schema has necessary updated_at column
+pool.query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP')
+  .then(() => console.log('✅ Database schema verified: reservations table'))
+  .catch(err => console.error('❌ Database schema verification failed', err.message));
+
 // Start server
 startServer(app, server);
 
