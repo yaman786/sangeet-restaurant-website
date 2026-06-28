@@ -2,6 +2,17 @@
 const getSenderEmail = () => process.env.EMAIL_USER || 'ranayaman66@gmail.com';
 const getApiKey = () => process.env.BREVO_API_KEY || '';
 
+// HTML Escaping Utility for XSS Prevention
+const escapeHtml = (unsafe) => {
+  if (!unsafe) return '';
+  return String(unsafe)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
 // Test email function (logs instead of sending)
 const sendTestEmail = async (to, template, data) => {
   try {
@@ -78,7 +89,7 @@ const emailTemplates = {
           <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 25px; border-radius: 15px; margin-bottom: 25px; border-left: 5px solid #2196f3;">
             <h3 style="color: #1565c0; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">💬 Special Requests</h3>
             <div style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #e3f2fd;">
-              <p style="color: #1565c0; margin: 0; font-style: italic; font-size: 16px; line-height: 1.5;">"${reservation.special_requests}"</p>
+              <p style="color: #1565c0; margin: 0; font-style: italic; font-size: 16px; line-height: 1.5;">"${escapeHtml(reservation.special_requests)}"</p>
             </div>
           </div>
           ` : ''}
@@ -172,7 +183,7 @@ const emailTemplates = {
           <div style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 25px; border-radius: 15px; margin-bottom: 25px; border-left: 5px solid #2196f3;">
             <h3 style="color: #1565c0; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">💬 Special Requests</h3>
             <div style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #e3f2fd;">
-              <p style="color: #1565c0; margin: 0; font-style: italic; font-size: 16px; line-height: 1.5;">"${reservation.special_requests}"</p>
+              <p style="color: #1565c0; margin: 0; font-style: italic; font-size: 16px; line-height: 1.5;">"${escapeHtml(reservation.special_requests)}"</p>
             </div>
           </div>
           ` : ''}
