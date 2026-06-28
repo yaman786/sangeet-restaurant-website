@@ -255,9 +255,15 @@ const ReservationsPage = () => {
                 value={formData.special_requests}
                 onChange={handleInputChange}
                 rows={4}
+                maxLength={500}
                 className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent resize-none"
                 placeholder="Any special requests or dietary requirements..."
               />
+              <div className="text-right mt-1">
+                <span className={`text-xs ${formData.special_requests.length >= 500 ? 'text-red-400' : 'text-sangeet-neutral-500'}`}>
+                  {formData.special_requests.length} / 500 characters
+                </span>
+              </div>
             </div>
 
             {/* Submit Button */}
