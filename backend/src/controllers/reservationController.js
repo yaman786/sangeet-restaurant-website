@@ -340,7 +340,7 @@ const updateReservationStatus = async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating reservation status:', error);
-    res.status(500).json({ error: 'Failed to update reservation status' });
+    res.status(500).json({ error: 'Failed to update reservation status', details: error.message });
   }
 };
 
