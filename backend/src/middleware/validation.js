@@ -18,11 +18,12 @@ const menuItemSchema = Joi.object({
 const reservationSchema = Joi.object({
   customer_name: Joi.string().min(2).max(255).required(),
   email: Joi.string().email().required(),
-  phone: Joi.string().pattern(/^\+?[1-9]\d{1,14}$/).required(),
+  phone: Joi.string().min(7).max(20).pattern(/^[+\d][\d\s\-().]{6,18}$/).required()
+    .messages({ 'string.pattern.base': 'Please enter a valid phone number' }),
   date: Joi.date().iso().min('now').required(),
   time: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).required(),
   guests: Joi.number().integer().min(1).max(20).required(),
-  special_requests: Joi.string().max(500).optional()
+  special_requests: Joi.string().max(500).allow('', null).optional()
 });
 
 // Review validation schema
