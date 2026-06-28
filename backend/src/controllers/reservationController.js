@@ -163,8 +163,9 @@ const createReservation = async (req, res) => {
               SELECT 1 FROM reservations r
               WHERE r.table_id = rt.id
                 AND r.date = $2
-                AND r.time = $3
                 AND r.status NOT IN ('cancelled', 'no-show')
+                AND r.time::time < ($3::time + interval '2 hours')
+                AND ($3::time < r.time::time + interval '2 hours')
           )
         ORDER BY rt.capacity ASC, rt.table_number ASC
         LIMIT 1
@@ -185,8 +186,9 @@ const createReservation = async (req, res) => {
             SELECT 1 FROM reservations r
             WHERE r.table_id = $2
               AND r.date = $3
-              AND r.time = $4
               AND r.status NOT IN ('cancelled', 'no-show')
+              AND r.time::time < ($4::time + interval '2 hours')
+              AND ($4::time < r.time::time + interval '2 hours')
           ) as is_available
         FROM tables rt
         WHERE rt.id = $2 AND rt.is_active = true
@@ -258,17 +260,23 @@ const updateReservation = async (req, res) => {
       const newGuests = guests || existingReservation.rows[0].guests;
 
       const availabilityQuery = `
-        SELECT NOT EXISTS (
+        SELECT 
+          (SELECT capacity FROM tables WHERE id = $1) >= $4 as can_accommodate,
+          NOT EXISTS (
             SELECT 1 FROM reservations r
             WHERE r.table_id = $1
               AND r.date = $2
-              AND r.time = $3
               AND r.id != $5
               AND r.status NOT IN ('cancelled', 'no-show')
+              AND r.time::time < ($3::time + interval '2 hours')
+              AND ($3::time < r.time::time + interval '2 hours')
         ) as check_table_availability
       `;
       const availabilityResult = await pool.query(availabilityQuery, [newTableId, newDate, newTime, newGuests, id]);
       
+      if (!availabilityResult.rows[0].can_accommodate) {
+        return res.status(400).json({ error: 'Table capacity is too small for the requested number of guests' });
+      }
       if (!availabilityResult.rows[0].check_table_availability) {
         return res.status(400).json({ error: 'Table not available for the selected date and time' });
       }

@@ -25,6 +25,8 @@ const ReservationManagementPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAssignTableModal, setShowAssignTableModal] = useState(false);
+  const [selectedTableId, setSelectedTableId] = useState('');
   const [selectedReservation, setSelectedReservation] = useState(null);
   // eslint-disable-next-line no-unused-vars
   const [connectionStatus, setConnectionStatus] = useState('connected');
@@ -68,6 +70,13 @@ const ReservationManagementPage = () => {
 
   const handleStatusUpdate = async (reservationId, newStatus) => {
     try {
+      const reservation = reservations.find(r => r.id === reservationId);
+      if (newStatus === 'confirmed' && !reservation.table_id) {
+        setSelectedReservation(reservation);
+        setShowAssignTableModal(true);
+        return; // intercept and open modal
+      }
+
       await updateReservationStatus(reservationId, newStatus);
       
       // Update local state directly
@@ -79,6 +88,34 @@ const ReservationManagementPage = () => {
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error('Failed to update status');
+    }
+  };
+
+  const handleAssignTable = async () => {
+    if (!selectedTableId) {
+      toast.error('Please select a table');
+      return;
+    }
+    
+    try {
+      // Use full updateReservation instead of updateReservationStatus
+      await updateReservation(selectedReservation.id, {
+        status: 'confirmed',
+        table_id: selectedTableId
+      });
+      
+      // Update local state directly
+      setReservations(prev => prev.map(res => 
+        res.id === selectedReservation.id ? { ...res, status: 'confirmed', table_id: selectedTableId } : res
+      ));
+      
+      setShowAssignTableModal(false);
+      setSelectedReservation(null);
+      setSelectedTableId('');
+      toast.success('Reservation confirmed and table assigned!');
+    } catch (error) {
+      console.error('Error assigning table:', error);
+      toast.error(error.response?.data?.error || 'Failed to assign table');
     }
   };
 
@@ -605,6 +642,77 @@ const ReservationManagementPage = () => {
                   className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 font-medium"
                 >
                   Delete Reservation
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Assign Table Modal */}
+      <AnimatePresence>
+        {showAssignTableModal && selectedReservation && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-sangeet-neutral-900 rounded-2xl border border-sangeet-neutral-700 shadow-2xl max-w-lg w-full p-6"
+            >
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">🪑</span>
+                </div>
+                <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">Assign Table</h3>
+                <p className="text-sangeet-neutral-400">
+                  Please assign a table with capacity for {selectedReservation.guests} guests to confirm.
+                </p>
+              </div>
+
+              {/* Table Selection */}
+              <div className="bg-sangeet-neutral-800 rounded-xl p-4 mb-6 border border-sangeet-neutral-600">
+                <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Select an Available Table</label>
+                <select
+                  value={selectedTableId}
+                  onChange={(e) => setSelectedTableId(e.target.value)}
+                  className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-600 text-sangeet-neutral-100 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sangeet-500"
+                >
+                  <option value="">-- Choose a table --</option>
+                  {tables
+                    .filter(t => t.capacity >= selectedReservation.guests && t.is_active)
+                    .map(t => (
+                      <option key={t.id} value={t.id}>
+                        Table {t.table_number} (Capacity: {t.capacity})
+                      </option>
+                    ))}
+                </select>
+                {tables.filter(t => t.capacity >= selectedReservation.guests && t.is_active).length === 0 && (
+                  <p className="text-red-400 text-sm mt-2">No active tables found with enough capacity.</p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowAssignTableModal(false);
+                    setSelectedReservation(null);
+                    setSelectedTableId('');
+                  }}
+                  className="flex-1 px-4 py-3 bg-sangeet-neutral-800 text-sangeet-neutral-300 rounded-lg hover:bg-sangeet-neutral-700 hover:text-sangeet-neutral-100 transition-all duration-300 border border-sangeet-neutral-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAssignTable}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-sangeet-500 to-sangeet-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 font-medium"
+                >
+                  Assign & Confirm
                 </button>
               </div>
             </motion.div>
