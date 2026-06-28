@@ -110,6 +110,13 @@ const AdminOrdersPage = () => {
   // Data loading useEffect - ALWAYS RUN
   useEffect(() => {
     loadDashboardData(); // eslint-disable-line react-hooks/exhaustive-deps
+    
+    // Industry Standard: Auto-refresh fallback polling every 30 seconds
+    const pollingInterval = setInterval(() => {
+      loadDashboardData();
+    }, 30000);
+
+    return () => clearInterval(pollingInterval);
   }, [filters, viewMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Socket setup for realtime updates - minimal: reload on any event

@@ -52,6 +52,13 @@ const ReservationManagementPage = () => {
 
   useEffect(() => {
     loadData();
+    
+    // Industry Standard: Auto-refresh fallback polling every 30 seconds
+    const pollingInterval = setInterval(() => {
+      loadData();
+    }, 30000);
+
+    return () => clearInterval(pollingInterval);
   }, [loadData]);
 
   // Reset to first page when filters change

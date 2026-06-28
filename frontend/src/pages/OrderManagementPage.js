@@ -42,6 +42,13 @@ const OrderManagementPage = () => {
     }
     
     loadData();
+    
+    // Industry Standard: Auto-refresh fallback polling every 30 seconds
+    const pollingInterval = setInterval(() => {
+      loadData();
+    }, 30000);
+
+    return () => clearInterval(pollingInterval);
   }, [filters]);
 
   // Setup real-time socket listeners - using a different approach since RealTimeNotifications already handles socket
