@@ -221,8 +221,17 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
   }, [soundEnabled, sortOrders, loadOrders]);
 
   useEffect(() => {
+    // Initial load
     loadOrders();
-  }, []);
+
+    // Industry Standard: Auto-refresh fallback polling every 30 seconds
+    // This ensures no orders are missed if WebSockets silently disconnect
+    const pollingInterval = setInterval(() => {
+      loadOrders();
+    }, 30000);
+
+    return () => clearInterval(pollingInterval);
+  }, [loadOrders]);
 
   useEffect(() => {
     setupSocketListeners();
