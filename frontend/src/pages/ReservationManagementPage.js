@@ -139,24 +139,6 @@ const ReservationManagementPage = () => {
     }
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const handleAssignTable = async (reservationId, tableId) => {
-    if (!tableId) return;
-    
-    try {
-      await updateReservation(reservationId, { table_id: parseInt(tableId) });
-      
-      // Update local state directly
-      setReservations(prev => prev.map(res => 
-        res.id === reservationId ? { ...res, table_id: parseInt(tableId) } : res
-      ));
-      
-      toast.success('Table assigned successfully');
-    } catch (error) {
-      console.error('Error assigning table:', error);
-      toast.error('Failed to assign table');
-    }
-  };
 
   const getStatusColor = (status) => {
     switch (status) {
