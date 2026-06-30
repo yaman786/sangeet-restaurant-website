@@ -58,9 +58,9 @@ const AdminOrdersPage = () => {
     { value: 'cancelled', label: 'Cancelled' }
   ];
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (isBackgroundPoll = false) => {
     try {
-      setLoading(true);
+      if (!isBackgroundPoll) setLoading(true);
       // Load orders based on filters and view mode
       let searchParams = { ...filters };
       if (viewMode !== 'all') {
@@ -88,20 +88,22 @@ const AdminOrdersPage = () => {
         stack: error.stack
       });
 
-      // Show specific error message based on error type
-      if (error.type === 'NETWORK_ERROR') {
-        toast.error('Network error: Please check your internet connection');
-      } else if (error.type === 'TIMEOUT_ERROR') {
-        toast.error('Request timeout: Server is taking too long to respond');
-      } else if (error.status === 401) {
-        toast.error('Authentication required: Please log in again');
-      } else if (error.status >= 500) {
-        toast.error('Server error: Please try again later');
-      } else {
-        toast.error(`Failed to load dashboard data: ${error.message || 'Unknown error'}`);
+      if (!isBackgroundPoll) {
+        // Show specific error message based on error type
+        if (error.type === 'NETWORK_ERROR') {
+          toast.error('Network error: Please check your internet connection');
+        } else if (error.type === 'TIMEOUT_ERROR') {
+          toast.error('Request timeout: Server is taking too long to respond');
+        } else if (error.status === 401) {
+          toast.error('Authentication required: Please log in again');
+        } else if (error.status >= 500) {
+          toast.error('Server error: Please try again later');
+        } else {
+          toast.error('Failed to load dashboard data');
+        }
       }
     } finally {
-      setLoading(false);
+      if (!isBackgroundPoll) setLoading(false);
     }
   };
 
@@ -109,12 +111,12 @@ const AdminOrdersPage = () => {
 
   // Data loading useEffect - ALWAYS RUN
   useEffect(() => {
-    loadDashboardData(); // eslint-disable-line react-hooks/exhaustive-deps
+    loadDashboardData(false); // eslint-disable-line react-hooks/exhaustive-deps
     
-    // Industry Standard: Auto-refresh fallback polling every 30 seconds
+    // Industry Standard: Auto-refresh fallback polling every 60 seconds (prevents rate limits)
     const pollingInterval = setInterval(() => {
-      loadDashboardData();
-    }, 30000);
+      loadDashboardData(true);
+    }, 60000);
 
     return () => clearInterval(pollingInterval);
   }, [filters, viewMode]); // eslint-disable-line react-hooks/exhaustive-deps

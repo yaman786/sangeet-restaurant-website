@@ -41,12 +41,12 @@ const OrderManagementPage = () => {
       setUserRole(user.role);
     }
     
-    loadData();
+    loadData(false);
     
-    // Industry Standard: Auto-refresh fallback polling every 30 seconds
+    // Industry Standard: Auto-refresh fallback polling every 60 seconds (prevents rate limits)
     const pollingInterval = setInterval(() => {
-      loadData();
-    }, 30000);
+      loadData(true);
+    }, 60000);
 
     return () => clearInterval(pollingInterval);
   }, [filters]);
@@ -109,9 +109,9 @@ const OrderManagementPage = () => {
     };
   }, []); // Empty dependency array to run only once
 
-  const loadData = async () => {
+  const loadData = async (isBackgroundPoll = false) => {
     try {
-      setLoading(true);
+      if (!isBackgroundPoll) setLoading(true);
       
       const [ordersData, tablesData, statsData] = await Promise.all([
         fetchAllOrders(filters),
@@ -129,6 +129,8 @@ const OrderManagementPage = () => {
       setStats(statsData || {});
     } catch (error) {
       console.error('Error loading data:', error);
+      
+      if (!isBackgroundPoll) {
       
       // Fallback data if API fails
       const fallbackActiveOrders = [
@@ -191,8 +193,9 @@ const OrderManagementPage = () => {
         completed_orders: 0,
         total_revenue: 0
       });
+      }
     } finally {
-      setLoading(false);
+      if (!isBackgroundPoll) setLoading(false);
     }
   };
 
