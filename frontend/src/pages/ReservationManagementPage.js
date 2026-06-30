@@ -36,9 +36,9 @@ const ReservationManagementPage = () => {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (isBackgroundPoll = false) => {
     try {
-      setIsLoading(true);
+      if (!isBackgroundPoll) setIsLoading(true);
       const [reservationsData, statsData, tablesData] = await Promise.all([
         fetchAllReservations(),
         fetchReservationStats(),
@@ -49,19 +49,21 @@ const ReservationManagementPage = () => {
       setTables(tablesData);
     } catch (error) {
       console.error('Error loading data:', error);
-      toast.error('Failed to load data');
+      if (!isBackgroundPoll) {
+        toast.error('Failed to load data');
+      }
     } finally {
-      setIsLoading(false);
+      if (!isBackgroundPoll) setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadData();
+    loadData(false);
     
-    // Industry Standard: Auto-refresh fallback polling every 30 seconds
+    // Industry Standard: Auto-refresh fallback polling every 60 seconds (prevents rate limits)
     const pollingInterval = setInterval(() => {
-      loadData();
-    }, 30000);
+      loadData(true);
+    }, 60000);
 
     return () => clearInterval(pollingInterval);
   }, [loadData]);
