@@ -229,15 +229,19 @@ const ReservationManagementPage = () => {
       return sortConfig.direction === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
     }
     if (sortConfig.key === 'datetime') {
-      const dateA = new Date(`${a.date}T${a.time}`);
-      const dateB = new Date(`${b.date}T${b.time}`);
+      const dateAStr = a.date ? (a.date.includes('T') ? a.date.split('T')[0] : a.date) : '';
+      const dateBStr = b.date ? (b.date.includes('T') ? b.date.split('T')[0] : b.date) : '';
+      const dateA = new Date(`${dateAStr}T${a.time || '00:00:00'}`);
+      const dateB = new Date(`${dateBStr}T${b.time || '00:00:00'}`);
       return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
     }
     if (sortConfig.key === 'guests') {
-      return sortConfig.direction === 'asc' ? a.guests - b.guests : b.guests - a.guests;
+      return sortConfig.direction === 'asc' ? (a.guests || 0) - (b.guests || 0) : (b.guests || 0) - (a.guests || 0);
     }
     if (sortConfig.key === 'status') {
-      return sortConfig.direction === 'asc' ? a.status.localeCompare(b.status) : b.status.localeCompare(a.status);
+      const statusA = a.status || '';
+      const statusB = b.status || '';
+      return sortConfig.direction === 'asc' ? statusA.localeCompare(statusB) : statusB.localeCompare(statusA);
     }
     return 0;
   });
