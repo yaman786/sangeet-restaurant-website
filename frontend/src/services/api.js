@@ -124,7 +124,7 @@ const handleApiError = (error) => {
       errorType = API_ERROR_TYPES.CLIENT;
 
       // Handle authentication errors, but not for the login endpoint itself
-      if (status === 401) {
+      if (status === 401 || status === 403) {
         const isLoginRequest = error.config && error.config.url && error.config.url.includes('/auth/login');
         if (!isLoginRequest) {
           handleAuthFailure();
