@@ -501,14 +501,8 @@ const ReservationManagementPage = () => {
                               {sortConfig.key === 'guests' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} className="opacity-50" />}
                             </div>
                           </th>
-                          <th 
-                            className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20 cursor-pointer hover:bg-amber-500/20 transition-colors"
-                            onClick={() => handleSort('status')}
-                          >
-                            <div className="flex items-center space-x-1">
-                              <span>Status</span>
-                              {sortConfig.key === 'status' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} className="opacity-50" />}
-                            </div>
+                          <th className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20">
+                            Status
                           </th>
                           <th className="px-6 py-4 text-left text-amber-400 font-semibold">Actions</th>
                         </tr>
