@@ -92,7 +92,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     });
   }, [activeFilter, sortBy]);
 
-  const loadOrders = useCallback(async () => {
+  const loadOrders = useCallback(async (isBackgroundPoll = false) => {
     try {
       const response = await fetchAllOrders();
       
@@ -105,14 +105,16 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     } catch (error) {
       console.error('Error loading orders:', error);
       
-      // Show error message instead of demo data
-      toast.error('Failed to load orders. Please check your connection and try again.');
-      
-      // Set empty arrays instead of demo data
-      setOrders([]);
-      setCompletedOrders([]);
+      if (!isBackgroundPoll) {
+        // Show error message instead of demo data
+        toast.error('Failed to load orders. Please check your connection and try again.');
+        
+        // Set empty arrays instead of demo data
+        setOrders([]);
+        setCompletedOrders([]);
+      }
     } finally {
-      setLoading(false);
+      if (!isBackgroundPoll) setLoading(false);
     }
   }, [sortOrders]);
 
@@ -222,13 +224,13 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
 
   useEffect(() => {
     // Initial load
-    loadOrders();
+    loadOrders(false);
 
-    // Industry Standard: Auto-refresh fallback polling every 30 seconds
+    // Industry Standard: Auto-refresh fallback polling every 60 seconds
     // This ensures no orders are missed if WebSockets silently disconnect
     const pollingInterval = setInterval(() => {
-      loadOrders();
-    }, 30000);
+      loadOrders(true);
+    }, 60000);
 
     return () => clearInterval(pollingInterval);
   }, [loadOrders]);
