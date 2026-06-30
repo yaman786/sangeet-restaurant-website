@@ -74,7 +74,8 @@ function createApp() {
     'http://localhost:3000',
     'https://localhost:3000',
     'https://sangeet-restaurant-testing-frontend.vercel.app',
-    'https://frontend-six-xi-10.vercel.app'
+    'https://frontend-six-xi-10.vercel.app',
+    'https://sangeetrestauranthk.netlify.app'
   ];
 
   app.use(cors({
