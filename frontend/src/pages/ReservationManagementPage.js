@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Search } from 'lucide-react';
 import AdminHeader from '../components/AdminHeader';
 import { fetchAllReservations, updateReservationStatus, deleteReservation, fetchReservationStats, fetchTables, updateReservation } from '../services/api';
 
@@ -17,6 +17,7 @@ const ReservationManagementPage = () => {
     cancelled: 0
   });
   const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'pending', 'confirmed', 'completed', 'cancelled'
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'datetime', direction: 'asc' });
   const [filters, setFilters] = useState({
     status: '',
@@ -183,10 +184,19 @@ const ReservationManagementPage = () => {
     return table ? table.table_number : 'Not assigned';
   };
 
-  // Filter reservations based on activeFilter
+  // Filter reservations based on activeFilter and search
   const filteredReservations = reservations.filter(reservation => {
     // Apply activeFilter first
     if (activeFilter !== 'all' && reservation.status !== activeFilter) return false;
+    
+    // Apply search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchName = reservation.customer_name?.toLowerCase().includes(query);
+      const matchEmail = reservation.email?.toLowerCase().includes(query);
+      const matchPhone = reservation.phone?.includes(query);
+      if (!matchName && !matchEmail && !matchPhone) return false;
+    }
     
     // Apply other filters if needed
     if (filters.date && reservation.date !== filters.date) return false;
@@ -414,15 +424,26 @@ const ReservationManagementPage = () => {
               transition={{ delay: 0.5 }}
               className="bg-sangeet-neutral-900 rounded-xl p-6 border border-sangeet-neutral-700 shadow-lg mb-6"
             >
-                              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                   <div className="flex items-center space-x-4">
                     <h2 className="text-2xl font-bold text-sangeet-neutral-100">All Reservations</h2>
                     <span className="px-3 py-1 bg-sangeet-400/20 rounded-full text-sangeet-neutral-100 text-sm font-medium">
                       {activeReservations.length} items
                     </span>
                   </div>
-                
-                
+                  
+                  <div className="relative w-full lg:w-72">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search className="h-5 w-5 text-sangeet-neutral-400" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search name, email, or phone..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="block w-full pl-10 pr-3 py-2 border border-sangeet-neutral-700 rounded-lg leading-5 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-none focus:ring-1 focus:ring-sangeet-400 focus:border-sangeet-400 sm:text-sm transition duration-150 ease-in-out"
+                    />
+                  </div>
               </div>
 
 
