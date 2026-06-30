@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import AdminHeader from '../components/AdminHeader';
 import { fetchAllReservations, updateReservationStatus, deleteReservation, fetchReservationStats, fetchTables, updateReservation } from '../services/api';
 
@@ -16,6 +17,7 @@ const ReservationManagementPage = () => {
     cancelled: 0
   });
   const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'pending', 'confirmed', 'completed', 'cancelled'
+  const [sortConfig, setSortConfig] = useState({ key: 'datetime', direction: 'asc' });
   const [filters, setFilters] = useState({
     status: '',
     date: '',
@@ -209,10 +211,39 @@ const ReservationManagementPage = () => {
     if (filters.table_id && reservation.table_id !== parseInt(filters.table_id)) return false;
     if (filters.guests && reservation.guests < parseInt(filters.guests)) return false;
     return true;
+    return true;
   });
 
-  // Include all filtered reservations in main workflow
-  const activeReservations = filteredReservations;
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedReservations = [...filteredReservations].sort((a, b) => {
+    if (sortConfig.key === 'customer') {
+      const nameA = a.customer_name?.toLowerCase() || '';
+      const nameB = b.customer_name?.toLowerCase() || '';
+      return sortConfig.direction === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+    }
+    if (sortConfig.key === 'datetime') {
+      const dateA = new Date(`${a.date}T${a.time}`);
+      const dateB = new Date(`${b.date}T${b.time}`);
+      return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+    }
+    if (sortConfig.key === 'guests') {
+      return sortConfig.direction === 'asc' ? a.guests - b.guests : b.guests - a.guests;
+    }
+    if (sortConfig.key === 'status') {
+      return sortConfig.direction === 'asc' ? a.status.localeCompare(b.status) : b.status.localeCompare(a.status);
+    }
+    return 0;
+  });
+
+  // Include all filtered and sorted reservations in main workflow
+  const activeReservations = sortedReservations;
 
   // Calculate real-time stats from reservations data
   const realTimeStats = {
@@ -436,10 +467,42 @@ const ReservationManagementPage = () => {
                     <table className="w-full">
                       <thead className="bg-amber-500/10 border-b border-amber-500/20">
                         <tr>
-                          <th className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20">Customer</th>
-                          <th className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20">Date & Time</th>
-                          <th className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20">Guests</th>
-                          <th className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20">Status</th>
+                          <th 
+                            className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                            onClick={() => handleSort('customer')}
+                          >
+                            <div className="flex items-center space-x-1">
+                              <span>Customer</span>
+                              {sortConfig.key === 'customer' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} className="opacity-50" />}
+                            </div>
+                          </th>
+                          <th 
+                            className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                            onClick={() => handleSort('datetime')}
+                          >
+                            <div className="flex items-center space-x-1">
+                              <span>Date & Time</span>
+                              {sortConfig.key === 'datetime' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} className="opacity-50" />}
+                            </div>
+                          </th>
+                          <th 
+                            className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                            onClick={() => handleSort('guests')}
+                          >
+                            <div className="flex items-center space-x-1">
+                              <span>Guests</span>
+                              {sortConfig.key === 'guests' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} className="opacity-50" />}
+                            </div>
+                          </th>
+                          <th 
+                            className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                            onClick={() => handleSort('status')}
+                          >
+                            <div className="flex items-center space-x-1">
+                              <span>Status</span>
+                              {sortConfig.key === 'status' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} className="opacity-50" />}
+                            </div>
+                          </th>
                           <th className="px-6 py-4 text-left text-amber-400 font-semibold">Actions</th>
                         </tr>
                       </thead>
