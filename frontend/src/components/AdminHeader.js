@@ -39,6 +39,8 @@ const AdminHeader = ({ title, subtitle, showBackButton = true, onBackClick }) =>
       return 'Kitchen Display';
     } else if (location.pathname.includes('/admin/orders')) {
       return 'Order Management';
+    } else if (location.pathname.includes('/admin/history')) {
+      return 'History & Archives';
     } else {
       return 'Admin Dashboard';
     }
@@ -55,6 +57,8 @@ const AdminHeader = ({ title, subtitle, showBackButton = true, onBackClick }) =>
       return 'Real-time kitchen order management';
     } else if (location.pathname.includes('/admin/orders')) {
       return 'Manage orders and monitor operations';
+    } else if (location.pathname.includes('/admin/history')) {
+      return 'View past orders and reservations';
     } else {
       return 'Restaurant management dashboard';
     }
@@ -111,6 +115,12 @@ const AdminHeader = ({ title, subtitle, showBackButton = true, onBackClick }) =>
                     className="w-full text-left px-4 py-2 text-sangeet-neutral-300 hover:bg-sangeet-neutral-700 hover:text-sangeet-400 transition-colors"
                   >
                     Dashboard
+                  </button>
+                  <button
+                    onClick={() => navigate('/admin/history')}
+                    className="w-full text-left px-4 py-2 text-sangeet-neutral-300 hover:bg-sangeet-neutral-700 hover:text-sangeet-400 transition-colors"
+                  >
+                    History
                   </button>
                   <button
                     onClick={() => logout(navigate)}

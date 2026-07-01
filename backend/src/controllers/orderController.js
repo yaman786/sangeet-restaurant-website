@@ -582,7 +582,7 @@ const updateOrderStatus = async (req, res) => {
 // Get all orders (Admin)
 const getAllOrders = async (req, res) => {
   try {
-    const { status, table_id } = req.query;
+    const { status, table_id, history, startDate, endDate } = req.query;
     
     let query = `
       SELECT o.*, t.table_number 
@@ -592,6 +592,13 @@ const getAllOrders = async (req, res) => {
     `;
     const params = [];
     let paramCount = 0;
+
+    // History flag logic
+    if (history === 'true') {
+      query += ` AND o.is_archived = true`;
+    } else {
+      query += ` AND o.is_archived = false`;
+    }
 
     if (status) {
       paramCount++;
@@ -603,6 +610,16 @@ const getAllOrders = async (req, res) => {
       paramCount++;
       query += ` AND o.table_id = $${paramCount}`;
       params.push(table_id);
+    }
+
+    if (startDate && endDate) {
+      paramCount++;
+      query += ` AND o.created_at >= $${paramCount}`;
+      params.push(startDate);
+      
+      paramCount++;
+      query += ` AND o.created_at <= $${paramCount}`;
+      params.push(endDate);
     }
 
     query += ' ORDER BY o.created_at DESC';
