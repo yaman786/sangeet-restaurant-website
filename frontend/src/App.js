@@ -38,6 +38,7 @@ import OrderSuccessPage from './pages/OrderSuccessPage';
 import OrderTrackingPage from './pages/OrderTrackingPage';
 import UnifiedOrderPage from './pages/UnifiedOrderPage';
 import UnifiedDashboardPage from './pages/UnifiedDashboardPage';
+import HistoryDashboard from './pages/HistoryDashboard';
 
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -400,6 +401,16 @@ function App() {
                 <AnimatedRoute>
                   <ProtectedRoute requiredRole="admin">
                     <AdminDashboard />
+                  </ProtectedRoute>
+                </AnimatedRoute>
+              }
+            />
+            <Route
+              path="/admin/history"
+              element={
+                <AnimatedRoute>
+                  <ProtectedRoute requiredRole="admin">
+                    <HistoryDashboard />
                   </ProtectedRoute>
                 </AnimatedRoute>
               }

@@ -4,7 +4,7 @@ const { sendReservationCreatedEmail, sendReservationConfirmedEmail, sendReservat
 // Get all reservations with optional filters
 const getAllReservations = async (req, res) => {
   try {
-    const { status, date, table_id } = req.query;
+    const { status, date, table_id, history, startDate, endDate } = req.query;
     let query = `
       SELECT r.*, rt.table_number, rt.capacity, rt.table_type
       FROM reservations r 
@@ -13,6 +13,13 @@ const getAllReservations = async (req, res) => {
     `;
     const params = [];
     let paramCount = 0;
+
+    // History flag logic
+    if (history === 'true') {
+      query += ` AND r.is_archived = true`;
+    } else {
+      query += ` AND r.is_archived = false`;
+    }
 
     if (status) {
       paramCount++;
@@ -30,6 +37,16 @@ const getAllReservations = async (req, res) => {
       paramCount++;
       query += ` AND r.table_id = $${paramCount}`;
       params.push(table_id);
+    }
+
+    if (startDate && endDate) {
+      paramCount++;
+      query += ` AND r.date >= $${paramCount}`;
+      params.push(startDate);
+      
+      paramCount++;
+      query += ` AND r.date <= $${paramCount}`;
+      params.push(endDate);
     }
 
     query += ` ORDER BY r.date ASC, r.time ASC`;

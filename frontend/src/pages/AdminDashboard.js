@@ -206,6 +206,27 @@ const AdminDashboard = () => {
             </Link>
           </div>
 
+          {/* History & Archives */}
+          <div className="bg-sangeet-neutral-900 rounded-xl p-6 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300 group">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-sangeet-400/20 rounded-lg flex items-center justify-center group-hover:bg-sangeet-400/30 transition-colors">
+                <span className="text-2xl">🗄️</span>
+              </div>
+              <span className="text-sangeet-neutral-500 text-sm">History</span>
+            </div>
+            <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">History & Archives</h3>
+            <p className="text-sangeet-neutral-400 text-sm mb-4">
+              Browse archived records, search past orders, and view historical reservations
+            </p>
+            <Link
+              to="/admin/history"
+              className="inline-flex items-center text-sangeet-400 hover:text-sangeet-300 font-medium text-sm group-hover:underline"
+            >
+              Browse History
+              <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
+            </Link>
+          </div>
+
           {/* Analytics Dashboard */}
           <div className="bg-sangeet-neutral-900 rounded-xl p-6 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300 group">
             <div className="flex items-center justify-between mb-4">
