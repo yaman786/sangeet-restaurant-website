@@ -65,7 +65,7 @@ const login = async (req, res) => {
         email: user.email
       },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '12h' }
     );
 
     // Return user info (without password) and token
