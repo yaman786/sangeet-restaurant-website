@@ -323,7 +323,9 @@ function App() {
               element={
                 <ErrorBoundary>
                   <AnimatedRoute>
-                    <KitchenDisplayPage />
+                    <ProtectedRoute requiredRole={['admin', 'kitchen', 'waiter']}>
+                      <KitchenDisplayPage />
+                    </ProtectedRoute>
                   </AnimatedRoute>
                 </ErrorBoundary>
               }
@@ -399,7 +401,7 @@ function App() {
               path="/admin/dashboard"
               element={
                 <AnimatedRoute>
-                  <ProtectedRoute requiredRole="admin">
+                  <ProtectedRoute requiredRole={['admin', 'reception', 'waiter']}>
                     <AdminDashboard />
                   </ProtectedRoute>
                 </AnimatedRoute>
@@ -409,7 +411,7 @@ function App() {
               path="/admin/history"
               element={
                 <AnimatedRoute>
-                  <ProtectedRoute requiredRole="admin">
+                  <ProtectedRoute requiredRole={['admin', 'reception']}>
                     <HistoryDashboard />
                   </ProtectedRoute>
                 </AnimatedRoute>
@@ -420,10 +422,9 @@ function App() {
               element={
                 <ErrorBoundary>
                   <AnimatedRoute>
-                    {(() => {
-
-                      return <AdminOrdersPage />;
-                    })()}
+                    <ProtectedRoute requiredRole={['admin', 'reception', 'waiter']}>
+                      <AdminOrdersPage />
+                    </ProtectedRoute>
                   </AnimatedRoute>
                 </ErrorBoundary>
               }
@@ -442,7 +443,9 @@ function App() {
               path="/admin/qr-management"
               element={
                 <AnimatedRoute>
-                  <QRManagementPage />
+                  <ProtectedRoute requiredRole={['admin']}>
+                    <QRManagementPage />
+                  </ProtectedRoute>
                 </AnimatedRoute>
               }
             />
@@ -451,7 +454,9 @@ function App() {
               element={
                 <ErrorBoundary>
                   <AnimatedRoute>
-                    <ReservationManagementPage />
+                    <ProtectedRoute requiredRole={['admin', 'reception']}>
+                      <ReservationManagementPage />
+                    </ProtectedRoute>
                   </AnimatedRoute>
                 </ErrorBoundary>
               }
@@ -461,7 +466,9 @@ function App() {
               element={
                 <ErrorBoundary>
                   <AnimatedRoute>
-                    <StaffManagementPage />
+                    <ProtectedRoute requiredRole="admin">
+                      <StaffManagementPage />
+                    </ProtectedRoute>
                   </AnimatedRoute>
                 </ErrorBoundary>
               }
@@ -471,7 +478,9 @@ function App() {
               element={
                 <ErrorBoundary>
                   <AnimatedRoute>
-                    <RestaurantWebsiteManagementPage />
+                    <ProtectedRoute requiredRole="admin">
+                      <RestaurantWebsiteManagementPage />
+                    </ProtectedRoute>
                   </AnimatedRoute>
                 </ErrorBoundary>
               }
@@ -481,7 +490,9 @@ function App() {
               element={
                 <ErrorBoundary>
                   <AnimatedRoute>
-                    <AnalyticsReportsPage />
+                    <ProtectedRoute requiredRole="admin">
+                      <AnalyticsReportsPage />
+                    </ProtectedRoute>
                   </AnimatedRoute>
                 </ErrorBoundary>
               }
@@ -491,7 +502,9 @@ function App() {
               element={
                 <ErrorBoundary>
                   <AnimatedRoute>
-                    <KitchenDisplayPage />
+                    <ProtectedRoute requiredRole={['admin', 'kitchen', 'waiter']}>
+                      <KitchenDisplayPage />
+                    </ProtectedRoute>
                   </AnimatedRoute>
                 </ErrorBoundary>
               }

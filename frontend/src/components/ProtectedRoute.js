@@ -71,22 +71,25 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
   }
 
   // Check role-specific access
-  if (requiredRole && userRole !== requiredRole && userRole !== 'admin') {
-    // Admin can access everything, but other roles need specific permissions
-    return (
-      <div className="min-h-screen bg-sangeet-neutral-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">🚫</div>
-          <h1 className="text-2xl font-bold text-sangeet-neutral-100 mb-2">Access Denied</h1>
-          <p className="text-sangeet-neutral-400 mb-4">
-            You don't have permission to access this page.
-          </p>
-          <p className="text-sm text-sangeet-neutral-500">
-            Required role: {requiredRole} | Your role: {userRole}
-          </p>
+  if (requiredRole) {
+    const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    
+    if (!roles.includes(userRole) && userRole !== 'admin') {
+      return (
+        <div className="min-h-screen bg-sangeet-neutral-950 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-6xl mb-4">🚫</div>
+            <h1 className="text-2xl font-bold text-sangeet-neutral-100 mb-2">Access Denied</h1>
+            <p className="text-sangeet-neutral-400 mb-4">
+              You don't have permission to access this page.
+            </p>
+            <p className="text-sm text-sangeet-neutral-500">
+              Required roles: {roles.join(', ')} | Your role: {userRole}
+            </p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   return children;

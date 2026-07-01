@@ -29,21 +29,39 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// Middleware to check if user is admin
-const requireAdmin = (req, res, next) => {
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({
-      error: 'Access denied. Admin role required.'
-    });
-  }
-  next();
+// Valid roles in the system
+const VALID_ROLES = ['admin', 'kitchen', 'reception', 'waiter'];
+
+// Middleware to check if user has a specific role
+const requireRole = (roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    // Admin always has access to everything
+    if (req.user.role === 'admin') {
+      return next();
+    }
+    
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        error: `Access denied. Requires one of roles: ${roles.join(', ')}`
+      });
+    }
+    
+    next();
+  };
 };
 
-// Middleware to check if user is admin or staff
+// Legacy middleware for backwards compatibility (Admin only)
+const requireAdmin = requireRole(['admin']);
+
+// Middleware to check if user is any valid staff member
 const requireAuth = (req, res, next) => {
-  if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'staff')) {
+  if (!req.user || !VALID_ROLES.includes(req.user.role)) {
     return res.status(403).json({
-      error: 'Access denied. Authentication required.'
+      error: 'Access denied. Valid staff authentication required.'
     });
   }
   next();
@@ -52,5 +70,7 @@ const requireAuth = (req, res, next) => {
 module.exports = {
   authenticateToken,
   requireAdmin,
-  requireAuth
+  requireRole,
+  requireAuth,
+  VALID_ROLES
 }; 

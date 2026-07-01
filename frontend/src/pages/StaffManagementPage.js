@@ -26,7 +26,7 @@ const StaffManagementPage = () => {
     username: '',
     email: '',
     password: '',
-    role: 'staff',
+    role: 'waiter',
     first_name: '',
     last_name: '',
     phone: ''
@@ -242,7 +242,7 @@ const StaffManagementPage = () => {
       username: '',
       email: '',
       password: '',
-      role: 'staff',
+      role: 'waiter',
       first_name: '',
       last_name: '',
       phone: '',
@@ -565,8 +565,10 @@ const StaffManagementPage = () => {
                               ? 'bg-purple-400/20 text-purple-400 border border-purple-400/30'
                               : 'bg-blue-400/20 text-blue-400 border border-blue-400/30'
                             }`}>
-                            <span className="mr-1">{user.role === 'admin' ? '👑' : '👤'}</span>
-                            {user.role === 'admin' ? 'Administrator' : 'Staff Member'}
+                            <span className="mr-1">
+                              {user.role === 'admin' ? '👑' : user.role === 'kitchen' ? '🍳' : user.role === 'reception' ? '🛎️' : '🍽️'}
+                            </span>
+                            {user.role === 'admin' ? 'Administrator' : user.role === 'kitchen' ? 'Kitchen Staff' : user.role === 'reception' ? 'Reception' : 'Waiter'}
                           </span>
                         </div>
                         <div>
@@ -809,7 +811,9 @@ const StaffManagementPage = () => {
                       className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200 appearance-none cursor-pointer"
                       required
                     >
-                      <option value="staff">👤 Staff Member</option>
+                      <option value="waiter">🍽️ Waiter</option>
+                      <option value="reception">🛎️ Reception</option>
+                      <option value="kitchen">🍳 Kitchen Staff</option>
                       <option value="admin">👑 Administrator</option>
                     </select>
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -817,7 +821,7 @@ const StaffManagementPage = () => {
                     </div>
                   </div>
                   <p className="mt-1 text-xs text-sangeet-neutral-500">
-                    Staff can access kitchen display, Admins have full access
+                    Set the role permissions for this staff member.
                   </p>
                 </div>
               </div>
@@ -952,7 +956,9 @@ const StaffManagementPage = () => {
                     className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-md text-sangeet-neutral-100 focus:border-sangeet-400 focus:outline-none"
                     required
                   >
-                    <option value="staff">Staff</option>
+                    <option value="waiter">Waiter</option>
+                    <option value="reception">Reception</option>
+                    <option value="kitchen">Kitchen Staff</option>
                     <option value="admin">Admin</option>
                   </select>
                 </div>
