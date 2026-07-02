@@ -253,7 +253,7 @@ const createUser = async (req, res) => {
     // Insert new user
     const newUserResult = await pool.query(
       'INSERT INTO users (username, email, password_hash, role, first_name, last_name, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, username, email, role, first_name, last_name, phone, created_at',
-      [username, email, passwordHash, role || 'staff', first_name, last_name, phone]
+      [username, email, passwordHash, role || 'waiter', first_name, last_name, phone]
     );
 
     res.status(201).json({
@@ -480,7 +480,7 @@ const getUserStats = async (req, res) => {
 
     // Get users by role
     const adminUsers = await pool.query('SELECT COUNT(*) FROM users WHERE role = $1 AND is_active = true AND deleted_at IS NULL', ['admin']);
-    const staffUsers = await pool.query('SELECT COUNT(*) FROM users WHERE role = $1 AND is_active = true AND deleted_at IS NULL', ['staff']);
+    const staffUsers = await pool.query('SELECT COUNT(*) FROM users WHERE role IN ($1, $2, $3) AND is_active = true AND deleted_at IS NULL', ['kitchen', 'reception', 'waiter']);
 
     // Get recent users (last 30 days)
     const recentUsers = await pool.query(
