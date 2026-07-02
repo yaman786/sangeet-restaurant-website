@@ -186,7 +186,7 @@ const HistoryDashboard = () => {
                                 item.status === 'completed' ? 'bg-green-500/20 text-green-400' : 
                                 item.status === 'cancelled' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'
                               }`}>
-                                {item.status.toUpperCase()}
+                                {(item.status || 'unknown').toUpperCase()}
                               </span>
                             </td>
                           </>
@@ -205,7 +205,7 @@ const HistoryDashboard = () => {
                                 item.status === 'no-show' ? 'bg-purple-500/20 text-purple-400' : 
                                 'bg-gray-500/20 text-gray-400'
                               }`}>
-                                {item.status.toUpperCase()}
+                                {(item.status || 'unknown').toUpperCase()}
                               </span>
                             </td>
                           </>
