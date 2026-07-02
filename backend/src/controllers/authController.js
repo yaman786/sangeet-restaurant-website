@@ -11,32 +11,38 @@ if (!JWT_SECRET) {
 // Login admin/staff
 const login = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, password, email } = req.body;
 
-    if (!password || (!username && !email)) {
+    // The frontend sends the login input in the 'username' field.
+    // If it contains an '@', it's actually an email.
+    const loginInput = username || email;
+
+    if (!password || !loginInput) {
       return res.status(400).json({
         error: 'Username or email and password are required'
       });
     }
 
     // Input length validation to prevent CPU exhaustion
-    if (password.length > 100 || (username && username.length > 100) || (email && email.length > 100)) {
+    if (password.length > 100 || loginInput.length > 100) {
       return res.status(400).json({
         error: 'Input length exceeds maximum allowed limit'
       });
     }
 
+    const isEmail = loginInput.includes('@');
+
     // Find user by username or email
     let userResult;
-    if (username) {
+    if (isEmail) {
       userResult = await pool.query(
-        'SELECT * FROM users WHERE username = $1 AND is_active = true AND deleted_at IS NULL',
-        [username]
+        'SELECT * FROM users WHERE email = $1 AND is_active = true AND deleted_at IS NULL',
+        [loginInput]
       );
     } else {
       userResult = await pool.query(
-        'SELECT * FROM users WHERE email = $1 AND is_active = true AND deleted_at IS NULL',
-        [email]
+        'SELECT * FROM users WHERE username = $1 AND is_active = true AND deleted_at IS NULL',
+        [loginInput]
       );
     }
 
