@@ -118,7 +118,7 @@ const LoginPage = () => {
             {/* Username Field */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                Username
+                Username or Email
               </label>
               <input
                 type="text"
@@ -127,7 +127,7 @@ const LoginPage = () => {
                 value={credentials.username}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent transition-all duration-200"
-                placeholder="Enter your username"
+                placeholder="Enter your username or email"
                 required
               />
             </div>
