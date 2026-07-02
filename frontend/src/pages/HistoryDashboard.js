@@ -60,6 +60,14 @@ const HistoryDashboard = () => {
     }).format(amount);
   };
 
+  const safeFormatDate = (dateVal, formatStr) => {
+    if (!dateVal) return 'N/A';
+    const dateObj = new Date(dateVal);
+    // Check if valid date
+    if (isNaN(dateObj.getTime())) return 'Invalid Date';
+    return format(dateObj, formatStr);
+  };
+
   return (
     <div className="min-h-screen bg-sangeet-neutral-900 pb-12">
       <AdminHeader />
@@ -176,8 +184,8 @@ const HistoryDashboard = () => {
                       >
                         {activeTab === 'orders' ? (
                           <>
-                            <td className="p-4 text-white font-medium">{item.id.slice(0, 8)}</td>
-                            <td className="p-4 text-sangeet-neutral-300">{format(new Date(item.created_at), 'MMM dd, HH:mm')}</td>
+                            <td className="p-4 text-white font-medium">{(item.id || '').toString().slice(0, 8)}</td>
+                            <td className="p-4 text-sangeet-neutral-300">{safeFormatDate(item.created_at, 'MMM dd, HH:mm')}</td>
                             <td className="p-4 text-sangeet-neutral-300">{item.customer_name || 'Walk-in'}</td>
                             <td className="p-4 text-sangeet-neutral-300">Table {item.table_number || item.table_id}</td>
                             <td className="p-4 text-white font-medium">{formatCurrency(item.total_amount)}</td>
@@ -193,7 +201,7 @@ const HistoryDashboard = () => {
                         ) : (
                           <>
                             <td className="p-4 text-white font-medium">
-                              {format(new Date(item.date), 'MMM dd, yyyy')} <span className="text-sangeet-neutral-400 ml-2">{item.time}</span>
+                              {safeFormatDate(item.date, 'MMM dd, yyyy')} <span className="text-sangeet-neutral-400 ml-2">{item.time || ''}</span>
                             </td>
                             <td className="p-4 text-sangeet-neutral-300">{item.customer_name}</td>
                             <td className="p-4 text-sangeet-neutral-300">{item.customer_phone}</td>
