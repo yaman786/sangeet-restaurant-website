@@ -687,7 +687,7 @@ const AdminOrdersPage = () => {
                       <td className="px-6 py-4">
                         <div className="relative">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(order.status)} transition-all duration-300`}>
-                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            {(order.status || 'unknown').charAt(0).toUpperCase() + (order.status || 'unknown').slice(1)}
                           </span>
                           {order.updated_at && order.updated_at !== order.created_at && (
                             <div className="text-xs text-sangeet-neutral-500 mt-1">
@@ -792,7 +792,7 @@ const AdminOrdersPage = () => {
               {/* Order Status */}
               <div className="mb-6">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${getStatusColor(selectedOrderDetails.status)}`}>
-                  {selectedOrderDetails.status.charAt(0).toUpperCase() + selectedOrderDetails.status.slice(1)}
+                  {(selectedOrderDetails.status || 'unknown').charAt(0).toUpperCase() + (selectedOrderDetails.status || 'unknown').slice(1)}
                 </span>
               </div>
 
@@ -920,7 +920,7 @@ const AdminOrdersPage = () => {
                             Order #{order.order_number}
                           </span>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(order.status)}`}>
-                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            {(order.status || 'unknown').charAt(0).toUpperCase() + (order.status || 'unknown').slice(1)}
                           </span>
                         </div>
                         <span className="text-sangeet-neutral-400 text-sm">
