@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format, subDays } from 'date-fns';
+import { format, subDays, isValid, parseISO } from 'date-fns';
 import { toast } from 'react-hot-toast';
+import { X, Eye, User, Phone, Mail, Calendar, Clock, MessageSquare, Tag, Users } from 'lucide-react';
 import AdminHeader from '../components/AdminHeader';
 import { fetchAllOrders, fetchAllReservations } from '../services/api';
 
@@ -14,6 +15,9 @@ const HistoryDashboard = () => {
     startDate: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd'),
   });
+
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedReservation, setSelectedReservation] = useState(null);
 
   useEffect(() => {
     loadHistoryData();
@@ -160,6 +164,7 @@ const HistoryDashboard = () => {
                         <th className="p-4 text-sm font-semibold text-sangeet-neutral-300">Table</th>
                         <th className="p-4 text-sm font-semibold text-sangeet-neutral-300">Total</th>
                         <th className="p-4 text-sm font-semibold text-sangeet-neutral-300">Status</th>
+                        <th className="p-4 text-sm font-semibold text-sangeet-neutral-300 text-right">Actions</th>
                       </>
                     ) : (
                       <>
@@ -168,6 +173,7 @@ const HistoryDashboard = () => {
                         <th className="p-4 text-sm font-semibold text-sangeet-neutral-300">Phone</th>
                         <th className="p-4 text-sm font-semibold text-sangeet-neutral-300">Guests</th>
                         <th className="p-4 text-sm font-semibold text-sangeet-neutral-300">Status</th>
+                        <th className="p-4 text-sm font-semibold text-sangeet-neutral-300 text-right">Actions</th>
                       </>
                     )}
                   </tr>
@@ -197,6 +203,14 @@ const HistoryDashboard = () => {
                                 {(item.status || 'unknown').toUpperCase()}
                               </span>
                             </td>
+                            <td className="p-4 text-right">
+                              <button
+                                onClick={() => setSelectedOrder(item)}
+                                className="p-2 text-sangeet-neutral-400 hover:text-white hover:bg-sangeet-neutral-700 rounded-lg transition-colors inline-block"
+                              >
+                                <Eye size={18} />
+                              </button>
+                            </td>
                           </>
                         ) : (
                           <>
@@ -216,6 +230,14 @@ const HistoryDashboard = () => {
                                 {(item.status || 'unknown').toUpperCase()}
                               </span>
                             </td>
+                            <td className="p-4 text-right">
+                              <button
+                                onClick={() => setSelectedReservation(item)}
+                                className="p-2 text-sangeet-neutral-400 hover:text-white hover:bg-sangeet-neutral-700 rounded-lg transition-colors inline-block"
+                              >
+                                <Eye size={18} />
+                              </button>
+                            </td>
                           </>
                         )}
                       </motion.tr>
@@ -227,6 +249,160 @@ const HistoryDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Order Details Modal */}
+      <AnimatePresence>
+        {selectedOrder && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedOrder(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-2xl bg-sangeet-neutral-900 rounded-2xl shadow-2xl border border-sangeet-neutral-700 overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-sangeet-neutral-800 bg-sangeet-neutral-900/50">
+                <div>
+                  <h3 className="text-xl font-bold text-white">Order Details</h3>
+                  <p className="text-sangeet-neutral-400 text-sm mt-1">ID: {selectedOrder.id}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="p-2 text-sangeet-neutral-400 hover:text-white hover:bg-sangeet-neutral-800 rounded-xl transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto">
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-sangeet-neutral-800 p-4 rounded-xl">
+                    <p className="text-sm text-sangeet-neutral-400 mb-1">Customer</p>
+                    <p className="font-semibold text-white">{selectedOrder.customer_name || 'Walk-in'}</p>
+                  </div>
+                  <div className="bg-sangeet-neutral-800 p-4 rounded-xl">
+                    <p className="text-sm text-sangeet-neutral-400 mb-1">Table</p>
+                    <p className="font-semibold text-white">Table {selectedOrder.table_number || selectedOrder.table_id}</p>
+                  </div>
+                </div>
+                <h4 className="text-lg font-semibold text-white mb-4">Items</h4>
+                <div className="space-y-3">
+                  {selectedOrder.items && selectedOrder.items.length > 0 ? (
+                    selectedOrder.items.map((item, idx) => (
+                      <div key={idx} className="flex justify-between items-center p-3 bg-sangeet-neutral-800/50 rounded-lg">
+                        <div>
+                          <p className="text-white font-medium">{item.quantity}x {item.menu_item_name || 'Item'}</p>
+                          {item.notes && <p className="text-sm text-sangeet-neutral-400 mt-1">Note: {item.notes}</p>}
+                        </div>
+                        <p className="text-white font-medium">{formatCurrency(item.total_price)}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sangeet-neutral-400">No items found.</p>
+                  )}
+                </div>
+                <div className="mt-6 pt-4 border-t border-sangeet-neutral-800 flex justify-between items-center">
+                  <p className="text-lg text-sangeet-neutral-300">Total Amount</p>
+                  <p className="text-2xl font-bold text-white">{formatCurrency(selectedOrder.total_amount)}</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Reservation Details Modal */}
+      <AnimatePresence>
+        {selectedReservation && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedReservation(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-sangeet-neutral-900 rounded-2xl shadow-2xl border border-sangeet-neutral-700 overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-sangeet-neutral-800 bg-sangeet-neutral-900/50">
+                <h3 className="text-xl font-bold text-white">Reservation Details</h3>
+                <button
+                  onClick={() => setSelectedReservation(null)}
+                  className="p-2 text-sangeet-neutral-400 hover:text-white hover:bg-sangeet-neutral-800 rounded-xl transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto space-y-4">
+                <div className="flex items-center text-sangeet-neutral-300 bg-sangeet-neutral-800 p-4 rounded-xl">
+                  <User className="mr-3 text-sangeet-400" size={20} />
+                  <div>
+                    <p className="text-xs text-sangeet-neutral-500">Name</p>
+                    <p className="font-semibold text-white">{selectedReservation.customer_name}</p>
+                  </div>
+                </div>
+                <div className="flex items-center text-sangeet-neutral-300 bg-sangeet-neutral-800 p-4 rounded-xl">
+                  <Phone className="mr-3 text-sangeet-400" size={20} />
+                  <div>
+                    <p className="text-xs text-sangeet-neutral-500">Phone</p>
+                    <p className="font-semibold text-white">{selectedReservation.customer_phone}</p>
+                  </div>
+                </div>
+                {selectedReservation.customer_email && (
+                  <div className="flex items-center text-sangeet-neutral-300 bg-sangeet-neutral-800 p-4 rounded-xl">
+                    <Mail className="mr-3 text-sangeet-400" size={20} />
+                    <div>
+                      <p className="text-xs text-sangeet-neutral-500">Email</p>
+                      <p className="font-semibold text-white">{selectedReservation.customer_email}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center text-sangeet-neutral-300 bg-sangeet-neutral-800 p-4 rounded-xl">
+                    <Calendar className="mr-3 text-sangeet-400" size={20} />
+                    <div>
+                      <p className="text-xs text-sangeet-neutral-500">Date</p>
+                      <p className="font-semibold text-white">{safeFormatDate(selectedReservation.date, 'MMM dd, yyyy')}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center text-sangeet-neutral-300 bg-sangeet-neutral-800 p-4 rounded-xl">
+                    <Clock className="mr-3 text-sangeet-400" size={20} />
+                    <div>
+                      <p className="text-xs text-sangeet-neutral-500">Time</p>
+                      <p className="font-semibold text-white">{selectedReservation.time || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center text-sangeet-neutral-300 bg-sangeet-neutral-800 p-4 rounded-xl">
+                  <Users className="mr-3 text-sangeet-400" size={20} />
+                  <div>
+                    <p className="text-xs text-sangeet-neutral-500">Guests</p>
+                    <p className="font-semibold text-white">{selectedReservation.number_of_guests} People</p>
+                  </div>
+                </div>
+                {selectedReservation.special_requests && (
+                  <div className="flex items-start text-sangeet-neutral-300 bg-sangeet-neutral-800 p-4 rounded-xl">
+                    <MessageSquare className="mr-3 mt-1 text-sangeet-400" size={20} />
+                    <div>
+                      <p className="text-xs text-sangeet-neutral-500">Special Requests</p>
+                      <p className="font-medium text-white whitespace-pre-wrap">{selectedReservation.special_requests}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
