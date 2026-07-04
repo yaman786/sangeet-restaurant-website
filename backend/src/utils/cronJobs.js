@@ -1,10 +1,11 @@
+const logger = require("./logger");
 const cron = require('node-cron');
 const pool = require('../config/database');
 
 const initCronJobs = () => {
   // Run End-of-Day Sweep at 3:00 AM every day
   cron.schedule('0 3 * * *', async () => {
-    console.log('🧹 [CRON] Starting End-of-Day Sweep...');
+    logger.info('🧹 [CRON] Starting End-of-Day Sweep...');
     try {
       // 1. Archive Completed/Cancelled Orders older than 24 hours
       const orderResult = await pool.query(`
@@ -14,7 +15,7 @@ const initCronJobs = () => {
         AND updated_at < NOW() - INTERVAL '24 hours'
         AND is_archived = false
       `);
-      console.log(`🧹 [CRON] Swept ${orderResult.rowCount} orders into history.`);
+      logger.info(`🧹 [CRON] Swept ${orderResult.rowCount} orders into history.`);
 
       // 2a. Auto No-Show: Mark any unfulfilled reservations from past dates as 'no-show' and archive them.
       const noShowResult = await pool.query(`
@@ -24,7 +25,7 @@ const initCronJobs = () => {
         AND date < CURRENT_DATE
         AND is_archived = false
       `);
-      console.log(`🧹 [CRON] Auto-marked ${noShowResult.rowCount} unfulfilled past reservations as no-show.`);
+      logger.info(`🧹 [CRON] Auto-marked ${noShowResult.rowCount} unfulfilled past reservations as no-show.`);
 
       // 2b. Archive Completed/Cancelled Reservations from past dates
       const resResult = await pool.query(`
@@ -34,14 +35,14 @@ const initCronJobs = () => {
         AND date < CURRENT_DATE
         AND is_archived = false
       `);
-      console.log(`🧹 [CRON] Swept ${resResult.rowCount} completed/cancelled reservations into history.`);
+      logger.info(`🧹 [CRON] Swept ${resResult.rowCount} completed/cancelled reservations into history.`);
       
     } catch (error) {
-      console.error('❌ [CRON] Error during End-of-Day Sweep:', error);
+      logger.error('❌ [CRON] Error during End-of-Day Sweep:', error);
     }
   });
   
-  console.log('✅ Cron jobs initialized. End-of-Day sweep scheduled for 3:00 AM.');
+  logger.info('✅ Cron jobs initialized. End-of-Day sweep scheduled for 3:00 AM.');
 };
 
 module.exports = { initCronJobs };

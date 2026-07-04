@@ -1,5 +1,14 @@
+const logger = require('../utils/logger');
+const { AppError } = require('../utils/errors');
+const config = require('../config/env');
+
 /**
- * Centralized error handling middleware
+ * Centralized error handling middleware.
+ *
+ * Recognises AppError subclasses (from utils/errors.js) and maps them
+ * directly to the correct HTTP status and machine-readable code.
+ * Unknown errors fall through to a generic 500.
+ *
  * @param {Error} err - Error object
  * @param {express.Request} req - Express request object
  * @param {express.Response} res - Express response object
@@ -7,22 +16,44 @@
  */
 const errorHandler = (err, req, res, next) => {
   // Log error details
-  console.error('Error occurred:', {
+  logger.error('Error occurred:', {
     message: err.message,
-    stack: err.stack,
+    code: err.code || null,
     url: req.url,
     method: req.method,
     ip: req.ip,
-    userAgent: req.get('User-Agent'),
-    timestamp: new Date().toISOString()
+    ...(config.isDev && { stack: err.stack }),
   });
 
-  // Default error response
+  // ── AppError subclasses (our own custom errors) ───────────
+  if (err instanceof AppError) {
+    const response = {
+      error: {
+        message: err.message,
+        code: err.code,
+        status: err.statusCode,
+        timestamp: new Date().toISOString(),
+        path: req.url,
+        method: req.method,
+      },
+    };
+
+    if (err.details) {
+      response.error.details = err.details;
+    }
+
+    if (config.isDev) {
+      response.error.stack = err.stack;
+    }
+
+    return res.status(err.statusCode).json(response);
+  }
+
+  // ── Legacy / third-party errors ───────────────────────────
   let statusCode = 500;
   let message = 'Internal Server Error';
   let details = null;
 
-  // Handle different types of errors
   if (err.name === 'ValidationError') {
     statusCode = 400;
     message = 'Validation Error';
@@ -66,17 +97,16 @@ const errorHandler = (err, req, res, next) => {
       status: statusCode,
       timestamp: new Date().toISOString(),
       path: req.url,
-      method: req.method
-    }
+      method: req.method,
+    },
   };
 
   // Add details in development mode
-  if (process.env.NODE_ENV === 'development') {
+  if (config.isDev) {
     errorResponse.error.details = details || err.message;
     errorResponse.error.stack = err.stack;
   }
 
-  // Send error response
   res.status(statusCode).json(errorResponse);
 };
 

@@ -9,6 +9,7 @@ import {
   getUserStats
 } from '../services/api';
 import { getProfile } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import AdminHeader from '../components/AdminHeader';
 
@@ -36,10 +37,11 @@ const StaffManagementPage = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const navigate = useNavigate();
 
+  const { user: authUser, isAuthenticated, logout } = useAuth();
+  
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
-      if (!token) {
+      if (!isAuthenticated) {
         navigate('/login');
         return;
       }
@@ -57,8 +59,7 @@ const StaffManagementPage = () => {
         await loadData();
       } catch (error) {
         console.error('Auth check error:', error);
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminUser');
+        logout();
         navigate('/login');
         toast.error('Session expired. Please login again.');
       } finally {
@@ -67,7 +68,7 @@ const StaffManagementPage = () => {
     };
 
     checkAuth();
-  }, [navigate]);
+  }, [isAuthenticated, navigate, logout]);
 
   const loadData = async () => {
     try {

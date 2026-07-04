@@ -5,13 +5,15 @@ const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const http = require('http');
 const path = require('path');
-require('dotenv').config();
+
+// Import configuration and logger (Phase 0)
+const config = require('./config/env');
+const logger = require('./utils/logger');
 
 // Import middleware and utilities
 const { errorHandler } = require('./middleware/errorHandler');
 const { notFoundHandler } = require('./middleware/notFoundHandler');
 const { requestLogger } = require('./middleware/requestLogger');
-const { validateEnvironment } = require('./utils/environmentValidator');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -30,16 +32,6 @@ const { initializeSocket } = require('./socket');
 // Import database pool (for health check pings)
 const pool = require('./config/database');
 
-// Configuration constants
-const CONFIG = {
-  PORT: process.env.PORT || 5001,
-  NODE_ENV: process.env.NODE_ENV || 'development',
-  CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
-  RATE_LIMIT_WINDOW: 15 * 60 * 1000, // 15 minutes
-  RATE_LIMIT_MAX: 100, // requests per window
-  BODY_LIMIT: '10mb'
-};
-
 /**
  * Create and configure Express application
  * @returns {express.Application} Configured Express app
@@ -49,7 +41,7 @@ function createApp() {
   const server = http.createServer(app);
 
   // Validate environment variables
-  validateEnvironment();
+  config.validateConfig();
 
   // Security middleware
   app.use(helmet({
@@ -59,7 +51,7 @@ function createApp() {
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
         imgSrc: ["'self'", "data:", "https:", "https://images.unsplash.com"],
-        connectSrc: ["'self'", CONFIG.CLIENT_URL]
+        connectSrc: ["'self'", config.CLIENT_URL]
       }
     },
     crossOriginEmbedderPolicy: false
@@ -70,7 +62,7 @@ function createApp() {
 
   // CORS configuration - Allow specific origins for production
   const allowedOrigins = [
-    CONFIG.CLIENT_URL,
+    config.CLIENT_URL,
     'http://localhost:3000',
     'https://localhost:3000',
     'https://sangeet-restaurant-testing-frontend.vercel.app',
@@ -104,11 +96,11 @@ function createApp() {
   }));
 
   // Body parsing middleware
-  app.use(express.json({ limit: CONFIG.BODY_LIMIT }));
-  app.use(express.urlencoded({ extended: true, limit: CONFIG.BODY_LIMIT }));
+  app.use(express.json({ limit: config.BODY_LIMIT }));
+  app.use(express.urlencoded({ extended: true, limit: config.BODY_LIMIT }));
 
   // Request logging middleware
-  if (CONFIG.NODE_ENV === 'development') {
+  if (config.isDev) {
     app.use(requestLogger);
   }
 
@@ -120,13 +112,13 @@ function createApp() {
       dbStatus = result.rows[0]?.alive === 1 ? 'connected' : 'error';
     } catch (error) {
       dbStatus = 'disconnected';
-      console.error('🔴 Health check DB ping failed:', error.message);
+      logger.error('🔴 Health check DB ping failed:', error.message);
     }
 
     res.status(200).json({
       status: 'OK',
       timestamp: new Date().toISOString(),
-      environment: CONFIG.NODE_ENV,
+      environment: config.NODE_ENV,
       service: 'Sangeet Restaurant API',
       version: process.env.npm_package_version || '1.0.0',
       uptime: process.uptime(),
@@ -148,15 +140,13 @@ function createApp() {
     });
   });
 
-
-
   // Global rate limiter for all API routes
   const globalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 300, // Limit each IP to 300 requests per windowMs
+    windowMs: config.RATE_LIMIT_WINDOW_MS,
+    max: config.RATE_LIMIT_MAX,
     standardHeaders: true,
     legacyHeaders: false,
-    message: { error: 'Too many requests from this IP, please try again after 15 minutes' }
+    message: { error: 'Too many requests from this IP, please try again later' }
   });
   app.use('/api', globalLimiter);
 
@@ -185,60 +175,60 @@ function createApp() {
  * @param {http.Server} server - HTTP server
  */
 function startServer(app, server) {
-  const PORT = CONFIG.PORT;
+  const PORT = config.PORT;
 
   server.listen(PORT, () => {
-    console.log(`🚀 Sangeet Restaurant API running on port ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-    console.log(`🔌 WebSocket server initialized`);
-    console.log(`🌍 Environment: ${CONFIG.NODE_ENV}`);
-    console.log(`⏰ Started at: ${new Date().toISOString()}`);
+    logger.info(`🚀 Sangeet Restaurant API running on port ${PORT}`);
+    logger.info(`📊 Health check: http://localhost:${PORT}/api/health`);
+    logger.info(`🔌 WebSocket server initialized`);
+    logger.info(`🌍 Environment: ${config.NODE_ENV}`);
+    logger.info(`⏰ Started at: ${new Date().toISOString()}`);
 
     // Self-ping to prevent Render free tier from sleeping (every 4 minutes)
-    if (CONFIG.NODE_ENV === 'production') {
-      const SELF_PING_INTERVAL = 4 * 60 * 1000; // 4 minutes
-      const RENDER_URL = process.env.RENDER_EXTERNAL_URL || `https://sangeet-restaurant-api.onrender.com`;
+    if (config.isProd) {
+      const SELF_PING_INTERVAL = config.SELF_PING_INTERVAL_MS;
+      const RENDER_URL = config.RENDER_EXTERNAL_URL;
       
       setInterval(async () => {
         try {
           const response = await fetch(`${RENDER_URL}/api/health`);
           if (response.ok) {
-            console.log(`🏓 Self-ping successful at ${new Date().toISOString()}`);
+            logger.debug(`🏓 Self-ping successful at ${new Date().toISOString()}`);
           }
         } catch (error) {
-          console.log(`🏓 Self-ping failed: ${error.message}`);
+          logger.warn(`🏓 Self-ping failed: ${error.message}`);
         }
       }, SELF_PING_INTERVAL);
       
-      console.log(`🏓 Self-ping enabled: pinging every 4 minutes to prevent sleep`);
+      logger.info(`🏓 Self-ping enabled: pinging every 4 minutes to prevent sleep`);
     }
   });
 
   // Graceful shutdown handling
   process.on('SIGTERM', () => {
-    console.log('SIGTERM received, shutting down gracefully');
+    logger.info('SIGTERM received, shutting down gracefully');
     server.close(() => {
-      console.log('Process terminated');
+      logger.info('Process terminated');
       process.exit(0);
     });
   });
 
   process.on('SIGINT', () => {
-    console.log('SIGINT received, shutting down gracefully');
+    logger.info('SIGINT received, shutting down gracefully');
     server.close(() => {
-      console.log('Process terminated');
+      logger.info('Process terminated');
       process.exit(0);
     });
   });
 
   // Handle uncaught exceptions
   process.on('uncaughtException', (error) => {
-    console.error('Uncaught Exception:', error);
+    logger.error('Uncaught Exception:', error);
     process.exit(1);
   });
 
   process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
     process.exit(1);
   });
 }
@@ -251,15 +241,17 @@ const io = initializeSocket(server);
 
 // Initialize Cron Jobs
 const { initCronJobs } = require('./utils/cronJobs');
-initCronJobs();
 
-// Ensure database schema has necessary updated_at column
-pool.query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP')
-  .then(() => console.log('✅ Database schema verified: reservations table'))
-  .catch(err => console.error('❌ Database schema verification failed', err.message));
+if (require.main === module) {
+  initCronJobs();
 
-// Start server
-startServer(app, server);
+  // Ensure database schema has necessary updated_at column
+  pool.query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP')
+    .then(() => logger.info('✅ Database schema verified: reservations table'))
+    .catch(err => logger.error('❌ Database schema verification failed', err.message));
 
+  // Start server
+  startServer(app, server);
+}
 
-module.exports = { app, server }; 
+module.exports = { app, server };

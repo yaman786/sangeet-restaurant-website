@@ -1,3 +1,4 @@
+const logger = require("./logger");
 const QRCode = require('qrcode');
 
 // Generate QR code for a table
@@ -19,7 +20,7 @@ const generateQRCode = async (tableNumber, baseUrl = 'http://localhost:3000') =>
       qrCodeDataURL
     };
   } catch (error) {
-    console.error('Error generating QR code:', error);
+    logger.error('Error generating QR code:', error);
     throw error;
   }
 };
@@ -37,7 +38,7 @@ const generateAllQRCodes = async (baseUrl = 'http://localhost:3000') => {
     
     return qrCodes;
   } catch (error) {
-    console.error('Error generating all QR codes:', error);
+    logger.error('Error generating all QR codes:', error);
     throw error;
   }
 };

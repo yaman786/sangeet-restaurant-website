@@ -1,3 +1,4 @@
+const logger = require("./logger");
 const QRCode = require('qrcode');
 const sharp = require('sharp');
 const path = require('path');
@@ -102,7 +103,7 @@ class BeautifulQRGenerator {
       return outputBuffer;
 
     } catch (error) {
-      console.error('Error generating beautiful QR code:', error);
+      logger.error('Error generating beautiful QR code:', error);
       throw error;
     }
   }
@@ -146,7 +147,7 @@ class BeautifulQRGenerator {
       const logoBuffer = await fs.promises.readFile(this.logoPath);
       logoBase64 = logoBuffer.toString('base64');
     } catch (error) {
-      console.log('Logo not found, using text fallback');
+      logger.info('Logo not found, using text fallback');
     }
     
     // 1. Outer Padding (card edge to content) - Standard portrait format
@@ -327,7 +328,7 @@ class BeautifulQRGenerator {
       return outputBuffer;
 
     } catch (error) {
-      console.error('Error generating premium QR code:', error);
+      logger.error('Error generating premium QR code:', error);
       throw error;
     }
   }

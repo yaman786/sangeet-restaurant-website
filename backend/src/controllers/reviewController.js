@@ -1,147 +1,71 @@
-const pool = require('../config/database');
+const reviewService = require('../services/reviewService');
 
-// Get all reviews
-const getAllReviews = async (req, res) => {
+const getAllReviews = async (req, res, next) => {
   try {
-    const result = await pool.query(
-      'SELECT * FROM customer_reviews ORDER BY created_at DESC'
-    );
-    res.json(result.rows);
+    const reviews = await reviewService.getAllReviews();
+    res.json(reviews);
   } catch (error) {
-    console.error('Error fetching reviews:', error);
-    res.status(500).json({ error: 'Failed to fetch reviews' });
+    next(error);
   }
 };
 
-// Get verified reviews
-const getVerifiedReviews = async (req, res) => {
+const getVerifiedReviews = async (req, res, next) => {
   try {
-    const result = await pool.query(
-      'SELECT * FROM customer_reviews WHERE is_verified = true ORDER BY created_at DESC'
-    );
-    res.json(result.rows);
+    const reviews = await reviewService.getVerifiedReviews();
+    res.json(reviews);
   } catch (error) {
-    console.error('Error fetching verified reviews:', error);
-    res.status(500).json({ error: 'Failed to fetch verified reviews' });
+    next(error);
   }
 };
 
-// Submit a new review
-const createReview = async (req, res) => {
+const createReview = async (req, res, next) => {
   try {
-    const { customer_name, review_text, rating, image_url, order_id, table_number } = req.body;
-    
-    // Convert order_id to integer if it exists, otherwise null
-    const parsedOrderId = order_id ? parseInt(order_id, 10) : null;
-    
-    // Validate order_id is a valid number
-    if (order_id && (isNaN(parsedOrderId) || parsedOrderId <= 0)) {
-      return res.status(400).json({ error: 'Invalid order ID' });
-    }
-    
-    const result = await pool.query(
-      `INSERT INTO customer_reviews 
-       (customer_name, review_text, rating, image_url, order_id, table_number)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING *`,
-      [customer_name, review_text, rating, image_url || null, parsedOrderId, table_number || null]
-    );
-    
+    const review = await reviewService.createReview(req.body);
     res.status(201).json({
       message: 'Review submitted successfully',
-      review: result.rows[0]
+      review
     });
   } catch (error) {
-    console.error('Error submitting review:', error);
-    res.status(500).json({ error: 'Failed to submit review' });
+    next(error);
   }
 };
 
-// Get single review
-const getReviewById = async (req, res) => {
+const getReviewById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const result = await pool.query(
-      'SELECT * FROM customer_reviews WHERE id = $1',
-      [id]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Review not found' });
-    }
-    
-    res.json(result.rows[0]);
+    const review = await reviewService.getReviewById(req.params.id);
+    res.json(review);
   } catch (error) {
-    console.error('Error fetching review:', error);
-    res.status(500).json({ error: 'Failed to fetch review' });
+    next(error);
   }
 };
 
-// Update review verification status (Admin only)
-const updateReviewVerification = async (req, res) => {
+const updateReviewVerification = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { is_verified } = req.body;
-
-    const result = await pool.query(
-      'UPDATE customer_reviews SET is_verified = $1 WHERE id = $2 RETURNING *',
-      [is_verified, id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Review not found' });
-    }
-
+    const review = await reviewService.updateReviewVerification(req.params.id, req.body.is_verified);
     res.json({
       message: 'Review verification status updated successfully',
-      review: result.rows[0]
+      review
     });
   } catch (error) {
-    console.error('Error updating review verification:', error);
-    res.status(500).json({ error: 'Failed to update review verification' });
+    next(error);
   }
 };
 
-// Delete review (Admin only)
-const deleteReview = async (req, res) => {
+const deleteReview = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const result = await pool.query(
-      'DELETE FROM customer_reviews WHERE id = $1 RETURNING *',
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Review not found' });
-    }
-
+    await reviewService.deleteReview(req.params.id);
     res.json({ message: 'Review deleted successfully' });
   } catch (error) {
-    console.error('Error deleting review:', error);
-    res.status(500).json({ error: 'Failed to delete review' });
+    next(error);
   }
 };
 
-// Get review statistics
-const getReviewStats = async (req, res) => {
+const getReviewStats = async (req, res, next) => {
   try {
-    const statsResult = await pool.query(
-      `SELECT 
-        COUNT(*) as total_reviews,
-        COUNT(CASE WHEN is_verified = true THEN 1 END) as verified_reviews,
-        AVG(rating) as average_rating,
-        COUNT(CASE WHEN rating = 5 THEN 1 END) as five_star_reviews,
-        COUNT(CASE WHEN rating = 4 THEN 1 END) as four_star_reviews,
-        COUNT(CASE WHEN rating = 3 THEN 1 END) as three_star_reviews,
-        COUNT(CASE WHEN rating = 2 THEN 1 END) as two_star_reviews,
-        COUNT(CASE WHEN rating = 1 THEN 1 END) as one_star_reviews
-       FROM customer_reviews`
-    );
-
-    res.json(statsResult.rows[0]);
+    const stats = await reviewService.getReviewStats();
+    res.json(stats);
   } catch (error) {
-    console.error('Error fetching review statistics:', error);
-    res.status(500).json({ error: 'Failed to fetch review statistics' });
+    next(error);
   }
 };
 
@@ -153,4 +77,4 @@ module.exports = {
   updateReviewVerification,
   deleteReview,
   getReviewStats
-}; 
+};

@@ -1,6 +1,8 @@
+const config = require("../config/env");
+const logger = require("./logger");
 // Brevo Email Configuration
-const getSenderEmail = () => process.env.EMAIL_USER || 'ranayaman66@gmail.com';
-const getApiKey = () => process.env.BREVO_API_KEY || '';
+const getSenderEmail = () => config.EMAIL_USER;
+const getApiKey = () => config.BREVO_API_KEY;
 
 // HTML Escaping Utility for XSS Prevention
 const escapeHtml = (unsafe) => {
@@ -18,15 +20,15 @@ const sendTestEmail = async (to, template, data) => {
   try {
     const emailContent = emailTemplates[template](data);
     
-    console.log('📧 TEST EMAIL (not actually sent):');
-    console.log('📧 To:', to);
-    console.log('📧 Subject:', emailContent.subject);
-    console.log('📧 Content length:', emailContent.html.length, 'characters');
-    console.log('📧 Email would be sent successfully!');
+    logger.info('📧 TEST EMAIL (not actually sent):');
+    logger.info('📧 To:', to);
+    logger.info('📧 Subject:', emailContent.subject);
+    logger.info('📧 Content length:', emailContent.html.length, 'characters');
+    logger.info('📧 Email would be sent successfully!');
     
     return { success: true, messageId: 'test-' + Date.now() };
   } catch (error) {
-    console.error('❌ Test email error:', error.message);
+    logger.error('❌ Test email error:', error.message);
     return { success: false, error: error.message };
   }
 };
@@ -340,9 +342,9 @@ const sendEmail = async (to, template, data) => {
     
     // Check if we have proper API credentials
     if (!apiKey) {
-      console.log('📧 EMAIL LOGGED (not sent - missing BREVO_API_KEY):');
-      console.log('📧 To:', to);
-      console.log('📧 Subject:', emailContent.subject);
+      logger.info('📧 EMAIL LOGGED (not sent - missing BREVO_API_KEY):');
+      logger.info('📧 To:', to);
+      logger.info('📧 Subject:', emailContent.subject);
       return { success: true, messageId: 'logged-' + Date.now() };
     }
     
@@ -374,10 +376,10 @@ const sendEmail = async (to, template, data) => {
     }
 
     const result = await response.json();
-    console.log('📧 Email sent successfully via Brevo:', result.messageId);
+    logger.info('📧 Email sent successfully via Brevo:', result.messageId);
     return { success: true, messageId: result.messageId };
   } catch (error) {
-    console.error('❌ Error sending email via Brevo:', error);
+    logger.error('❌ Error sending email via Brevo:', error);
     return { success: false, error: error.message };
   }
 };
@@ -399,17 +401,17 @@ const sendReservationCancelledEmail = async (reservation) => {
 const testEmailConfig = async () => {
   try {
     const apiKey = getApiKey();
-    console.log('📧 Testing Brevo API configuration...');
-    console.log('📧 API Key:', apiKey ? '***SET***' : '***NOT SET***');
+    logger.info('📧 Testing Brevo API configuration...');
+    logger.info('📧 API Key:', apiKey ? '***SET***' : '***NOT SET***');
     
     if (apiKey) {
-      console.log('✅ Brevo configuration looks good');
+      logger.info('✅ Brevo configuration looks good');
       return true;
     } else {
       return false;
     }
   } catch (error) {
-    console.error('❌ Email configuration error:', error.message);
+    logger.error('❌ Email configuration error:', error.message);
     return false;
   }
 };

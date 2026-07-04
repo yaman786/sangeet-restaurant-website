@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getProfile } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import AdminHeader from '../components/AdminHeader';
 
 const AdminDashboard = () => {
@@ -16,23 +17,23 @@ const AdminDashboard = () => {
   // });
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          navigate('/login');
-          return;
-        }
+  const { user: authUser, isAuthenticated } = useAuth();
 
-        // Try to get user data from API
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!isAuthenticated) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        // Try to get latest user data from API
         const userData = await getProfile();
         setUser(userData.user);
       } catch (error) {
-        // Fallback to localStorage if API fails
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
+        // Fallback to context user if API fails
+        if (authUser) {
+          setUser(authUser);
         } else {
           navigate('/login');
         }
@@ -41,8 +42,8 @@ const AdminDashboard = () => {
       }
     };
 
-    checkAuth();
-  }, [navigate]);
+    fetchProfile();
+  }, [isAuthenticated, navigate, authUser]);
 
 
 

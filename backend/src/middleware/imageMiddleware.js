@@ -1,3 +1,4 @@
+const logger = require("../utils/logger");
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -59,7 +60,7 @@ const processImage = async (req, res, next) => {
     const outputDir = path.join(__dirname, '../../uploads/website/', media_key);
     ensureDirectoryExists(outputDir);
     
-    console.log(`🔄 Processing image for ${media_key}: ${filename}`);
+    logger.info(`🔄 Processing image for ${media_key}: ${filename}`);
     
     // Optimize image and create multiple sizes
     const optimizedImages = await imageOptimizer.optimizeImage(
@@ -81,11 +82,11 @@ const processImage = async (req, res, next) => {
       directory: outputDir
     };
     
-    console.log(`✅ Image processing complete: ${filename}`);
+    logger.info(`✅ Image processing complete: ${filename}`);
     next();
     
   } catch (error) {
-    console.error('Error processing image:', error);
+    logger.error('Error processing image:', error);
     
     // Clean up temp file on error
     if (req.file && req.file.path && fs.existsSync(req.file.path)) {

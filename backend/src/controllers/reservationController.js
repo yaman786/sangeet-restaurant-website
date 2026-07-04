@@ -1,459 +1,108 @@
-const pool = require('../config/database');
-const { sendReservationCreatedEmail, sendReservationConfirmedEmail, sendReservationCancelledEmail, sendTestEmail } = require('../utils/emailService');
+const reservationService = require('../services/reservationService');
 
-// Get all reservations with optional filters
-const getAllReservations = async (req, res) => {
+const getAllReservations = async (req, res, next) => {
   try {
-    const { status, date, table_id, history, startDate, endDate } = req.query;
-    let query = `
-      SELECT r.*, rt.table_number, rt.capacity, rt.table_type
-      FROM reservations r 
-      LEFT JOIN tables rt ON r.table_id = rt.id 
-      WHERE 1=1
-    `;
-    const params = [];
-    let paramCount = 0;
-
-    // History flag logic
-    if (history === 'true') {
-      query += ` AND r.is_archived = true`;
-    } else {
-      query += ` AND r.is_archived = false`;
-    }
-
-    if (status) {
-      paramCount++;
-      query += ` AND r.status = $${paramCount}`;
-      params.push(status);
-    }
-
-    if (date) {
-      paramCount++;
-      query += ` AND r.date = $${paramCount}`;
-      params.push(date);
-    }
-
-    if (table_id) {
-      paramCount++;
-      query += ` AND r.table_id = $${paramCount}`;
-      params.push(table_id);
-    }
-
-    if (startDate && endDate) {
-      paramCount++;
-      query += ` AND r.date >= $${paramCount}`;
-      params.push(startDate);
-      
-      paramCount++;
-      query += ` AND r.date <= $${paramCount}`;
-      params.push(endDate);
-    }
-
-    query += ` ORDER BY r.date ASC, r.time ASC`;
-
-    const result = await pool.query(query, params);
-    res.json(result.rows);
+    const reservations = await reservationService.getAllReservations(req.query);
+    res.json(reservations);
   } catch (error) {
-    console.error('Error fetching reservations:', error);
-    res.status(500).json({ error: 'Failed to fetch reservations' });
+    next(error);
   }
 };
 
-// Get reservation by ID
-const getReservationById = async (req, res) => {
+const getReservationById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const query = `
-      SELECT r.*, rt.table_number, rt.capacity, rt.table_type
-      FROM reservations r 
-      LEFT JOIN tables rt ON r.table_id = rt.id 
-      WHERE r.id = $1
-    `;
-    const result = await pool.query(query, [id]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Reservation not found' });
-    }
-    
-    res.json(result.rows[0]);
+    const reservation = await reservationService.getReservationById(req.params.id);
+    res.json(reservation);
   } catch (error) {
-    console.error('Error fetching reservation:', error);
-    res.status(500).json({ error: 'Failed to fetch reservation' });
+    next(error);
   }
 };
 
-// Get available tables for a given date, time, and guest count
-const getAvailableTables = async (req, res) => {
+const getAvailableTables = async (req, res, next) => {
   try {
     const { date, time, guests } = req.query;
-
-    if (!date || !time || !guests) {
-      return res.status(400).json({ error: 'Date, time, and guests are required' });
-    }
-
-    const query = `
-      SELECT rt.id, rt.table_number, rt.capacity, rt.table_type
-      FROM tables rt
-      WHERE rt.is_active = true
-        AND rt.capacity >= $3
-        AND NOT EXISTS (
-            SELECT 1 FROM reservations r
-            WHERE r.table_id = rt.id
-              AND r.date = $1
-              AND r.time = $2
-              AND r.status NOT IN ('cancelled', 'no-show')
-        )
-      ORDER BY rt.capacity ASC, rt.table_number ASC
-    `;
-    const result = await pool.query(query, [date, time, guests]);
-
-    res.json({
-      available_tables: result.rows,
-      total_available: result.rows.length
-    });
+    const result = await reservationService.getAvailableTables(date, time, guests);
+    res.json(result);
   } catch (error) {
-    console.error('Error fetching available tables:', error);
-    res.status(500).json({ error: 'Failed to fetch available tables' });
+    next(error);
   }
 };
 
-// Get available time slots for a given date
-const getAvailableTimeSlots = async (req, res) => {
+const getAvailableTimeSlots = async (req, res, next) => {
   try {
-    const { date, guests = 4 } = req.query;
-
-    if (!date) {
-      return res.status(400).json({ error: 'Date is required' });
-    }
-
-    const query = `
-      SELECT ts.time_slot, ts.max_reservations,
-             COUNT(r.id) as current_reservations,
-             (ts.max_reservations - COUNT(r.id)) as available_slots
-      FROM reservation_time_slots ts
-      LEFT JOIN reservations r ON ts.time_slot = r.time 
-        AND r.date = $1 
-        AND r.status NOT IN ('cancelled', 'no-show')
-      WHERE ts.is_active = true
-      GROUP BY ts.id, ts.time_slot, ts.max_reservations
-      HAVING (ts.max_reservations - COUNT(r.id)) > 0
-      ORDER BY ts.time_slot ASC
-    `;
-    
-    const result = await pool.query(query, [date]);
-    res.json(result.rows);
+    const result = await reservationService.getAvailableTimeSlots(req.query.date);
+    res.json(result);
   } catch (error) {
-    console.error('Error fetching available time slots:', error);
-    res.status(500).json({ error: 'Failed to fetch available time slots' });
+    next(error);
   }
 };
 
-// Create new reservation
-const createReservation = async (req, res) => {
+const createReservation = async (req, res, next) => {
   try {
-    const {
-      customer_name,
-      email,
-      phone,
-      table_id,
-      date,
-      time,
-      guests,
-      special_requests
-    } = req.body;
-
-    // Validate required fields
-    if (!customer_name || !email || !date || !time || !guests) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    // If table_id is not provided, find an available table
-    let finalTableId = table_id;
-    if (!finalTableId) {
-      // Simple query to find available table
-      const availableTablesQuery = `
-        SELECT rt.id, rt.table_number, rt.capacity
-        FROM tables rt
-        WHERE rt.is_active = true
-          AND rt.capacity >= $1
-          AND NOT EXISTS (
-              SELECT 1 FROM reservations r
-              WHERE r.table_id = rt.id
-                AND r.date = $2
-                AND r.status NOT IN ('cancelled', 'no-show')
-                AND r.time::time < ($3::time + interval '2 hours')
-                AND ($3::time < r.time::time + interval '2 hours')
-          )
-        ORDER BY rt.capacity ASC, rt.table_number ASC
-        LIMIT 1
-      `;
-      const availableResult = await pool.query(availableTablesQuery, [guests, date, time]);
-      
-      if (availableResult.rows.length === 0) {
-        return res.status(400).json({ error: 'No available tables for the selected date and time' });
-      }
-      
-      finalTableId = availableResult.rows[0].id;
-    } else {
-      // Check table availability with simple query
-      const availabilityQuery = `
-        SELECT 
-          rt.capacity >= $1 as can_accommodate,
-          NOT EXISTS (
-            SELECT 1 FROM reservations r
-            WHERE r.table_id = $2
-              AND r.date = $3
-              AND r.status NOT IN ('cancelled', 'no-show')
-              AND r.time::time < ($4::time + interval '2 hours')
-              AND ($4::time < r.time::time + interval '2 hours')
-          ) as is_available
-        FROM tables rt
-        WHERE rt.id = $2 AND rt.is_active = true
-      `;
-      const availabilityResult = await pool.query(availabilityQuery, [guests, finalTableId, date, time]);
-      
-      if (availabilityResult.rows.length === 0 || 
-          !availabilityResult.rows[0].can_accommodate || 
-          !availabilityResult.rows[0].is_available) {
-        return res.status(400).json({ error: 'Table not available for the selected date and time' });
-      }
-    }
-
-    // Create reservation
-    const query = `
-      INSERT INTO reservations (customer_name, email, phone, table_id, date, time, guests, special_requests, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending')
-      RETURNING *
-    `;
-    
-    const result = await pool.query(query, [
-      customer_name, email, phone, finalTableId, date, time, guests, special_requests
-    ]);
-
-    const newReservation = result.rows[0];
-
-    // Send email notification for new reservation in background
-    sendReservationCreatedEmail(newReservation).catch(emailError => {
-      console.error('Error sending reservation created email:', emailError);
-    });
-
+    const reservation = await reservationService.createReservation(req.body);
     res.status(201).json({
       message: 'Reservation created successfully',
-      reservation: newReservation
+      reservation
     });
   } catch (error) {
-    console.error('Error creating reservation:', error);
-    res.status(500).json({ error: 'Failed to create reservation' });
+    next(error);
   }
 };
 
-// Update reservation
-const updateReservation = async (req, res) => {
+const updateReservation = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const {
-      customer_name,
-      email,
-      phone,
-      table_id,
-      date,
-      time,
-      guests,
-      special_requests,
-      status
-    } = req.body;
-
-    // Check if reservation exists
-    const existingReservation = await pool.query('SELECT * FROM reservations WHERE id = $1', [id]);
-    if (existingReservation.rows.length === 0) {
-      return res.status(404).json({ error: 'Reservation not found' });
-    }
-
-    // If date, time, or table changed, check availability
-    if (date || time || table_id) {
-      const newDate = date || existingReservation.rows[0].date;
-      const newTime = time || existingReservation.rows[0].time;
-      const newTableId = table_id || existingReservation.rows[0].table_id;
-      const newGuests = guests || existingReservation.rows[0].guests;
-
-      const availabilityQuery = `
-        SELECT 
-          (SELECT capacity FROM tables WHERE id = $1) >= $4 as can_accommodate,
-          NOT EXISTS (
-            SELECT 1 FROM reservations r
-            WHERE r.table_id = $1
-              AND r.date = $2
-              AND r.id != $5
-              AND r.status NOT IN ('cancelled', 'no-show')
-              AND r.time::time < ($3::time + interval '2 hours')
-              AND ($3::time < r.time::time + interval '2 hours')
-        ) as check_table_availability
-      `;
-      const availabilityResult = await pool.query(availabilityQuery, [newTableId, newDate, newTime, newGuests, id]);
-      
-      if (!availabilityResult.rows[0].can_accommodate) {
-        return res.status(400).json({ error: 'Table capacity is too small for the requested number of guests' });
-      }
-      if (!availabilityResult.rows[0].check_table_availability) {
-        return res.status(400).json({ error: 'Table not available for the selected date and time' });
-      }
-    }
-
-    // Update reservation
-    const query = `
-      UPDATE reservations 
-      SET customer_name = COALESCE($1, customer_name),
-          email = COALESCE($2, email),
-          phone = COALESCE($3, phone),
-          table_id = COALESCE($4, table_id),
-          date = COALESCE($5, date),
-          time = COALESCE($6, time),
-          guests = COALESCE($7, guests),
-          special_requests = COALESCE($8, special_requests),
-          status = COALESCE($9, status),
-          updated_at = CURRENT_TIMESTAMP
-      WHERE id = $10
-      RETURNING *
-    `;
-    const values = [customer_name, email, phone, table_id, date, time, guests, special_requests, status, id];
-    const result = await pool.query(query, values);
-
+    const reservation = await reservationService.updateReservation(req.params.id, req.body);
     res.json({
       message: 'Reservation updated successfully',
-      reservation: result.rows[0]
+      reservation
     });
   } catch (error) {
-    console.error('Error updating reservation:', error);
-    res.status(500).json({ error: 'Failed to update reservation' });
+    next(error);
   }
 };
 
-// Update reservation status
-const updateReservationStatus = async (req, res) => {
+const updateReservationStatus = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { status } = req.body;
-
-    if (!status || !['pending', 'confirmed', 'cancelled', 'completed'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status' });
-    }
-
-    const query = `
-      UPDATE reservations 
-      SET status = $1, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $2
-      RETURNING *
-    `;
-    const result = await pool.query(query, [status, id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Reservation not found' });
-    }
-
-    const updatedReservation = result.rows[0];
-
-    // Send email notification based on status change in background
-    if (status === 'confirmed') {
-      sendReservationConfirmedEmail(updatedReservation).catch(e => console.error(e));
-    } else if (status === 'cancelled') {
-      sendReservationCancelledEmail(updatedReservation).catch(e => console.error(e));
-    }
-
+    const reservation = await reservationService.updateReservationStatus(req.params.id, req.body.status);
     res.json({
       message: 'Reservation status updated successfully',
-      reservation: updatedReservation
+      reservation
     });
   } catch (error) {
-    console.error('Error updating reservation status:', error);
-    res.status(500).json({ error: 'Failed to update reservation status', details: error.message });
+    next(error);
   }
 };
 
-// Delete reservation
-const deleteReservation = async (req, res) => {
+const deleteReservation = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const query = 'DELETE FROM reservations WHERE id = $1 RETURNING *';
-    const result = await pool.query(query, [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Reservation not found' });
-    }
-
+    const reservation = await reservationService.deleteReservation(req.params.id);
     res.json({
       message: 'Reservation deleted successfully',
-      reservation: result.rows[0]
+      reservation
     });
   } catch (error) {
-    console.error('Error deleting reservation:', error);
-    res.status(500).json({ error: 'Failed to delete reservation' });
+    next(error);
   }
 };
 
-// Check table availability
-const checkAvailability = async (req, res) => {
+const checkAvailability = async (req, res, next) => {
   try {
     const { table_id, date, time, guests } = req.query;
-
-    if (!table_id || !date || !time || !guests) {
-      return res.status(400).json({ error: 'Missing required parameters' });
-    }
-
-    const query = `
-      SELECT NOT EXISTS (
-        SELECT 1 FROM reservations r
-        WHERE r.table_id = $1
-          AND r.date = $2
-          AND r.time = $3
-          AND r.status NOT IN ('cancelled', 'no-show')
-      ) as check_table_availability
-    `;
-    const result = await pool.query(query, [table_id, date, time]);
-
-    res.json({
-      available: result.rows[0].check_table_availability
-    });
+    const available = await reservationService.checkAvailability(table_id, date, time, guests);
+    res.json({ available });
   } catch (error) {
-    console.error('Error checking availability:', error);
-    res.status(500).json({ error: 'Failed to check availability' });
+    next(error);
   }
 };
 
-
-
-// Get reservation statistics
-const getReservationStats = async (req, res) => {
+const getReservationStats = async (req, res, next) => {
   try {
-    const { date } = req.query;
-    let dateFilter = '';
-    let params = [];
-
-    if (date) {
-      dateFilter = 'WHERE date = $1';
-      params.push(date);
-    }
-
-    const query = `
-      SELECT 
-        COUNT(*) as total_reservations,
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_reservations,
-        COUNT(CASE WHEN status = 'confirmed' THEN 1 END) as confirmed_reservations,
-        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled_reservations,
-        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_reservations,
-        SUM(guests) as total_guests
-      FROM reservations
-      ${dateFilter}
-    `;
-
-    const result = await pool.query(query, params);
-    res.json(result.rows[0]);
+    const stats = await reservationService.getReservationStats(req.query.date);
+    res.json(stats);
   } catch (error) {
-    console.error('Error fetching reservation stats:', error);
-    res.status(500).json({ error: 'Failed to fetch reservation statistics' });
+    next(error);
   }
 };
-
-
 
 module.exports = {
   getAllReservations,
@@ -466,4 +115,4 @@ module.exports = {
   getReservationStats,
   getAvailableTables,
   getAvailableTimeSlots
-}; 
+};

@@ -51,7 +51,7 @@ const api = axios.create({
  * @returns {string|null} Auth token or null
  */
 const getAuthToken = () => {
-  const token = localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('adminToken');
+  const token = localStorage.getItem('sangeet_token') || localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('adminToken');
 
   // Validate token format (basic check)
   if (token && token.split('.').length === 3) {
@@ -60,6 +60,7 @@ const getAuthToken = () => {
 
   // Clear invalid token
   if (token) {
+    localStorage.removeItem('sangeet_token');
     localStorage.removeItem('token');
     localStorage.removeItem('authToken');
     localStorage.removeItem('adminToken');
@@ -86,6 +87,8 @@ const addAuthToken = (config) => {
  */
 const handleAuthFailure = () => {
   // Clear all auth tokens
+  localStorage.removeItem('sangeet_token');
+  localStorage.removeItem('sangeet_user');
   localStorage.removeItem('token');
   localStorage.removeItem('authToken');
   localStorage.removeItem('adminToken');

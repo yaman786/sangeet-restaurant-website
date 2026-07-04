@@ -10,6 +10,7 @@ import {
   fetchOrderStats,
   fetchTables
 } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const OrderManagementPage = () => {
   const [orders, setOrders] = useState([]);
@@ -28,16 +29,10 @@ const OrderManagementPage = () => {
   const [updatingOrder, setUpdatingOrder] = useState(null); // Track which order is being updated
   const [completedOrders, setCompletedOrders] = useState([]); // Track completed orders separately
 
+  const { user } = useAuth();
+
   useEffect(() => {
-    // Get user role from localStorage
-    const adminUser = localStorage.getItem('adminUser');
-    const kitchenUser = localStorage.getItem('kitchenUser');
-    
-    if (adminUser) {
-      const user = JSON.parse(adminUser);
-      setUserRole(user.role);
-    } else if (kitchenUser) {
-      const user = JSON.parse(kitchenUser);
+    if (user) {
       setUserRole(user.role);
     }
     

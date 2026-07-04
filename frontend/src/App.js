@@ -37,7 +37,7 @@ import ReviewSubmissionPage from './pages/ReviewSubmissionPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import OrderTrackingPage from './pages/OrderTrackingPage';
 import UnifiedOrderPage from './pages/UnifiedOrderPage';
-import UnifiedDashboardPage from './pages/UnifiedDashboardPage';
+import UnifiedDashboard from './pages/UnifiedDashboard';
 import HistoryDashboard from './pages/HistoryDashboard';
 
 import NotFoundPage from './pages/NotFoundPage';
@@ -352,7 +352,7 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <UnifiedDashboardPage />
+                <UnifiedDashboard />
               }
             />
           </Routes>

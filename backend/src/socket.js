@@ -1,11 +1,12 @@
 const { Server } = require('socket.io');
+const config = require('./config/env');
 
 let ioInstance = null;
 
 const initializeSocket = (server) => {
   // CORS configuration for socket.io - allow multiple origins
   const allowedOrigins = [
-    process.env.CLIENT_URL || "http://localhost:3000",
+    config.CLIENT_URL,
     'http://localhost:3000',
     'https://localhost:3000',
     'https://sangeet-restaurant-testing-frontend.vercel.app',
@@ -14,7 +15,7 @@ const initializeSocket = (server) => {
     /https:\/\/.*\.netlify\.app$/
   ];
 
-  io = new Server(server, {
+  const io = new Server(server, {
     cors: {
       origin: function (origin, callback) {
         // Allow requests with no origin (mobile apps, curl, etc.)
@@ -174,4 +175,4 @@ module.exports = {
   emitOrderCompleted,
   emitOrderCancelled,
   emitOrderDeleted
-}; 
+};

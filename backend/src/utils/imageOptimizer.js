@@ -1,3 +1,4 @@
+const logger = require("./logger");
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs').promises;
@@ -24,7 +25,7 @@ class ImageOptimizer {
       const image = sharp(inputPath);
       const metadata = await image.metadata();
       
-      console.log(`📸 Processing image: ${filename} (${metadata.width}x${metadata.height})`);
+      logger.info(`📸 Processing image: ${filename} (${metadata.width}x${metadata.height})`);
       
       const optimizedImages = {};
 
@@ -44,7 +45,7 @@ class ImageOptimizer {
           .toFile(outputPath);
         
         optimizedImages[sizeName] = outputPath;
-        console.log(`✅ Created ${sizeName}: ${dimensions.width}x${dimensions.height}`);
+        logger.info(`✅ Created ${sizeName}: ${dimensions.width}x${dimensions.height}`);
       }
 
       // Create WebP versions for modern browsers
@@ -58,7 +59,7 @@ class ImageOptimizer {
 
       return optimizedImages;
     } catch (error) {
-      console.error('Error optimizing image:', error);
+      logger.error('Error optimizing image:', error);
       throw error;
     }
   }
@@ -103,11 +104,11 @@ class ImageOptimizer {
         
         if (now - stats.mtime.getTime() > maxAgeMs) {
           await fs.unlink(filePath);
-          console.log(`🗑️ Cleaned up old image: ${file}`);
+          logger.info(`🗑️ Cleaned up old image: ${file}`);
         }
       }
     } catch (error) {
-      console.error('Error cleaning up images:', error);
+      logger.error('Error cleaning up images:', error);
     }
   }
 }

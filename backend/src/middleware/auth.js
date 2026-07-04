@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken');
+const config = require('../config/env');
+const logger = require('../utils/logger');
 
-// JWT Secret (in production, use environment variable)
-const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'development' ? 'sangeet-restaurant-secret-key' : null);
+// JWT Secret — sourced from centralised config
+const JWT_SECRET = config.JWT_SECRET;
 if (!JWT_SECRET) {
   throw new Error('FATAL ERROR: JWT_SECRET is not defined in production.');
 }
@@ -73,4 +75,4 @@ module.exports = {
   requireRole,
   requireAuth,
   VALID_ROLES
-}; 
+};

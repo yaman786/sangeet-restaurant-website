@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { loginUser } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import logoImage from '../assets/images/logo.png';
 
 const LoginPage = () => {
+  const { login } = useAuth();
   const [credentials, setCredentials] = useState({
     username: '',
     password: ''
@@ -37,9 +39,8 @@ const LoginPage = () => {
       const response = await loginUser(credentials);
       const { user, token } = response;
 
-      // Store token and user data
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      // Store token and user data using AuthContext
+      login(token, user);
 
       // Show success message
       toast.success(`Welcome back, ${user.first_name}!`);
@@ -60,8 +61,6 @@ const LoginPage = () => {
       setIsLoading(false);
     }
   };
-
-  // Demo credentials function removed
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-800 flex items-center justify-center p-4">
@@ -172,8 +171,6 @@ const LoginPage = () => {
               </div>
             )}
           </form>
-
-                      {/* Demo credentials section removed */}
         </motion.div>
 
         {/* Footer */}

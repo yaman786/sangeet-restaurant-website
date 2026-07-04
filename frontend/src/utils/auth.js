@@ -1,12 +1,18 @@
 import toast from 'react-hot-toast';
 
+const TOKEN_KEY = 'sangeet_token';
+const USER_KEY = 'sangeet_user';
+
 /**
  * Universal logout function that clears all authentication data
  * and redirects to login page
  */
 export const logout = (navigate) => {
   try {
-    // Clear all possible authentication tokens and user data
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    
+    // Clear old tokens just in case
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('authToken');
@@ -20,13 +26,16 @@ export const logout = (navigate) => {
     toast.success('Logged out successfully');
     
     // Redirect to login page
-    navigate('/login');
+    if (navigate) {
+      navigate('/login');
+    }
     
     console.log('🔓 User logged out successfully');
   } catch (error) {
     console.error('Error during logout:', error);
-    // Still redirect to login even if there's an error
-    navigate('/login');
+    if (navigate) {
+      navigate('/login');
+    }
   }
 };
 
@@ -34,33 +43,16 @@ export const logout = (navigate) => {
  * Check if user is authenticated (any role)
  */
 export const isAuthenticated = () => {
-  const token = localStorage.getItem('token');
-  const authToken = localStorage.getItem('authToken');
-  const adminToken = localStorage.getItem('adminToken');
-  const kitchenToken = localStorage.getItem('kitchenToken');
-  
-  return !!(token || authToken || adminToken || kitchenToken);
+  return !!localStorage.getItem(TOKEN_KEY);
 };
 
 /**
- * Get current user data (from any stored location)
+ * Get current user data
  */
 export const getCurrentUser = () => {
   try {
-    // Try to get user from different storage locations
-    let user = null;
-    
-    if (localStorage.getItem('user')) {
-      user = JSON.parse(localStorage.getItem('user'));
-    } else if (localStorage.getItem('authUser')) {
-      user = JSON.parse(localStorage.getItem('authUser'));
-    } else if (localStorage.getItem('adminUser')) {
-      user = JSON.parse(localStorage.getItem('adminUser'));
-    } else if (localStorage.getItem('kitchenUser')) {
-      user = JSON.parse(localStorage.getItem('kitchenUser'));
-    }
-    
-    return user;
+    const userStr = localStorage.getItem(USER_KEY);
+    return userStr ? JSON.parse(userStr) : null;
   } catch (error) {
     console.error('Error parsing user data:', error);
     return null;
@@ -86,5 +78,5 @@ export const isAdmin = () => {
  * Check if user has staff role
  */
 export const isStaff = () => {
-  return getUserRole() === 'staff';
+  return getUserRole() === 'staff' || getUserRole() === 'admin';
 };

@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import OrderQueue from '../components/OrderQueue';
 import CustomDropdown from '../components/CustomDropdown';
-import { logout } from '../utils/auth';
+import { useAuth } from '../contexts/AuthContext';
 import { isNewItem, getTimeSinceAdded, sortItemsByNewness } from '../utils/itemUtils';
 
 const KitchenDisplayPage = () => {
@@ -34,42 +34,17 @@ const KitchenDisplayPage = () => {
   const [userType, setUserType] = useState(null); // 'admin' or 'kitchen'
   const navigate = useNavigate();
 
+  const { user: authUser, isAuthenticated, logout } = useAuth();
+
   useEffect(() => {
-    // Check if admin or kitchen user is logged in (admin takes priority)
-    const token = localStorage.getItem('token'); // New admin token format
-    const adminToken = localStorage.getItem('adminToken'); // Old admin token format
-    const kitchenToken = localStorage.getItem('kitchenToken');
-    const user = localStorage.getItem('user'); // New admin user format
-    const adminUser = localStorage.getItem('adminUser'); // Old admin user format
-    const kitchenUser = localStorage.getItem('kitchenUser');
-    
-    // Kitchen Display Auth Check - Prioritize new token format
-    
-    if ((token || adminToken) && (user || adminUser)) {
-      try {
-        const userData = user ? JSON.parse(user) : JSON.parse(adminUser);
-        // Setting as Admin
-        setKitchenUser(userData);
-        setUserType('admin');
-      } catch (error) {
-        console.error('Error parsing admin user data:', error);
-        navigate('/login');
-      }
-    } else if (kitchenToken && kitchenUser) {
-      try {
-        const userData = JSON.parse(kitchenUser);
-        // Setting as Kitchen Staff
-        setKitchenUser(userData);
-        setUserType('kitchen');
-      } catch (error) {
-        console.error('Error parsing kitchen user data:', error);
-        navigate('/login');
-      }
-    } else {
-      // No valid tokens found, redirecting to login
+    if (!isAuthenticated) {
       navigate('/login');
+      return;
     }
-  }, [navigate]);
+    
+    setKitchenUser(authUser);
+    setUserType(authUser?.role === 'admin' ? 'admin' : 'kitchen');
+  }, [isAuthenticated, navigate, authUser]);
 
   const handleStatsUpdate = (stats) => {
     setOrderStats(stats);

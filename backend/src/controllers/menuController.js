@@ -1,384 +1,92 @@
-const pool = require('../config/database');
+const menuService = require('../services/menuService');
 
-// Get all menu items with optional filters
-const getAllMenuItems = async (req, res) => {
+const getAllMenuItems = async (req, res, next) => {
   try {
-    const { category, search, sort = 'name', order = 'ASC' } = req.query;
-
-    let query = `
-      SELECT 
-        mi.*,
-        c.name as category_name
-      FROM menu_items mi
-      LEFT JOIN categories c ON mi.category_id = c.id
-      WHERE mi.is_active = true
-    `;
-
-    const params = [];
-    let paramCount = 0;
-
-    // Add category filter
-    if (category) {
-      paramCount++;
-      query += ` AND c.name = $${paramCount}`;
-      params.push(category);
-    }
-
-    // Add search filter
-    if (search) {
-      paramCount++;
-      query += ` AND (mi.name ILIKE $${paramCount} OR mi.description ILIKE $${paramCount})`;
-      params.push(`%${search}%`);
-    }
-
-    // Add sorting (with strictly whitelisted parameters to prevent SQL injection)
-    const allowedSortFields = ['id', 'name', 'price', 'category_id', 'is_popular', 'is_vegetarian', 'is_spicy'];
-    const allowedOrder = ['ASC', 'DESC'];
-    
-    const safeSort = allowedSortFields.includes(sort) ? sort : 'name';
-    const safeOrder = allowedOrder.includes(order ? order.toUpperCase() : '') ? order.toUpperCase() : 'ASC';
-
-    query += ` ORDER BY mi.${safeSort} ${safeOrder}`;
-
-    const result = await pool.query(query, params);
-    res.json(result.rows);
+    const items = await menuService.getAllMenuItems(req.query);
+    res.json(items);
   } catch (error) {
-    console.error('Error fetching menu items:', error);
-    res.status(500).json({ error: 'Failed to fetch menu items' });
+    next(error);
   }
 };
 
-// Get menu item by ID
-const getMenuItemById = async (req, res) => {
+const getMenuItemById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid menu item ID' });
-    }
-    
-    const result = await pool.query(`
-      SELECT 
-        mi.*,
-        c.name as category_name
-      FROM menu_items mi
-      LEFT JOIN categories c ON mi.category_id = c.id
-      WHERE mi.id = $1 AND mi.is_active = true
-    `, [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Menu item not found' });
-    }
-
-    res.json(result.rows[0]);
+    const item = await menuService.getMenuItemById(req.params.id);
+    res.json(item);
   } catch (error) {
-    console.error('Error fetching menu item:', error);
-    res.status(500).json({ error: 'Failed to fetch menu item' });
+    next(error);
   }
 };
 
-// Create new menu item
-const createMenuItem = async (req, res) => {
+const createMenuItem = async (req, res, next) => {
   try {
-    const {
-      name,
-      description,
-      price,
-      category_id,
-      image_url,
-      is_vegetarian = false,
-      is_spicy = false,
-      is_popular = false,
-      preparation_time = 15
-    } = req.body;
-
-    // Validate required fields
-    if (!name || price === undefined || !category_id) {
-      return res.status(400).json({
-        error: 'Name, price, and category are required'
-      });
-    }
-
-    if (price < 0) {
-      return res.status(400).json({
-        error: 'Price cannot be negative'
-      });
-    }
-
-    // Validate category exists and get name
-    const categoryResult = await pool.query(
-      'SELECT id, name FROM categories WHERE id = $1',
-      [category_id]
-    );
-
-    if (categoryResult.rows.length === 0) {
-      return res.status(400).json({ error: 'Category not found' });
-    }
-
-    const categoryName = categoryResult.rows[0].name;
-
-    const result = await pool.query(`
-      INSERT INTO menu_items (
-        name, description, price, category_id, category, image_url, 
-        is_vegetarian, is_spicy, is_popular, preparation_time
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      RETURNING *
-    `, [
-      name, description, price, category_id, categoryName, image_url,
-      is_vegetarian, is_spicy, is_popular, preparation_time
-    ]);
-
-    res.status(201).json(result.rows[0]);
+    const item = await menuService.createMenuItem(req.body);
+    res.status(201).json(item);
   } catch (error) {
-    console.error('Error creating menu item:', error);
-    res.status(500).json({ error: 'Failed to create menu item' });
+    next(error);
   }
 };
 
-// Update menu item
-const updateMenuItem = async (req, res) => {
+const updateMenuItem = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid menu item ID' });
-    }
-    
-    const {
-      name,
-      description,
-      price,
-      category_id,
-      image_url,
-      is_vegetarian,
-      is_spicy,
-      is_popular,
-      preparation_time,
-      is_active
-    } = req.body;
-
-    if (price !== undefined && price < 0) {
-      return res.status(400).json({ error: 'Price cannot be negative' });
-    }
-
-    // Check if menu item exists
-    const existingItem = await pool.query(
-      'SELECT id FROM menu_items WHERE id = $1',
-      [id]
-    );
-
-    if (existingItem.rows.length === 0) {
-      return res.status(404).json({ error: 'Menu item not found' });
-    }
-
-    // Validate category if provided
-    if (category_id) {
-      const categoryResult = await pool.query(
-        'SELECT id FROM categories WHERE id = $1',
-        [category_id]
-      );
-
-      if (categoryResult.rows.length === 0) {
-        return res.status(400).json({ error: 'Category not found' });
-      }
-    }
-
-    const result = await pool.query(`
-      UPDATE menu_items SET
-        name = COALESCE($1, name),
-        description = COALESCE($2, description),
-        price = COALESCE($3, price),
-        category_id = COALESCE($4, category_id),
-        image_url = COALESCE($5, image_url),
-        is_vegetarian = COALESCE($6, is_vegetarian),
-        is_spicy = COALESCE($7, is_spicy),
-        is_popular = COALESCE($8, is_popular),
-        preparation_time = COALESCE($9, preparation_time),
-        is_active = COALESCE($10, is_active),
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = $11
-      RETURNING *
-    `, [
-      name, description, price, category_id, image_url,
-      is_vegetarian, is_spicy, is_popular, preparation_time, is_active, id
-    ]);
-
-    res.json(result.rows[0]);
+    const item = await menuService.updateMenuItem(req.params.id, req.body);
+    res.json(item);
   } catch (error) {
-    console.error('Error updating menu item:', error);
-    res.status(500).json({ error: 'Failed to update menu item' });
+    next(error);
   }
 };
 
-// Delete menu item (soft delete)
-const deleteMenuItem = async (req, res) => {
+const deleteMenuItem = async (req, res, next) => {
   try {
-    const { id } = req.params;
-
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid menu item ID' });
-    }
-
-    const result = await pool.query(`
-      UPDATE menu_items SET 
-        is_active = false, 
-        updated_at = CURRENT_TIMESTAMP 
-      WHERE id = $1 
-      RETURNING id
-    `, [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Menu item not found' });
-    }
-
+    await menuService.deleteMenuItem(req.params.id);
     res.json({ message: 'Menu item deleted successfully' });
   } catch (error) {
-    console.error('Error deleting menu item:', error);
-    res.status(500).json({ error: 'Failed to delete menu item' });
+    next(error);
   }
 };
 
-// Get all categories
-const getAllCategories = async (req, res) => {
+const getAllCategories = async (req, res, next) => {
   try {
-    const result = await pool.query(`
-      SELECT 
-        c.*,
-        COUNT(mi.id) as item_count
-      FROM categories c
-      LEFT JOIN menu_items mi ON c.id = mi.category_id AND mi.is_active = true
-      WHERE c.is_active = true
-      GROUP BY c.id
-      ORDER BY c.display_order, c.name
-    `);
-
-    res.json(result.rows);
+    const categories = await menuService.getAllCategories();
+    res.json(categories);
   } catch (error) {
-    console.error('Error fetching categories:', error);
-    res.status(500).json({ error: 'Failed to fetch categories' });
+    next(error);
   }
 };
 
-// Create new category
-const createCategory = async (req, res) => {
+const createCategory = async (req, res, next) => {
   try {
-    const { name, description, display_order = 0 } = req.body;
-
-    if (!name) {
-      return res.status(400).json({ error: 'Category name is required' });
-    }
-
-    const result = await pool.query(`
-      INSERT INTO categories (name, description, display_order)
-      VALUES ($1, $2, $3)
-      RETURNING *
-    `, [name, description, display_order]);
-
-    res.status(201).json(result.rows[0]);
+    const category = await menuService.createCategory(req.body);
+    res.status(201).json(category);
   } catch (error) {
-    console.error('Error creating category:', error);
-    res.status(500).json({ error: 'Failed to create category' });
+    next(error);
   }
 };
 
-// Update category
-const updateCategory = async (req, res) => {
+const updateCategory = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { name, description, display_order } = req.body;
-
-    const result = await pool.query(`
-      UPDATE categories SET
-        name = COALESCE($1, name),
-        description = COALESCE($2, description),
-        display_order = COALESCE($3, display_order),
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = $4
-      RETURNING *
-    `, [name, description, display_order, id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Category not found' });
-    }
-
-    res.json(result.rows[0]);
+    const category = await menuService.updateCategory(req.params.id, req.body);
+    res.json(category);
   } catch (error) {
-    console.error('Error updating category:', error);
-    res.status(500).json({ error: 'Failed to update category' });
+    next(error);
   }
 };
 
-// Delete category
-const deleteCategory = async (req, res) => {
+const deleteCategory = async (req, res, next) => {
   try {
-    const { id } = req.params;
-
-    // Check if category has active menu items
-    const itemsResult = await pool.query(
-      'SELECT COUNT(*) FROM menu_items WHERE category_id = $1 AND is_active = true',
-      [id]
-    );
-
-    if (parseInt(itemsResult.rows[0].count) > 0) {
-      return res.status(400).json({
-        error: 'Cannot delete category with active menu items'
-      });
-    }
-
-    const result = await pool.query(`
-      UPDATE categories SET 
-        is_active = false, 
-        updated_at = CURRENT_TIMESTAMP 
-      WHERE id = $1 
-      RETURNING id
-    `, [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Category not found' });
-    }
-
+    await menuService.deleteCategory(req.params.id);
     res.json({ message: 'Category deleted successfully' });
   } catch (error) {
-    console.error('Error deleting category:', error);
-    res.status(500).json({ error: 'Failed to delete category' });
+    next(error);
   }
 };
 
-// Get menu statistics
-const getMenuStats = async (req, res) => {
+const getMenuStats = async (req, res, next) => {
   try {
-    const stats = await pool.query(`
-      SELECT 
-        COUNT(*) as total_items,
-        COUNT(CASE WHEN is_vegetarian = true THEN 1 END) as vegetarian_items,
-        COUNT(CASE WHEN is_spicy = true THEN 1 END) as spicy_items,
-        COUNT(CASE WHEN is_popular = true THEN 1 END) as popular_items,
-        AVG(price) as average_price,
-        MIN(price) as min_price,
-        MAX(price) as max_price
-      FROM menu_items 
-      WHERE is_active = true
-    `);
-
-    const categoryStats = await pool.query(`
-      SELECT 
-        c.name as category_name,
-        COUNT(mi.id) as item_count,
-        AVG(mi.price) as avg_price
-      FROM categories c
-      LEFT JOIN menu_items mi ON c.id = mi.category_id AND mi.is_active = true
-      WHERE c.is_active = true
-      GROUP BY c.id, c.name
-      ORDER BY item_count DESC
-    `);
-
-    res.json({
-      overall: stats.rows[0],
-      byCategory: categoryStats.rows
-    });
+    const stats = await menuService.getMenuStats();
+    res.json(stats);
   } catch (error) {
-    console.error('Error fetching menu stats:', error);
-    res.status(500).json({ error: 'Failed to fetch menu statistics' });
+    next(error);
   }
 };
 

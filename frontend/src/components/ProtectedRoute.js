@@ -1,51 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const ProtectedRoute = ({ children, requiredRole = null }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState(null);
   const location = useLocation();
 
   useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem('token');
-      const adminToken = localStorage.getItem('adminToken');
-      const kitchenToken = localStorage.getItem('kitchenToken');
-      const user = localStorage.getItem('user');
-      const adminUser = localStorage.getItem('adminUser');
-      const kitchenUser = localStorage.getItem('kitchenUser');
-
-      let authenticated = false;
-      let role = null;
-
-      // Check admin authentication first (admin can access everything)
-      if ((token || adminToken) && (user || adminUser)) {
-        try {
-          const userData = user ? JSON.parse(user) : JSON.parse(adminUser);
-          authenticated = true;
-          role = userData.role || 'admin';
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-        }
-      }
-      // Check kitchen authentication
-      else if (kitchenToken && kitchenUser) {
-        try {
-          JSON.parse(kitchenUser); // Validate JSON format
-          authenticated = true;
-          role = 'kitchen';
-        } catch (error) {
-          console.error('Error parsing kitchen user data:', error);
-        }
-      }
-
-      setIsAuthenticated(authenticated);
-      setUserRole(role);
-      setIsLoading(false);
-    };
-
-    checkAuth();
+    // Small delay to allow context to initialize if needed
+    setIsLoading(false);
   }, []);
 
   if (isLoading) {
@@ -70,6 +34,8 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
     }
   }
 
+  const userRole = user?.role;
+
   // Check role-specific access
   if (requiredRole) {
     const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
@@ -84,7 +50,7 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
               You don't have permission to access this page.
             </p>
             <p className="text-sm text-sangeet-neutral-500">
-              Required roles: {roles.join(', ')} | Your role: {userRole}
+              Required roles: {roles.join(', ')} | Your role: {userRole || 'none'}
             </p>
           </div>
         </div>

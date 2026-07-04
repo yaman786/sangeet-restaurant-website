@@ -8,7 +8,7 @@ router.use(authenticateToken);
 router.use(requireAdmin);
 
 // Business analytics routes
-router.get('/business', analyticsController.getBusinessAnalytics);
+router.get('/business', authenticateToken, analyticsController.getBusinessAnalytics);
 router.get('/reservations/trends', analyticsController.getReservationTrends);
 router.get('/menu', analyticsController.getMenuAnalytics);
 router.get('/customers', analyticsController.getCustomerInsights);
