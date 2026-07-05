@@ -1,7 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Leaf, Flame, Star, ChefHat, Search } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { fetchMenuItems, fetchMenuCategories } from '../services/api';
+
+const FALLBACK_MENU = [
+  { id: 1, name: "Butter Chicken", description: "Creamy tomato-based curry with tender chicken", price: 18.99, category_name: "Main Course", image_url: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop", is_vegetarian: false, is_spicy: false, is_popular: true, preparation_time: 20 },
+  { id: 2, name: "Paneer Tikka", description: "Grilled cottage cheese with aromatic spices", price: 16.99, category_name: "Appetizers", image_url: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop", is_vegetarian: true, is_spicy: false, is_popular: true, preparation_time: 15 },
+  { id: 3, name: "Biryani", description: "Fragrant rice dish with tender meat and spices", price: 22.99, category_name: "Main Course", image_url: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop", is_vegetarian: false, is_spicy: true, is_popular: true, preparation_time: 25 }
+];
+
+const FALLBACK_CATEGORIES = [
+  { id: 1, name: 'Appetizers' }, { id: 2, name: 'Main Course' }, { id: 3, name: 'Biryani' }, { id: 4, name: 'Breads' }, { id: 5, name: 'Desserts' }
+];
 
 /**
  * MenuPage Component
@@ -10,95 +21,28 @@ import { fetchMenuItems, fetchMenuCategories } from '../services/api';
  * Optimized for touch interactions and mobile performance
  */
 const MenuPage = () => {
-  const [menuItems, setMenuItems] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     vegetarian: false,
     spicy: false,
     popular: false
   });
-  
-  useEffect(() => {
-    const loadMenuData = async () => {
-      try {
-        setLoading(true);
-    
-        
-        const [menuData, categoriesData] = await Promise.all([
-          fetchMenuItems(filters),
-          fetchMenuCategories()
-        ]);
-        
-        
-        
-        setMenuItems(Array.isArray(menuData) ? menuData : []);
-        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-      } catch (error) {
-        console.error('Error loading menu data:', error);
-        
-        
-        // Fallback categories
-        setCategories([
-          { id: 1, name: 'Appetizers' },
-          { id: 2, name: 'Main Course' },
-          { id: 3, name: 'Biryani' },
-          { id: 4, name: 'Breads' },
-          { id: 5, name: 'Desserts' }
-        ]);
-        
-        // Fallback data if API fails
-        setMenuItems([
-          {
-            id: 1,
-            name: "Butter Chicken",
-            description: "Creamy tomato-based curry with tender chicken",
-            price: 18.99,
-            category_name: "Main Course",
-            image_url: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop",
-            is_vegetarian: false,
-            is_spicy: false,
-            is_popular: true,
-            preparation_time: 20
-          },
-          {
-            id: 2,
-            name: "Paneer Tikka",
-            description: "Grilled cottage cheese with aromatic spices",
-            price: 16.99,
-            category_name: "Appetizers",
-            image_url: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop",
-            is_vegetarian: true,
-            is_spicy: false,
-            is_popular: true,
-            preparation_time: 15
-          },
-          {
-            id: 3,
-            name: "Biryani",
-            description: "Fragrant rice dish with tender meat and spices",
-            price: 22.99,
-            category_name: "Main Course",
-            image_url: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop",
-            is_vegetarian: false,
-            is_spicy: true,
-            is_popular: true,
-            preparation_time: 25
-          }
-        ]);
-        setCategories([
-          { id: 1, name: "Appetizers" },
-          { id: 2, name: "Main Course" },
-          { id: 3, name: "Desserts" }
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    loadMenuData();
-  }, [filters]);
+  const { data: menuItems = FALLBACK_MENU, isLoading: menuLoading } = useQuery({
+    queryKey: ['menuItems', filters],
+    queryFn: () => fetchMenuItems(filters),
+    placeholderData: FALLBACK_MENU,
+    select: (data) => Array.isArray(data) ? data : [],
+  });
+
+  const { data: categories = FALLBACK_CATEGORIES } = useQuery({
+    queryKey: ['menuCategories'],
+    queryFn: fetchMenuCategories,
+    placeholderData: FALLBACK_CATEGORIES,
+    select: (data) => Array.isArray(data) ? data : [],
+  });
+
+  const loading = menuLoading;
 
   const filteredMenuItems = selectedCategory === 'all' 
     ? menuItems

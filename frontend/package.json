@@ -5,6 +5,7 @@
   "private": true,
   "proxy": "http://localhost:5001",
   "dependencies": {
+    "@tanstack/react-query": "^5.101.2",
     "axios": "^1.6.0",
     "date-fns": "^2.30.0",
     "framer-motion": "^10.16.4",

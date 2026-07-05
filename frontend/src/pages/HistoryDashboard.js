@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, subDays, isValid, parseISO } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { X, Eye, User, Phone, Mail, Calendar, Clock, MessageSquare, Tag, Users } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import AdminHeader from '../components/AdminHeader';
 import { fetchAllOrders, fetchAllReservations } from '../services/api';
 
 const HistoryDashboard = () => {
-  const [activeTab, setActiveTab] = useState('orders'); // 'orders' or 'reservations'
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('orders');
   
   const [filters, setFilters] = useState({
     startDate: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
@@ -19,35 +18,13 @@ const HistoryDashboard = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedReservation, setSelectedReservation] = useState(null);
 
-  useEffect(() => {
-    loadHistoryData();
-  }, [activeTab, filters]);
-
-  const loadHistoryData = async () => {
-    setLoading(true);
-    try {
-      if (activeTab === 'orders') {
-        const orders = await fetchAllOrders({ 
-          history: true, 
-          startDate: filters.startDate, 
-          endDate: filters.endDate 
-        });
-        setData(orders);
-      } else {
-        const reservations = await fetchAllReservations({ 
-          history: true, 
-          startDate: filters.startDate, 
-          endDate: filters.endDate 
-        });
-        setData(reservations);
-      }
-    } catch (error) {
-      console.error(`Error loading history for ${activeTab}:`, error);
-      toast.error(`Failed to load ${activeTab} history`);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data = [], isLoading: loading } = useQuery({
+    queryKey: ['history', activeTab, filters.startDate, filters.endDate],
+    queryFn: () => {
+      const queryFilters = { history: true, startDate: filters.startDate, endDate: filters.endDate };
+      return activeTab === 'orders' ? fetchAllOrders(queryFilters) : fetchAllReservations(queryFilters);
+    },
+  });
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
