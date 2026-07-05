@@ -1,13 +1,12 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-const PublicLayout = () => {
+const PublicLayout = ({ children }) => {
   return (
     <>
       <Header />
-      <Outlet />
+      {children}
       <Footer />
     </>
   );

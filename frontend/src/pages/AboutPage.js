@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ImageIcon, Building2, UtensilsCrossed, PartyPopper, Theater, History, Star, Users, Award, ChefHat } from 'lucide-react';
@@ -10,7 +10,7 @@ import { ImageIcon, Building2, UtensilsCrossed, PartyPopper, Theater, History, S
 const AboutPage = () => {
   const navigate = useNavigate();
   // Gallery filter state
-  const [activeFilter, setActiveFilter] = 'all';
+  const [activeFilter, setActiveFilter] = useState('all');
 
   // Gallery filter options
   const galleryFilters = [
@@ -478,7 +478,7 @@ const AboutPage = () => {
                   : 'bg-sangeet-neutral-800/50 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700/50 hover:text-sangeet-300'
                   }`}
               >
-                <span className="text-2xl">{filter.icon}</span>
+                <span className="text-2xl"><filter.icon /></span>
                 <span>{filter.label}</span>
               </motion.button>
             ))}
@@ -497,7 +497,7 @@ const AboutPage = () => {
                     : 'bg-sangeet-neutral-800/50 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700/50'
                     }`}
                 >
-                  <span className="text-lg">{filter.icon}</span>
+                  <span className="text-lg"><filter.icon /></span>
                   <span>{filter.label}</span>
                 </motion.button>
               ))}
@@ -637,7 +637,7 @@ const AboutPage = () => {
                 className="group bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 shadow-2xl hover:shadow-sangeet-400/20 transition-all duration-500 border border-sangeet-neutral-700 hover:border-sangeet-400 text-center"
               >
                 <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                  {award.icon}
+                  <award.icon />
                 </div>
                 <h3 className="text-xl font-bold text-sangeet-400 mb-3 group-hover:text-sangeet-300 transition-colors">
                   {award.title}

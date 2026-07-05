@@ -9,7 +9,11 @@ import PublicRoutes from './routes/publicRoutes';
 import AdminRoutes from './routes/adminRoutes';
 import KitchenRoutes from './routes/kitchenRoutes';
 import QRRoutes from './routes/qrRoutes';
-import StandaloneRoutes from './routes/standaloneRoutes';
+import StandaloneLayout from './layouts/StandaloneLayout';
+import LoginPage from './pages/LoginPage';
+import UnifiedOrderPage from './pages/UnifiedOrderPage';
+import UnifiedDashboard from './pages/UnifiedDashboard';
+import OrderSuccessPage from './pages/OrderSuccessPage';
 
 const CONTAINER_CLASSES = 'min-h-screen bg-sangeet-neutral-950 w-full overflow-x-hidden';
 
@@ -53,11 +57,10 @@ function App() {
         <Route path="/qr/*" element={<QRRoutes />} />
         
         {/* Standalone pages (login, order, dashboard, etc.) */}
-        {/* We use a wildcard and let StandaloneRoutes handle exact matches inside it, or match them explicitly */}
-        <Route path="/login" element={<StandaloneRoutes />} />
-        <Route path="/order" element={<StandaloneRoutes />} />
-        <Route path="/dashboard" element={<StandaloneRoutes />} />
-        <Route path="/order-success" element={<StandaloneRoutes />} />
+        <Route path="/login" element={<StandaloneLayout><LoginPage /></StandaloneLayout>} />
+        <Route path="/order" element={<StandaloneLayout><UnifiedOrderPage /></StandaloneLayout>} />
+        <Route path="/dashboard" element={<StandaloneLayout><UnifiedDashboard /></StandaloneLayout>} />
+        <Route path="/order-success" element={<StandaloneLayout><OrderSuccessPage /></StandaloneLayout>} />
         
         {/* Everything else goes to public routes which handles the root, menu, about, contact, and 404 */}
         <Route path="/*" element={<PublicRoutes />} />

@@ -1,11 +1,10 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
 import ErrorBoundary from '../components/ErrorBoundary';
 
-const StandaloneLayout = () => {
+const StandaloneLayout = ({ children }) => {
   return (
     <ErrorBoundary>
-      <Outlet />
+      {children}
     </ErrorBoundary>
   );
 };
