@@ -17,7 +17,7 @@ import toast from 'react-hot-toast';
 import HomePage from './pages/HomePage';
 import MenuPage from './pages/MenuPage';
 import QRMenuPage from './pages/QRMenuPage';
-import AdminOrdersPage from './pages/AdminOrdersPage';
+import AdminOrders from './pages/AdminOrders';
 import QRCodeDisplayPage from './pages/QRCodeDisplayPage';
 import ReservationsPage from './pages/ReservationsPage';
 import AboutPage from './pages/AboutPage';
@@ -25,11 +25,11 @@ import ContactPage from './pages/ContactPage';
 import LocationPage from './pages/LocationPage';
 import QRCartPage from './pages/QRCartPage';
 import AdminDashboard from './pages/AdminDashboard';
-import MenuManagementPage from './pages/MenuManagementPage';
-import QRManagementPage from './pages/QRManagementPage';
+import MenuManagement from './pages/MenuManagement';
+import QRManagement from './pages/QRManagement';
 import KitchenDisplayPage from './pages/KitchenDisplayPage';
 import ReservationManagementPage from './pages/ReservationManagementPage';
-import StaffManagementPage from './pages/StaffManagementPage';
+import StaffManagement from './pages/StaffManagement';
 import RestaurantWebsiteManagementPage from './pages/RestaurantWebsiteManagementPage';
 import AnalyticsReportsPage from './pages/AnalyticsReportsPage';
 import LoginPage from './pages/LoginPage';
@@ -423,7 +423,7 @@ function App() {
                 <ErrorBoundary>
                   <AnimatedRoute>
                     <ProtectedRoute requiredRole={['admin', 'reception', 'waiter']}>
-                      <AdminOrdersPage />
+                      <AdminOrders />
                     </ProtectedRoute>
                   </AnimatedRoute>
                 </ErrorBoundary>
@@ -434,7 +434,7 @@ function App() {
               element={
                 <AnimatedRoute>
                   <ProtectedRoute requiredRole="admin">
-                    <MenuManagementPage />
+                    <MenuManagement />
                   </ProtectedRoute>
                 </AnimatedRoute>
               }
@@ -444,7 +444,7 @@ function App() {
               element={
                 <AnimatedRoute>
                   <ProtectedRoute requiredRole={['admin']}>
-                    <QRManagementPage />
+                    <QRManagement />
                   </ProtectedRoute>
                 </AnimatedRoute>
               }
@@ -467,7 +467,7 @@ function App() {
                 <ErrorBoundary>
                   <AnimatedRoute>
                     <ProtectedRoute requiredRole="admin">
-                      <StaffManagementPage />
+                      <StaffManagement />
                     </ProtectedRoute>
                   </AnimatedRoute>
                 </ErrorBoundary>
@@ -547,7 +547,7 @@ function App() {
             path="/admin/orders"
             element={
               <AnimatedRoute>
-                <AdminOrdersPage />
+                <AdminOrders />
               </AnimatedRoute>
             }
           />
