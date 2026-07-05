@@ -1,22 +1,36 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { reservationSchema } from '../utils/validators';
 import { createReservation } from '../services/api';
 
 const ReservationsPage = () => {
-  const [formData, setFormData] = useState({
-    customer_name: '',
-    email: '',
-    phone: '',
-    date: '',
-    time: '',
-    guests: 2,
-    special_requests: ''
-  });
-  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [reservationDetails, setReservationDetails] = useState(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors }
+  } = useForm({
+    resolver: zodResolver(reservationSchema),
+    defaultValues: {
+      customer_name: '',
+      email: '',
+      phone: '',
+      date: '',
+      time: '',
+      guests: 2,
+      special_requests: ''
+    }
+  });
+
+  const specialRequests = watch('special_requests');
 
   // Date constraints
   const today = new Date().toISOString().split('T')[0];
@@ -30,58 +44,18 @@ const ReservationsPage = () => {
     '20:00', '20:30', '21:00', '21:30', '22:00'
   ];
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!formData.customer_name || !formData.email || !formData.date || !formData.time) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
+  const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
+      await createReservation(data);
       
-      const reservationData = {
-        customer_name: formData.customer_name,
-        email: formData.email,
-        phone: formData.phone,
-        date: formData.date,
-        time: formData.time,
-        guests: formData.guests,
-        special_requests: formData.special_requests
-      };
-
-      await createReservation(reservationData);
-      
-      // Store reservation details for success display
-      setReservationDetails({
-        customer_name: formData.customer_name,
-        date: formData.date,
-        time: formData.time,
-        guests: formData.guests
-      });
-      
-      // Show success state
+      setReservationDetails(data);
       setShowSuccess(true);
       
-      // Reset form
-      setFormData({
-        customer_name: '',
-        email: '',
-        phone: '',
-        date: '',
-        time: '',
-        guests: 2,
-        special_requests: ''
-      });
+      reset(); // clear form
     } catch (error) {
       console.error('Error creating reservation:', error);
-      toast.error(error.message || 'Failed to create reservation. Please try again.');
+      toast.error(error.response?.data?.error || 'Failed to create reservation. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -94,8 +68,6 @@ const ReservationsPage = () => {
       hour12: true
     });
   };
-
-
 
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
@@ -137,7 +109,7 @@ const ReservationsPage = () => {
           transition={{ delay: 0.2 }}
           className="bg-sangeet-neutral-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-2xl"
         >
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
             {/* Personal Information */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div>
@@ -146,13 +118,11 @@ const ReservationsPage = () => {
                 </label>
                 <input
                   type="text"
-                  name="customer_name"
-                  value={formData.customer_name}
-                  onChange={handleInputChange}
+                  {...register('customer_name')}
                   className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
                   placeholder="Enter your full name"
-                  required
                 />
+                {errors.customer_name && <p className="text-red-500 text-xs mt-1">{errors.customer_name.message}</p>}
               </div>
               
               <div>
@@ -161,29 +131,26 @@ const ReservationsPage = () => {
                 </label>
                 <input
                   type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
+                  {...register('email')}
                   className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
                   placeholder="Enter your email"
-                  required
                 />
+                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                  Phone Number
+                  Phone Number *
                 </label>
                 <input
                   type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
+                  {...register('phone')}
                   className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
                   placeholder="Enter your phone number"
                 />
+                {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
               </div>
               
               <div>
@@ -191,11 +158,8 @@ const ReservationsPage = () => {
                   Number of Guests *
                 </label>
                 <select
-                  name="guests"
-                  value={formData.guests}
-                  onChange={handleInputChange}
+                  {...register('guests')}
                   className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
-                  required
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                     <option key={num} value={num}>
@@ -203,6 +167,7 @@ const ReservationsPage = () => {
                     </option>
                   ))}
                 </select>
+                {errors.guests && <p className="text-red-500 text-xs mt-1">{errors.guests.message}</p>}
               </div>
             </div>
 
@@ -214,14 +179,12 @@ const ReservationsPage = () => {
                 </label>
                 <input
                   type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleInputChange}
+                  {...register('date')}
                   min={today}
                   max={maxDateStr}
                   className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                  required
                 />
+                {errors.date && <p className="text-red-500 text-xs mt-1">{errors.date.message}</p>}
               </div>
               
               <div>
@@ -229,11 +192,8 @@ const ReservationsPage = () => {
                   Preferred Time *
                 </label>
                 <select
-                  name="time"
-                  value={formData.time}
-                  onChange={handleInputChange}
+                  {...register('time')}
                   className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
-                  required
                 >
                   <option value="">Select a time</option>
                   {timeOptions.map(time => (
@@ -242,6 +202,7 @@ const ReservationsPage = () => {
                     </option>
                   ))}
                 </select>
+                {errors.time && <p className="text-red-500 text-xs mt-1">{errors.time.message}</p>}
               </div>
             </div>
 
@@ -251,17 +212,15 @@ const ReservationsPage = () => {
                 Special Requests
               </label>
               <textarea
-                name="special_requests"
-                value={formData.special_requests}
-                onChange={handleInputChange}
+                {...register('special_requests')}
                 rows={4}
                 maxLength={500}
                 className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent resize-none"
                 placeholder="Any special requests or dietary requirements..."
               />
               <div className="text-right mt-1">
-                <span className={`text-xs ${formData.special_requests.length >= 500 ? 'text-red-400' : 'text-sangeet-neutral-500'}`}>
-                  {formData.special_requests.length} / 500 characters
+                <span className={`text-xs ${specialRequests?.length >= 500 ? 'text-red-400' : 'text-sangeet-neutral-500'}`}>
+                  {specialRequests?.length || 0} / 500 characters
                 </span>
               </div>
             </div>

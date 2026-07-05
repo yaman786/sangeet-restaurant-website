@@ -11,9 +11,9 @@ const MenuManagement = () => {
     menuItems, filteredItems, categories, loading, activeTab, setActiveTab,
     showAddModal, setShowAddModal, showEditModal, setShowEditModal,
     showCategoryModal, setShowCategoryModal, showDeleteModal, setShowDeleteModal,
-    deleteType, deleteName, selectedCategory,
-    filters, formData, setFormData, categoryFormData, setCategoryFormData,
-    handleFilterChange, clearFilters, handleInputChange, handleCategoryInputChange,
+    deleteType, deleteName, selectedItem, selectedCategory,
+    filters,
+    handleFilterChange, clearFilters,
     handleAddItem, handleEditItem, handleDeleteItem, confirmDeleteItem,
     handleAddCategory, handleEditCategory, handleDeleteCategory, confirmDeleteCategory,
     openEditModal, openCategoryModal
@@ -89,11 +89,8 @@ const MenuManagement = () => {
         showCategoryModal={showCategoryModal} setShowCategoryModal={setShowCategoryModal}
         showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
         deleteType={deleteType} deleteName={deleteName}
-        selectedCategory={selectedCategory}
+        selectedItem={selectedItem} selectedCategory={selectedCategory}
         categories={categories}
-        formData={formData} setFormData={setFormData}
-        categoryFormData={categoryFormData} setCategoryFormData={setCategoryFormData}
-        handleInputChange={handleInputChange} handleCategoryInputChange={handleCategoryInputChange}
         handleAddItem={handleAddItem} handleEditItem={handleEditItem}
         handleAddCategory={handleAddCategory} handleEditCategory={handleEditCategory}
         confirmDeleteItem={confirmDeleteItem} confirmDeleteCategory={confirmDeleteCategory}

@@ -38,15 +38,6 @@ export const useMenuManagement = () => {
     sortOrder: 'asc'
   });
 
-  const [formData, setFormData] = useState({
-    name: '', description: '', price: '', category_id: '', image_url: '',
-    is_vegetarian: false, is_spicy: false, is_popular: false, preparation_time: 15
-  });
-  
-  const [categoryFormData, setCategoryFormData] = useState({
-    name: '', description: '', display_order: 0
-  });
-
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
@@ -134,26 +125,11 @@ export const useMenuManagement = () => {
     setFilters({ search: '', category: '', priceRange: '', tags: [], sortBy: 'name', sortOrder: 'asc' });
   };
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-  };
-
-  const handleCategoryInputChange = (e) => {
-    const { name, value } = e.target;
-    setCategoryFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleAddItem = async (e) => {
-    e.preventDefault();
+  const handleAddItem = async (data) => {
     try {
-      await createMenuItem(formData);
+      await createMenuItem(data);
       toast.success('Menu item created successfully!');
       setShowAddModal(false);
-      setFormData({
-        name: '', description: '', price: '', category_id: '', image_url: '',
-        is_vegetarian: false, is_spicy: false, is_popular: false, preparation_time: 15
-      });
       loadData();
     } catch (error) {
       console.error('Error creating menu item:', error);
@@ -161,10 +137,9 @@ export const useMenuManagement = () => {
     }
   };
 
-  const handleEditItem = async (e) => {
-    e.preventDefault();
+  const handleEditItem = async (data) => {
     try {
-      await updateMenuItem(selectedItem.id, formData);
+      await updateMenuItem(selectedItem.id, data);
       toast.success('Menu item updated successfully!');
       setShowEditModal(false);
       setSelectedItem(null);
@@ -195,13 +170,11 @@ export const useMenuManagement = () => {
     }
   };
 
-  const handleAddCategory = async (e) => {
-    e.preventDefault();
+  const handleAddCategory = async (data) => {
     try {
-      await createCategory(categoryFormData);
+      await createCategory(data);
       toast.success('Category created successfully!');
       setShowCategoryModal(false);
-      setCategoryFormData({ name: '', description: '', display_order: 0 });
       loadData();
     } catch (error) {
       console.error('Error creating category:', error);
@@ -209,10 +182,9 @@ export const useMenuManagement = () => {
     }
   };
 
-  const handleEditCategory = async (e) => {
-    e.preventDefault();
+  const handleEditCategory = async (data) => {
     try {
-      await updateCategory(selectedCategory.id, categoryFormData);
+      await updateCategory(selectedCategory.id, data);
       toast.success('Category updated successfully!');
       setShowCategoryModal(false);
       setSelectedCategory(null);
@@ -245,23 +217,14 @@ export const useMenuManagement = () => {
 
   const openEditModal = (item) => {
     setSelectedItem(item);
-    setFormData({
-      name: item.name, description: item.description, price: item.price, category_id: item.category_id || '',
-      image_url: item.image_url || '', is_vegetarian: item.is_vegetarian, is_spicy: item.is_spicy,
-      is_popular: item.is_popular, preparation_time: item.preparation_time
-    });
     setShowEditModal(true);
   };
 
   const openCategoryModal = (category = null) => {
     if (category) {
       setSelectedCategory(category);
-      setCategoryFormData({
-        name: category.name, description: category.description || '', display_order: category.display_order
-      });
     } else {
       setSelectedCategory(null);
-      setCategoryFormData({ name: '', description: '', display_order: 0 });
     }
     setShowCategoryModal(true);
   };
@@ -272,8 +235,8 @@ export const useMenuManagement = () => {
     showCategoryModal, setShowCategoryModal, showDeleteModal, setShowDeleteModal,
     deleteType, setDeleteType, deleteId, setDeleteId, deleteName, setDeleteName,
     selectedItem, setSelectedItem, selectedCategory, setSelectedCategory,
-    filters, setFilters, formData, setFormData, categoryFormData, setCategoryFormData,
-    handleFilterChange, clearFilters, handleInputChange, handleCategoryInputChange,
+    filters, setFilters,
+    handleFilterChange, clearFilters,
     handleAddItem, handleEditItem, handleDeleteItem, confirmDeleteItem,
     handleAddCategory, handleEditCategory, handleDeleteCategory, confirmDeleteCategory,
     openEditModal, openCategoryModal

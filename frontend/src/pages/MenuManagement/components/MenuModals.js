@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { menuItemSchema, categorySchema } from '../../../utils/validators';
 import CustomDropdown from '../../../components/CustomDropdown';
 
 const MenuModals = ({
@@ -7,15 +10,62 @@ const MenuModals = ({
   showCategoryModal, setShowCategoryModal,
   showDeleteModal, setShowDeleteModal,
   deleteType, deleteName,
-  selectedCategory,
+  selectedItem, selectedCategory,
   categories,
-  formData, setFormData,
-  categoryFormData, setCategoryFormData,
-  handleInputChange, handleCategoryInputChange,
   handleAddItem, handleEditItem,
   handleAddCategory, handleEditCategory,
   confirmDeleteItem, confirmDeleteCategory
 }) => {
+  // Menu Item Form
+  const { 
+    register: registerItem, 
+    handleSubmit: handleSubmitItem, 
+    reset: resetItem,
+    setValue: setItemValue,
+    watch: watchItem,
+    formState: { errors: itemErrors } 
+  } = useForm({
+    resolver: zodResolver(menuItemSchema),
+    defaultValues: {
+      name: '', price: 0, description: '', category_id: 0, image_url: '',
+      preparation_time: 15, is_vegetarian: false, is_spicy: false, is_popular: false
+    }
+  });
+
+  const watchCategoryId = watchItem('category_id');
+
+  useEffect(() => {
+    if (showEditModal && selectedItem) {
+      resetItem(selectedItem);
+    } else if (showAddModal) {
+      resetItem({
+        name: '', price: 0, description: '', category_id: 0, image_url: '',
+        preparation_time: 15, is_vegetarian: false, is_spicy: false, is_popular: false
+      });
+    }
+  }, [showAddModal, showEditModal, selectedItem, resetItem]);
+
+  // Category Form
+  const {
+    register: registerCategory,
+    handleSubmit: handleSubmitCategory,
+    reset: resetCategory,
+    formState: { errors: categoryErrors }
+  } = useForm({
+    resolver: zodResolver(categorySchema),
+    defaultValues: { name: '', description: '', display_order: 0 }
+  });
+
+  useEffect(() => {
+    if (showCategoryModal) {
+      if (selectedCategory) {
+        resetCategory(selectedCategory);
+      } else {
+        resetCategory({ name: '', description: '', display_order: 0 });
+      }
+    }
+  }, [showCategoryModal, selectedCategory, resetCategory]);
+
   return (
     <>
       {/* Add/Edit Menu Item Modal */}
@@ -25,38 +75,32 @@ const MenuModals = ({
             <h2 className="text-2xl font-bold text-sangeet-400 mb-6">
               {showAddModal ? 'Add Menu Item' : 'Edit Menu Item'}
             </h2>
-            <form onSubmit={showAddModal ? handleAddItem : handleEditItem} className="space-y-4">
+            <form onSubmit={handleSubmitItem(showAddModal ? handleAddItem : handleEditItem)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Name</label>
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
+                    {...registerItem('name')}
                     className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
-                    required
                   />
+                  {itemErrors.name && <p className="text-red-500 text-xs mt-1">{itemErrors.name.message}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Price</label>
                   <input
                     type="number"
                     step="0.01"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleInputChange}
+                    {...registerItem('price')}
                     className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
-                    required
                   />
+                  {itemErrors.price && <p className="text-red-500 text-xs mt-1">{itemErrors.price.message}</p>}
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Description</label>
                 <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
+                  {...registerItem('description')}
                   rows="3"
                   className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
                 />
@@ -65,10 +109,8 @@ const MenuModals = ({
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Category</label>
                   <CustomDropdown
-                    value={formData.category_id}
-                    onChange={(categoryId) => {
-                      setFormData(prev => ({ ...prev, category_id: categoryId }));
-                    }}
+                    value={watchCategoryId || ''}
+                    onChange={(categoryId) => setItemValue('category_id', categoryId)}
                     options={[
                       { value: '', label: 'Select Category' },
                       ...categories.map((category) => ({
@@ -78,16 +120,16 @@ const MenuModals = ({
                     ]}
                     className="w-full"
                   />
+                  {itemErrors.category_id && <p className="text-red-500 text-xs mt-1">{itemErrors.category_id.message}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Image URL</label>
                   <input
                     type="url"
-                    name="image_url"
-                    value={formData.image_url}
-                    onChange={handleInputChange}
+                    {...registerItem('image_url')}
                     className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
                   />
+                  {itemErrors.image_url && <p className="text-red-500 text-xs mt-1">{itemErrors.image_url.message}</p>}
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -95,52 +137,30 @@ const MenuModals = ({
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Preparation Time (minutes)</label>
                   <input
                     type="number"
-                    name="preparation_time"
-                    value={formData.preparation_time}
-                    onChange={handleInputChange}
+                    {...registerItem('preparation_time')}
                     className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
                   />
+                  {itemErrors.preparation_time && <p className="text-red-500 text-xs mt-1">{itemErrors.preparation_time.message}</p>}
                 </div>
               </div>
               <div className="flex space-x-4">
                 <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="is_vegetarian"
-                    checked={formData.is_vegetarian}
-                    onChange={handleInputChange}
-                    className="mr-2"
-                  />
+                  <input type="checkbox" {...registerItem('is_vegetarian')} className="mr-2" />
                   <span className="text-sangeet-neutral-300">Vegetarian</span>
                 </label>
                 <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="is_spicy"
-                    checked={formData.is_spicy}
-                    onChange={handleInputChange}
-                    className="mr-2"
-                  />
+                  <input type="checkbox" {...registerItem('is_spicy')} className="mr-2" />
                   <span className="text-sangeet-neutral-300">Spicy</span>
                 </label>
                 <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="is_popular"
-                    checked={formData.is_popular}
-                    onChange={handleInputChange}
-                    className="mr-2"
-                  />
+                  <input type="checkbox" {...registerItem('is_popular')} className="mr-2" />
                   <span className="text-sangeet-neutral-300">Popular</span>
                 </label>
               </div>
               <div className="flex justify-end space-x-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setShowEditModal(false);
-                  }}
+                  onClick={() => { setShowAddModal(false); setShowEditModal(false); }}
                   className="px-4 py-2 text-sangeet-neutral-400 hover:text-sangeet-neutral-200"
                 >
                   Cancel
@@ -164,24 +184,20 @@ const MenuModals = ({
             <h2 className="text-2xl font-bold text-sangeet-400 mb-6">
               {selectedCategory ? 'Edit Category' : 'Add Category'}
             </h2>
-            <form onSubmit={selectedCategory ? handleEditCategory : handleAddCategory} className="space-y-4">
+            <form onSubmit={handleSubmitCategory(selectedCategory ? handleEditCategory : handleAddCategory)} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Name</label>
                 <input
                   type="text"
-                  name="name"
-                  value={categoryFormData.name}
-                  onChange={handleCategoryInputChange}
+                  {...registerCategory('name')}
                   className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
-                  required
                 />
+                {categoryErrors.name && <p className="text-red-500 text-xs mt-1">{categoryErrors.name.message}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Description</label>
                 <textarea
-                  name="description"
-                  value={categoryFormData.description}
-                  onChange={handleCategoryInputChange}
+                  {...registerCategory('description')}
                   rows="3"
                   className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
                 />
@@ -190,9 +206,7 @@ const MenuModals = ({
                 <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Position</label>
                 <input
                   type="number"
-                  name="display_order"
-                  value={categoryFormData.display_order}
-                  onChange={handleCategoryInputChange}
+                  {...registerCategory('display_order')}
                   className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
                   placeholder="1 = First, 2 = Second, etc."
                 />

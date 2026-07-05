@@ -1,13 +1,30 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import api from '../services/api';
+import React, { createContext, useState, useContext, ReactNode } from 'react';
 
-export const AuthContext = createContext(null);
+export interface User {
+  role: 'admin' | 'kitchen' | 'reception' | 'waiter' | 'user';
+  migrated?: boolean;
+  [key: string]: any;
+}
+
+interface AuthContextType {
+  user: User | null;
+  login: (token: string, userData: User) => void;
+  logout: () => void;
+  getToken: () => string | null;
+  isAuthenticated: boolean;
+}
+
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 const TOKEN_KEY = 'sangeet_token';
 const USER_KEY = 'sangeet_user';
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(() => {
     // Migration logic for old keys
     const oldAdminToken = localStorage.getItem('adminToken');
     const oldKitchenToken = localStorage.getItem('kitchenToken');
@@ -23,11 +40,11 @@ export const AuthProvider = ({ children }) => {
       
       if (!existingUser) {
         // We'll need to fetch the user or create a basic one based on which token we found
-        let role = 'user';
+        let role: User['role'] = 'user';
         if (oldAdminToken) role = 'admin';
         else if (oldKitchenToken) role = 'kitchen';
         
-        const basicUser = { role, migrated: true };
+        const basicUser: User = { role, migrated: true };
         localStorage.setItem(USER_KEY, JSON.stringify(basicUser));
         
         // Remove old keys
@@ -43,7 +60,7 @@ export const AuthProvider = ({ children }) => {
 
     if (existingToken && existingUser) {
       try {
-        return JSON.parse(existingUser);
+        return JSON.parse(existingUser) as User;
       } catch (e) {
         console.error('Failed to parse user from local storage:', e);
         return null;
@@ -53,7 +70,7 @@ export const AuthProvider = ({ children }) => {
     return null;
   });
 
-  const login = (token, userData) => {
+  const login = (token: string, userData: User) => {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(USER_KEY, JSON.stringify(userData));
     setUser(userData);
@@ -74,7 +91,7 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
