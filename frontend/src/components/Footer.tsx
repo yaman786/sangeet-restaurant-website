@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 // @ts-ignore
 import logo from '../assets/images/logo.png';
@@ -30,7 +31,7 @@ const Footer = () => {
                   {/* Logo with enhanced visibility */}
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 rounded-full blur-xl"></div>
-                    <img src={(logo as any).src || logo} alt="Sangeet Logo" className="relative h-12 md:h-16 w-auto filter brightness-110 contrast-110" />
+                    <Image src={logo} alt="Sangeet Logo" className="relative h-12 md:h-16 w-auto filter brightness-110 contrast-110" />
                   </div>
                 </div>
                 <div className="flex flex-col">

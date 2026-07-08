@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@/utils/router-mock';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 // @ts-ignore
 import logo from '../assets/images/logo.png';
@@ -120,10 +121,12 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
       <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
         {/* Background Image with Parallax */}
         <motion.div className="absolute inset-0" style={{ y: heroY }}>
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop"
             alt="Sangeet Restaurant dining ambiance"
-            className="w-full h-full object-cover scale-110"
+            fill
+            priority
+            className="object-cover scale-110"
           />
         </motion.div>
 
@@ -142,8 +145,8 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] as any}}
             className="mb-8"
           >
-            <img
-              src={(logo as any).src || logo}
+            <Image
+              src={logo}
               alt="Sangeet Restaurant"
               className="h-24 sm:h-32 md:h-36 w-auto mx-auto logo-navbar-dark drop-shadow-2xl"
             />
@@ -303,13 +306,13 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="relative overflow-hidden"
+            className="relative overflow-hidden min-h-[350px] lg:min-h-full"
           >
-            <img
+            <Image
               src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&h=600&fit=crop"
               alt="Chef preparing authentic South Asian dishes"
-              loading="lazy"
-              className="w-full h-full object-cover min-h-[350px] lg:min-h-full"
+              fill
+              className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-transparent to-sangeet-neutral-950/30 hidden lg:block" />
           </motion.div>
@@ -381,11 +384,12 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
                   {UPCOMING_EVENTS.map((event) => (
                     <div key={event.id} className="w-full flex-shrink-0">
                       <div className="relative h-[480px] group">
-                        <img
+                        <Image
                           src={event.image_url}
                           alt={event.title}
-                          loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out-expo"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out-expo"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-sangeet-neutral-950/95 via-sangeet-neutral-950/30 to-transparent" />
 
@@ -462,7 +466,7 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
                   className="flex-shrink-0 w-[280px] rounded-2xl overflow-hidden bg-sangeet-neutral-900 border border-sangeet-neutral-800/50"
                 >
                   <div className="relative h-44">
-                    <img src={event.image_url} alt={event.title} loading="lazy" className="w-full h-full object-cover" />
+                    <Image src={event.image_url} alt={event.title} fill sizes="280px" className="object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-sangeet-neutral-900 to-transparent" />
                     <div className="absolute top-3 left-3">
                       <span className="px-2.5 py-1 rounded-full bg-sangeet-400/20 text-sangeet-400 text-caption font-semibold border border-sangeet-400/20">

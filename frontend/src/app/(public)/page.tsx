@@ -1,7 +1,27 @@
-'use client';
-import { useQuery } from '@tanstack/react-query';
 import HomePage from '@/_pages/HomePage';
 import { fetchMenuItems, fetchReviews, fetchEvents } from '@/services/api';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Sangeet Restaurant - Authentic South Asian Cuisine in Hong Kong',
+  description: 'Experience South Asian Elegance. Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong. Book a table or explore our menu.',
+  openGraph: {
+    title: 'Sangeet Restaurant - Authentic South Asian Cuisine',
+    description: 'Experience South Asian Elegance in the heart of Hong Kong.',
+    siteName: 'Sangeet Restaurant',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=630&fit=crop',
+        width: 1200,
+        height: 630,
+      }
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+};
+
+export const revalidate = 3600;
 
 const FALLBACK_MENU = [
   {
@@ -25,36 +45,31 @@ const FALLBACK_EVENTS = [
   }
 ] as any;
 
-function LoadingSpinner({ message = 'Loading Authentic Flavors...' }: { message?: string }) {
-  return (
-    <div className="min-h-screen bg-sangeet-neutral-950 flex items-center justify-center">
-      <div className="text-center">
-        <div className="spinner mx-auto mb-4" />
-        <p className="text-sangeet-400">{message}</p>
-      </div>
-    </div>
-  );
-}
+export default async function Home() {
+  let menuItems = FALLBACK_MENU;
+  let reviews = FALLBACK_REVIEWS;
+  let events = FALLBACK_EVENTS;
 
-export default function Home() {
-  const { data: menuItems = FALLBACK_MENU, isLoading: menuLoading } = useQuery({
-    queryKey: ['menuItems'],
-    queryFn: fetchMenuItems,
-  });
+  try {
+    const [menuRes, reviewsRes, eventsRes] = await Promise.all([
+      fetchMenuItems().catch(() => FALLBACK_MENU),
+      fetchReviews().catch(() => FALLBACK_REVIEWS),
+      fetchEvents().catch(() => FALLBACK_EVENTS)
+    ]);
+    
+    // In our backend, responses often look like { success: true, data: [...] } or just [...]
+    // For now we assign them directly because the axios interceptor usually returns response.data
+    menuItems = (menuRes as any)?.data || menuRes || FALLBACK_MENU;
+    reviews = (reviewsRes as any)?.data || reviewsRes || FALLBACK_REVIEWS;
+    events = (eventsRes as any)?.data || eventsRes || FALLBACK_EVENTS;
+  } catch (err) {
+    console.error("Failed to fetch server data", err);
+  }
 
-  const { data: reviews = FALLBACK_REVIEWS, isLoading: reviewsLoading } = useQuery({
-    queryKey: ['reviews'],
-    queryFn: fetchReviews,
-  });
+  // Pass fallback if the response was an empty array and we want to show something rich initially
+  if (!menuItems || menuItems.length === 0) menuItems = FALLBACK_MENU;
+  if (!reviews || reviews.length === 0) reviews = FALLBACK_REVIEWS;
+  if (!events || events.length === 0) events = FALLBACK_EVENTS;
 
-  const { data: events = FALLBACK_EVENTS, isLoading: eventsLoading } = useQuery({
-    queryKey: ['events'],
-    queryFn: fetchEvents,
-  });
-
-  const loading = menuLoading && reviewsLoading && eventsLoading;
-
-  if (loading) return <LoadingSpinner />;
-
-  return <HomePage menuItems={menuItems || FALLBACK_MENU} reviews={reviews || FALLBACK_REVIEWS} events={events || FALLBACK_EVENTS} />;
+  return <HomePage menuItems={menuItems} reviews={reviews} events={events} />;
 }

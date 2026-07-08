@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Leaf, Flame, Star, ChefHat, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -21,7 +22,7 @@ const FALLBACK_CATEGORIES = [
  * Features: Category filtering, dietary filters, responsive design
  * Optimized for touch interactions and mobile performance
  */
-const MenuPage = () => {
+const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: any[], initialCategories?: any[] }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [filters, setFilters] = useState({
     vegetarian: false,
@@ -32,6 +33,7 @@ const MenuPage = () => {
   const { data: menuItems = FALLBACK_MENU, isLoading: menuLoading } = useQuery({
     queryKey: ['menuItems', filters],
     queryFn: () => fetchMenuItems(filters) as any,
+    initialData: filters.vegetarian === false && filters.spicy === false && filters.popular === false && initialMenuItems && initialMenuItems.length > 0 ? initialMenuItems : undefined,
     placeholderData: FALLBACK_MENU,
     select: (data) => Array.isArray(data) ? data : [],
   });
@@ -39,6 +41,7 @@ const MenuPage = () => {
   const { data: categories = FALLBACK_CATEGORIES } = useQuery({
     queryKey: ['menuCategories'],
     queryFn: fetchMenuCategories as any,
+    initialData: initialCategories && initialCategories.length > 0 ? initialCategories : undefined,
     placeholderData: FALLBACK_CATEGORIES,
     select: (data) => Array.isArray(data) ? data : [],
   });
@@ -55,10 +58,12 @@ const MenuPage = () => {
       <div className="relative bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950 py-12 md:py-20">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=1920&h=1080&fit=crop"
             alt="Authentic South Asian cuisine"
-            className="w-full h-full object-cover opacity-20"
+            fill
+            className="object-cover opacity-20"
+            priority
           />
           <div className="absolute inset-0 bg-gradient-to-b from-sangeet-neutral-950 via-sangeet-neutral-950/95 to-sangeet-neutral-950"></div>
         </div>
@@ -168,11 +173,12 @@ const MenuPage = () => {
                 >
                   {/* Image Container */}
                   <div className="relative h-48 md:h-56 overflow-hidden flex-shrink-0">
-                    <img
+                    <Image
                       src={item.image_url || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop'}
                       alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out-expo"
-                      loading="lazy"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out-expo"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                     

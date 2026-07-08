@@ -60,6 +60,7 @@ const api = axios.create({
  * @returns {string|null} Auth token or null
  */
 export const getAuthToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
   const token = localStorage.getItem('sangeet_token') || localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('adminToken');
 
   // Validate token format (basic check)
@@ -95,6 +96,7 @@ const addAuthToken = (config: InternalAxiosRequestConfig) => {
  * Handle authentication failure
  */
 const handleAuthFailure = () => {
+  if (typeof window === 'undefined') return;
   // Clear all auth tokens
   localStorage.removeItem('sangeet_token');
   localStorage.removeItem('sangeet_user');

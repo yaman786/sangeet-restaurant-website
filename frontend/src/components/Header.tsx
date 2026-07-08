@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useLocation } from '@/utils/router-mock';
 import { motion, AnimatePresence } from 'framer-motion';
 // @ts-ignore
@@ -72,7 +73,7 @@ const Header = () => {
 
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5" aria-label="Sangeet Restaurant Home">
-              <img src={(logo as any).src || logo} alt="Sangeet Logo" className="h-8 w-auto logo-image-header" />
+              <Image src={logo} alt="Sangeet Logo" className="h-8 w-auto logo-image-header" />
             </Link>
 
             {/* Desktop Navigation */}
