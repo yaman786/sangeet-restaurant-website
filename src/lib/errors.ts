@@ -27,13 +27,24 @@ export class ConflictError extends AppError {
   }
 }
 
-export function handleApiError(error: any) {
+export function handleApiError(error: unknown) {
   console.error('API Error:', error);
 
   if (error instanceof AppError) {
     return NextResponse.json({ error: error.message }, { status: error.statusCode });
   }
 
-  // Handle generic Postgres errors if needed, but for now just 500
-  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  // TEMPORARILY DISABLED FOR DEBUGGING
+  // if (process.env.NODE_ENV === 'production') {
+  //   return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  // }
+  
+  return NextResponse.json(
+    { 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      fullError: String(error)
+    }, 
+    { status: 500 }
+  );
 }
