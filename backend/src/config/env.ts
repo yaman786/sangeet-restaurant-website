@@ -94,12 +94,12 @@ const config: Config = {
     process.env.CLIENT_URL || 'http://localhost:3000',
     'http://localhost:3000',
     'https://localhost:3000',
-    'https://sangeet-restaurant-testing-frontend.vercel.app',
+
     'https://frontend-six-xi-10.vercel.app',
-    'https://sangeetrestauranthk.netlify.app',
+
     /https:\/\/.*\.onrender\.com$/,
     /https:\/\/.*\.vercel\.app$/,
-    /https:\/\/.*\.netlify\.app$/
+
   ],
 
   // ── Self-ping (Render free tier keep-alive) ─────────────

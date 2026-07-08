@@ -20,7 +20,7 @@ async function fixQrUrls() {
 
     for (const table of tablesResult.rows) {
       const tableNumber = table.table_number;
-      const correctUrl = `https://heartfelt-gnome-7178c3.netlify.app/qr/table-${tableNumber}`;
+      const correctUrl = `https://frontend-six-xi-10.vercel.app/qr/table-${tableNumber}`;
       
       console.log(`Fixing Table ${tableNumber}: ${table.qr_code_url} → ${correctUrl}`);
       

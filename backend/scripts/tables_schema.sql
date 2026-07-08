@@ -19,14 +19,14 @@ CREATE TABLE IF NOT EXISTS tables (
 
 -- Insert default tables
 INSERT INTO tables (table_number, table_name, capacity, status, qr_code_url) VALUES
-('1', 'Table 1', 4, 'available', 'https://heartfelt-gnome-7178c3.netlify.app/qr/table-1'),
-('2', 'Table 2', 4, 'available', 'https://heartfelt-gnome-7178c3.netlify.app/qr/table-2'),
-('3', 'Table 3', 6, 'available', 'https://heartfelt-gnome-7178c3.netlify.app/qr/table-3'),
-('4', 'Table 4', 4, 'available', 'https://heartfelt-gnome-7178c3.netlify.app/qr/table-4'),
-('5', 'Table 5', 8, 'available', 'https://heartfelt-gnome-7178c3.netlify.app/qr/table-5'),
-('6', 'Table 6', 4, 'available', 'https://heartfelt-gnome-7178c3.netlify.app/qr/table-6'),
-('7', 'Table 7', 6, 'available', 'https://heartfelt-gnome-7178c3.netlify.app/qr/table-7'),
-('8', 'Table 8', 4, 'available', 'https://heartfelt-gnome-7178c3.netlify.app/qr/table-8')
+('1', 'Table 1', 4, 'available', 'https://frontend-six-xi-10.vercel.app/qr/table-1'),
+('2', 'Table 2', 4, 'available', 'https://frontend-six-xi-10.vercel.app/qr/table-2'),
+('3', 'Table 3', 6, 'available', 'https://frontend-six-xi-10.vercel.app/qr/table-3'),
+('4', 'Table 4', 4, 'available', 'https://frontend-six-xi-10.vercel.app/qr/table-4'),
+('5', 'Table 5', 8, 'available', 'https://frontend-six-xi-10.vercel.app/qr/table-5'),
+('6', 'Table 6', 4, 'available', 'https://frontend-six-xi-10.vercel.app/qr/table-6'),
+('7', 'Table 7', 6, 'available', 'https://frontend-six-xi-10.vercel.app/qr/table-7'),
+('8', 'Table 8', 4, 'available', 'https://frontend-six-xi-10.vercel.app/qr/table-8')
 ON CONFLICT (table_number) DO NOTHING;
 
 -- Create indexes for better performance
