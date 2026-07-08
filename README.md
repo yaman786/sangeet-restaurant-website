@@ -1,81 +1,36 @@
-# Sangeet Restaurant Website
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-A modern restaurant management system with online ordering, QR code menus, and real-time order tracking.
+## Getting Started
 
-## Features
+First, run the development server:
 
-- **QR Code Menu System** - Customers can scan QR codes to view menus
-- **Online Ordering** - Real-time order placement and tracking
-- **Admin Dashboard** - Complete restaurant management interface
-- **Kitchen Display** - Real-time order updates for kitchen staff
-- **Reservation System** - Table booking and management
-- **Review System** - Customer feedback and ratings
-
-## Tech Stack
-
-- **Frontend**: React.js, Tailwind CSS, Socket.IO
-- **Backend**: Node.js, Express.js, PostgreSQL
-- **Deployment**: Netlify (Frontend), Render (Backend)
-
-## Environment Variables
-
-### Frontend (.env)
-```env
-REACT_APP_API_URL=https://sangeet-restaurant-api.onrender.com/api
-REACT_APP_SOCKET_URL=https://sangeet-restaurant-api.onrender.com
-```
-
-### Backend (.env)
-```env
-DATABASE_URL=your_postgresql_connection_string
-JWT_SECRET=your_jwt_secret
-PORT=5001
-```
-
-## Deployment
-
-### Frontend (Netlify)
-1. Connect your GitHub repository to Netlify
-2. Set build settings:
-   - Base directory: `frontend`
-   - Build command: `npm run build`
-   - Publish directory: `build`
-3. Set environment variables in Netlify dashboard
-4. Deploy
-
-### Backend (Render)
-1. Connect your GitHub repository to Render
-2. Set build command: `npm install`
-3. Set start command: `npm start`
-4. Set environment variables in Render dashboard
-5. Deploy
-
-## Development
-
-### Frontend
 ```bash
-cd frontend
-npm install
-npm start
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-### Backend
-```bash
-cd backend
-npm install
-npm start
-```
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## API Documentation
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-The API is documented with the following endpoints:
-- `/api/menu` - Menu management
-- `/api/orders` - Order management
-- `/api/tables` - Table and QR code management
-- `/api/reservations` - Reservation system
-- `/api/auth` - Authentication
-- `/api/reviews` - Review system
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## License
+## Learn More
 
-This project is proprietary software for Sangeet Restaurant. 
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

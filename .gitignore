@@ -1,91 +1,36 @@
-# Dependencies
-node_modules/
-*/node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Production builds
-build/
-dist/
-*/build/
-*/dist/
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-*/.env
-*/.env.local
-*/.env.development.local
-*/.env.test.local
-*/.env.production.local
+# testing
+/coverage
 
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# next.js
+/.next/
+/out/
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# production
+/build
 
-# Coverage directory
-coverage/
-*.lcov
-
-# Optional npm cache directory
-.npm
-
-# Optional eslint cache
-.eslintcache
-
-# Editor directories and files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS generated files
+# misc
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Uploads and media files
-uploads/
-*/uploads/
-public/uploads/
-
-# Database files
-*.sqlite
-*.db
-
-# SSL certificates
 *.pem
-*.key
-*.crt
 
-# Backup files
-*.bak
-*.backup
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Lock files (keep package-lock.json but ignore others)
-yarn.lock
-pnpm-lock.yaml
+# local env files
+.env*.local
 
-# Vercel
+# vercel
 .vercel
 
-# Netlify
-.netlify
+# typescript
+*.tsbuildinfo
+next-env.d.ts
