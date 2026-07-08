@@ -1,7 +1,7 @@
 import axios, { InternalAxiosRequestConfig, AxiosError } from 'axios';
 import toast from 'react-hot-toast';
 
-let baseUrl = process.env.REACT_APP_API_URL || (
+let baseUrl = process.env.NEXT_PUBLIC_API_URL || (
   window.location.hostname === 'localhost' 
     ? 'http://localhost:5001/api' 
     : 'https://sangeet-restaurant-api.onrender.com/api'

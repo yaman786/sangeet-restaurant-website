@@ -1,5 +1,7 @@
+"use client";
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { useLocation } from '@/utils/router-mock';
 import { motion, AnimatePresence } from 'framer-motion';
 // @ts-ignore
 import logo from '../assets/images/logo.png';
@@ -69,16 +71,15 @@ const Header = () => {
           <div className="flex justify-between items-center h-16 md:h-18">
 
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5" aria-label="Sangeet Restaurant Home">
-              <img src={logo} alt="Sangeet" className="h-8 w-auto logo-image-header" />
+            <Link href="/" className="flex items-center gap-2.5" aria-label="Sangeet Restaurant Home">
+              <img src={(logo as any).src || logo} alt="Sangeet Logo" className="h-8 w-auto logo-image-header" />
             </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-1">
               {NAVIGATION_ITEMS.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
+                <Link key={item.path}
+                  href={item.path}
                   className={`relative px-3.5 py-2 rounded-lg text-body-sm font-medium transition-colors duration-200
                     focus:outline-none focus:ring-2 focus:ring-sangeet-400/30 focus:ring-offset-2 focus:ring-offset-transparent
                     ${isActive(item.path)
@@ -111,8 +112,7 @@ const Header = () => {
               </div>
 
               {/* CTA */}
-              <Link
-                to="/reservations"
+              <Link href="/reservations"
                 className="px-4 py-2 rounded-lg bg-sangeet-400/10 text-sangeet-400 text-body-sm font-semibold
                            border border-sangeet-400/20 hover:bg-sangeet-400/20 hover:border-sangeet-400/30
                            transition-all duration-200"
@@ -186,8 +186,7 @@ const Header = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                     >
-                      <Link
-                        to={item.path}
+                      <Link href={item.path}
                         onClick={() => setIsMenuOpen(false)}
                         className={`block px-4 py-3 rounded-xl text-heading-sm font-medium transition-all duration-200
                           ${isActive(item.path)
@@ -206,8 +205,7 @@ const Header = () => {
                 <div className="h-px bg-sangeet-neutral-800 mb-6" />
 
                 {/* Mobile CTA */}
-                <Link
-                  to="/reservations"
+                <Link href="/reservations"
                   onClick={() => setIsMenuOpen(false)}
                   className="btn-primary w-full text-center block"
                 >

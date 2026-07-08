@@ -1,5 +1,6 @@
+"use client";
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from '@/utils/router-mock';
 import { motion } from 'framer-motion';
 // Real-time notifications temporarily disabled during socket reset
 // import RealTimeNotifications from './RealTimeNotifications';

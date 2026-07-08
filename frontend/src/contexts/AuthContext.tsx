@@ -1,3 +1,4 @@
+"use client";
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 export interface User {
@@ -25,7 +26,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
-    // Migration logic for old keys
+    if (typeof window === 'undefined') return null;
     const oldAdminToken = localStorage.getItem('adminToken');
     const oldKitchenToken = localStorage.getItem('kitchenToken');
     const oldToken = localStorage.getItem('token');

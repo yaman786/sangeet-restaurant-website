@@ -28,7 +28,7 @@ class SocketService {
     }
 
     // Use environment variable with fallback
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
     const apiUrl = baseUrl.replace('/api', ''); // Remove /api if present
     
     // Get token to pass for authentication

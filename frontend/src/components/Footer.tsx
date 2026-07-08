@@ -1,5 +1,6 @@
+"use client";
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 // @ts-ignore
 import logo from '../assets/images/logo.png';
@@ -29,11 +30,7 @@ const Footer = () => {
                   {/* Logo with enhanced visibility */}
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 rounded-full blur-xl"></div>
-                    <img 
-                      src={logo} 
-                      alt="Sangeet Restaurant" 
-                      className="relative h-12 md:h-16 w-auto filter brightness-110 contrast-110"
-                    />
+                    <img src={(logo as any).src || logo} alt="Sangeet Logo" className="relative h-12 md:h-16 w-auto filter brightness-110 contrast-110" />
                   </div>
                 </div>
                 <div className="flex flex-col">
@@ -98,25 +95,25 @@ const Footer = () => {
               <h4 className="text-lg md:text-xl font-bold text-sangeet-400 mb-4 md:mb-6">Quick Links</h4>
               <ul className="space-y-2 md:space-y-3">
                 <li>
-                  <Link to="/menu" className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 flex items-center group text-sm md:text-base touch-manipulation py-1">
+                  <Link href="/menu" className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 flex items-center group text-sm md:text-base touch-manipulation py-1">
                     <span className="mr-2 text-sangeet-400 group-hover:translate-x-1 transition-transform duration-300">→</span>
                     Our Menu
                   </Link>
                 </li>
                 <li>
-                  <Link to="/reservations" className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 flex items-center group text-sm md:text-base touch-manipulation py-1">
+                  <Link href="/reservations" className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 flex items-center group text-sm md:text-base touch-manipulation py-1">
                     <span className="mr-2 text-sangeet-400 group-hover:translate-x-1 transition-transform duration-300">→</span>
                     Make Reservation
                   </Link>
                 </li>
                 <li>
-                  <Link to="/about" className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 flex items-center group text-sm md:text-base touch-manipulation py-1">
+                  <Link href="/about" className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 flex items-center group text-sm md:text-base touch-manipulation py-1">
                     <span className="mr-2 text-sangeet-400 group-hover:translate-x-1 transition-transform duration-300">→</span>
                     About Us
                   </Link>
                 </li>
                 <li>
-                  <Link to="/contact" className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 flex items-center group text-sm md:text-base touch-manipulation py-1">
+                  <Link href="/contact" className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 flex items-center group text-sm md:text-base touch-manipulation py-1">
                     <span className="mr-2 text-sangeet-400 group-hover:translate-x-1 transition-transform duration-300">→</span>
                     Contact
                   </Link>
@@ -191,10 +188,10 @@ const Footer = () => {
               © {currentYear} Sangeet Restaurant. All rights reserved.
             </p>
             <div className="flex space-x-6 text-sm">
-              <Link to="/privacy" className="text-sangeet-neutral-400 hover:text-sangeet-400 transition-colors duration-300 touch-manipulation">
+              <Link href="/privacy" className="text-sangeet-neutral-400 hover:text-sangeet-400 transition-colors duration-300 touch-manipulation">
                 Privacy Policy
               </Link>
-              <Link to="/terms" className="text-sangeet-neutral-400 hover:text-sangeet-400 transition-colors duration-300 touch-manipulation">
+              <Link href="/terms" className="text-sangeet-neutral-400 hover:text-sangeet-400 transition-colors duration-300 touch-manipulation">
                 Terms of Service
               </Link>
             </div>
