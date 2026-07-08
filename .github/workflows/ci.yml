@@ -18,28 +18,28 @@ jobs:
       with:
         node-version: '18.x'
         
-    - name: Install Backend Dependencies
-      run: cd backend && npm ci
+    - name: Install Dependencies
+      run: npm ci
 
-    - name: Run Backend Tests
-      run: cd backend && npm test
+    - name: Run Linter
+      run: npm run lint
 
-    - name: Install Frontend Dependencies
-      run: cd frontend && npm ci
+    - name: Run Typecheck
+      run: npx tsc --noEmit
 
-    - name: Build Frontend
-      run: cd frontend && npm run build
+    - name: Build Next.js App
+      run: npm run build
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
       
     - name: Install Playwright Browsers
-      run: cd frontend && npx playwright install --with-deps chromium
+      run: npx playwright install --with-deps chromium
 
-    # Start backend server in the background for E2E tests
-    - name: Start Backend Server
-      run: cd backend && npm run dev &
+    - name: Start Production Server
+      run: npm run start &
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         JWT_SECRET: "test_secret_for_ci_only_do_not_use_in_prod"
 
-    # Run Playwright E2E tests
     - name: Run Playwright Tests
-      run: cd frontend && npx playwright test
+      run: npx playwright test

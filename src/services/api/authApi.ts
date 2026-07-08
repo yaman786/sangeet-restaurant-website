@@ -1,7 +1,7 @@
 import api, { apiCallWrapper } from './client';
 import { UserInfo, UserRow } from '../../types';
 
-export const loginUser = async (credentials: any) => {
+export const loginUser = async (credentials: Record<string, string>) => {
   try {
     const result = await apiCallWrapper(async () => {
       const response = await api.post('/auth/login', credentials);
@@ -20,7 +20,7 @@ export const getProfile = async (): Promise<UserInfo> => {
   }, 'getProfile');
 };
 
-export const changePassword = async (passwordData: any) => {
+export const changePassword = async (passwordData: Record<string, string>) => {
   return apiCallWrapper(async () => {
     return await api.post('/auth/change-password', passwordData);
   }, 'changePassword', false);
@@ -33,13 +33,13 @@ export const getAllUsers = async (): Promise<UserRow[]> => {
   }, 'getAllUsers');
 };
 
-export const createUser = async (userData: any) => {
+export const createUser = async (userData: Partial<UserRow>) => {
   return apiCallWrapper(async () => {
     return await api.post('/auth/users', userData);
   }, 'createUser', false);
 };
 
-export const updateUser = async (id: string | number, userData: any) => {
+export const updateUser = async (id: string | number, userData: Partial<UserRow>) => {
   return apiCallWrapper(async () => {
     return await api.put(`/auth/users/${encodeURIComponent(id)}`, userData);
   }, 'updateUser', false);
@@ -57,7 +57,7 @@ export const toggleUserStatus = async (id: string | number) => {
   }, 'toggleUserStatus', false);
 };
 
-export const getUserStats = async (): Promise<any> => {
+export const getUserStats = async (): Promise<{ total: number, active: number, roles: Record<string, number> }> => {
   return apiCallWrapper(async () => {
     return await api.get('/auth/users/stats');
   }, 'getUserStats');

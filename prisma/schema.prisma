@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model categories {
+  id            Int          @id @default(autoincrement())
+  name          String       @unique @db.VarChar(100)
+  description   String?      @db.Text
+  display_order Int?         @default(0)
+  is_active     Boolean?     @default(true)
+  created_at    DateTime?    @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?    @default(now()) @db.Timestamp(6)
+  menu_items    menu_items[]
+}
+
+model menu_items {
+  id               Int         @id @default(autoincrement())
+  name             String      @db.VarChar(255)
+  description      String?     @db.Text
+  price            Decimal     @db.Decimal(8, 2)
+  category         String      @db.VarChar(100)
+  image_url        String?     @db.Text
+  is_vegetarian    Boolean?    @default(false)
+  is_spicy         Boolean?    @default(false)
+  is_popular       Boolean?    @default(false)
+  allergens        String?     @db.Text
+  preparation_time Int?        @default(15)
+  created_at       DateTime?   @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?   @default(now()) @db.Timestamp(6)
+  category_id      Int?
+  is_active        Boolean?    @default(true)
+  categories       categories? @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model customer_reviews {
+  id            Int       @id @default(autoincrement())
+  customer_name String    @db.VarChar(255)
+  review_text   String    @db.Text
+  rating        Int?
+  image_url     String?   @db.Text
+  order_id      Int?
+  table_number  String?   @db.VarChar(10)
+  is_verified   Boolean?  @default(false)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model restaurant_tables {
+  id           Int            @id @default(autoincrement())
+  table_number String         @unique @db.VarChar(10)
+  capacity     Int            @default(4)
+  table_type   String?        @default("standard") @db.VarChar(50)
+  is_active    Boolean?       @default(true)
+  created_at   DateTime?      @default(now()) @db.Timestamp(6)
+  reservations reservations[]
+}
+
+model reservations {
+  id                Int                @id @default(autoincrement())
+  customer_name     String             @db.VarChar(255)
+  email             String             @db.VarChar(255)
+  phone             String?            @db.VarChar(50)
+  table_id          Int?
+  date              DateTime           @db.Date
+  time              DateTime           @db.Time(6)
+  guests            Int
+  special_requests  String?            @db.Text
+  status            String?            @default("pending") @db.VarChar(50)
+  confirmation_code String?            @unique @db.VarChar(20)
+  created_at        DateTime?          @default(now()) @db.Timestamp(6)
+  updated_at        DateTime?          @default(now()) @db.Timestamp(6)
+  restaurant_tables restaurant_tables? @relation(fields: [table_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  id            Int       @id @default(autoincrement())
+  username      String    @unique @db.VarChar(50)
+  email         String    @unique @db.VarChar(255)
+  password_hash String    @db.VarChar(255)
+  role          String    @default("waiter") @db.VarChar(50)
+  first_name    String?   @db.VarChar(50)
+  last_name     String?   @db.VarChar(50)
+  is_active     Boolean?  @default(true)
+  last_login    DateTime? @db.Timestamp(6)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model tables {
+  id              Int           @id @default(autoincrement())
+  table_number    String        @unique @db.VarChar(10)
+  qr_code_url     String        @unique @db.Text
+  is_active       Boolean?      @default(true)
+  created_at      DateTime?     @default(now()) @db.Timestamp(6)
+  qr_code_data    String?       @db.Text
+  design_settings Json?         @default("{}")
+  updated_at      DateTime?     @default(now()) @db.Timestamp(6)
+  last_scanned_at DateTime?     @db.Timestamp(6)
+  scan_count      Int?          @default(0)
+  orders          orders[]
+}
+
+model orders {
+  id                   Int           @id @default(autoincrement())
+  table_id             Int?
+  customer_name        String?       @db.VarChar(255)
+  order_number         String        @unique @db.VarChar(20)
+  status               String?       @default("pending") @db.VarChar(50)
+  total_amount         Decimal?      @default(0) @db.Decimal(10, 2)
+  special_instructions String?       @db.Text
+  created_at           DateTime?     @default(now()) @db.Timestamp(6)
+  updated_at           DateTime?     @default(now()) @db.Timestamp(6)
+  tables               tables?       @relation(fields: [table_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order_items          order_items[]
+}
+
+model order_items {
+  id               Int         @id @default(autoincrement())
+  order_id         Int?
+  menu_item_id     Int?
+  quantity         Int         @default(1)
+  unit_price       Decimal     @db.Decimal(8, 2)
+  total_price      Decimal     @db.Decimal(8, 2)
+  special_requests String?     @db.Text
+  created_at       DateTime?   @default(now()) @db.Timestamp(6)
+  orders           orders?     @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}

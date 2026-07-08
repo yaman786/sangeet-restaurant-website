@@ -2,14 +2,19 @@ import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { 
   fetchMenuItems, 
-  fetchMenuCategories, 
-  createMenuItem, 
-  updateMenuItem, 
-  deleteMenuItem,
+  fetchMenuCategories,
   createCategory,
   updateCategory,
   deleteCategory
 } from '../../../services/api';
+import { 
+  createMenuItemAction, 
+  updateMenuItemAction, 
+  deleteMenuItemAction,
+  createCategoryAction,
+  updateCategoryAction,
+  deleteCategoryAction
+} from '@/app/actions/menuActions';
 
 export const useMenuManagement = () => {
   const [menuItems, setMenuItems] = useState<any[]>([]);
@@ -126,27 +131,27 @@ export const useMenuManagement = () => {
   };
 
   const handleAddItem = async (data: any) => {
-    try {
-      await createMenuItem(data);
+    const result = await createMenuItemAction(data);
+    if (result.success) {
       toast.success('Menu item created successfully!');
       setShowAddModal(false);
       loadData();
-    } catch (error: any) {
-      console.error('Error creating menu item:', error);
-      toast.error(error.response?.data?.error || 'Failed to create menu item');
+    } else {
+      console.error('Error creating menu item:', result.error);
+      toast.error(result.error || 'Failed to create menu item');
     }
   };
 
   const handleEditItem = async (data: any) => {
-    try {
-      await updateMenuItem((selectedItem as any)?.id, data);
+    const result = await updateMenuItemAction((selectedItem as any)?.id, data);
+    if (result.success) {
       toast.success('Menu item updated successfully!');
       setShowEditModal(false);
       setSelectedItem(null);
       loadData();
-    } catch (error: any) {
-      console.error('Error updating menu item:', error);
-      toast.error(error.response?.data?.error || 'Failed to update menu item');
+    } else {
+      console.error('Error updating menu item:', result.error);
+      toast.error(result.error || 'Failed to update menu item');
     }
   };
 
@@ -159,39 +164,39 @@ export const useMenuManagement = () => {
   };
 
   const confirmDeleteItem = async () => {
-    try {
-      await deleteMenuItem(deleteId as any);
+    const result = await deleteMenuItemAction(deleteId as any);
+    if (result.success) {
       toast.success('Menu item deleted successfully!');
       setShowDeleteModal(false);
       loadData();
-    } catch (error: any) {
-      console.error('Error deleting menu item:', error);
-      toast.error(error.response?.data?.error || 'Failed to delete menu item');
+    } else {
+      console.error('Error deleting menu item:', result.error);
+      toast.error(result.error || 'Failed to delete menu item');
     }
   };
 
   const handleAddCategory = async (data: any) => {
-    try {
-      await createCategory(data);
+    const result = await createCategoryAction(data);
+    if (result.success) {
       toast.success('Category created successfully!');
       setShowCategoryModal(false);
       loadData();
-    } catch (error: any) {
-      console.error('Error creating category:', error);
-      toast.error(error.response?.data?.error || 'Failed to create category');
+    } else {
+      console.error('Error creating category:', result.error);
+      toast.error(result.error || 'Failed to create category');
     }
   };
 
   const handleEditCategory = async (data: any) => {
-    try {
-      await updateCategory((selectedCategory as any)?.id, data);
+    const result = await updateCategoryAction((selectedCategory as any)?.id, data);
+    if (result.success) {
       toast.success('Category updated successfully!');
       setShowCategoryModal(false);
       setSelectedCategory(null);
       loadData();
-    } catch (error: any) {
-      console.error('Error updating category:', error);
-      toast.error(error.response?.data?.error || 'Failed to update category');
+    } else {
+      console.error('Error updating category:', result.error);
+      toast.error(result.error || 'Failed to update category');
     }
   };
 
@@ -204,14 +209,14 @@ export const useMenuManagement = () => {
   };
 
   const confirmDeleteCategory = async () => {
-    try {
-      await deleteCategory(deleteId as any);
+    const result = await deleteCategoryAction(deleteId as any);
+    if (result.success) {
       toast.success('Category deleted successfully!');
       setShowDeleteModal(false);
       loadData();
-    } catch (error: any) {
-      console.error('Error deleting category:', error);
-      toast.error(error.response?.data?.error || 'Failed to delete category');
+    } else {
+      console.error('Error deleting category:', result.error);
+      toast.error(result.error || 'Failed to delete category');
     }
   };
 

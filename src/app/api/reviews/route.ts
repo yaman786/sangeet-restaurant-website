@@ -1,7 +1,9 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import reviewService from '@/lib/services/reviewService';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireAdmin } from '@/lib/auth';
+import { reviewSchema } from '@/lib/validations';
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,10 +18,10 @@ export async function GET(req: NextRequest) {
     return handleApiError(error);
   }
 }
-
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const rawBody = await req.json();
+    const body = reviewSchema.parse(rawBody);
     const review = await reviewService.createReview(body);
     return NextResponse.json({ message: 'Review submitted successfully', review }, { status: 201 });
   } catch (error) {

@@ -9,9 +9,8 @@ export interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (token: string, userData: User) => void;
+  login: (userData: User) => void;
   logout: () => void;
-  getToken: () => string | null;
   isAuthenticated: boolean;
 }
 
@@ -27,61 +26,9 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     if (typeof window === 'undefined') return null;
-    const oldAdminToken = localStorage.getItem('adminToken');
-    const oldKitchenToken = localStorage.getItem('kitchenToken');
-    const oldToken = localStorage.getItem('token');
-    
-    // Pick the most privileged token or the first available
-    const existingToken = localStorage.getItem(TOKEN_KEY) || oldAdminToken || oldKitchenToken || oldToken;
     const existingUser = localStorage.getItem(USER_KEY);
-
-    const isTokenExpired = (token: string): boolean => {
-      try {
-        const payloadBase64 = token.split('.')[1];
-        if (!payloadBase64) return true;
-        const decodedJson = atob(payloadBase64);
-        const decoded = JSON.parse(decodedJson);
-        if (!decoded.exp) return false;
-        return (decoded.exp * 1000) < Date.now();
-      } catch (e) {
-        return true;
-      }
-    };
-
-    if (existingToken && isTokenExpired(existingToken)) {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('kitchenToken');
-      localStorage.removeItem('token');
-      return null;
-    }
-
-    if (existingToken && !localStorage.getItem(TOKEN_KEY)) {
-      // Perform migration
-      localStorage.setItem(TOKEN_KEY, existingToken);
-      
-      if (!existingUser) {
-        // We'll need to fetch the user or create a basic one based on which token we found
-        let role: User['role'] = 'user';
-        if (oldAdminToken) role = 'admin';
-        else if (oldKitchenToken) role = 'kitchen';
-        
-        const basicUser: User = { role, migrated: true };
-        localStorage.setItem(USER_KEY, JSON.stringify(basicUser));
-        
-        // Remove old keys
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('kitchenToken');
-        localStorage.removeItem('token');
-        localStorage.removeItem('adminUser');
-        localStorage.removeItem('kitchenUser');
-        
-        return basicUser;
-      }
-    }
-
-    if (existingToken && existingUser) {
+    
+    if (existingUser) {
       try {
         return JSON.parse(existingUser) as User;
       } catch (e) {
@@ -93,22 +40,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return null;
   });
 
-  const login = (token: string, userData: User) => {
-    localStorage.setItem(TOKEN_KEY, token);
+  const login = (userData: User) => {
     localStorage.setItem(USER_KEY, JSON.stringify(userData));
     setUser(userData);
   };
 
   const logout = () => {
-    localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     setUser(null);
+    // In a real app with HttpOnly cookies, we should call a backend logout API here to clear the cookie
+    window.location.href = '/login';
   };
 
-  const getToken = () => localStorage.getItem(TOKEN_KEY);
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, getToken, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{
+      user,
+      login,
+      logout,
+      isAuthenticated: !!user
+    }}>
       {children}
     </AuthContext.Provider>
   );

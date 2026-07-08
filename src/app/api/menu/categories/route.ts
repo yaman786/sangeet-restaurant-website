@@ -1,12 +1,19 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireRole } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
   try {
-    const result = await pool.query('SELECT * FROM categories WHERE is_active = true ORDER BY display_order ASC, name ASC');
-    return NextResponse.json(result.rows);
+    const categories = await prisma.categories.findMany({
+      where: { is_active: true },
+      orderBy: [
+        { display_order: 'asc' },
+        { name: 'asc' }
+      ]
+    });
+    return NextResponse.json(categories);
   } catch (error) {
     return handleApiError(error);
   }
@@ -22,12 +29,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { name, display_order } = body;
     
-    const result = await pool.query(
-      'INSERT INTO categories (name, display_order) VALUES ($1, $2) RETURNING *',
-      [name, display_order || 0]
-    );
+    const category = await prisma.categories.create({
+      data: {
+        name,
+        display_order: display_order || 0
+      }
+    });
     
-    return NextResponse.json(result.rows[0], { status: 201 });
+    return NextResponse.json(category, { status: 201 });
   } catch (error) {
     return handleApiError(error);
   }

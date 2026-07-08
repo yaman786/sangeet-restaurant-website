@@ -1,4 +1,4 @@
-import api, { apiCallWrapper, getAuthToken, API_CONFIG } from './client';
+import api, { apiCallWrapper, API_CONFIG } from './client';
 import { QRCodeRow } from '../../types';
 import toast from 'react-hot-toast';
 

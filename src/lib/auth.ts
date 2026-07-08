@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export interface JwtPayload {
   id: number;
@@ -20,8 +21,7 @@ export const VALID_ROLES = ['admin', 'kitchen', 'reception', 'waiter'];
  * @returns The decoded user payload, or an error Response if invalid
  */
 export async function authenticateToken(req: NextRequest): Promise<{ user?: JwtPayload; errorResponse?: NextResponse }> {
-  const authHeader = req.headers.get('authorization');
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  const token = req.cookies.get('auth_token')?.value;
 
   if (!token) {
     return { errorResponse: NextResponse.json({ error: 'Access token required' }, { status: 401 }) };
@@ -58,4 +58,25 @@ export function requireAuth(user: JwtPayload): NextResponse | null {
     return NextResponse.json({ error: 'Access denied. Valid staff authentication required.' }, { status: 403 });
   }
   return null;
+}
+
+export function requireAdmin(user: JwtPayload): NextResponse | null {
+  return requireRole(user, ['admin']);
+}
+
+/**
+ * Extracts and verifies the JWT token from cookies (for Server Actions & Server Components)
+ */
+
+export async function getAuthUser(): Promise<JwtPayload | null> {
+  const cookieStore = cookies();
+  const token = cookieStore.get('auth_token')?.value;
+
+  if (!token) return null;
+
+  try {
+    return jwt.verify(token, JWT_SECRET) as JwtPayload;
+  } catch (err) {
+    return null;
+  }
 }

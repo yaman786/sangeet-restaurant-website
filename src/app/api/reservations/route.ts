@@ -1,7 +1,9 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import reservationService from '@/lib/services/reservationService';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireAuth } from '@/lib/auth';
+import { reservationSchema } from '@/lib/validations';
 
 export async function GET(req: NextRequest) {
   try {
@@ -22,7 +24,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const rawBody = await req.json();
+    const body = reservationSchema.parse(rawBody);
     const reservation = await reservationService.createReservation(body);
     return NextResponse.json({ message: 'Reservation created successfully', reservation }, { status: 201 });
   } catch (error) {

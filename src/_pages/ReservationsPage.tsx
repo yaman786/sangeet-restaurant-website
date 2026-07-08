@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { reservationSchema } from '../utils/validators';
-import { createReservation } from '../services/api';
+import { reservationSchema } from '@/lib/validations';
+import { createReservationAction } from '@/app/actions/reservationActions';
 
 const ReservationsPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,15 +48,18 @@ const ReservationsPage = () => {
   const onSubmit = async (data: any) => {
     try {
       setIsSubmitting(true);
-      await createReservation(data);
+      const result = await createReservationAction(data);
       
-      setReservationDetails(data);
-      setShowSuccess(true);
-      
-      reset(); // clear form
+      if (result.success) {
+        setReservationDetails(data);
+        setShowSuccess(true);
+        reset(); // clear form
+      } else {
+        toast.error(result.error || 'Failed to create reservation. Please try again.');
+      }
     } catch (error: any) {
       console.error('Error creating reservation:', error);
-      toast.error(error.response?.data?.error || 'Failed to create reservation. Please try again.');
+      toast.error('Failed to create reservation. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

@@ -1,4 +1,4 @@
-import api, { apiCallWrapper } from './client';
+import api, { apiCallWrapper, serverFetch } from './client';
 import { RestaurantSettingRow, WebsiteContentRow, WebsiteMediaRow, EventRow } from '../../types';
 
 export const getRestaurantSettings = async (): Promise<RestaurantSettingRow[]> => {
@@ -7,7 +7,7 @@ export const getRestaurantSettings = async (): Promise<RestaurantSettingRow[]> =
   }, 'getRestaurantSettings');
 };
 
-export const updateRestaurantSettings = async (settings: any) => {
+export const updateRestaurantSettings = async (settings: Record<string, string>) => {
   return apiCallWrapper(async () => {
     return await api.put('/website/settings', settings);
   }, 'updateRestaurantSettings', false);
@@ -19,7 +19,7 @@ export const getWebsiteContent = async (): Promise<WebsiteContentRow[]> => {
   }, 'getWebsiteContent');
 };
 
-export const updateWebsiteContent = async (content: any) => {
+export const updateWebsiteContent = async (content: Partial<WebsiteContentRow> | Partial<WebsiteContentRow>[]) => {
   return apiCallWrapper(async () => {
     return await api.put('/website/content', content);
   }, 'updateWebsiteContent', false);
@@ -47,7 +47,7 @@ export const deleteWebsiteMedia = async (id: string | number) => {
   }, 'deleteWebsiteMedia', false);
 };
 
-export const getWebsiteStats = async (): Promise<any> => {
+export const getWebsiteStats = async (): Promise<Record<string, number>> => {
   return apiCallWrapper(async () => {
     return await api.get('/website/stats');
   }, 'getWebsiteStats');
@@ -75,4 +75,9 @@ export const fetchEventById = async (id: string | number): Promise<EventRow> => 
   return apiCallWrapper(async () => {
     return await api.get(`/events/${encodeURIComponent(id)}`);
   }, 'fetchEventById');
+};
+
+// SERVER COMPONENT FETCHERS
+export const serverFetchEvents = async (): Promise<EventRow[]> => {
+  return serverFetch<EventRow[]>('/events', { next: { revalidate: 3600 } });
 };

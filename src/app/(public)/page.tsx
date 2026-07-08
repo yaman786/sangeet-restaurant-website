@@ -1,5 +1,5 @@
 import HomePage from '@/_pages/HomePage';
-import { fetchMenuItems, fetchReviews, fetchEvents } from '@/services/api';
+import { serverFetchMenuItems, serverFetchReviews, serverFetchEvents } from '@/services/api';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -52,16 +52,15 @@ export default async function Home() {
 
   try {
     const [menuRes, reviewsRes, eventsRes] = await Promise.all([
-      fetchMenuItems().catch(() => FALLBACK_MENU),
-      fetchReviews().catch(() => FALLBACK_REVIEWS),
-      fetchEvents().catch(() => FALLBACK_EVENTS)
+      serverFetchMenuItems().catch(() => FALLBACK_MENU),
+      serverFetchReviews().catch(() => FALLBACK_REVIEWS),
+      serverFetchEvents().catch(() => FALLBACK_EVENTS)
     ]);
     
-    // In our backend, responses often look like { success: true, data: [...] } or just [...]
-    // For now we assign them directly because the axios interceptor usually returns response.data
-    menuItems = (menuRes as any)?.data || menuRes || FALLBACK_MENU;
-    reviews = (reviewsRes as any)?.data || reviewsRes || FALLBACK_REVIEWS;
-    events = (eventsRes as any)?.data || eventsRes || FALLBACK_EVENTS;
+    // serverFetch returns the direct data, no need for .data extraction
+    menuItems = menuRes || FALLBACK_MENU;
+    reviews = reviewsRes || FALLBACK_REVIEWS;
+    events = eventsRes || FALLBACK_EVENTS;
   } catch (err) {
     console.error("Failed to fetch server data", err);
   }

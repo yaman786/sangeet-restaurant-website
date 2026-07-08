@@ -1,19 +1,22 @@
-import pool from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { NotFoundError, ValidationError } from '@/lib/errors';
 import type { ReviewRow } from '@/lib/types';
 
 class ReviewService {
-  async getAllReviews(): Promise<ReviewRow[]> {
-    const result = await pool.query('SELECT * FROM customer_reviews ORDER BY created_at DESC');
-    return result.rows;
+  async getAllReviews(): Promise<any[]> {
+    return prisma.customer_reviews.findMany({
+      orderBy: { created_at: 'desc' }
+    });
   }
 
-  async getVerifiedReviews(): Promise<ReviewRow[]> {
-    const result = await pool.query('SELECT * FROM customer_reviews WHERE is_verified = true ORDER BY created_at DESC');
-    return result.rows;
+  async getVerifiedReviews(): Promise<any[]> {
+    return prisma.customer_reviews.findMany({
+      where: { is_verified: true },
+      orderBy: { created_at: 'desc' }
+    });
   }
 
-  async createReview(data: Record<string, any>): Promise<ReviewRow> {
+  async createReview(data: Record<string, any>): Promise<any> {
     const { customer_name, review_text, rating, image_url, order_id, table_number } = data;
     const parsedOrderId = order_id ? parseInt(order_id, 10) : null;
     
@@ -21,59 +24,76 @@ class ReviewService {
       throw new ValidationError('Invalid order ID');
     }
     
-    const result = await pool.query(
-      `INSERT INTO customer_reviews (customer_name, review_text, rating, image_url, order_id, table_number)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [customer_name, review_text, rating, image_url || null, parsedOrderId, table_number || null]
-    );
-    return result.rows[0];
+    return prisma.customer_reviews.create({
+      data: {
+        customer_name,
+        review_text,
+        rating: rating ? parseInt(rating, 10) : null,
+        image_url: image_url || null,
+        order_id: parsedOrderId,
+        table_number: table_number || null,
+        is_verified: false
+      }
+    });
   }
 
-  async getReviewById(id: string): Promise<ReviewRow> {
-    const result = await pool.query('SELECT * FROM customer_reviews WHERE id = $1', [id]);
-    if (result.rows.length === 0) throw new NotFoundError('Review');
-    return result.rows[0];
+  async getReviewById(id: string): Promise<any> {
+    const review = await prisma.customer_reviews.findUnique({
+      where: { id: parseInt(id, 10) }
+    });
+    if (!review) throw new NotFoundError('Review');
+    return review;
   }
 
-  async updateReviewVerification(id: string, is_verified: boolean): Promise<ReviewRow> {
-    const result = await pool.query(
-      'UPDATE customer_reviews SET is_verified = $1 WHERE id = $2 RETURNING *',
-      [is_verified, id]
-    );
-    if (result.rows.length === 0) throw new NotFoundError('Review');
-    return result.rows[0];
+  async updateReviewVerification(id: string, is_verified: boolean): Promise<any> {
+    const review = await prisma.customer_reviews.update({
+      where: { id: parseInt(id, 10) },
+      data: { is_verified }
+    }).catch(() => null);
+    
+    if (!review) throw new NotFoundError('Review');
+    return review;
   }
 
-  async deleteReview(id: string): Promise<ReviewRow> {
-    const result = await pool.query('DELETE FROM customer_reviews WHERE id = $1 RETURNING *', [id]);
-    if (result.rows.length === 0) throw new NotFoundError('Review');
-    return result.rows[0];
+  async deleteReview(id: string): Promise<any> {
+    const review = await prisma.customer_reviews.delete({
+      where: { id: parseInt(id, 10) }
+    }).catch(() => null);
+    
+    if (!review) throw new NotFoundError('Review');
+    return review;
   }
 
   async getReviewStats(): Promise<Record<string, number | string>> {
-    const result = await pool.query(`
-      SELECT 
-        COUNT(*) as total_reviews,
-        COUNT(CASE WHEN is_verified = true THEN 1 END) as verified_reviews,
-        AVG(rating) as average_rating,
-        COUNT(CASE WHEN rating = 5 THEN 1 END) as five_star,
-        COUNT(CASE WHEN rating = 4 THEN 1 END) as four_star,
-        COUNT(CASE WHEN rating = 3 THEN 1 END) as three_star,
-        COUNT(CASE WHEN rating = 2 THEN 1 END) as two_star,
-        COUNT(CASE WHEN rating = 1 THEN 1 END) as one_star
-      FROM customer_reviews
-    `);
+    const [
+      total_reviews,
+      verified_reviews,
+      average_rating,
+      five_star,
+      four_star,
+      three_star,
+      two_star,
+      one_star
+    ] = await Promise.all([
+      prisma.customer_reviews.count(),
+      prisma.customer_reviews.count({ where: { is_verified: true } }),
+      prisma.customer_reviews.aggregate({ _avg: { rating: true } }),
+      prisma.customer_reviews.count({ where: { rating: 5 } }),
+      prisma.customer_reviews.count({ where: { rating: 4 } }),
+      prisma.customer_reviews.count({ where: { rating: 3 } }),
+      prisma.customer_reviews.count({ where: { rating: 2 } }),
+      prisma.customer_reviews.count({ where: { rating: 1 } })
+    ]);
     
-    const r = result.rows[0];
     return {
-      total_reviews: parseInt(r.total_reviews, 10),
-      verified_reviews: parseInt(r.verified_reviews, 10),
-      average_rating: parseFloat(r.average_rating || 0).toFixed(1),
-      five_star: parseInt(r.five_star, 10),
-      four_star: parseInt(r.four_star, 10),
-      three_star: parseInt(r.three_star, 10),
-      two_star: parseInt(r.two_star, 10),
-      one_star: parseInt(r.one_star, 10)
+      total_reviews,
+      verified_reviews,
+      average_rating: average_rating._avg.rating ? average_rating._avg.rating.toFixed(1) : "0.0",
+      five_star,
+      four_star,
+      three_star,
+      two_star,
+      one_star
     };
   }
 }

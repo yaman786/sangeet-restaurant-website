@@ -43,49 +43,20 @@ export class ApiError extends Error {
   }
 }
 
-// Create axios instance with proper configuration
 const api = axios.create({
   baseURL: API_CONFIG.BASE_URL,
   timeout: API_CONFIG.TIMEOUT,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 /**
- * Get auth token from localStorage
- * @returns {string|null} Auth token or null
- */
-export const getAuthToken = (): string | null => {
-  if (typeof window === 'undefined') return null;
-  const token = localStorage.getItem('sangeet_token') || localStorage.getItem('token') || localStorage.getItem('authToken') || localStorage.getItem('adminToken');
-
-  // Validate token format (basic check)
-  if (token && token.split('.').length === 3) {
-    return token;
-  }
-
-  // Clear invalid token
-  if (token) {
-    localStorage.removeItem('sangeet_token');
-    localStorage.removeItem('token');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('adminToken');
-  }
-
-  return null;
-};
-
-/**
  * Add auth token to request headers
- * @param {Object} config - Axios config
- * @returns {Object} Updated config
+ * (Removed as we now use HttpOnly cookies with withCredentials)
  */
 const addAuthToken = (config: InternalAxiosRequestConfig) => {
-  const token = getAuthToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
   return config;
 };
 
@@ -225,5 +196,33 @@ api.interceptors.response.use(
     return handleApiError(error);
   }
 );
+
+/**
+ * Native fetch wrapper for Next.js Server Components.
+ * Supports Next.js extended caching options.
+ */
+export const serverFetch = async <T>(
+  endpoint: string,
+  options?: RequestInit & { next?: { revalidate?: number; tags?: string[] } }
+): Promise<T> => {
+  // Ensure we use the absolute URL for server-side fetching
+  const url = endpoint.startsWith('http') 
+    ? endpoint 
+    : `${API_CONFIG.BASE_URL}${endpoint}`;
+    
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch: ${res.statusText}`);
+  }
+  
+  return res.json() as Promise<T>;
+};
 
 export default api;

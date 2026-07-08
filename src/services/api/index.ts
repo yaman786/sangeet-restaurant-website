@@ -6,7 +6,7 @@
  */
 
 // Core client
-export { default, API_ERROR_TYPES, ApiError, getAuthToken, apiCallWrapper, API_CONFIG } from './client';
+export { default, API_ERROR_TYPES, ApiError, apiCallWrapper, API_CONFIG, serverFetch } from './client';
 
 // Menu
 export {
@@ -68,3 +68,8 @@ export {
   getCustomerInsights, getPerformanceMetrics, exportAnalyticsData,
   checkApiHealth
 } from './analyticsApi';
+
+// SERVER COMPONENT FETCHERS
+export { serverFetchMenuItems, serverFetchMenuCategories } from './menuApi';
+export { serverFetchReviews } from './reviewApi';
+export { serverFetchEvents } from './websiteApi';

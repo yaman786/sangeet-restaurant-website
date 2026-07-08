@@ -7,7 +7,7 @@ export const createOrder = async (orderData: CreateOrderInput) => {
   }, 'createOrder', false);
 };
 
-export const fetchAllOrders = async (filters: any = {}): Promise<OrderRow[]> => {
+export const fetchAllOrders = async (filters: Record<string, string | number | boolean> = {}): Promise<OrderRow[]> => {
   return apiCallWrapper(async () => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
@@ -70,7 +70,7 @@ export const bulkUpdateOrderStatus = async (orderIds: (string | number)[], statu
   }, 'bulkUpdateOrderStatus', false);
 };
 
-export const searchOrders = async (searchParams: any = {}): Promise<OrderRow[]> => {
+export const searchOrders = async (searchParams: Record<string, string | number | boolean> = {}): Promise<OrderRow[]> => {
   return apiCallWrapper(async () => {
     const params = new URLSearchParams();
     Object.entries(searchParams).forEach(([key, value]) => {
@@ -85,7 +85,7 @@ export const searchOrders = async (searchParams: any = {}): Promise<OrderRow[]> 
   }, 'searchOrders');
 };
 
-export const fetchOrderStats = async (): Promise<any> => {
+export const fetchOrderStats = async (): Promise<Record<string, number | string>> => {
   return apiCallWrapper(async () => {
     return await api.get('/orders/stats');
   }, 'fetchOrderStats');

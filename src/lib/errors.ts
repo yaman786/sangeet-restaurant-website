@@ -27,8 +27,27 @@ export class ConflictError extends AppError {
   }
 }
 
+export class ValidationError extends AppError {
+  constructor(message: string = 'Validation Error') {
+    super(message, 400);
+  }
+}
+
+import { z } from 'zod';
+
 export function handleApiError(error: unknown) {
   console.error('API Error:', error);
+
+  if (error instanceof z.ZodError) {
+    const formattedErrors = error.errors.map(err => ({
+      path: err.path.join('.'),
+      message: err.message
+    }));
+    return NextResponse.json(
+      { error: 'Validation failed', details: formattedErrors }, 
+      { status: 400 }
+    );
+  }
 
   if (error instanceof AppError) {
     return NextResponse.json({ error: error.message }, { status: error.statusCode });

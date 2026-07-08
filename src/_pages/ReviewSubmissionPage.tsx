@@ -3,7 +3,10 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from '@/utils/router-mock';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { submitReview } from '../services/api';
+import { submitReviewAction } from '@/app/actions/reviewActions';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { reviewSchema } from '@/lib/validations';
 
 const ReviewSubmissionPage = () => {
   const navigate = useNavigate();
@@ -15,28 +18,51 @@ const ReviewSubmissionPage = () => {
   const tableNumber = searchParams.get('table');
   const customerName = searchParams.get('customerName');
   
-  const [formData, setFormData] = useState<any>({
-    customer_name: customerName || '',
-    review_text: '',
-    rating: 0,
-    order_id: orderId || null,
-    table_number: tableNumber || null
+  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(reviewSchema),
+    defaultValues: {
+      customer_name: customerName || '',
+      review_text: '',
+      rating: 0
+    }
   });
   
   const [hoveredRating, setHoveredRating] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [charCount, setCharCount] = useState(formData.review_text.length);
-  const [validationErrors, setValidationErrors] = useState<any>({});
+
+  const onSubmit = async (data: any) => {
+    try {
+      const reviewData = {
+        ...data,
+        order_id: orderId || null,
+        table_number: tableNumber || null
+      };
+
+      const result = await submitReviewAction(reviewData);
+      
+      if (result.success) {
+        toast.success('Thank you for your review!');
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
+      } else {
+        toast.error(result.error || 'Failed to submit review. Please try again.');
+      }
+      
+    } catch (error: any) {
+      console.error('Error submitting review:', error);
+      toast.error('Failed to submit review. Please try again.');
+    }
+  };
 
   // Star rating component
-  const StarRating = ({ rating, onRatingChange, onHover, onLeave }: any) => {
+  const StarRating = ({ rating, onChange, onHover, onLeave }: any) => {
     return (
       <div className="flex items-center space-x-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
             key={star}
             type="button"
-            onClick={() => onRatingChange(star)}
+            onClick={() => onChange(star)}
             onMouseEnter={() => onHover(star)}
             onMouseLeave={onLeave}
             className="text-3xl transition-colors duration-200 focus:outline-none"
@@ -52,100 +78,6 @@ const ReviewSubmissionPage = () => {
     );
   };
 
-  const handleInputChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormData((prev: any) => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Update character count for review text
-    if (name === 'review_text') {
-      setCharCount(value.length);
-      // Clear validation error when user starts typing
-      if (validationErrors.review_text) {
-        setValidationErrors((prev: any) => ({ ...prev, review_text: null }));
-      }
-    }
-    
-    // Clear validation errors when user types
-    if (validationErrors[name]) {
-      setValidationErrors((prev: any) => ({ ...prev, [name]: null }));
-    }
-  };
-
-  const handleRatingChange = (rating: number) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      rating
-    }));
-  };
-
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    
-    // Clear previous validation errors
-    setValidationErrors({});
-    
-    // Validate customer name
-    if (!formData.customer_name.trim()) {
-      setValidationErrors((prev: any) => ({ ...prev, customer_name: 'Please enter your name' }));
-      return;
-    }
-    
-    // Validate review text
-    if (!formData.review_text.trim()) {
-      setValidationErrors((prev: any) => ({ ...prev, review_text: 'Please enter your review' }));
-      return;
-    }
-    
-    if (formData.review_text.trim().length < 10) {
-      setValidationErrors((prev: any) => ({ 
-        ...prev, 
-        review_text: `Review must be at least 10 characters (currently ${formData.review_text.trim().length})` 
-      }));
-      return;
-    }
-    
-    // Validate rating
-    if (formData.rating === 0) {
-      setValidationErrors((prev: any) => ({ ...prev, rating: 'Please select a rating' }));
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      
-      const reviewData = {
-        customer_name: formData.customer_name.trim(),
-        review_text: formData.review_text.trim(),
-        rating: formData.rating,
-        order_id: formData.order_id,
-        table_number: formData.table_number
-      };
-
-      // Review submission debug info
-
-      const response = await submitReview(reviewData);
-              // Review submission response
-      
-      toast.success('Thank you for your review!');
-      
-      // Redirect to home page or show success message
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
-      
-    } catch (error: any) {
-      console.error('Error submitting review:', error);
-      console.error('Error details:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      toast.error(error.response?.data?.error || 'Failed to submit review. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-sangeet-neutral-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <motion.div
@@ -155,7 +87,7 @@ const ReviewSubmissionPage = () => {
         className="max-w-md w-full space-y-8"
       >
         {/* Header */}
-        <div className="text-center">
+        <div className="text-center mb-8">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -165,63 +97,47 @@ const ReviewSubmissionPage = () => {
             <span className="text-2xl">⭐</span>
           </motion.div>
           
-                           <h2 className="text-3xl font-bold text-sangeet-400 mb-2">
-                   Share Your Dining Experience
-                 </h2>
-                 <p className="text-sangeet-neutral-300">
-                   We'd love to hear about your recent dining experience at Sangeet
-                 </p>
+          <h2 className="text-3xl font-bold text-sangeet-400 mb-2">
+            Share Your Dining Experience
+          </h2>
+          <p className="text-sangeet-neutral-300">
+            {orderId ? `Review for Order #${orderId}` : "We'd love to hear about your recent dining experience at Sangeet"}
+          </p>
           
-                           {(orderId || tableNumber) && (
-                   <div className="mt-4 p-3 bg-sangeet-neutral-900 rounded-lg">
-                     <p className="text-sm text-sangeet-neutral-300">
-                       {orderId && `Order #${orderId}`}
-                       {orderId && tableNumber && ' • '}
-                       {tableNumber && `Table ${tableNumber}`}
-                     </p>
-                   </div>
-                 )}
-                 
-                 {/* Helpful Note */}
-                 <div className="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                   <p className="text-sm text-blue-300">
-                     💡 <strong>When to review:</strong> Please share your experience after you've dined with us. 
-                     This helps other customers make informed decisions.
-                   </p>
-                 </div>
+          {(orderId || tableNumber) && (
+            <div className="mt-4 p-3 bg-sangeet-neutral-900 rounded-lg">
+              <p className="text-sm text-sangeet-neutral-300">
+                {orderId && `Order #${orderId}`}
+                {orderId && tableNumber && ' • '}
+                {tableNumber && `Table ${tableNumber}`}
+              </p>
+            </div>
+          )}
+          
+          {/* Helpful Note */}
+          <div className="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+            <p className="text-sm text-blue-300">
+              💡 <strong>When to review:</strong> Please share your experience after you've dined with us. 
+              This helps other customers make informed decisions.
+            </p>
+          </div>
         </div>
 
-        {/* Review Form */}
-        <motion.form
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          onSubmit={handleSubmit}
-          className="space-y-6"
-        >
-          {/* Name Input */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Customer Name */}
           <div>
             <label htmlFor="customer_name" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
               Your Name *
             </label>
             <input
+              {...register('customer_name')}
               type="text"
-              id="customer_name"
-              name="customer_name"
-              value={formData.customer_name}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-3 bg-sangeet-neutral-900 border rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent ${
-                validationErrors.customer_name 
-                  ? 'border-red-500 focus:ring-red-400' 
-                  : 'border-sangeet-neutral-700'
-              }`}
+              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
               placeholder="Enter your name"
-              required
             />
-            {validationErrors.customer_name && (
-              <p className="mt-1 text-sm text-red-400 flex items-center">
-                <span className="mr-1">⚠️</span>
-                {validationErrors.customer_name}
+            {errors.customer_name && (
+              <p className="mt-1 text-sm text-red-400">
+                {errors.customer_name.message as string}
               </p>
             )}
           </div>
@@ -232,25 +148,22 @@ const ReviewSubmissionPage = () => {
               Overall Rating *
             </label>
             <div className="flex flex-col items-center space-y-2">
-              <StarRating
-                rating={formData.rating}
-                onRatingChange={handleRatingChange}
-                onHover={setHoveredRating}
-                onLeave={() => setHoveredRating(0)}
+              <Controller
+                name="rating"
+                control={control}
+                render={({ field }) => (
+                  <StarRating
+                    rating={field.value}
+                    onChange={field.onChange}
+                    onHover={setHoveredRating}
+                    onLeave={() => setHoveredRating(0)}
+                  />
+                )}
               />
-              <p className="text-sm text-sangeet-neutral-400">
-                {formData.rating === 0 && 'Select a rating'}
-                {formData.rating === 1 && 'Poor'}
-                {formData.rating === 2 && 'Fair'}
-                {formData.rating === 3 && 'Good'}
-                {formData.rating === 4 && 'Very Good'}
-                {formData.rating === 5 && 'Excellent'}
-              </p>
             </div>
-            {validationErrors.rating && (
-              <p className="mt-2 text-sm text-red-400 flex items-center justify-center">
-                <span className="mr-1">⚠️</span>
-                {validationErrors.rating}
+            {errors.rating && (
+              <p className="mt-2 text-sm text-red-400 text-center">
+                {errors.rating.message as string}
               </p>
             )}
           </div>
@@ -258,42 +171,17 @@ const ReviewSubmissionPage = () => {
           {/* Review Text */}
           <div>
             <label htmlFor="review_text" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-              Your Review * <span className="text-xs text-sangeet-neutral-500">(Minimum 10 characters)</span>
+              Your Review *
             </label>
             <textarea
-              id="review_text"
-              name="review_text"
-              value={formData.review_text}
-              onChange={handleInputChange}
+              {...register('review_text')}
               rows={4}
-              className={`w-full px-4 py-3 bg-sangeet-neutral-900 border rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent resize-none ${
-                validationErrors.review_text 
-                  ? 'border-red-500 focus:ring-red-400' 
-                  : 'border-sangeet-neutral-700'
-              }`}
-              placeholder="Tell us about your experience... What did you enjoy? Any suggestions for improvement?"
-              required
+              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent resize-none"
+              placeholder="Tell us about your experience..."
             />
-            <div className="flex justify-between items-center mt-2">
-              <div className="text-xs text-sangeet-neutral-500">
-                {charCount < 10 ? (
-                  <span className="text-red-400">
-                    ⚠️ At least {10 - charCount} more characters needed
-                  </span>
-                ) : (
-                  <span className="text-green-400">
-                    ✅ {charCount} characters (minimum met)
-                  </span>
-                )}
-              </div>
-              <div className="text-xs text-sangeet-neutral-500">
-                {charCount}/1000 characters
-              </div>
-            </div>
-            {validationErrors.review_text && (
-              <p className="mt-2 text-sm text-red-400 flex items-center">
-                <span className="mr-1">⚠️</span>
-                {validationErrors.review_text}
+            {errors.review_text && (
+              <p className="mt-1 text-sm text-red-400">
+                {errors.review_text.message as string}
               </p>
             )}
           </div>
@@ -315,10 +203,9 @@ const ReviewSubmissionPage = () => {
               'Submit Review'
             )}
           </motion.button>
-        </motion.form>
+        </form>
 
-        {/* Back to Home */}
-        <div className="text-center">
+        <div className="text-center mt-6">
           <button
             onClick={() => navigate('/')}
             className="text-sangeet-neutral-400 hover:text-sangeet-400 transition-colors"

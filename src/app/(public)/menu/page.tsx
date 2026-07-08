@@ -1,5 +1,5 @@
 import MenuPage from '@/_pages/MenuPage';
-import { fetchMenuItems, fetchMenuCategories } from '@/services/api';
+import { serverFetchMenuItems, serverFetchMenuCategories } from '@/services/api';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -15,11 +15,11 @@ export default async function Page() {
 
   try {
     const [menuRes, catRes] = await Promise.all([
-      fetchMenuItems().catch(() => []),
-      fetchMenuCategories().catch(() => [])
+      serverFetchMenuItems().catch(() => []),
+      serverFetchMenuCategories().catch(() => [])
     ]);
-    menuItems = (menuRes as any)?.data || menuRes || [];
-    categories = (catRes as any)?.data || catRes || [];
+    menuItems = menuRes || [];
+    categories = catRes || [];
   } catch (err) {
     console.error("Failed to fetch menu data on server", err);
   }

@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { menuItemSchema, categorySchema } from '../../../utils/validators';
+import { menuItemSchema, categorySchema } from '@/lib/validations';
 import CustomDropdown from '../../../components/CustomDropdown';
 
 const MenuModals = ({
@@ -28,19 +28,19 @@ const MenuModals = ({
   } = useForm({
     resolver: zodResolver(menuItemSchema),
     defaultValues: {
-      name: '', price: 0, description: '', category_id: 0, image_url: '',
+      name: '', price: 0, description: '', category: '', image_url: '',
       preparation_time: 15, is_vegetarian: false, is_spicy: false, is_popular: false
     }
   });
 
-  const watchCategoryId = watchItem('category_id');
+  const watchCategory = watchItem('category');
 
   useEffect(() => {
     if (showEditModal && selectedItem) {
       resetItem(selectedItem);
     } else if (showAddModal) {
       resetItem({
-        name: '', price: 0, description: '', category_id: 0, image_url: '',
+        name: '', price: 0, description: '', category: '', image_url: '',
         preparation_time: 15, is_vegetarian: false, is_spicy: false, is_popular: false
       });
     }
@@ -110,18 +110,13 @@ const MenuModals = ({
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Category</label>
                   <CustomDropdown
-                    value={watchCategoryId || ''}
-                    onChange={(categoryId: any) => setItemValue('category_id', categoryId)}
-                    options={[
-                      { value: '', label: 'Select Category' },
-                      ...categories.map((category: any) => ({
-                        value: category.id,
-                        label: category.name
-                      }))
-                    ]}
+                    label="Category"
+                    options={categories.map((c: any) => ({ label: c.name, value: c.name }))}
+                    value={watchItem('category')}
+                    onChange={(val: any) => setItemValue('category', val, { shouldValidate: true })}
+                    error={itemErrors.category?.message}
                     className="w-full"
                   />
-                  {itemErrors.category_id && <p className="text-red-500 text-xs mt-1">{itemErrors.category_id.message}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Image URL</label>

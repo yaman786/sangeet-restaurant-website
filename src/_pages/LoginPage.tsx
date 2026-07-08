@@ -4,50 +4,36 @@ import { useNavigate } from '@/utils/router-mock';
 import { motion } from 'framer-motion';
 import { loginUser } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema } from '@/lib/validations';
 import toast from 'react-hot-toast';
 // @ts-ignore
 import logoImage from '../assets/images/logo.png';
 
 const LoginPage = () => {
   const { login } = useAuth();
-  const [credentials, setCredentials] = useState({
-    username: '',
-    password: ''
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: '',
+      password: ''
+    }
   });
-  const [isLoading, setIsLoading] = useState(false);
+
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleInputChange = (e: any) => {
-    const { name, value } = e.target;
-    setCredentials(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    
-    if (!credentials.username || !credentials.password) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-
-    setIsLoading(true);
+  const onSubmit = async (data: any) => {
     setError('');
 
     try {
-      const response = await loginUser(credentials);
-      const { user, token } = response as any;
+      const response = await loginUser(data);
+      const { user } = response as any;
 
-      // Store token and user data using AuthContext
-      login(token, user);
-
-      // Show success message
+      login(user);
       toast.success(`Welcome back, ${user.first_name}!`);
 
-      // Redirect based on user role
       if (user.role === 'admin') {
         navigate('/admin/dashboard');
       } else if (user.role === 'staff') {
@@ -55,12 +41,10 @@ const LoginPage = () => {
       } else {
         navigate('/admin/dashboard');
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || error.message || 'Login failed. Please try again.';
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || err.message || 'Login failed. Please try again.';
       setError(errorMessage);
       toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -115,7 +99,7 @@ const LoginPage = () => {
             <p className="text-sangeet-neutral-400 text-sm">Sign in to access your dashboard</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Username Field */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
@@ -124,13 +108,13 @@ const LoginPage = () => {
               <input
                 type="text"
                 id="username"
-                name="username"
-                value={credentials.username}
-                onChange={handleInputChange}
+                {...register('username')}
                 className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent transition-all duration-200"
                 placeholder="Enter your username or email"
-                required
               />
+              {errors.username && (
+                <p className="mt-1 text-sm text-red-400">{errors.username.message as string}</p>
+              )}
             </div>
 
             {/* Password Field */}
@@ -141,22 +125,22 @@ const LoginPage = () => {
               <input
                 type="password"
                 id="password"
-                name="password"
-                value={credentials.password}
-                onChange={handleInputChange}
+                {...register('password')}
                 className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent transition-all duration-200"
                 placeholder="Enter your password"
-                required
               />
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-400">{errors.password.message as string}</p>
+              )}
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting}
               className="w-full bg-gradient-to-r from-sangeet-400 to-sangeet-500 text-sangeet-neutral-950 font-bold py-3 px-6 rounded-lg hover:from-sangeet-300 hover:to-sangeet-400 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
             >
-              {isLoading ? (
+              {isSubmitting ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-sangeet-neutral-950 mr-2"></div>
                   Signing In...

@@ -1,8 +1,8 @@
-import api, { apiCallWrapper } from './client';
+import api, { apiCallWrapper, serverFetch } from './client';
 import { MenuItemRow, CategoryRow } from '../../types';
 
 // Menu read API calls
-export const fetchMenuItems = async (filters: any = {}): Promise<MenuItemRow[]> => {
+export const fetchMenuItems = async (filters: Record<string, string | number | boolean> = {}): Promise<MenuItemRow[]> => {
   return apiCallWrapper(async () => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
@@ -42,13 +42,13 @@ export const fetchMenuItemById = async (id: string | number): Promise<MenuItemRo
 };
 
 // Menu management (admin) API calls
-export const createMenuItem = async (menuData: any) => {
+export const createMenuItem = async (menuData: Partial<MenuItemRow>) => {
   return apiCallWrapper(async () => {
     return await api.post('/menu/items', menuData);
   }, 'createMenuItem', false);
 };
 
-export const updateMenuItem = async (id: string | number, menuData: any) => {
+export const updateMenuItem = async (id: string | number, menuData: Partial<MenuItemRow>) => {
   return apiCallWrapper(async () => {
     return await api.put(`/menu/items/${encodeURIComponent(id)}`, menuData);
   }, 'updateMenuItem', false);
@@ -60,13 +60,13 @@ export const deleteMenuItem = async (id: string | number) => {
   }, 'deleteMenuItem', false);
 };
 
-export const createCategory = async (categoryData: any) => {
+export const createCategory = async (categoryData: Partial<CategoryRow>) => {
   return apiCallWrapper(async () => {
     return await api.post('/menu/categories', categoryData);
   }, 'createCategory', false);
 };
 
-export const updateCategory = async (id: string | number, categoryData: any) => {
+export const updateCategory = async (id: string | number, categoryData: Partial<CategoryRow>) => {
   return apiCallWrapper(async () => {
     return await api.put(`/menu/categories/${encodeURIComponent(id)}`, categoryData);
   }, 'updateCategory', false);
@@ -78,8 +78,25 @@ export const deleteCategory = async (id: string | number) => {
   }, 'deleteCategory', false);
 };
 
-export const getMenuStats = async (): Promise<any> => {
+export const getMenuStats = async (): Promise<{ totalItems: number, categories: number, popular: number }> => {
   return apiCallWrapper(async () => {
     return await api.get('/menu/stats');
   }, 'getMenuStats');
+};
+
+// SERVER COMPONENT FETCHERS
+export const serverFetchMenuItems = async (filters: Record<string, string | number | boolean> = {}): Promise<MenuItemRow[]> => {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      params.append(key, String(value));
+    }
+  });
+  const queryString = params.toString();
+  const url = queryString ? `/menu/items?${queryString}` : '/menu/items';
+  return serverFetch<MenuItemRow[]>(url, { next: { revalidate: 3600 } });
+};
+
+export const serverFetchMenuCategories = async (): Promise<CategoryRow[]> => {
+  return serverFetch<CategoryRow[]>('/menu/categories', { next: { revalidate: 3600 } });
 };

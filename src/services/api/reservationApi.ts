@@ -1,7 +1,7 @@
 import api, { apiCallWrapper } from './client';
 import { ReservationRow } from '../../types';
 
-export const createReservation = async (reservationData: any) => {
+export const createReservation = async (reservationData: Partial<ReservationRow>) => {
   return apiCallWrapper(async () => {
     return await api.post('/reservations', reservationData);
   }, 'createReservation', false);
@@ -28,7 +28,7 @@ export const getAvailableTimeSlots = async (date: string, guests: number | strin
   }, 'getAvailableTimeSlots');
 };
 
-export const fetchAllReservations = async (filters: any = {}): Promise<ReservationRow[]> => {
+export const fetchAllReservations = async (filters: Record<string, string | number | boolean> = {}): Promise<ReservationRow[]> => {
   return apiCallWrapper(async () => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
@@ -49,7 +49,7 @@ export const fetchReservationById = async (id: string | number): Promise<Reserva
   }, 'fetchReservationById');
 };
 
-export const updateReservation = async (id: string | number, reservationData: any) => {
+export const updateReservation = async (id: string | number, reservationData: Partial<ReservationRow>) => {
   return apiCallWrapper(async () => {
     return await api.put(`/reservations/${encodeURIComponent(id)}`, reservationData);
   }, 'updateReservation', false);
