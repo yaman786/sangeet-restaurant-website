@@ -59,12 +59,8 @@ function createApp() {
   app.use(compression());
 
   // CORS configuration - Allow multiple origins for Vercel
-  const allowedOrigins = [
-    CONFIG.CLIENT_URL,
-    'http://localhost:3000',
-    'https://localhost:3000',
-    /https:\/\/.*\.vercel\.app$/
-  ];
+  const envConfig = require('../backend/src/config/env');
+  const allowedOrigins = envConfig.ALLOWED_ORIGINS;
 
   app.use(cors({
     origin: function (origin, callback) {

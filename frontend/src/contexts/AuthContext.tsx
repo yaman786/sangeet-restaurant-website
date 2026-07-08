@@ -34,6 +34,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const existingToken = localStorage.getItem(TOKEN_KEY) || oldAdminToken || oldKitchenToken || oldToken;
     const existingUser = localStorage.getItem(USER_KEY);
 
+    const isTokenExpired = (token: string): boolean => {
+      try {
+        const payloadBase64 = token.split('.')[1];
+        if (!payloadBase64) return true;
+        const decodedJson = atob(payloadBase64);
+        const decoded = JSON.parse(decodedJson);
+        if (!decoded.exp) return false;
+        return (decoded.exp * 1000) < Date.now();
+      } catch (e) {
+        return true;
+      }
+    };
+
+    if (existingToken && isTokenExpired(existingToken)) {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('kitchenToken');
+      localStorage.removeItem('token');
+      return null;
+    }
+
     if (existingToken && !localStorage.getItem(TOKEN_KEY)) {
       // Perform migration
       localStorage.setItem(TOKEN_KEY, existingToken);
