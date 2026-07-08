@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     let sql = `
       SELECT m.*, c.name as category_name 
       FROM menu_items m
-      LEFT JOIN menu_categories c ON m.category = c.name
+      LEFT JOIN categories c ON m.category = c.name
       WHERE 1=1
     `;
     const params: any[] = [];
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
       sql += ` AND m.is_spicy = true`;
     }
     if (is_available === 'true') {
-      sql += ` AND m.is_available = true`;
+      sql += ` AND m.is_active = true`;
     }
 
     sql += ` ORDER BY c.display_order ASC, m.name ASC`;
