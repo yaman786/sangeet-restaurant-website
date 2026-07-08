@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { fetchMenuItems, fetchMenuCategories } from '../../services/api';
-import socketService from '../../services/socketService';
+const socketService = { connect: () => {}, disconnect: () => {}, joinTable: () => {}, onOrderStatusUpdate: () => {}, onOrderCompleted: () => {}, emitNewOrder: () => {}, emitCallWaiter: () => {}, emitRequestBill: () => {}, removeListener: () => {} };
 import toast from 'react-hot-toast';
 
 import { ORDER_STATUSES } from './constants';

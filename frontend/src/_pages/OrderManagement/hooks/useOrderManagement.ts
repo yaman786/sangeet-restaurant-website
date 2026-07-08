@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import socketService from '../../../services/socketService';
+const socketService = { connect: () => {}, disconnect: () => {}, joinTable: () => {}, onOrderStatusUpdate: () => {}, onOrderCompleted: () => {}, emitNewOrder: () => {}, emitCallWaiter: () => {}, emitRequestBill: () => {}, removeListener: () => {} };
 import { fetchAllOrders, updateOrderStatus, deleteOrder, fetchOrderStats, fetchTables } from '../../../services/api';
 import { useAuth } from '../../../contexts/AuthContext';
 

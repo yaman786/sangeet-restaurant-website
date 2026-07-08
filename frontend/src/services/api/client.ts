@@ -1,15 +1,12 @@
 import axios, { InternalAxiosRequestConfig, AxiosError } from 'axios';
 import toast from 'react-hot-toast';
 
-let baseUrl = process.env.NEXT_PUBLIC_API_URL || (
-  window.location.hostname === 'localhost' 
-    ? 'http://localhost:5001/api' 
-    : 'https://sangeet-restaurant-api.onrender.com/api'
-);
+let baseUrl = '/api';
 
-// Fix Vercel URL if user forgot to add /api to the environment variable
-if (!baseUrl.endsWith('/api')) {
-  baseUrl = `${baseUrl.replace(/\/$/, '')}/api`;
+if (typeof window === 'undefined') {
+  baseUrl = process.env.NEXT_PUBLIC_FRONTEND_URL 
+    ? `${process.env.NEXT_PUBLIC_FRONTEND_URL}/api`
+    : 'http://localhost:3000/api';
 }
 
 // API Configuration - Use environment variables with fallbacks

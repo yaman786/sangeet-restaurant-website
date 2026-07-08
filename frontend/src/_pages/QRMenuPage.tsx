@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useParams } from 'next/navigation';
 import { useNavigate } from '@/utils/router-mock';
 import { fetchMenuItems, fetchMenuCategories, getTableByQRCode, getOrdersByTable } from '../services/api';
-import socketService from '../services/socketService';
+const socketService = { connect: () => {}, disconnect: () => {}, joinTable: () => {}, onOrderStatusUpdate: () => {}, onOrderCompleted: () => {}, emitNewOrder: () => {}, emitCallWaiter: () => {}, emitRequestBill: () => {}, removeListener: () => {} };
 import toast from 'react-hot-toast';
 import { clearCartData } from '../utils/cartUtils';
 

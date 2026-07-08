@@ -8,7 +8,7 @@ import {
   fetchTables,
   getOrderById
 } from '../../../services/api';
-import socketService from '../../../services/socketService';
+const socketService = { connect: () => {}, disconnect: () => {}, joinTable: () => {}, onOrderStatusUpdate: () => {}, onOrderCompleted: () => {}, emitNewOrder: () => {}, emitCallWaiter: () => {}, emitRequestBill: () => {}, removeListener: () => {} };
 
 export const useOrderManagement = () => {
   const [orders, setOrders] = useState<any[]>([]);

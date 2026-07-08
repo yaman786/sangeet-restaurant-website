@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from '@/utils/router-mock';
 import { getOrdersByTable, getTableByNumber, getOrderById } from '../../../services/api';
-import socketService from '../../../services/socketService';
+const socketService = { connect: () => {}, disconnect: () => {}, joinTable: () => {}, onOrderStatusUpdate: () => {}, onOrderCompleted: () => {}, emitNewOrder: () => {}, emitCallWaiter: () => {}, emitRequestBill: () => {}, removeListener: () => {} };
 import toast from 'react-hot-toast';
 import { ORDER_STATUSES } from '../constants';
 
