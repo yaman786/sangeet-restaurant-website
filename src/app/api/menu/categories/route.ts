@@ -5,7 +5,7 @@ import { authenticateToken, requireRole } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
   try {
-    const result = await pool.query('SELECT * FROM menu_categories WHERE is_active = true ORDER BY display_order ASC, name ASC');
+    const result = await pool.query('SELECT * FROM categories WHERE is_active = true ORDER BY display_order ASC, name ASC');
     return NextResponse.json(result.rows);
   } catch (error) {
     return handleApiError(error);
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const { name, display_order } = body;
     
     const result = await pool.query(
-      'INSERT INTO menu_categories (name, display_order) VALUES ($1, $2) RETURNING *',
+      'INSERT INTO categories (name, display_order) VALUES ($1, $2) RETURNING *',
       [name, display_order || 0]
     );
     
