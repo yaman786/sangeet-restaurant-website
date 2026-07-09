@@ -261,7 +261,7 @@ const ReservationManagementPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
-      <AdminHeader title="Reservations" subtitle="Manage reservations" onBackClick={() => {}} />
+      <AdminHeader title="Reservations" subtitle="Manage reservations" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Interactive Filter Cards */}

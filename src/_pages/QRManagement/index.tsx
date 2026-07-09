@@ -54,7 +54,7 @@ const QRManagement = () => {
 
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
-      <AdminHeader title="QR Management" subtitle="Manage QR codes" onBackClick={() => {}} />
+      <AdminHeader title="QR Management" subtitle="Manage QR codes" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <QRFilters 

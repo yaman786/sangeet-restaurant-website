@@ -67,7 +67,7 @@ const AdminOrders = () => {
 
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
-      <AdminHeader title="Admin Orders" subtitle="Manage kitchen orders" onBackClick={() => {}} />
+      <AdminHeader title="Admin Orders" subtitle="Manage kitchen orders" />
 
       <div className="max-w-7xl mx-auto p-6">
         <OrderFilters 

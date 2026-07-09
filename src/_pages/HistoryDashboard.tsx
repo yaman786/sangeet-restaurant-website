@@ -52,7 +52,7 @@ const HistoryDashboard = () => {
 
   return (
     <div className="min-h-screen bg-sangeet-neutral-900 pb-12">
-      <AdminHeader title="History Dashboard" subtitle="View Past Orders" onBackClick={() => {}} />
+      <AdminHeader title="History Dashboard" subtitle="View Past Orders" />
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <motion.div

@@ -145,7 +145,7 @@ const AnalyticsReportsPage = () => {
 
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
-      <AdminHeader title="Analytics Reports" subtitle="View business insights" onBackClick={() => {}} />
+      <AdminHeader title="Analytics Reports" subtitle="View business insights" />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}

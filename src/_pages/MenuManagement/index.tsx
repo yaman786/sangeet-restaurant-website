@@ -30,7 +30,7 @@ const MenuManagement = () => {
 
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
-      <AdminHeader title="Menu Management" subtitle="Manage your restaurant menu" onBackClick={() => {}} />
+      <AdminHeader title="Menu Management" subtitle="Manage your restaurant menu" />
       
       <div className="max-w-7xl mx-auto p-6">
         {/* Tabs */}
