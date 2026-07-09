@@ -6,6 +6,11 @@ import { authenticateToken, requireAdmin } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
   try {
+    const { user, errorResponse } = await authenticateToken(req);
+    if (errorResponse) return errorResponse;
+    const roleError = requireAdmin(user!);
+    if (roleError) return roleError;
+
     const result = await analyticsService.getCustomerInsights();
     return NextResponse.json(result);
   } catch (error) {
