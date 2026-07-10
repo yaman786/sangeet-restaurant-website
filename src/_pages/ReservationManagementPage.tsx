@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { ArrowUpDown, ArrowUp, ArrowDown, Search } from 'lucide-react';
 import AdminHeader from '../components/AdminHeader';
 import { fetchAllReservations, updateReservationStatus, deleteReservation, fetchReservationStats, fetchTables, updateReservation } from '../services/api';
+import { pusherClient as socketService } from '@/lib/services/pusherClient';
 
 const ReservationManagementPage = () => {
   const [reservations, setReservations] = useState<any[]>([]);
@@ -68,6 +69,67 @@ const ReservationManagementPage = () => {
 
     return () => clearInterval(pollingInterval);
   }, [loadData]);
+
+  // Real-time Pusher Subscription
+  useEffect(() => {
+    // 1. Initialize Pusher
+    socketService.init();
+
+    // 2. Setup connection status listener
+    socketService.onConnectionStateChange((status) => {
+      setConnectionStatus(status);
+    });
+
+    // 3. Subscribe to admin-channel
+    const channel = socketService.subscribeToAdminChannel();
+
+    // 4. Listen for new reservations
+    channel.bind('new-reservation', (data: any) => {
+      setReservations(prev => {
+        // Prevent duplicates
+        if (prev.some(r => r.id === data.id)) return prev;
+        return [data, ...prev];
+      });
+      toast.custom(
+        (t) => (
+          <div className="bg-sangeet-neutral-800 border-l-4 border-sangeet-400 p-4 rounded-lg shadow-xl flex items-start space-x-3">
+            <span className="text-2xl mt-1">📅</span>
+            <div>
+              <h4 className="text-sangeet-400 font-bold">New Reservation</h4>
+              <p className="text-sm text-sangeet-neutral-300">
+                {data.customer_name} for {data.guests} guests at {data.time}
+              </p>
+            </div>
+          </div>
+        ),
+        { duration: 5000, position: 'top-right' }
+      );
+      socketService.playNotificationSound('notification');
+    });
+
+    // 5. Listen for reservation updates/deletes
+    channel.bind('reservation-status-update', (data: any) => {
+      if (data.deleted) {
+        setReservations(prev => prev.filter(r => r.id !== data.id));
+      } else {
+        setReservations(prev => {
+          const index = prev.findIndex(r => r.id === data.id);
+          if (index !== -1) {
+            const newArray = [...prev];
+            newArray[index] = data;
+            return newArray;
+          }
+          return [data, ...prev];
+        });
+      }
+    });
+
+    return () => {
+      channel.unbind('new-reservation');
+      channel.unbind('reservation-status-update');
+      // Intentionally not disconnecting entirely as other components might use it
+    };
+  }, []);
 
   // Reset to first page when filters change
   useEffect(() => {

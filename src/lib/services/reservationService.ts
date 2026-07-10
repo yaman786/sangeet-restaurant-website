@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import { NotFoundError, ConflictError, ValidationError } from '@/lib/errors';
 import { sendReservationCreatedEmail, sendReservationConfirmedEmail, sendReservationCancelledEmail } from '../utils/emailService';
+import { emitNewReservation, emitReservationUpdate } from './pusherServer';
 import type { ReservationRow } from '@/lib/types';
 
 class ReservationService {
@@ -126,6 +127,9 @@ class ReservationService {
     if (reservation.email) {
       sendReservationCreatedEmail(reservation).catch(err => console.error('Error sending creation email:', err));
     }
+    
+    emitNewReservation(reservation).catch(err => console.error('Pusher error:', err));
+    
     return reservation;
   }
 
@@ -161,6 +165,8 @@ class ReservationService {
       }
     });
 
+    emitReservationUpdate(reservation).catch(err => console.error('Pusher error:', err));
+
     return reservation;
   }
 
@@ -178,6 +184,8 @@ class ReservationService {
       else if (status === 'cancelled') sendReservationCancelledEmail(reservation).catch(err => console.error('Error sending cancellation email:', err));
     }
     
+    emitReservationUpdate(reservation).catch(err => console.error('Pusher error:', err));
+    
     return reservation;
   }
 
@@ -185,6 +193,9 @@ class ReservationService {
     const reservation = await prisma.reservations.delete({
       where: { id: parseInt(id) }
     });
+    
+    emitReservationUpdate({ id: parseInt(id), deleted: true }).catch(err => console.error('Pusher error:', err));
+    
     return reservation;
   }
 

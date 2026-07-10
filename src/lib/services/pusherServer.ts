@@ -58,3 +58,20 @@ export const emitOrderDeleted = async (data: any) => {
     console.error('Error triggering Pusher event order-deleted:', error);
   }
 };
+
+export const emitNewReservation = async (data: any) => {
+  try {
+    await pusherServer.trigger('admin-channel', 'new-reservation', data);
+  } catch (error) {
+    console.error('Error triggering Pusher event new-reservation:', error);
+  }
+};
+
+export const emitReservationUpdate = async (data: any) => {
+  try {
+    await pusherServer.trigger('admin-channel', 'reservation-status-update', data);
+  } catch (error) {
+    console.error('Error triggering Pusher event reservation-status-update:', error);
+  }
+};
+
