@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { useNavigate } from '@/utils/router-mock';
 import { toast } from 'react-hot-toast';
 import { createOrder, getTableByQRCode } from '../services/api';
-const socketService = { connect: () => {}, disconnect: () => {}, joinTable: () => {}, onOrderStatusUpdate: () => {}, onOrderCompleted: () => {}, emitNewOrder: () => {}, emitCallWaiter: () => {}, emitRequestBill: () => {}, removeListener: () => {} };
+const socketService: any = new Proxy({ isConnected: false }, { get: (target, prop) => prop in target ? (target as any)[prop] : () => {} });
 import { clearCartData } from '../utils/cartUtils';
 
 const QRCartPage = () => {
