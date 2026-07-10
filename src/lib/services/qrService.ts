@@ -17,7 +17,7 @@ class QRService {
     const tableResult = await pool.query('SELECT * FROM tables WHERE table_number = $1', [tableNumber]);
     if (tableResult.rows.length === 0) {
       const insertResult = await pool.query(
-        'INSERT INTO tables (table_number, capacity, is_active) VALUES ($1, $2, true) RETURNING id', 
+        'INSERT INTO tables (table_number, capacity, is_active, qr_code_url, qr_code_data) VALUES ($1, $2, true, \'\', \'\') RETURNING id', 
         [tableNumber, capacity || 4]
       );
       tableId = insertResult.rows[0].id;

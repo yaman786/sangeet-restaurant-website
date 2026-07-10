@@ -17,8 +17,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { qrCodeId:
     await qrService.deleteQRCode(params.qrCodeId);
     
     return new NextResponse(null, { status: 204 });
-  } catch (error: any) {
-    console.error('DELETE error:', error);
-    return NextResponse.json({ error: error.message || String(error) }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }
