@@ -42,13 +42,9 @@ export const downloadPrintableQRCode = async (qrCodeId: string | number, format 
   try {
     const timestamp = Date.now();
 
-    const token = getAuthToken();
-
     const response = await fetch(`${API_CONFIG.BASE_URL}/qr-codes/print/${qrCodeId}/${format}?design=${design}&theme=${theme}&t=${timestamp}`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+      credentials: 'include',
     });
 
     if (!response.ok) {
