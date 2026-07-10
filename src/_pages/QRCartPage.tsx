@@ -80,7 +80,8 @@ const QRCartPage = () => {
     };
 
     loadData();
-  }, [qrCode, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qrCode]);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
@@ -155,7 +156,8 @@ const QRCartPage = () => {
     return () => {
       socketService.removeListener('order-deleted');
     };
-  }, [tableInfo, qrCode, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tableInfo, qrCode]);
 
   const updateQuantity = (itemId: any, quantity: any) => {
     if (quantity <= 0) {
