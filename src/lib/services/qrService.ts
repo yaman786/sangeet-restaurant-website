@@ -12,8 +12,10 @@ class QRService {
 
   async generateTableQRCode(data: Record<string, any>): Promise<{ table: any, qrCode: QRCodeRow }> {
     const { tableNumber, theme, colors, design } = data;
-    const tableResult = await pool.query('SELECT * FROM tables WHERE table_number = $1', [tableNumber]);
-    if (tableResult.rows.length === 0) throw new NotFoundError(`Table ${tableNumber}`);
+    let tableResult = await pool.query('SELECT * FROM tables WHERE table_number = $1', [tableNumber]);
+    if (tableResult.rows.length === 0) {
+      tableResult = await pool.query('INSERT INTO tables (table_number, is_active) VALUES ($1, true) RETURNING *', [tableNumber]);
+    }
     
     const qrUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/qr/table-${tableNumber}`;
     const options = { theme: theme || 'modern', colors, design: design || 'classic' };
