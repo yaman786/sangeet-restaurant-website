@@ -19,7 +19,7 @@ class QRService {
     const options = { theme: theme || 'modern', colors, design: design || 'classic' };
     
     const qrCodeBuffer = await beautifulQRGenerator.generateBeautifulQRCode(tableNumber, qrUrl, options);
-    const qrCodeDataURL = `data:image/png;base64,${qrCodeBuffer.toString('base64')}`;
+    const qrCodeDataURL = `data:image/svg+xml;base64,${qrCodeBuffer.toString('base64')}`;
     
     const result = await pool.query(
       `UPDATE tables SET qr_code_url = $1, qr_code_data = $2, design_settings = $3 WHERE id = $4 

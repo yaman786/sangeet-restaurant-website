@@ -22,8 +22,8 @@ export async function GET(req: NextRequest, { params }: { params: { qrCodeId: st
     return new NextResponse(qrCodeBuffer as unknown as BodyInit, {
       status: 200,
       headers: {
-        'Content-Type': `image/${params.format === 'jpeg' ? 'jpeg' : 'png'}`,
-        'Content-Disposition': `attachment; filename="Table-${tableNumber}-QR.${params.format}"`,
+        'Content-Type': 'image/svg+xml',
+        'Content-Disposition': `attachment; filename="Table-${tableNumber}-QR.svg"`,
         'Cache-Control': 'no-cache, no-store, must-revalidate'
       },
     });
