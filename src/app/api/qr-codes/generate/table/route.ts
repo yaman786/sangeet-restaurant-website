@@ -17,7 +17,8 @@ export async function POST(req: NextRequest) {
     const result = await qrService.generateTableQRCode(data);
     
     return NextResponse.json(result, { status: 201 });
-  } catch (error) {
-    return handleApiError(error);
+  } catch (error: any) {
+    console.error('CREATE error:', error);
+    return NextResponse.json({ error: error.message || String(error) }, { status: 500 });
   }
 }
