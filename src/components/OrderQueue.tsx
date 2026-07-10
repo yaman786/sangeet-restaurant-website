@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, CheckCircle, AlertCircle, Package, Timer } from 'lucide-react';
-const socketService: any = new Proxy({ isConnected: false }, { get: (target, prop) => prop in target ? (target as any)[prop] : () => {} });
+import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import { fetchAllOrders, updateOrderStatus } from '../services/api';
 import toast from 'react-hot-toast';
 import CustomDropdown from './CustomDropdown';

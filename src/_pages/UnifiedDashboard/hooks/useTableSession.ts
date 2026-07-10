@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from '@/utils/router-mock';
 import { getOrdersByTable, getTableByNumber, getOrderById } from '../../../services/api';
-const socketService: any = new Proxy({ isConnected: false }, { get: (target, prop) => prop in target ? (target as any)[prop] : () => {} });
+import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import toast from 'react-hot-toast';
 import { ORDER_STATUSES } from '../constants';
 

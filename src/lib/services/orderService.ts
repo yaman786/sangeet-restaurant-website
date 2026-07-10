@@ -3,6 +3,7 @@ import { NotFoundError, ValidationError } from '@/lib/errors';
 // Socket functionality disabled in serverless mode
 import { generateQRCode } from '../utils/qrGenerator';
 import type { OrderRow, OrderItemRow, CreateOrderInput } from '@/lib/types';
+import { emitNewOrder, emitNewItemsAdded, emitOrderStatusUpdate } from './pusherServer';
 
 class OrderService {
   async getAllTables() {
@@ -67,7 +68,7 @@ class OrderService {
         
         await client.query('UPDATE orders SET total_amount = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [totalAmount, orderId]);
         
-        // emitNewItemsAdded({ type: 'new-items-added', orderId, newItems: newOrderItems, tableNumber, timestamp: new Date().toISOString() });
+        emitNewItemsAdded({ type: 'new-items-added', orderId, newItems: newOrderItems, tableNumber, timestamp: new Date().toISOString() });
       } else {
         isNewOrder = true;
         let totalAmount = 0;
@@ -111,7 +112,7 @@ class OrderService {
       const fullOrder = await this.getOrderWithItems(orderId);
       
       if (isNewOrder) {
-        // emitNewOrder({ type: 'new-order', orderId, tableNumber, timestamp: new Date().toISOString() });
+        emitNewOrder({ type: 'new-order', orderId, tableNumber, timestamp: new Date().toISOString() });
       }
       
       return { order: fullOrder, merged: !isNewOrder };
@@ -179,7 +180,7 @@ class OrderService {
     if (orderResult.rows.length === 0) throw new NotFoundError('Order');
     
     const order = await this.getOrderWithItems(parseInt(id, 10));
-    // emitOrderStatusUpdate({ type: 'status-update', orderId: parseInt(id, 10), status, tableNumber: order.table_number, estimatedTime: order.estimated_time, timestamp: new Date().toISOString() });
+    emitOrderStatusUpdate({ type: 'status-update', orderId: parseInt(id, 10), status, tableNumber: order.table_number, estimatedTime: order.estimated_time, timestamp: new Date().toISOString() });
     
     return order;
   }
@@ -288,7 +289,7 @@ class OrderService {
         if (orderResult.rows.length > 0) {
           const order = await this.getOrderWithItems(id);
           updatedOrders.push(order);
-          // emitOrderStatusUpdate({ type: 'status-update', orderId: id, status, tableNumber: order.table_number, estimatedTime: order.estimated_time, timestamp: new Date().toISOString() });
+          emitOrderStatusUpdate({ type: 'status-update', orderId: id, status, tableNumber: order.table_number, estimatedTime: order.estimated_time, timestamp: new Date().toISOString() });
         }
       }
       

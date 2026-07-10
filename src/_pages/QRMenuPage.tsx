@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useParams } from 'next/navigation';
 import { useNavigate } from '@/utils/router-mock';
 import { fetchMenuItems, fetchMenuCategories, getTableByQRCode, getOrdersByTable } from '../services/api';
-const socketService: any = new Proxy({ isConnected: false }, { get: (target, prop) => prop in target ? (target as any)[prop] : () => {} });
+import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import toast from 'react-hot-toast';
 import { clearCartData } from '../utils/cartUtils';
 

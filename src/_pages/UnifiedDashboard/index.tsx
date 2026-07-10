@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { fetchMenuItems, fetchMenuCategories } from '../../services/api';
-const socketService: any = new Proxy({ isConnected: false }, { get: (target, prop) => prop in target ? (target as any)[prop] : () => {} });
+import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import toast from 'react-hot-toast';
 
 import { ORDER_STATUSES } from './constants';

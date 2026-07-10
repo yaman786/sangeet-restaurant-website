@@ -4,7 +4,7 @@ import { OrderRow } from '../types';
 import { useLocation } from '@/utils/router-mock';
 import { motion } from 'framer-motion';
 import { getOrderById } from '../services/api';
-const socketService: any = new Proxy({ isConnected: false }, { get: (target, prop) => prop in target ? (target as any)[prop] : () => {} });
+import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import toast from 'react-hot-toast';
 import ReviewModal from '../components/ReviewModal';
 
