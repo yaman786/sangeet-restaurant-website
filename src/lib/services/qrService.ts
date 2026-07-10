@@ -1,7 +1,7 @@
 import pool from '@/lib/db';
 import { NotFoundError, ValidationError } from '@/lib/errors';
 import beautifulQRGenerator from '../utils/beautifulQRGenerator';
-import type { QRCodeRow, QRCodeResult } from '@/lib/types';
+import type { QRCodeRow } from '@/lib/types';
 
 class QRService {
   async getTableByQRCode(qrCode: string): Promise<any> {
@@ -22,42 +22,37 @@ class QRService {
     const qrCodeDataURL = `data:image/png;base64,${qrCodeBuffer.toString('base64')}`;
     
     const result = await pool.query(
-      `INSERT INTO table_qr_codes (table_id, table_number, qr_url, qr_code_data, design) 
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [tableResult.rows[0].id, tableNumber, qrUrl, qrCodeDataURL, JSON.stringify(options)]
+      `UPDATE tables SET qr_code_url = $1, qr_code_data = $2, design_settings = $3 WHERE id = $4 
+       RETURNING id as qr_code_id, table_number, qr_code_url as qr_url, design_settings as design`,
+      [qrUrl, qrCodeDataURL, JSON.stringify(options), tableResult.rows[0].id]
     );
-    
-    await pool.query('UPDATE tables SET qr_code_url = $1 WHERE id = $2', [qrUrl, tableResult.rows[0].id]);
     
     return { table: tableResult.rows[0], qrCode: result.rows[0] };
   }
 
   async getAllQRCodes(): Promise<QRCodeRow[]> {
     const result = await pool.query(`
-      SELECT t.table_number, t.capacity, t.location, q.id as qr_code_id, q.qr_url, q.created_at, q.design
-      FROM tables t
-      LEFT JOIN table_qr_codes q ON t.id = q.table_id
-      WHERE t.is_active = true
-      ORDER BY t.table_number ASC
+      SELECT id as qr_code_id, table_number, capacity, 'available' as location, qr_code_url as qr_url, created_at, design_settings as design, scan_count
+      FROM tables
+      WHERE is_active = true AND qr_code_url IS NOT NULL
+      ORDER BY table_number ASC
     `);
     return result.rows;
   }
 
   async getQRCodeAnalytics(qrCodeId: string): Promise<Record<string, any>> {
-    const qrResult = await pool.query('SELECT * FROM table_qr_codes WHERE id = $1', [qrCodeId]);
+    const qrResult = await pool.query('SELECT * FROM tables WHERE id = $1 AND qr_code_url IS NOT NULL', [qrCodeId]);
     if (qrResult.rows.length === 0) throw new NotFoundError('QR Code');
     
-    const scansResult = await pool.query('SELECT COUNT(*) FROM qr_code_scans WHERE qr_code_id = $1', [qrCodeId]);
-    
     return {
-      totalScans: parseInt(scansResult.rows[0].count, 10),
-      lastScanned: null // Placeholder for now
+      totalScans: parseInt(qrResult.rows[0].scan_count || '0', 10),
+      lastScanned: qrResult.rows[0].last_scanned_at
     };
   }
 
   async updateQRCodeDesign(qrCodeId: string, design: Record<string, any>): Promise<QRCodeRow> {
     const result = await pool.query(
-      'UPDATE table_qr_codes SET design = $1 WHERE id = $2 RETURNING *',
+      'UPDATE tables SET design_settings = $1 WHERE id = $2 RETURNING id as qr_code_id, design_settings as design',
       [JSON.stringify(design), qrCodeId]
     );
     if (result.rows.length === 0) throw new NotFoundError('QR Code');
@@ -65,28 +60,24 @@ class QRService {
   }
 
   async deleteQRCode(qrCodeId: string): Promise<void> {
-    const qrResult = await pool.query('SELECT * FROM table_qr_codes WHERE id = $1', [qrCodeId]);
-    if (qrResult.rows.length === 0) throw new NotFoundError('QR Code');
-    
-    const tableId = qrResult.rows[0].table_id;
-    await pool.query('DELETE FROM table_qr_codes WHERE id = $1', [qrCodeId]);
-    await pool.query('UPDATE tables SET qr_code_url = NULL WHERE id = $1', [tableId]);
+    const result = await pool.query('UPDATE tables SET qr_code_url = NULL, qr_code_data = NULL WHERE id = $1 RETURNING id', [qrCodeId]);
+    if (result.rows.length === 0) throw new NotFoundError('QR Code');
   }
 
   async generatePrintableQRCode(qrCodeId: string, format: string, design: string, theme: string): Promise<{ qrCodeBuffer: Buffer, tableNumber: string }> {
-    const qrResult = await pool.query('SELECT * FROM table_qr_codes WHERE id = $1', [qrCodeId]);
+    const qrResult = await pool.query('SELECT * FROM tables WHERE id = $1 AND qr_code_url IS NOT NULL', [qrCodeId]);
     if (qrResult.rows.length === 0) throw new NotFoundError('QR Code');
     
-    const { table_number, qr_url } = qrResult.rows[0];
+    const { table_number, qr_code_url } = qrResult.rows[0];
     const options: any = { format: format === 'jpeg' ? 'jpeg' : 'png', theme };
     
     let qrCodeBuffer;
     if (design === 'premium') {
-      qrCodeBuffer = await beautifulQRGenerator.generatePremiumDesign(table_number, qr_url, options);
+      qrCodeBuffer = await beautifulQRGenerator.generatePremiumDesign(table_number, qr_code_url, options);
     } else if (design === 'large') {
-      qrCodeBuffer = await beautifulQRGenerator.generateLargeDesign(table_number, qr_url, options);
+      qrCodeBuffer = await beautifulQRGenerator.generateLargeDesign(table_number, qr_code_url, options);
     } else {
-      qrCodeBuffer = await beautifulQRGenerator.generateClassicDesign(table_number, qr_url, options);
+      qrCodeBuffer = await beautifulQRGenerator.generateClassicDesign(table_number, qr_code_url, options);
     }
     
     return { qrCodeBuffer, tableNumber: table_number };
