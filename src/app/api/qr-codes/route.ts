@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
     const qrCodes = await qrService.getAllQRCodes();
     
-    return NextResponse.json(qrCodes);
+    return NextResponse.json({ tableQRCodes: qrCodes, customQRCodes: [] });
   } catch (error) {
     return handleApiError(error);
   }
