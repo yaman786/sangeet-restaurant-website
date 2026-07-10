@@ -32,7 +32,7 @@ class QRService {
 
   async getAllQRCodes(): Promise<QRCodeRow[]> {
     const result = await pool.query(`
-      SELECT id as qr_code_id, table_number, capacity, 'available' as location, qr_code_url as qr_url, created_at, design_settings as design, scan_count
+      SELECT id, id as table_id, table_number, qr_code_url as qr_url, qr_code_data, design_settings as design, created_at
       FROM tables
       WHERE is_active = true AND qr_code_url IS NOT NULL
       ORDER BY table_number ASC
