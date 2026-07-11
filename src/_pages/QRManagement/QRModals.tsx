@@ -75,8 +75,7 @@ const QRModals = ({
   ];
 
   const formatOptions = [
-    { value: 'png', label: 'PNG (High Quality)' },
-    { value: 'jpeg', label: 'JPEG (Smaller Size)' }
+    { value: 'svg', label: 'SVG (Infinite Vector Quality)' }
   ];
 
   return (

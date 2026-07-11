@@ -24,7 +24,7 @@ export const useQRManagement = () => {
   const [downloadTarget, setDownloadTarget] = useState<any>(null);
   
   const [downloadOptions, setDownloadOptions] = useState({
-    format: 'png',
+    format: 'svg',
     design: 'classic',
     theme: 'modern'
   });
@@ -226,7 +226,7 @@ export const useQRManagement = () => {
     }
   };
 
-  const handleDownloadQR = async (qrCode: any, format = 'png', design = 'classic', theme = 'modern') => {
+  const handleDownloadQR = async (qrCode: any, format = 'svg', design = 'classic', theme = 'modern') => {
     try {
       await downloadPrintableQRCode(qrCode.id, format, design, theme);
     } catch (error: any) {

@@ -38,7 +38,7 @@ export const deleteQRCode = async (qrCodeId: string | number) => {
   }, 'deleteQRCode', false);
 };
 
-export const downloadPrintableQRCode = async (qrCodeId: string | number, format = 'png', design = 'classic', theme = 'modern') => {
+export const downloadPrintableQRCode = async (qrCodeId: string | number, format = 'svg', design = 'classic', theme = 'modern') => {
   try {
     const timestamp = Date.now();
 
@@ -69,7 +69,7 @@ export const downloadPrintableQRCode = async (qrCodeId: string | number, format 
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `sangeet-table-${qrCodeId}-qr.${format}`;
+    a.download = `sangeet-table-${qrCodeId}-qr.svg`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
