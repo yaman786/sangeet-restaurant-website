@@ -38,7 +38,7 @@ export const deleteQRCode = async (qrCodeId: string | number) => {
   }, 'deleteQRCode', false);
 };
 
-export const downloadPrintableQRCode = async (qrCodeId: string | number, format = 'svg', design = 'classic', theme = 'modern') => {
+export const downloadPrintableQRCode = async (qrCodeId: string | number, format = 'png', design = 'classic', theme = 'modern') => {
   try {
     const timestamp = Date.now();
 
@@ -67,13 +67,43 @@ export const downloadPrintableQRCode = async (qrCodeId: string | number, format 
     }
 
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sangeet-table-${qrCodeId}-qr.svg`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+
+    if (format === 'png' || format === 'jpeg') {
+      // Frontend Conversion: SVG -> Canvas -> PNG/JPEG
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          const dataUrl = canvas.toDataURL(`image/${format}`, 1.0);
+          const a = document.createElement('a');
+          a.href = dataUrl;
+          a.download = `sangeet-table-${qrCodeId}-qr.${format}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+        window.URL.revokeObjectURL(url);
+      };
+      img.onerror = () => {
+        console.error('Failed to load SVG into image for conversion');
+        toast.error('Failed to convert image format.');
+        window.URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    } else {
+      // Default SVG behavior
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sangeet-table-${qrCodeId}-qr.svg`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    }
 
     toast.success('Beautiful QR code downloaded successfully!');
   } catch (error) {
