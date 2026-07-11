@@ -3,6 +3,7 @@ import QRCode from 'qrcode';
 import path from 'path';
 import fs from 'fs';
 import type { ColorTheme, QRGenerationOptions } from '../types';
+import { logoBase64 } from './logoBase64';
 
 class BeautifulQRGenerator {
   readonly logoPath: string;
@@ -38,14 +39,6 @@ class BeautifulQRGenerator {
     const qrCodeBase64 = qrCodeBuffer.toString('base64');
     const centerX = width / 2;
     
-    let logoBase64 = '';
-    try {
-      const logoBuffer = await fs.promises.readFile(this.logoPath);
-      logoBase64 = logoBuffer.toString('base64');
-    } catch {
-      logger.info('Logo not found, using text fallback');
-    }
-    
     const bgColor = '#111827';
     const goldColor = '#eab308';
     const padding = 24;
@@ -70,7 +63,7 @@ class BeautifulQRGenerator {
         
         <!-- Logo -->
         ${logoBase64 ? 
-          `<image x="${centerX - 75}" y="70" width="150" height="75" href="data:image/png;base64,${logoBase64}" preserveAspectRatio="xMidYMid meet"/>` : 
+          `<image x="${centerX - 75}" y="70" width="150" height="75" href="${logoBase64}" preserveAspectRatio="xMidYMid meet"/>` : 
           `<text x="${centerX}" y="120" text-anchor="middle" font-family="Playfair Display, serif" font-size="36" font-weight="bold" fill="#ef4444">Sangeet</text>`
         }
         
