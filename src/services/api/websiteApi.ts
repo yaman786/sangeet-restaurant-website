@@ -1,5 +1,5 @@
 import api, { apiCallWrapper, serverFetch } from './client';
-import { RestaurantSettingRow, WebsiteContentRow, WebsiteMediaRow, EventRow } from '../../types';
+import { RestaurantSettingRow, WebsiteContentRow, WebsiteMediaRow, EventRow } from '@/lib/types';
 
 export const getRestaurantSettings = async (): Promise<RestaurantSettingRow[]> => {
   return apiCallWrapper(async () => {

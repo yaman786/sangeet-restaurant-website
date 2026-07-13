@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import * as jose from 'jose';
 
-// Cannot use jsonwebtoken in Edge Runtime (Middleware). We use jose instead.
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'sangeet-restaurant-secret-key'
-);
+if (!process.env.JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable is not set');
+}
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 // Define protected paths
 const protectedPaths = ['/admin', '/kitchen'];
@@ -29,7 +29,11 @@ export async function middleware(request: NextRequest) {
       const { payload } = await jose.jwtVerify(token, JWT_SECRET);
       
       // Basic Role Checks based on pathname
-      if (pathname.startsWith('/admin') && payload.role !== 'admin' && payload.role !== 'staff') {
+      if (pathname.startsWith('/admin') && payload.role !== 'admin') {
+         return NextResponse.redirect(new URL('/login', request.url));
+      }
+
+      if (pathname.startsWith('/kitchen') && payload.role !== 'admin' && payload.role !== 'kitchen') {
          return NextResponse.redirect(new URL('/login', request.url));
       }
 

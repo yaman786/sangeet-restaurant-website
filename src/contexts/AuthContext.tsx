@@ -45,10 +45,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(userData);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('Logout API call failed:', err);
+    }
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(TOKEN_KEY);
     setUser(null);
-    // In a real app with HttpOnly cookies, we should call a backend logout API here to clear the cookie
     window.location.href = '/login';
   };
 

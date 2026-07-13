@@ -1,7 +1,9 @@
-/**
- * Cart Management Utilities
- * Functions for managing cart data across the application
- */
+const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+const devLog = (...args: any[]) => {
+  if (isDev) {
+    console.log(...args);
+  }
+};
 
 /**
  * Clear all cart-related data from localStorage for a specific QR code
@@ -10,7 +12,7 @@
  */
 export const clearCartData = (qrCode: string, tableNumber: string | null = null): boolean => {
   try {
-    console.log('🧹 Clearing cart data for QR code:', qrCode);
+    devLog('🧹 Clearing cart data for QR code:', qrCode);
     
     // Clear all possible cart-related localStorage keys
     localStorage.removeItem(`cart_${qrCode}`);
@@ -22,14 +24,14 @@ export const clearCartData = (qrCode: string, tableNumber: string | null = null)
       localStorage.removeItem(`cart_${tableNumber}`);
       localStorage.removeItem(`customer_${tableNumber}`);
       localStorage.removeItem(`instructions_${tableNumber}`);
+      
+      // Clear any other potential variations
+      localStorage.removeItem(`cart_table_${tableNumber}`);
+      localStorage.removeItem(`customer_table_${tableNumber}`);
+      localStorage.removeItem(`instructions_table_${tableNumber}`);
     }
     
-    // Clear any other potential variations
-    localStorage.removeItem(`cart_table_${tableNumber}`);
-    localStorage.removeItem(`customer_table_${tableNumber}`);
-    localStorage.removeItem(`instructions_table_${tableNumber}`);
-    
-    console.log('✅ Cart data cleared successfully');
+    devLog('✅ Cart data cleared successfully');
     return true;
   } catch (error) {
     console.error('❌ Error clearing cart data:', error);
@@ -43,7 +45,7 @@ export const clearCartData = (qrCode: string, tableNumber: string | null = null)
  */
 export const clearAllCartData = (): boolean => {
   try {
-    console.log('🧹 Clearing ALL cart data from localStorage');
+    devLog('🧹 Clearing ALL cart data from localStorage');
     
     const keysToRemove = [];
     
@@ -58,10 +60,10 @@ export const clearAllCartData = (): boolean => {
     // Remove all found keys
     keysToRemove.forEach(key => {
       localStorage.removeItem(key);
-      console.log(`🗑️ Removed: ${key}`);
+      devLog(`🗑️ Removed: ${key}`);
     });
     
-    console.log(`✅ Cleared ${keysToRemove.length} cart-related keys`);
+    devLog(`✅ Cleared ${keysToRemove.length} cart-related keys`);
     return true;
   } catch (error) {
     console.error('❌ Error clearing all cart data:', error);

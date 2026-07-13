@@ -1,5 +1,5 @@
 import api, { apiCallWrapper, serverFetch } from './client';
-import { ReviewRow } from '../../types';
+import { ReviewRow } from '@/lib/types';
 
 export const fetchReviews = async (): Promise<ReviewRow[]> => {
   return apiCallWrapper(async () => {

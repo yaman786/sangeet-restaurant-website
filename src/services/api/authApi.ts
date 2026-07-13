@@ -1,5 +1,5 @@
 import api, { apiCallWrapper } from './client';
-import { UserInfo, UserRow } from '../../types';
+import { UserInfo, UserRow } from '@/lib/types';
 
 export const loginUser = async (credentials: Record<string, string>) => {
   try {

@@ -1,5 +1,5 @@
 import api, { apiCallWrapper, API_CONFIG } from './client';
-import { QRCodeRow } from '../../types';
+import { QRCodeRow } from '@/lib/types';
 import toast from 'react-hot-toast';
 
 export const getAllQRCodes = async (): Promise<QRCodeRow[]> => {

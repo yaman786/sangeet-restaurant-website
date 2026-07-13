@@ -1,12 +1,18 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '@/lib/db';
 import config from '@/lib/utils/env';
 import { UnauthorizedError, NotFoundError, ConflictError, AppError } from '@/lib/errors';
 import type { UserRow, UserInfo, UserRole, JwtPayload, PaginationQuery, PaginatedResult } from '@/lib/types';
 
+interface LoginInput {
+  email?: string;
+  username?: string;
+  password: string;
+}
+
 class AuthService {
-  async login(credentials: Record<string, any>) {
+  async login(credentials: LoginInput) {
     const { email, username, password } = credentials;
 
     let query = '';

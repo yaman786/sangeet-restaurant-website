@@ -1,5 +1,5 @@
 import api, { apiCallWrapper } from './client';
-import { OrderRow, CreateOrderInput, TableRow } from '../../types';
+import { OrderRow, CreateOrderInput, TableRow } from '@/lib/types';
 
 export const createOrder = async (orderData: CreateOrderInput) => {
   return apiCallWrapper(async () => {

@@ -1,5 +1,5 @@
 import api, { apiCallWrapper, serverFetch } from './client';
-import { MenuItemRow, CategoryRow } from '../../types';
+import { MenuItemRow, CategoryRow } from '@/lib/types';
 
 // Menu read API calls
 export const fetchMenuItems = async (filters: Record<string, string | number | boolean> = {}): Promise<MenuItemRow[]> => {

@@ -22,7 +22,7 @@ interface Logger {
 
 /**
  * Format a log line with a timestamp and level tag.
- * Keeps output human-readable in the Render log viewer.
+ * Keeps output human-readable in the log viewer.
  */
 const formatArgs = (level: string, args: unknown[]): unknown[] => {
   const timestamp = new Date().toISOString();

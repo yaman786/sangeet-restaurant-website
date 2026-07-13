@@ -8,9 +8,14 @@ class PusherClientService {
   connect() {
     if (this.pusher) return;
 
-    this.pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY || '70c6edba52e8763ff592', {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'ap2',
-    });
+    const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
+    const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+    if (!key || !cluster) {
+      console.warn('Pusher credentials not configured. Real-time features disabled.');
+      return;
+    }
+
+    this.pusher = new Pusher(key, { cluster });
 
     this.pusher.connection.bind('connected', () => {
       this.isConnected = true;

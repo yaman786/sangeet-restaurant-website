@@ -9,18 +9,9 @@ const USER_KEY = 'sangeet_user';
  */
 export const logout = (navigate?: (path: string) => void) => {
   try {
+    // Clear active keys
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-    
-    // Clear old tokens just in case
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authUser');
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
-    localStorage.removeItem('kitchenToken');
-    localStorage.removeItem('kitchenUser');
     
     // Show success message
     toast.success('Logged out successfully');
@@ -78,5 +69,6 @@ export const isAdmin = () => {
  * Check if user has staff role
  */
 export const isStaff = () => {
-  return getUserRole() === 'staff' || getUserRole() === 'admin';
+  const role = getUserRole();
+  return role && role !== 'user';
 };

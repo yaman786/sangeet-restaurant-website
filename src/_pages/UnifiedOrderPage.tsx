@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { OrderRow } from '../types';
+import { OrderRow } from '@/lib/types';
 import { useLocation } from '@/utils/router-mock';
 import { motion } from 'framer-motion';
 import { getOrderById } from '../services/api';

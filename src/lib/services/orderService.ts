@@ -29,6 +29,28 @@ class OrderService {
       
       const tableNumber = tableCheck.rows[0].table_number;
       
+      // Fetch prices and names for all items upfront to avoid N+1 queries in loops
+      const menuItemIds = items.map(i => i.menu_item_id);
+      const menuItemsCheck = await client.query(
+        'SELECT id, price, name FROM menu_items WHERE id = ANY($1) AND is_active = true',
+        [menuItemIds]
+      );
+      
+      const menuItemMap = new Map<number, { price: number; name: string }>();
+      for (const row of menuItemsCheck.rows) {
+        menuItemMap.set(row.id, {
+          price: parseFloat(row.price),
+          name: row.name
+        });
+      }
+
+      // Check if all requested items exist
+      for (const item of items) {
+        if (!menuItemMap.has(item.menu_item_id)) {
+          throw new ValidationError(`Menu item ${item.menu_item_id} not found or inactive`);
+        }
+      }
+      
       const existingOrderResult = await client.query(
         "SELECT * FROM orders WHERE table_id = $1 AND status IN ('pending', 'confirmed', 'preparing', 'ready', 'served') AND is_archived = false ORDER BY created_at DESC LIMIT 1",
         [table_id]
@@ -44,25 +66,21 @@ class OrderService {
         const newOrderItems = [];
         
         for (const item of items) {
-          const priceResult = await client.query('SELECT price FROM menu_items WHERE id = $1', [item.menu_item_id]);
-          if (priceResult.rows.length === 0) throw new ValidationError(`Menu item ${item.menu_item_id} not found`);
-          
-          const price = parseFloat(priceResult.rows[0].price);
-          const itemTotal = price * item.quantity;
+          const itemData = menuItemMap.get(item.menu_item_id)!;
+          const itemTotal = itemData.price * item.quantity;
           totalAmount += itemTotal;
           
           await client.query(
-            'INSERT INTO order_items (order_id, menu_item_id, quantity, special_requests, price) VALUES ($1, $2, $3, $4, $5)',
-            [orderId, item.menu_item_id, item.quantity, item.special_requests || null, price]
+            'INSERT INTO order_items (order_id, menu_item_id, quantity, special_requests, unit_price, total_price) VALUES ($1, $2, $3, $4, $5, $6)',
+            [orderId, item.menu_item_id, item.quantity, item.special_requests || null, itemData.price, itemTotal]
           );
           
-          const menuItemDetails = await client.query('SELECT name FROM menu_items WHERE id = $1', [item.menu_item_id]);
           newOrderItems.push({
             menu_item_id: item.menu_item_id,
-            name: menuItemDetails.rows[0].name,
+            name: itemData.name,
             quantity: item.quantity,
             special_requests: item.special_requests || null,
-            price
+            price: itemData.price
           });
         }
         
@@ -74,9 +92,8 @@ class OrderService {
         let totalAmount = 0;
         
         for (const item of items) {
-          const priceResult = await client.query('SELECT price FROM menu_items WHERE id = $1', [item.menu_item_id]);
-          if (priceResult.rows.length === 0) throw new ValidationError(`Menu item ${item.menu_item_id} not found`);
-          totalAmount += parseFloat(priceResult.rows[0].price) * item.quantity;
+          const itemData = menuItemMap.get(item.menu_item_id)!;
+          totalAmount += itemData.price * item.quantity;
         }
         
         const dateStr = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 8);
@@ -98,11 +115,10 @@ class OrderService {
         orderId = orderResult.rows[0].id;
         
         for (const item of items) {
-          const priceResult = await client.query('SELECT price FROM menu_items WHERE id = $1', [item.menu_item_id]);
-          const price = parseFloat(priceResult.rows[0].price);
+          const itemData = menuItemMap.get(item.menu_item_id)!;
           await client.query(
-            'INSERT INTO order_items (order_id, menu_item_id, quantity, special_requests, price) VALUES ($1, $2, $3, $4, $5)',
-            [orderId, item.menu_item_id, item.quantity, item.special_requests || null, price]
+            'INSERT INTO order_items (order_id, menu_item_id, quantity, special_requests, unit_price, total_price) VALUES ($1, $2, $3, $4, $5, $6)',
+            [orderId, item.menu_item_id, item.quantity, item.special_requests || null, itemData.price, itemData.price * item.quantity]
           );
         }
       }
@@ -122,6 +138,31 @@ class OrderService {
     } finally {
       client.release();
     }
+  }
+
+  private async addItemsToOrders(orders: any[]) {
+    if (orders.length === 0) return [];
+    const orderIds = orders.map(o => o.id);
+    
+    const itemsResult = await pool.query(
+      `SELECT oi.*, m.name, m.image_url, m.category 
+       FROM order_items oi 
+       JOIN menu_items m ON oi.menu_item_id = m.id 
+       WHERE oi.order_id = ANY($1)`,
+      [orderIds]
+    );
+    
+    const itemsByOrderId = new Map<number, any[]>();
+    for (const item of itemsResult.rows) {
+      const list = itemsByOrderId.get(item.order_id) || [];
+      list.push(item);
+      itemsByOrderId.set(item.order_id, list);
+    }
+    
+    return orders.map(order => ({
+      ...order,
+      items: itemsByOrderId.get(order.id) || []
+    }));
   }
 
   private async getOrderWithItems(orderId: number) {
@@ -156,10 +197,17 @@ class OrderService {
 
   async getOrdersByTable(tableId: string) {
     const result = await pool.query(
-      "SELECT id FROM orders WHERE table_id = $1 AND is_archived = false AND status != 'completed' AND status != 'cancelled' ORDER BY created_at DESC",
+      `SELECT o.*, t.table_number 
+       FROM orders o 
+       JOIN tables t ON o.table_id = t.id 
+       WHERE o.table_id = $1 
+         AND o.is_archived = false 
+         AND o.status != 'completed' 
+         AND o.status != 'cancelled' 
+       ORDER BY o.created_at DESC`,
       [tableId]
     );
-    return Promise.all(result.rows.map(row => this.getOrderWithItems(row.id)));
+    return this.addItemsToOrders(result.rows);
   }
 
   async getOrdersByTableNumber(tableNumber: string) {
@@ -205,7 +253,7 @@ class OrderService {
 
     const result = await pool.query(sql, params);
     
-    return Promise.all(result.rows.map(row => this.getOrderWithItems(row.id)));
+    return this.addItemsToOrders(result.rows);
   }
 
   async getOrderStats() {
@@ -328,7 +376,7 @@ class OrderService {
     sql += ` ORDER BY o.created_at DESC LIMIT 50`;
     
     const result = await pool.query(sql, params);
-    return Promise.all(result.rows.map(row => this.getOrderWithItems(row.id)));
+    return this.addItemsToOrders(result.rows);
   }
 }
 

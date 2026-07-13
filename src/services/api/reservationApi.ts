@@ -1,5 +1,5 @@
 import api, { apiCallWrapper } from './client';
-import { ReservationRow } from '../../types';
+import { ReservationRow } from '@/lib/types';
 
 export const createReservation = async (reservationData: Partial<ReservationRow>) => {
   return apiCallWrapper(async () => {

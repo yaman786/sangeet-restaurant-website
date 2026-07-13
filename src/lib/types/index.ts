@@ -1,5 +1,3 @@
-import { Request } from 'express';
-
 // ── User & Auth ─────────────────────────────────────────────
 
 export type UserRole = 'admin' | 'kitchen' | 'reception' | 'waiter';
@@ -11,10 +9,6 @@ export interface JwtPayload {
   email: string;
   iat?: number;
   exp?: number;
-}
-
-export interface AuthenticatedRequest extends Request {
-  user: JwtPayload;
 }
 
 export interface UserRow {
