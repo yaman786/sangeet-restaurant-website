@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const roleError = requireAdmin(user!);
     if (roleError) return roleError;
 
-    const result = await analyticsService.getBusinessAnalytics(req.nextUrl.searchParams.get("timeframe"));
+    const result = await analyticsService.getBusinessAnalytics(req.nextUrl.searchParams.get("timeframe") ?? undefined);
     return NextResponse.json(result);
   } catch (error) {
     return handleApiError(error);

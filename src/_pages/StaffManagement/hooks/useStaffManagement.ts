@@ -12,6 +12,7 @@ import {
   getProfile
 } from '../../../services/api';
 import { useAuth } from '../../../contexts/AuthContext';
+import type { UserRow } from '@/lib/types';
 
 export const useStaffManagement = () => {
   const [page, setPage] = useState(1);
@@ -76,7 +77,7 @@ export const useStaffManagement = () => {
   const loading = !currentUser || usersLoading || statsLoading;
   const users = (usersData as any)?.data || usersData || [];
   const metadata = (usersData as any)?.metadata || { page: 1, totalPages: 1 };
-  const stats = statsData?.stats || { total: 0, active: 0, inactive: 0, admins: 0, staff: 0, recent: 0 };
+  const stats = statsData || { total: 0, active: 0, roles: {} as Record<string, number> };
 
   const resetForm = useCallback(() => {
     setFormData({
@@ -86,7 +87,7 @@ export const useStaffManagement = () => {
   }, []);
 
   const createMutation = useMutation({
-    mutationFn: (data) => createUser(data),
+    mutationFn: (data: Partial<UserRow>) => createUser(data),
     onSuccess: () => {
       toast.success('User created successfully');
       setShowCreateModal(false);

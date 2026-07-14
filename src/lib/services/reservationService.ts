@@ -125,7 +125,7 @@ class ReservationService {
     });
 
     if (reservation.email) {
-      sendReservationCreatedEmail(reservation).catch(err => console.error('Error sending creation email:', err));
+      sendReservationCreatedEmail(reservation as any).catch(err => console.error('Error sending creation email:', err));
     }
     
     emitNewReservation(reservation).catch(err => console.error('Pusher error:', err));
@@ -180,8 +180,8 @@ class ReservationService {
     });
 
     if (reservation.email) {
-      if (status === 'confirmed') sendReservationConfirmedEmail(reservation).catch(err => console.error('Error sending confirmation email:', err));
-      else if (status === 'cancelled') sendReservationCancelledEmail(reservation).catch(err => console.error('Error sending cancellation email:', err));
+      if (status === 'confirmed') sendReservationConfirmedEmail(reservation as any).catch(err => console.error('Error sending confirmation email:', err));
+      else if (status === 'cancelled') sendReservationCancelledEmail(reservation as any).catch(err => console.error('Error sending cancellation email:', err));
     }
     
     emitReservationUpdate(reservation).catch(err => console.error('Pusher error:', err));
@@ -247,6 +247,14 @@ class ReservationService {
       cancelled_reservations,
       total_guests: guestsAgg._sum.guests || 0
     };
+  }
+  async getReservationsByDate(date: string): Promise<any[]> {
+    return prisma.reservations.findMany({
+      where: {
+        date: new Date(date)
+      },
+      orderBy: { time: 'asc' }
+    });
   }
 }
 

@@ -133,7 +133,7 @@ const ReviewModal = ({
                             onMouseLeave={() => setHoverRating(0)}
                             className="text-4xl focus:outline-none"
                           >
-                            <span className={star <= (hoverRating || field.value) ? "text-yellow-400" : "text-gray-500"}>
+                            <span className={star <= (hoverRating || (field.value as number)) ? "text-yellow-400" : "text-gray-500"}>
                               ★
                             </span>
                           </motion.button>

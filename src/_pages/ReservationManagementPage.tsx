@@ -169,7 +169,7 @@ const ReservationManagementPage = () => {
       // Use full updateReservation instead of updateReservationStatus
       await updateReservation(selectedReservation.id, {
         status: 'confirmed',
-        table_id: selectedTableId
+        table_id: parseInt(selectedTableId, 10)
       });
       
       // Update local state directly

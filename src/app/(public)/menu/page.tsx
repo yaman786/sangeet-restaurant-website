@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 export default async function Page() {
-  let menuItems = [];
-  let categories = [];
+  let menuItems: any[] = [];
+  let categories: any[] = [];
 
   try {
     const [menuRes, catRes] = await Promise.all([

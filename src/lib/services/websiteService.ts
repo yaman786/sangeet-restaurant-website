@@ -93,7 +93,7 @@ class WebsiteService {
     return result.rows;
   }
 
-  async uploadWebsiteMedia(userId: number, file: Express.Multer.File, data: Record<string, any>): Promise<any> {
+  async uploadWebsiteMedia(userId: number, file: any, data: Record<string, any>): Promise<any> {
     const { media_key, alt_text, caption } = data;
     const relativePath = `/uploads/website/${file.filename}`;
     const result = await pool.query(
@@ -133,6 +133,218 @@ class WebsiteService {
       total_content_sections: parseInt(contentCount.rows[0].count, 10),
       total_media_files: parseInt(mediaCount.rows[0].count, 10)
     };
+  }
+
+  // --- Banner Methods ---
+
+  async getActiveBanners(): Promise<any[]> {
+    const result = await pool.query(
+      `SELECT id, setting_key, setting_value, updated_at
+       FROM restaurant_settings
+       WHERE setting_key LIKE 'banner_%' AND setting_type = 'json'
+       ORDER BY updated_at DESC`
+    );
+    return result.rows.map(row => {
+      try {
+        return { id: row.id, ...JSON.parse(row.setting_value) };
+      } catch {
+        return { id: row.id, raw: row.setting_value };
+      }
+    });
+  }
+
+  async createBanner(data: Record<string, any>): Promise<any> {
+    const bannerKey = `banner_${Date.now()}`;
+    const value = JSON.stringify(data);
+    const result = await pool.query(
+      `INSERT INTO restaurant_settings (setting_key, setting_value, setting_type, description)
+       VALUES ($1, $2, 'json', 'Website banner')
+       RETURNING id, setting_key, setting_value`,
+      [bannerKey, value]
+    );
+    return { id: result.rows[0].id, ...data };
+  }
+
+  async updateBanner(id: string, data: Record<string, any>): Promise<any> {
+    const value = JSON.stringify(data);
+    const result = await pool.query(
+      `UPDATE restaurant_settings
+       SET setting_value = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2 AND setting_key LIKE 'banner_%'
+       RETURNING id, setting_key, setting_value`,
+      [value, id]
+    );
+    if (result.rows.length === 0) throw new NotFoundError('Banner');
+    return { id: result.rows[0].id, ...data };
+  }
+
+  async deleteBanner(id: string): Promise<{ success: boolean }> {
+    const result = await pool.query(
+      `DELETE FROM restaurant_settings WHERE id = $1 AND setting_key LIKE 'banner_%' RETURNING id`,
+      [id]
+    );
+    if (result.rows.length === 0) throw new NotFoundError('Banner');
+    return { success: true };
+  }
+
+  // --- Business Hours Methods ---
+
+  async getBusinessHours(): Promise<any> {
+    const result = await pool.query(
+      `SELECT setting_value FROM restaurant_settings WHERE setting_key = 'opening_hours'`
+    );
+    if (result.rows.length === 0) return {};
+    try {
+      return JSON.parse(result.rows[0].setting_value);
+    } catch {
+      return {};
+    }
+  }
+
+  async updateBusinessHours(data: Record<string, any>): Promise<any> {
+    const value = JSON.stringify(data);
+    await pool.query(
+      `INSERT INTO restaurant_settings (setting_key, setting_value, setting_type, description)
+       VALUES ('opening_hours', $1, 'json', 'Restaurant opening hours')
+       ON CONFLICT (setting_key)
+       DO UPDATE SET setting_value = $1, updated_at = CURRENT_TIMESTAMP`,
+      [value]
+    );
+    return data;
+  }
+
+  // --- Footer Settings Methods ---
+
+  async getFooterSettings(): Promise<Record<string, any>> {
+    const result = await pool.query(
+      `SELECT setting_key, setting_value FROM restaurant_settings
+       WHERE setting_key IN ('footer_description', 'footer_copyright', 'footer_links')
+       ORDER BY setting_key`
+    );
+    const settings: Record<string, any> = {};
+    for (const row of result.rows) {
+      const key = row.setting_key.replace('footer_', '');
+      try {
+        settings[key] = JSON.parse(row.setting_value);
+      } catch {
+        settings[key] = row.setting_value;
+      }
+    }
+    // Also pull from website_content if footer_description exists there
+    if (!settings.description) {
+      const contentResult = await pool.query(
+        `SELECT content FROM website_content WHERE section_key = 'footer_description' AND is_active = true`
+      );
+      if (contentResult.rows.length > 0) {
+        settings.description = contentResult.rows[0].content;
+      }
+    }
+    return settings;
+  }
+
+  async updateFooterSettings(data: Record<string, any>): Promise<Record<string, any>> {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (const [key, value] of Object.entries(data)) {
+        const settingKey = `footer_${key}`;
+        const settingValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+        await client.query(
+          `INSERT INTO restaurant_settings (setting_key, setting_value, setting_type, description)
+           VALUES ($1, $2, 'text', 'Footer setting')
+           ON CONFLICT (setting_key)
+           DO UPDATE SET setting_value = $2, updated_at = CURRENT_TIMESTAMP`,
+          [settingKey, settingValue]
+        );
+      }
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+    return data;
+  }
+
+  // --- SEO Settings Methods ---
+
+  async getSeoSettings(): Promise<Record<string, any>> {
+    const result = await pool.query(
+      `SELECT setting_key, setting_value FROM restaurant_settings
+       WHERE setting_key LIKE 'seo_%'
+       ORDER BY setting_key`
+    );
+    const settings: Record<string, any> = {};
+    for (const row of result.rows) {
+      const key = row.setting_key.replace('seo_', '');
+      settings[key] = row.setting_value;
+    }
+    return settings;
+  }
+
+  async updateSeoSettings(data: Record<string, any>): Promise<Record<string, any>> {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (const [key, value] of Object.entries(data)) {
+        const settingKey = `seo_${key}`;
+        await client.query(
+          `INSERT INTO restaurant_settings (setting_key, setting_value, setting_type, description)
+           VALUES ($1, $2, 'text', 'SEO setting')
+           ON CONFLICT (setting_key)
+           DO UPDATE SET setting_value = $2, updated_at = CURRENT_TIMESTAMP`,
+          [settingKey, String(value)]
+        );
+      }
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+    return data;
+  }
+
+  // --- Social Links Methods ---
+
+  async getSocialLinks(): Promise<Record<string, string>> {
+    const result = await pool.query(
+      `SELECT setting_key, setting_value FROM restaurant_settings
+       WHERE setting_key LIKE 'social_%'
+       ORDER BY setting_key`
+    );
+    const links: Record<string, string> = {};
+    for (const row of result.rows) {
+      const key = row.setting_key.replace('social_', '');
+      links[key] = row.setting_value || '';
+    }
+    return links;
+  }
+
+  async updateSocialLinks(data: Record<string, any>): Promise<Record<string, string>> {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (const [key, value] of Object.entries(data)) {
+        const settingKey = `social_${key}`;
+        await client.query(
+          `INSERT INTO restaurant_settings (setting_key, setting_value, setting_type, description)
+           VALUES ($1, $2, 'text', 'Social media link')
+           ON CONFLICT (setting_key)
+           DO UPDATE SET setting_value = $2, updated_at = CURRENT_TIMESTAMP`,
+          [settingKey, String(value)]
+        );
+      }
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+    return data as Record<string, string>;
   }
 }
 

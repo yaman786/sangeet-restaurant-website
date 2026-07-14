@@ -13,8 +13,8 @@ export async function submitReviewAction(data: z.infer<typeof reviewSchema>) {
     // Pass to service layer
     const review = await reviewService.createReview({
       ...parsedData,
-      order_id: data.order_id || null, // Optional fields not in the base schema for UI convenience
-      table_number: data.table_number || null,
+      order_id: (data as any).order_id || null, // Optional fields not in the base schema for UI convenience
+      table_number: (data as any).table_number || null,
     });
     
     // Revalidate relevant paths

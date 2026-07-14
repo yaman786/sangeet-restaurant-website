@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const roleError = requireAdmin(user!);
     if (roleError) return roleError;
 
-    const result = await analyticsService.getReservationTrends(req.nextUrl.searchParams.get("period"));
+    const result = await analyticsService.getReservationTrends(req.nextUrl.searchParams.get("period") ?? undefined);
     return NextResponse.json(result);
   } catch (error) {
     return handleApiError(error);

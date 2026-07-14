@@ -4,7 +4,7 @@ import type { EmailContent, EmailTemplate, EmailResult, ReservationRow } from '.
 
 // Brevo Email Configuration
 const getSenderEmail = (): string | undefined => config.EMAIL_USER;
-const getApiKey = (): string => config.BREVO_API_KEY;
+const getApiKey = (): string => config.BREVO_API_KEY as string;
 
 // HTML Escaping Utility for XSS Prevention
 const escapeHtml = (unsafe: unknown): string => {

@@ -59,7 +59,7 @@ export function handleApiError(error: unknown) {
   console.error('API Error:', error);
 
   if (error instanceof z.ZodError) {
-    const formattedErrors = error.errors.map(err => ({
+    const formattedErrors = (error as any).errors.map((err: any) => ({
       path: err.path.join('.'),
       message: err.message
     }));

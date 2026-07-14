@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 import { prisma } from '@/lib/db';
 import { handleApiError, UnauthorizedError } from '@/lib/errors';
 import { JwtPayload } from '@/lib/auth';
+import type { UserRole } from '@/lib/types';
 import { loginSchema } from '@/lib/validations';
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -40,9 +41,13 @@ export async function POST(req: NextRequest) {
     const payload: JwtPayload = {
       id: user.id,
       username: user.username,
-      role: user.role,
+      role: user.role as UserRole,
       email: user.email
     };
+
+    if (!JWT_SECRET) {
+      throw new Error('JWT_SECRET is not defined');
+    }
 
     const token = jwt.sign(
       payload,

@@ -28,6 +28,26 @@ class PusherClientService {
     });
   }
 
+  /** Alias for connect() — compatibility with legacy Socket.IO interface */
+  init() {
+    this.connect();
+  }
+
+  /** Listen for Pusher connection state changes */
+  onConnectionStateChange(callback: (status: string) => void) {
+    if (!this.pusher) return;
+    this.pusher.connection.bind('state_change', (states: { current: string }) => {
+      callback(states.current);
+    });
+  }
+
+  /** Subscribe to admin channel and return the channel object for direct binding */
+  subscribeToAdminChannel() {
+    this.connect();
+    this.joinAdmin();
+    return this.channels['admin-channel'] || { bind: () => {}, unbind: () => {} };
+  }
+
   disconnect() {
     if (this.pusher) {
       this.pusher.disconnect();
@@ -115,11 +135,31 @@ class PusherClientService {
     }
   }
 
-  // Frontend-to-backend emits are not supported directly in Pusher via client.
-  // We mock these so they don't crash, but ideally they should call API routes.
-  emitNewOrder() {}
-  emitCallWaiter() {}
-  emitRequestBill() {}
+  // Call waiter via server-side Pusher broadcast
+  async emitCallWaiter(tableNumber: string) {
+    try {
+      await fetch('/api/tables/call-waiter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tableNumber })
+      });
+    } catch (error) {
+      console.error('Failed to call waiter:', error);
+    }
+  }
+
+  // Request bill via server-side Pusher broadcast
+  async emitRequestBill(tableNumber: string) {
+    try {
+      await fetch('/api/tables/request-bill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tableNumber })
+      });
+    } catch (error) {
+      console.error('Failed to request bill:', error);
+    }
+  }
 }
 
 export const pusherClient = new PusherClientService();

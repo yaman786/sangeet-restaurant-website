@@ -15,7 +15,7 @@ export async function createMenuItemAction(data: z.infer<typeof menuItemSchema>)
 
     const parsedData = menuItemSchema.parse(data);
     const { name, description, price, category, image_url, is_vegetarian, is_spicy, is_popular, preparation_time } = parsedData;
-    const allergens = data.allergens || null;
+    const allergens = (data as any).allergens || null;
 
     const item = await prisma.menu_items.create({
       data: {
@@ -50,7 +50,7 @@ export async function updateMenuItemAction(id: number | string, data: z.infer<ty
 
     const parsedData = menuItemSchema.parse(data);
     const { name, description, price, category, image_url, is_vegetarian, is_spicy, is_popular, preparation_time } = parsedData;
-    const allergens = data.allergens || null;
+    const allergens = (data as any).allergens || null;
 
     const item = await prisma.menu_items.update({
       where: { id: typeof id === 'string' ? parseInt(id, 10) : id },
