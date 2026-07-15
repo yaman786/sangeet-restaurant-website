@@ -239,7 +239,7 @@ const UnifiedDashboard = () => {
   return (
     <div className="min-h-screen bg-[#131210] selection:bg-sangeet-400 selection:text-[#131210]">
       {/* Liquid Glass Header */}
-      <div className="bg-[#1C1917]/80 backdrop-blur-xl border-b border-white/10 fixed top-0 left-0 right-0 z-50 shadow-glass">
+      <div className="bg-[#1C1917]/80 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50 shadow-glass">
         <div className="max-w-6xl mx-auto px-4 py-4 md:py-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
@@ -307,7 +307,7 @@ const UnifiedDashboard = () => {
 
 
 
-      <div className="max-w-6xl mx-auto px-4 pt-36 sm:pt-6">
+      <div className="max-w-6xl mx-auto px-4 py-6">
         <AnimatePresence mode="wait">
           {currentView === 'menu' && (
             <>
@@ -318,7 +318,7 @@ const UnifiedDashboard = () => {
                   <p className="text-sangeet-neutral-400 text-lg">Curating the finest dishes for you...</p>
                 </div>
               ) : (
-                <div className="w-full pt-16">
+                <div className="w-full">
                   {/* Liquid Glass Hero Header for Menu */}
                   <div className="relative h-[40vh] min-h-[300px] w-full overflow-hidden flex items-center justify-center rounded-3xl mb-8">
                     {/* Parallax Background */}
