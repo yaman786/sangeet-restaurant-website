@@ -233,6 +233,14 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
       loadOrders(true);
     }, 60000);
 
+    // Industry Standard: Instant Reconnect Fetcher
+    // If the internet drops and comes back, instantly fetch any missed orders
+    socketService.onConnectionStateChange((status: string) => {
+      if (status === 'connected') {
+        loadOrders(true); // Fetch silently in background instantly upon reconnect
+      }
+    });
+
     return () => clearInterval(pollingInterval);
   }, [loadOrders]);
 
