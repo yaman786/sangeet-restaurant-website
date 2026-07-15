@@ -117,12 +117,7 @@ const AdminHeader = ({ title = 'Admin Dashboard', subtitle, showBackButton = tru
                   >
                     Dashboard
                   </button>
-                  <button
-                    onClick={() => navigate('/admin/history')}
-                    className="w-full text-left px-4 py-2 text-sangeet-neutral-300 hover:bg-sangeet-neutral-700 hover:text-sangeet-400 transition-colors"
-                  >
-                    History
-                  </button>
+
                   <button
                     onClick={() => logout(navigate)}
                     className="w-full text-left px-4 py-2 text-sangeet-neutral-300 hover:bg-sangeet-neutral-700 hover:text-sangeet-400 transition-colors"
