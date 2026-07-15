@@ -1,12 +1,14 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useParams } from 'next/navigation';
 import { useNavigate } from '@/utils/router-mock';
 import { fetchMenuItems, fetchMenuCategories, getTableByQRCode, getOrdersByTable } from '../services/api';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import toast from 'react-hot-toast';
 import { clearCartData } from '../utils/cartUtils';
+import MenuView from '../components/MenuView';
+import { ShoppingBag, ChefHat, Sparkles } from 'lucide-react';
 
 const QRMenuPage = () => {
   const params = useParams(); const qrCode = typeof params?.qrCode === "string" ? params.qrCode : (params?.qrCode ? params.qrCode[0] : "");
@@ -14,6 +16,7 @@ const QRMenuPage = () => {
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [tableInfo, setTableInfo] = useState<any>(null);
   const [cart, setCart] = useState<any[]>([]);
@@ -278,137 +281,91 @@ const QRMenuPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-sangeet-neutral-950">
-      {/* Professional Header - Fixed Sticky Navigation */}
-      <header className="fixed top-0 left-0 right-0 bg-gradient-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 border-b border-sangeet-neutral-700 p-4 z-50 shadow-lg">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-sangeet-400 rounded-full flex items-center justify-center">
-                <span className="text-sangeet-neutral-950 font-bold text-lg">🍽️</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-sangeet-400">Sangeet Restaurant</h1>
-                <p className="text-sangeet-neutral-400 text-sm">
-                  Table {tableInfo?.table_number} • Digital Menu
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <div className="text-sangeet-400 font-bold text-lg">
-                  ${cart.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0).toFixed(2)}
-                </div>
-                <div className="text-sangeet-neutral-400 text-sm">
-                  {cart.length} item{cart.length !== 1 ? 's' : ''} in cart
-                </div>
-              </div>
+    <div className="min-h-screen bg-[#131210] text-sangeet-neutral-100 selection:bg-sangeet-400 selection:text-[#131210]">
+      {/* Liquid Glass Hero Header */}
+      <div className="relative h-[40vh] min-h-[300px] w-full overflow-hidden flex items-center justify-center">
+        {/* Parallax Background */}
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#131210] via-[#131210]/60 to-transparent"></div>
+        
+        {/* Hero Content */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="relative z-10 text-center px-4"
+        >
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/5 backdrop-blur-md border border-white/10 mb-6 shadow-glass">
+            <ChefHat className="w-8 h-8 text-sangeet-400" />
+          </div>
+          <h1 className="font-display text-4xl md:text-6xl text-white font-bold mb-4 tracking-tight drop-shadow-2xl">
+            Sangeet <span className="text-sangeet-400 italic font-light">Fine Dining</span>
+          </h1>
+          <div className="inline-flex items-center space-x-2 bg-sangeet-400/10 backdrop-blur-md border border-sangeet-400/20 px-6 py-2 rounded-full">
+            <Sparkles className="w-4 h-4 text-sangeet-400" />
+            <p className="text-sangeet-400 font-medium tracking-wide">
+              Table {tableInfo?.table_number}
+            </p>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="max-w-5xl mx-auto px-4 md:px-8 -mt-12 relative z-20">
+        <MenuView 
+          menuItems={menuItems}
+          categories={categories}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          onAddToCart={handleAddToCart}
+          onViewCart={handleViewCart}
+          cartLength={cart.length}
+        />
+      </div>
+
+      {/* Floating Glassmorphism Cart Bar */}
+      <AnimatePresence>
+        {cart.length > 0 && (
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="fixed bottom-6 left-0 right-0 px-4 z-50 pointer-events-none"
+          >
+            <div className="max-w-2xl mx-auto pointer-events-auto">
               <button
                 onClick={handleViewCart}
-                disabled={cart.length === 0}
-                className="bg-sangeet-400 text-sangeet-neutral-950 px-4 py-2 rounded-lg font-semibold hover:bg-sangeet-300 transition-colors disabled:opacity-50 shadow-lg hover:shadow-xl flex items-center space-x-2"
+                className="w-full bg-[#1C1917]/90 backdrop-blur-xl border border-white/10 text-white p-4 rounded-2xl shadow-glass-lg hover:shadow-gold-glow-lg transition-all duration-300 flex items-center justify-between group overflow-hidden relative"
               >
-                <span>🛒</span>
-                <span>View Cart</span>
+                {/* Shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                
+                <div className="flex items-center space-x-4 relative z-10">
+                  <div className="w-12 h-12 bg-sangeet-400 rounded-xl flex items-center justify-center shadow-lg">
+                    <ShoppingBag className="w-6 h-6 text-[#1C1917]" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-lg leading-tight">{cart.length} Item{cart.length !== 1 ? 's' : ''}</p>
+                    <p className="text-sangeet-neutral-400 text-sm">View your order details</p>
+                  </div>
+                </div>
+                
+                <div className="text-right relative z-10">
+                  <p className="text-xs text-sangeet-neutral-400 uppercase tracking-wider mb-0.5">Total Estimate</p>
+                  <p className="font-display text-2xl font-bold text-sangeet-400">
+                    ${cart.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0).toFixed(2)}
+                  </p>
+                </div>
               </button>
             </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content with Top Padding for Fixed Header */}
-      <div className="max-w-4xl mx-auto p-4 pt-24">
-        
-        {/* Category Filter - Enhanced */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-sangeet-400 mb-3 flex items-center">
-            <span className="mr-2">📋</span>
-            Menu Categories
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                selectedCategory === 'all'
-                  ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-lg'
-                  : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700'
-              }`}
-            >
-              All Items
-            </button>
-            {categories.map((category) => (
-              <button
-                key={category.id || category.name}
-                onClick={() => setSelectedCategory(category.name || category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedCategory === (category.name || category)
-                    ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-lg'
-                    : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700'
-                }`}
-              >
-                {category.name || category}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Menu Items - Enhanced Grid with Consistent Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
-          {filteredMenuItems.map((item) => (
-            <motion.div
-              key={item.id}
-              whileHover={{ scale: 1.02 }}
-              className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl overflow-hidden border border-sangeet-neutral-700 hover:border-sangeet-neutral-600 transition-all flex flex-col h-full"
-            >
-              {/* Image Section - Fixed Height */}
-              <div className="h-48 md:h-52 overflow-hidden">
-                <img
-                  src={item.image_url}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              
-              {/* Content Section - Flex Column with Space Between */}
-              <div className="p-4 md:p-5 flex flex-col flex-grow">
-                {/* Header with Name and Price */}
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-base md:text-lg font-semibold text-sangeet-400 flex-1 mr-2">{item.name}</h3>
-                  <span className="text-sangeet-400 font-bold text-lg whitespace-nowrap">${item.price}</span>
-                </div>
-                
-                {/* Description - Fixed Height */}
-                <p className="text-sm text-sangeet-neutral-400 mb-3 line-clamp-2 min-h-[2.5rem]">{item.description}</p>
-                
-                {/* Tags Section - Fixed Height */}
-                <div className="flex flex-wrap gap-1 mb-4 min-h-[1.5rem]">
-                  {item.is_vegetarian && (
-                    <span className="px-2 py-1 bg-green-600 text-white text-xs rounded-full">🌱 Veg</span>
-                  )}
-                  {item.is_spicy && (
-                    <span className="px-2 py-1 bg-red-600 text-white text-xs rounded-full">🔥 Spicy</span>
-                  )}
-                  {item.is_popular && (
-                    <span className="px-2 py-1 bg-yellow-600 text-white text-xs rounded-full">⭐ Popular</span>
-                  )}
-                </div>
-                
-                {/* Button Section - Always at Bottom */}
-                <div className="mt-auto">
-                  <button
-                    onClick={() => handleAddToCart(item)}
-                    className="w-full bg-sangeet-400 text-sangeet-neutral-950 py-2 md:py-3 rounded-lg font-semibold hover:bg-sangeet-300 transition-colors shadow-lg hover:shadow-xl text-sm md:text-base"
-                  >
-                    Add to Cart
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
-export default QRMenuPage; 
+export default QRMenuPage;

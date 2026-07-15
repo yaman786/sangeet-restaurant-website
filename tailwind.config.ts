@@ -52,8 +52,8 @@ const config: Config = {
         }
       },
       fontFamily: {
-        'display': ['"Playfair Display"', 'Georgia', 'serif'],
-        'sans': ['"Outfit"', '"Inter"', 'system-ui', 'sans-serif'],
+        'display': ['var(--font-playfair-sc)', 'var(--font-playfair)', 'Georgia', 'serif'],
+        'sans': ['var(--font-karla)', 'var(--font-outfit)', '"Inter"', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         // Strict typographic scale — no ad-hoc sizes

@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Search, Plus, Leaf } from 'lucide-react';
 
 const MenuView = ({ 
   menuItems, 
@@ -31,60 +32,65 @@ const MenuView = ({
     return acc;
   }, {});
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.6 }}
+      className="space-y-8 pb-24" // Extra padding for floating cart
     >
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-sangeet-400 mb-4">Our Menu</h1>
-        <p className="text-sangeet-neutral-300 text-lg">
-          Discover our delicious selection of dishes
-        </p>
-      </div>
-
-      {/* Search and Filter */}
-      <div className="bg-gradient-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-6 border border-sangeet-neutral-700">
+      {/* Search and Filter - Liquid Glass Pill */}
+      <div className="sticky top-4 z-40 bg-[#1C1917]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-glass">
         {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative">
+        <div className="mb-4">
+          <div className="relative group">
             <input
               type="text"
-              placeholder="Search for dishes..."
+              placeholder="Search our culinary offerings..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 pl-12 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 transition-all"
+              className="w-full px-4 py-3.5 pl-12 bg-white/5 border border-white/10 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:border-sangeet-400 focus:bg-white/10 transition-all duration-300"
             />
-            <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-sangeet-neutral-500">
-              🔍
-            </span>
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-sangeet-neutral-500 group-focus-within:text-sangeet-400 transition-colors duration-300 w-5 h-5" />
           </div>
         </div>
 
-        {/* Category Filter */}
-        <div className="flex flex-wrap gap-2">
+        {/* Category Pills (Horizontal Scroll) */}
+        <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide -mx-2 px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <button
             onClick={() => setSelectedCategory('all')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+            className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
               selectedCategory === 'all'
-                ? 'bg-sangeet-400 text-sangeet-neutral-950'
-                : 'bg-sangeet-neutral-700 text-sangeet-neutral-300 hover:bg-sangeet-neutral-600'
+                ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-gold-glow'
+                : 'bg-white/5 text-sangeet-neutral-300 hover:bg-white/10 border border-white/5'
             }`}
           >
-            All Categories
+            All Offerings
           </button>
           {categories.map((category: any) => (
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.name)}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+              className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
                 selectedCategory === category.name
-                  ? 'bg-sangeet-400 text-sangeet-neutral-950'
-                  : 'bg-sangeet-neutral-700 text-sangeet-neutral-300 hover:bg-sangeet-neutral-600'
+                  ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-gold-glow'
+                  : 'bg-white/5 text-sangeet-neutral-300 hover:bg-white/10 border border-white/5'
               }`}
             >
               {category.name}
@@ -95,86 +101,83 @@ const MenuView = ({
 
       {/* Menu Items */}
       {Object.keys(itemsByCategory).length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">🍽️</div>
-          <h3 className="text-xl font-semibold text-sangeet-400 mb-2">No items found</h3>
-          <p className="text-sangeet-neutral-400">Try adjusting your search or category filter</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-16 px-4 bg-white/5 backdrop-blur-md rounded-3xl border border-white/10"
+        >
+          <Search className="w-12 h-12 text-sangeet-neutral-500 mx-auto mb-4 opacity-50" />
+          <h3 className="font-display text-2xl text-sangeet-400 mb-2">No culinary items found</h3>
+          <p className="text-sangeet-neutral-400">Please refine your search or category selection.</p>
+        </motion.div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-12">
           {Object.entries(itemsByCategory).map(([categoryName, items]) => (
-            <div key={categoryName} className="space-y-4">
-              <h2 className="text-2xl font-bold text-sangeet-400 border-b border-sangeet-neutral-700 pb-2">
+            <div key={categoryName} className="space-y-6">
+              <h2 className="font-display text-3xl text-sangeet-neutral-100 flex items-center">
+                <span className="bg-sangeet-400 w-1.5 h-8 rounded-full mr-4 inline-block"></span>
                 {categoryName}
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <motion.div 
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              >
                 {(items as any[]).map((item: any) => (
                   <motion.div
                     key={item.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-gradient-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-6 border border-sangeet-neutral-700 hover:border-sangeet-neutral-600 transition-all duration-300"
+                    variants={itemVariants}
+                    whileHover={{ y: -4, scale: 1.01 }}
+                    className="group bg-white/5 backdrop-blur-xl rounded-3xl p-4 border border-white/10 hover:border-sangeet-400/30 transition-all duration-400 shadow-glass overflow-hidden relative"
                   >
                     {/* Item Image */}
-                    <div className="relative mb-4">
+                    <div className="relative mb-5 overflow-hidden rounded-2xl aspect-[4/3]">
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1C1917]/80 to-transparent z-10"></div>
                       <img
                         src={item.image_url || '/placeholder-food.jpg'}
                         alt={item.name}
-                        className="w-full h-48 object-cover rounded-lg"
-                        onError={(e) => { (e.target as any).src = 'https://via.placeholder.com/150?text=No+Image' }}
+                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out-expo"
+                        onError={(e) => { (e.target as any).src = 'https://via.placeholder.com/400x300?text=Sangeet+Cuisine' }}
                       />
                       {item.is_vegetarian && (
-                        <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                          🌱 Veg
+                        <div className="absolute top-3 right-3 z-20 bg-green-500/90 backdrop-blur-md text-white p-2 rounded-full shadow-lg">
+                          <Leaf className="w-4 h-4" />
                         </div>
                       )}
-                    </div>
-
-                    {/* Item Details */}
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-start">
-                        <h3 className="text-lg font-semibold text-sangeet-neutral-200">
-                          {item.name}
-                        </h3>
-                        <span className="text-xl font-bold text-sangeet-400">
+                      <div className="absolute bottom-3 left-3 z-20">
+                        <span className="font-display text-2xl font-bold text-white tracking-wide">
                           ${parseFloat(item.price).toFixed(2)}
                         </span>
                       </div>
-                      
-                      <p className="text-sangeet-neutral-400 text-sm line-clamp-2">
+                    </div>
+
+                    {/* Item Details */}
+                    <div className="px-2">
+                      <h3 className="font-display text-xl text-sangeet-neutral-100 mb-2 leading-tight">
+                        {item.name}
+                      </h3>
+                      <p className="text-sangeet-neutral-400 text-sm line-clamp-2 leading-relaxed mb-6 font-light">
                         {item.description}
                       </p>
 
                       {/* Add to Cart Button */}
-                      <button
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => onAddToCart(item)}
-                        className="w-full bg-sangeet-400 text-sangeet-neutral-950 py-3 px-4 rounded-lg font-semibold hover:bg-sangeet-300 transition-colors duration-300 flex items-center justify-center space-x-2"
+                        className="w-full bg-white/5 border border-white/10 text-sangeet-400 py-3.5 px-4 rounded-xl font-semibold hover:bg-sangeet-400 hover:text-sangeet-neutral-950 transition-all duration-300 flex items-center justify-center space-x-2 shadow-sm"
                       >
-                        <span>🛒</span>
-                        <span>Add to Cart</span>
-                      </button>
+                        <Plus className="w-5 h-5" />
+                        <span>Add to Order</span>
+                      </motion.button>
                     </div>
                   </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </div>
           ))}
         </div>
       )}
-
-      {/* View Cart Button */}
-      <div className="text-center pt-6">
-        <button
-          onClick={onViewCart}
-          className="bg-gradient-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-300 hover:to-sangeet-400 text-sangeet-neutral-950 py-4 px-8 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-2 mx-auto"
-        >
-          <span>📋</span>
-          <span>View Cart</span>
-        </button>
-      </div>
-
-
     </motion.div>
   );
 };
