@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { fetchMenuItems, fetchMenuCategories } from '../../services/api';
+import { fetchMenuItems, fetchMenuCategories, getOrdersByTable } from '../../services/api';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import toast from 'react-hot-toast';
 
@@ -90,16 +90,32 @@ const UnifiedDashboard = () => {
       ]);
       setMenuItems(menuData || []);
       setCategories(categoriesData || []);
+
+      if (tableNumber) {
+        try {
+          const activeOrders = await getOrdersByTable(tableNumber as string);
+          if (activeOrders && activeOrders.length > 0) {
+            setOrders(activeOrders);
+          }
+        } catch (e) {
+          console.error("Error fetching active orders", e);
+        }
+      }
     } catch (error) {
       console.error('Error loading menu:', error);
     } finally {
       setLoading(false);
     }
-  }, [checkCancelledOrderTimeout]);
+  }, [checkCancelledOrderTimeout, tableNumber, setOrders]);
 
   const setupRealTimeUpdates = useCallback(() => {
     socketService.connect();
     socketService.joinTable(tableNumber as string);
+
+    // Clean up any existing listeners to prevent duplicates
+    socketService.removeListener('order-status-update');
+    socketService.removeListener('new-order');
+    socketService.removeListener('order-deleted');
 
     socketService.onOrderStatusUpdate((updateData: any) => {
       setOrders(prevOrders => {
@@ -120,7 +136,10 @@ const UnifiedDashboard = () => {
             setCurrentView('menu');
             toast.success('🎉 All orders completed! Thank you for dining with us!', { duration: 6000 });
             setTimeout(() => { window.location.href = '/'; }, 2000);
+          } else {
+            toast.success(`🎉 Order #${updateData.orderId} completed!`, { duration: 4000 });
           }
+          try { socketService.playNotificationSound('completion'); } catch (e) {}
         }
         
         if (updateData.status === 'cancelled') {
@@ -141,7 +160,8 @@ const UnifiedDashboard = () => {
       });
 
       const statusConfig = (ORDER_STATUSES as any)[updateData.status];
-      if (statusConfig) {
+      // Only play the generic notification sound if it's NOT completed (since completed plays its own sound above)
+      if (statusConfig && updateData.status !== 'completed') {
         toast.success(`Order ${statusConfig.label.toLowerCase()}!`, { duration: 4000, icon: statusConfig.icon });
         try { socketService.playNotificationSound('notification'); } catch (error) {}
       }
@@ -158,22 +178,6 @@ const UnifiedDashboard = () => {
       }
     });
 
-    socketService.onOrderCompleted((data: any) => {
-      setOrders(prevOrders => {
-        const updatedOrders = prevOrders.filter(order => order.id !== data.orderId);
-        if (updatedOrders.length === 0) {
-          clearSession();
-          setCurrentView('menu');
-          toast.success('🎉 All orders completed! Thank you for dining with us!', { duration: 6000 });
-          setTimeout(() => { window.location.href = '/'; }, 2000);
-        } else {
-          toast.success(`🎉 Order #${data.orderId} completed!`, { duration: 4000 });
-        }
-        return updatedOrders;
-      });
-      try { socketService.playNotificationSound('completion'); } catch (e) {}
-    });
-
     socketService.onOrderDeleted((data: any) => {
       if (data.tableNumber && tableNumber && data.tableNumber.toString() === tableNumber.toString()) {
         setOrders(prevOrders => prevOrders.filter(order => order.id !== data.orderId));
@@ -186,13 +190,23 @@ const UnifiedDashboard = () => {
         }
       }
     });
+    
+    return () => {
+      socketService.removeListener('order-status-update');
+      socketService.removeListener('new-order');
+      socketService.removeListener('order-deleted');
+    };
   }, [tableNumber, orderId, setOrders, clearSession, CANCELLED_ORDER_TIMEOUT]);
 
   useEffect(() => {
+    let cleanup: any = null;
     if (tableNumber) {
       loadDashboardData();
-      setupRealTimeUpdates();
+      cleanup = setupRealTimeUpdates();
     }
+    return () => {
+      if (cleanup) cleanup();
+    };
   }, [tableNumber, loadDashboardData, setupRealTimeUpdates]);
 
   useEffect(() => {

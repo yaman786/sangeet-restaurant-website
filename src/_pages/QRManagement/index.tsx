@@ -79,6 +79,8 @@ const QRManagement = () => {
           handleDeleteQR={handleDeleteQR}
           setSearchTerm={setSearchTerm}
           setFilterStatus={setFilterStatus}
+          setFormData={setFormData}
+          setShowGenerateModal={setShowGenerateModal}
         />
       </div>
 

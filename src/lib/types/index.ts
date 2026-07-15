@@ -159,6 +159,7 @@ export interface QRCodeRow {
   qr_code_data: string;
   design: string | null;
   created_at: string;
+  is_active: boolean;
 }
 
 // ── Website ─────────────────────────────────────────────────

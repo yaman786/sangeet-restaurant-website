@@ -8,8 +8,9 @@ import {
   BarChart3, 
   Smartphone,
   ArrowUpDown,
-  ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Edit2,
+  ArchiveRestore
 } from 'lucide-react';
 
 const QRGrid = ({
@@ -24,7 +25,10 @@ const QRGrid = ({
   setShowDownloadModal,
   handleDeleteQR,
   setSearchTerm,
-  setFilterStatus
+  setFilterStatus,
+  setFormData,
+  setShowGenerateModal,
+  handleRestoreQR
 }: any) => {
   const formatCurrency = (amount: any) => {
     return new Intl.NumberFormat('en-US', {
@@ -107,90 +111,103 @@ const QRGrid = ({
               key={qrCode.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-sangeet-neutral-900 rounded-xl shadow-lg border border-sangeet-neutral-700 overflow-hidden hover:border-sangeet-400/50 transition-all duration-300"
+              className={`bg-sangeet-neutral-900 rounded-xl shadow-lg border border-sangeet-neutral-700 overflow-hidden transition-all duration-300 ${!qrCode.is_active ? 'opacity-60 grayscale' : 'hover:border-sangeet-400/50'}`}
             >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-2">
-                    <Smartphone className="h-5 w-5 text-sangeet-400" />
-                    <h3 className="text-lg font-semibold text-sangeet-neutral-100">
-                      Table {qrCode.table_number}
-                    </h3>
-                    {(qrCode.active_orders || 0) > 0 && (
-                      <span className="px-2 py-1 text-xs bg-orange-400/20 text-orange-400 border border-orange-400/30 rounded-full">
-                        {qrCode.active_orders} active orders
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleViewAnalytics(qrCode)}
-                      className="p-1 text-sangeet-neutral-400 hover:text-sangeet-400 transition-colors"
-                      title="View Analytics"
-                    >
-                      <BarChart3 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setDownloadTarget(qrCode);
-                        setShowDownloadModal(true);
-                      }}
-                      className="p-1 text-sangeet-neutral-400 hover:text-green-400 transition-colors"
-                      title="Download Beautiful QR Code"
-                    >
-                      <Download className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteQR(qrCode)}
-                      className={`p-1 transition-colors ${
-                        (qrCode.active_orders || 0) > 0 
-                          ? 'text-red-400/50 cursor-not-allowed' 
-                          : 'text-sangeet-neutral-400 hover:text-red-400'
-                      }`}
-                      title={(qrCode.active_orders || 0) > 0 
-                        ? `Cannot delete: ${qrCode.active_orders} active orders` 
-                        : 'Delete QR code'
-                      }
-                      disabled={(qrCode.active_orders || 0) > 0}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="bg-sangeet-neutral-800 rounded-lg p-4 mb-4 flex justify-center">
+              <div className="flex flex-col h-full group relative">
+                {/* QR Code Poster Area - Perfect 3:4 Aspect Ratio */}
+                <div className="relative w-full overflow-hidden aspect-[3/4] bg-sangeet-neutral-950 flex items-center justify-center">
                   <img
                     src={qrCode.qr_code_data}
                     alt={`QR Code for Table ${qrCode.table_number}`}
-                    className="w-32 h-32"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
+                  
+                  {/* Subtle gradient overlay to blend with the bottom bar */}
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-sangeet-neutral-900 to-transparent opacity-80"></div>
+                  
+                  {!qrCode.is_active ? (
+                    <div className="absolute top-3 left-3 px-3 py-1.5 text-xs font-bold bg-sangeet-neutral-800/90 backdrop-blur-sm text-sangeet-neutral-300 rounded-full shadow-lg border border-sangeet-neutral-600/50">
+                      Archived
+                    </div>
+                  ) : (qrCode.active_orders || 0) > 0 && (
+                    <div className="absolute top-3 right-3 px-3 py-1.5 text-xs font-bold bg-orange-500/90 backdrop-blur-sm text-white rounded-full shadow-lg border border-orange-400/50">
+                      {qrCode.active_orders} active
+                    </div>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-sangeet-neutral-400">Total Orders</p>
-                    <p className="font-semibold text-sangeet-neutral-100">{qrCode.total_orders || 0}</p>
+                {/* Details & Actions Area */}
+                <div className="p-5 flex flex-col justify-between flex-grow bg-sangeet-neutral-900 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2.5 bg-sangeet-neutral-950 rounded-xl shadow-inner border border-sangeet-neutral-800">
+                        <Smartphone className="h-5 w-5 text-sangeet-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-sangeet-neutral-50 tracking-wide">
+                          Table {qrCode.table_number}
+                        </h3>
+                        <p className="text-[10px] text-sangeet-neutral-500 truncate max-w-[100px] sm:max-w-[120px] uppercase tracking-wider mt-0.5">
+                          {qrCode.qr_code_url ? qrCode.qr_code_url.replace(/^https?:\/\//, '') : 'No URL'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex space-x-1 bg-sangeet-neutral-950 p-1.5 rounded-xl border border-sangeet-neutral-800 shadow-inner">
+                      {!qrCode.is_active ? (
+                        <button
+                          onClick={() => handleRestoreQR(qrCode.id)}
+                          className="flex items-center px-4 py-2 text-sangeet-400 hover:text-sangeet-300 hover:bg-sangeet-neutral-800 rounded-lg transition-all text-sm font-medium"
+                          title="Restore QR Code"
+                        >
+                          <ArchiveRestore className="h-4 w-4 mr-2" />
+                          Restore
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => {
+                              setFormData({
+                                tableNumber: qrCode.table_number,
+                                capacity: qrCode.capacity || 4,
+                                customUrl: qrCode.qr_code_url || ''
+                              });
+                              setShowGenerateModal(true);
+                            }}
+                            className="p-2 text-sangeet-neutral-400 hover:text-sangeet-400 hover:bg-sangeet-neutral-800 rounded-lg transition-all"
+                            title="Edit Configuration"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setDownloadTarget(qrCode);
+                              setShowDownloadModal(true);
+                            }}
+                            className="p-2 text-sangeet-neutral-400 hover:text-green-400 hover:bg-sangeet-neutral-800 rounded-lg transition-all"
+                            title="Download Poster"
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteQR(qrCode)}
+                            className={`p-2 rounded-lg transition-all ${
+                              (qrCode.active_orders || 0) > 0 
+                                ? 'text-red-400/30 cursor-not-allowed' 
+                                : 'text-sangeet-neutral-400 hover:text-red-400 hover:bg-sangeet-neutral-800'
+                            }`}
+                            title={(qrCode.active_orders || 0) > 0 
+                              ? `Cannot delete: ${qrCode.active_orders} active orders` 
+                              : 'Delete'
+                            }
+                            disabled={(qrCode.active_orders || 0) > 0}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sangeet-neutral-400">Revenue</p>
-                    <p className="font-semibold text-sangeet-neutral-100">{formatCurrency(qrCode.total_revenue)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sangeet-neutral-400">Active Orders</p>
-                    <p className="font-semibold text-sangeet-neutral-100">{qrCode.active_orders || 0}</p>
-                  </div>
-                  <div>
-                    <p className="text-sangeet-neutral-400">Last Order</p>
-                    <p className="font-semibold text-xs text-sangeet-neutral-300">
-                      {qrCode.last_order_date ? formatDate(qrCode.last_order_date) : 'Never'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-sangeet-neutral-700">
-                  <p className="text-xs text-sangeet-neutral-500 truncate">
-                    {qrCode.qr_code_url}
-                  </p>
                 </div>
               </div>
             </motion.div>

@@ -59,10 +59,12 @@ const KitchenDisplayPage = () => {
   const handleLogoutOrBack = () => {
     if (userType === 'admin') {
       // Admin: Just go back to dashboard, do NOT clear session
-      navigate('/admin/dashboard');
+      // Use window.location.href to reliably kill any polling/sockets
+      window.location.href = '/admin/dashboard';
     } else {
       // Kitchen staff: Logout completely using universal logout
       logout();
+      window.location.href = '/login';
     }
   };
 
@@ -140,7 +142,7 @@ const KitchenDisplayPage = () => {
                   onClick={handleLogoutOrBack}
                   className="px-3 py-1.5 bg-sangeet-400 text-sangeet-neutral-950 rounded-md text-sm font-medium hover:bg-sangeet-300 transition-colors"
                 >
-                  ← Back to Dashboard
+                  ← Go Back
                 </button>
               ) : (
                 <button

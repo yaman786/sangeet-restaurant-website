@@ -38,6 +38,12 @@ export const deleteQRCode = async (qrCodeId: string | number) => {
   }, 'deleteQRCode', false);
 };
 
+export const restoreQRCode = async (qrCodeId: string | number) => {
+  return apiCallWrapper(async () => {
+    return await api.post(`/qr-codes/${encodeURIComponent(qrCodeId)}/restore`);
+  }, 'restoreQRCode', false);
+};
+
 export const downloadPrintableQRCode = async (qrCodeId: string | number, format = 'png', design = 'classic', theme = 'modern') => {
   try {
     const timestamp = Date.now();

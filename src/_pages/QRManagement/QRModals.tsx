@@ -331,96 +331,44 @@ const QRModals = ({
       {/* Download Options Modal */}
       {showDownloadModal && downloadTarget && (
         <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border border-sangeet-neutral-700 w-96 shadow-xl rounded-xl bg-sangeet-neutral-900">
-            <div className="mt-3">
-              <div className="flex items-center mb-4">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-green-400/20 rounded-full flex items-center justify-center">
-                    <Download className="h-6 w-6 text-green-400" />
-                  </div>
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-medium text-sangeet-neutral-100">
-                    Download Beautiful QR Code
-                  </h3>
-                  <p className="text-sm text-sangeet-neutral-400">
-                    Table {downloadTarget.table_number}
-                  </p>
-                </div>
+          <div className="relative top-32 mx-auto p-6 border border-sangeet-neutral-700 w-96 shadow-2xl rounded-2xl bg-sangeet-neutral-900">
+            <div className="mt-2 text-center">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-sangeet-400/20 mb-4">
+                <Download className="h-8 w-8 text-sangeet-400" />
               </div>
+              <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">
+                Download QR Code
+              </h3>
+              <p className="text-sm text-sangeet-neutral-400 mb-6">
+                Table {downloadTarget.table_number}
+              </p>
               
-              <div className="space-y-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                    Design Style
-                  </label>
-                  <CustomDropdown
-                    value={downloadOptions.design}
-                    onChange={(design: any) => setDownloadOptions({...downloadOptions, design})}
-                    options={designOptions}
-                    className="w-full"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                    Color Theme
-                  </label>
-                  <CustomDropdown
-                    value={downloadOptions.theme}
-                    onChange={(theme: any) => setDownloadOptions({...downloadOptions, theme})}
-                    options={themeOptions}
-                    className="w-full"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                    Format
-                  </label>
-                  <CustomDropdown
-                    value={downloadOptions.format}
-                    onChange={(format: any) => setDownloadOptions({...downloadOptions, format})}
-                    options={formatOptions}
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="bg-sangeet-neutral-800 rounded-lg p-3 border border-sangeet-neutral-700">
-                  <p className="text-xs text-sangeet-neutral-400 mb-2">Preview:</p>
-                  <div className="text-sm text-sangeet-neutral-300">
-                    <p>• Sangeet logo and branding</p>
-                    <p>• Table number prominently displayed</p>
-                    <p>• Beautiful border and corner decorations</p>
-                    <p>• High-resolution QR code</p>
-                    <p>• "Scan to Order" instruction</p>
-                    <p>• Professional digital menu design</p>
-                    <p>• Premium gradients and shadows</p>
-                    <p>• Multiple color themes available</p>
-                    <p>• Enhanced typography and spacing</p>
-                  </div>
-                </div>
+              <div className="bg-sangeet-neutral-800 rounded-xl p-4 border border-sangeet-neutral-700 mb-8">
+                <p className="text-sm text-sangeet-neutral-300">
+                  Your QR code will be exported as a high-resolution, print-ready image featuring the Sangeet premium branding and elegant gold accents.
+                </p>
               </div>
 
-              <div className="flex justify-end space-x-3">
+              <div className="flex justify-center space-x-3">
                 <button
                   onClick={() => {
                     setShowDownloadModal(false);
                     setDownloadTarget(null);
                   }}
-                  className="px-4 py-2 text-sm font-medium text-sangeet-neutral-300 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 rounded-md transition-colors"
+                  className="w-full px-4 py-3 text-sm font-bold text-sangeet-neutral-300 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => {
-                    handleDownloadQR(downloadTarget, downloadOptions.format, downloadOptions.design, downloadOptions.theme);
+                    // Hardcoded to Premium design, Gold theme, PNG format for maximum print quality
+                    handleDownloadQR(downloadTarget, 'png', 'premium', 'gold');
                     setShowDownloadModal(false);
                     setDownloadTarget(null);
                   }}
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-500 hover:bg-green-600 rounded-md transition-colors"
+                  className="w-full px-4 py-3 text-sm font-bold text-sangeet-neutral-950 bg-sangeet-400 hover:bg-sangeet-500 rounded-xl transition-colors shadow-lg"
                 >
-                  Download Beautiful QR
+                  Download PNG
                 </button>
               </div>
             </div>

@@ -6,7 +6,8 @@ import {
   bulkGenerateTableQRCodes,
   getQRCodeAnalytics,
   deleteQRCode,
-  downloadPrintableQRCode
+  downloadPrintableQRCode,
+  restoreQRCode
 } from '../../../services/api';
 
 export const useQRManagement = () => {
@@ -63,7 +64,7 @@ export const useQRManagement = () => {
     direction: 'asc'
   });
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('active');
 
   const loadQRCodes = useCallback(async () => {
     try {
@@ -235,6 +236,17 @@ export const useQRManagement = () => {
     }
   };
 
+  const handleRestoreQR = async (qrCodeId: string | number) => {
+    try {
+      await restoreQRCode(qrCodeId);
+      toast.success('QR code restored successfully!');
+      loadQRCodes();
+    } catch (error: any) {
+      console.error('Error restoring QR code:', error);
+      toast.error('Failed to restore QR code');
+    }
+  };
+
   return {
     qrCodes,
     loading,
@@ -260,6 +272,7 @@ export const useQRManagement = () => {
     handleViewAnalytics,
     handleDeleteQR,
     confirmDelete,
-    handleDownloadQR
+    handleDownloadQR,
+    handleRestoreQR
   };
 };

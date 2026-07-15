@@ -45,7 +45,7 @@ export {
 export {
   getAllQRCodes, generateTableQRCode, bulkGenerateTableQRCodes,
   getQRCodeAnalytics, updateQRCodeDesign, deleteQRCode,
-  downloadPrintableQRCode
+  downloadPrintableQRCode, restoreQRCode
 } from './qrApi';
 
 // Reviews

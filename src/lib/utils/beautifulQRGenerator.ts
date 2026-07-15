@@ -48,7 +48,7 @@ class BeautifulQRGenerator {
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,500&amp;family=Inter:wght@400;600;700&amp;display=swap');
           .tagline { font-family: 'Playfair Display', serif; font-size: 20px; font-style: italic; fill: ${goldColor}; }
-          .button-text { font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700; fill: ${bgColor}; }
+          .button-text { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; fill: ${bgColor}; }
           .tracking-text { font-family: 'Inter', sans-serif; font-size: 14px; fill: #9ca3af; }
           .table-text { font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 700; fill: #ffffff; }
           .website-text { font-family: 'Inter', sans-serif; font-size: 14px; fill: #9ca3af; }
@@ -72,23 +72,23 @@ class BeautifulQRGenerator {
         <text x="${centerX}" y="260" text-anchor="middle" class="tagline">Served Warm</text>
         
         <!-- QR Code Wrapper -->
-        <rect x="${centerX - (qrSize/2) - 8}" y="292" width="${qrSize + 16}" height="${qrSize + 16}" fill="${goldColor}" rx="12" ry="12"/>
+        <rect x="${centerX - (qrSize/2) - 8}" y="285" width="${qrSize + 16}" height="${qrSize + 16}" fill="${goldColor}" rx="12" ry="12"/>
         
         <!-- QR Code Image -->
-        <image x="${centerX - qrSize/2}" y="300" width="${qrSize}" height="${qrSize}" href="data:image/png;base64,${qrCodeBase64}"/>
+        <image x="${centerX - qrSize/2}" y="293" width="${qrSize}" height="${qrSize}" href="data:image/png;base64,${qrCodeBase64}"/>
         
         <!-- Button -->
-        <rect x="${centerX - 150}" y="565" width="300" height="40" fill="${goldColor}" rx="8" ry="8"/>
-        <text x="${centerX}" y="591" text-anchor="middle" class="button-text">SCAN TO VIEW MENU AND ORDER ONLINE</text>
+        <rect x="${centerX - 180}" y="575" width="360" height="40" fill="${goldColor}" rx="8" ry="8"/>
+        <text x="${centerX}" y="595" dominant-baseline="middle" text-anchor="middle" class="button-text">SCAN TO VIEW MENU AND ORDER ONLINE</text>
         
         <!-- Tracking Text -->
-        <text x="${centerX}" y="635" text-anchor="middle" class="tracking-text">Track your order: open your camera, scan the QR, start tracking.</text>
+        <text x="${centerX}" y="640" text-anchor="middle" class="tracking-text">Track your order: open your camera, scan the QR, start tracking.</text>
         
         <!-- Table Number -->
-        <text x="${centerX}" y="675" text-anchor="middle" class="table-text">TABLE ${tableNumber}</text>
+        <text x="${centerX}" y="685" text-anchor="middle" class="table-text">TABLE ${tableNumber}</text>
         
         <!-- Website -->
-        <text x="${centerX}" y="705" text-anchor="middle" class="website-text">www.sangeetrestaurant.com</text>
+        <text x="${centerX}" y="715" text-anchor="middle" class="website-text">www.sangeetrestaurant.com</text>
       </svg>
     `;
   }

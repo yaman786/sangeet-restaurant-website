@@ -6,9 +6,7 @@ import CustomDropdown from '../../components/CustomDropdown';
 const filterOptions = [
   { value: 'all', label: 'All QR Codes' },
   { value: 'active', label: 'Active Only' },
-  { value: 'inactive', label: 'Inactive Only' },
-  { value: 'with_orders', label: 'With Active Orders' },
-  { value: 'without_orders', label: 'Without Orders' }
+  { value: 'inactive', label: 'Archived' }
 ];
 
 const QRFilters = ({
