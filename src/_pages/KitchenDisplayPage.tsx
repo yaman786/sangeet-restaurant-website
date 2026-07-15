@@ -8,6 +8,8 @@ import CustomDropdown from '../components/CustomDropdown';
 import { useAuth } from '../contexts/AuthContext';
 import { isNewItem, getTimeSinceAdded, sortItemsByNewness } from '../utils/itemUtils';
 
+import { pusherClient } from '../lib/services/pusherClient';
+
 const KitchenDisplayPage = () => {
   const [orderStats, setOrderStats] = useState({
     total: 0,
@@ -29,7 +31,7 @@ const KitchenDisplayPage = () => {
     { value: 'amount', label: 'Amount (High to Low)' },
     { value: 'amount-low', label: 'Amount (Low to High)' }
   ];
-  // eslint-disable-next-line no-unused-vars
+  
   const [connectionStatus, setConnectionStatus] = useState('connected');
   const [kitchenUser, setKitchenUser] = useState<any>(null);
   const [userType, setUserType] = useState<any>(null); // 'admin' or 'kitchen'
@@ -46,6 +48,12 @@ const KitchenDisplayPage = () => {
     setKitchenUser(authUser);
     setUserType(authUser?.role === 'admin' ? 'admin' : 'kitchen');
   }, [isAuthenticated, navigate, authUser]);
+
+  useEffect(() => {
+    pusherClient.onConnectionStateChange((status: string) => {
+      setConnectionStatus(status);
+    });
+  }, []);
 
   const handleStatsUpdate = (stats: any) => {
     setOrderStats(stats);
@@ -110,8 +118,10 @@ const KitchenDisplayPage = () => {
             <div className="flex items-center space-x-3">
               {/* Live Updates Indicator */}
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-green-400 font-medium">Live Updates</span>
+                <div className={`w-2 h-2 rounded-full ${connectionStatus === 'connected' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                <span className={`text-xs font-medium ${connectionStatus === 'connected' ? 'text-green-400' : 'text-red-400'}`}>
+                  Live Updates {connectionStatus === 'connected' ? 'On' : 'Off'}
+                </span>
               </div>
               
               {/* Connection Status */}
