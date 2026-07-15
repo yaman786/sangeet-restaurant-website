@@ -11,7 +11,9 @@ import { useOrderFlow } from './hooks/useOrderFlow';
 
 import CartView from '../../components/CartView';
 import TrackingView from '../../components/TrackingView';
-// The inline menu view code from UnifiedDashboardPage is kept here directly as per existing design
+import MenuView from '../../components/MenuView';
+import { ChefHat, ShoppingBag, ListOrdered, ChevronLeft, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const UnifiedDashboard = () => {
   const tableSession = useTableSession();
@@ -235,24 +237,25 @@ const UnifiedDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
-      <div className="bg-gradient-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 backdrop-blur-xl border-b border-sangeet-neutral-700/50 fixed top-0 left-0 right-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-[#131210] selection:bg-sangeet-400 selection:text-[#131210]">
+      {/* Liquid Glass Header */}
+      <div className="bg-[#1C1917]/80 backdrop-blur-xl border-b border-white/10 fixed top-0 left-0 right-0 z-50 shadow-glass">
+        <div className="max-w-6xl mx-auto px-4 py-4 md:py-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-sangeet-400 rounded-lg flex items-center justify-center">
-                <span className="text-xl">🍽️</span>
+              <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center shadow-inner">
+                <ChefHat className="w-6 h-6 text-sangeet-400" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-sangeet-400">Sangeet Restaurant</h1>
-                <p className="text-sangeet-neutral-400 text-sm">
+                <h1 className="font-display text-2xl md:text-3xl font-bold text-white tracking-tight">Sangeet Restaurant</h1>
+                <p className="text-sangeet-400 text-sm md:text-base font-medium">
                   Table {tableNumber} {customerName ? `• ${customerName}` : ''}
                   {orderId && ` • Order #${orderNumber || orderId}`}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
               {!hasCancelledOrder && currentView !== 'menu' && (
                 <button
                   type="button"
@@ -263,8 +266,9 @@ const UnifiedDashboard = () => {
                     setManualMenuNavigation(true);
                     setCurrentView('menu');
                   }}
-                  className="px-4 py-2 font-semibold rounded-lg bg-sangeet-400 text-sangeet-neutral-950 hover:bg-sangeet-500 transition-colors duration-200"
+                  className="px-5 py-2.5 font-semibold rounded-xl bg-sangeet-400 text-[#131210] hover:bg-sangeet-300 transition-all duration-300 shadow-gold-glow flex items-center whitespace-nowrap"
                 >
+                  <ChevronLeft className="w-4 h-4 mr-2" />
                   Continue Ordering
                 </button>
               )}
@@ -276,9 +280,10 @@ const UnifiedDashboard = () => {
                     e.stopPropagation();
                     setCurrentView('tracking');
                   }}
-                  className="px-4 py-2 bg-sangeet-neutral-700 text-sangeet-400 font-semibold rounded-lg hover:bg-sangeet-neutral-600 transition-colors duration-200"
+                  className="px-5 py-2.5 bg-white/5 border border-white/10 text-white font-semibold rounded-xl hover:bg-white/10 transition-all duration-300 shadow-glass flex items-center whitespace-nowrap"
                 >
-                  Track Orders
+                  <ListOrdered className="w-4 h-4 mr-2 text-sangeet-400" />
+                  Track Order
                 </button>
               )}
               {currentView === 'menu' && cart.length > 0 && (
@@ -289,9 +294,9 @@ const UnifiedDashboard = () => {
                     e.stopPropagation();
                     setCurrentView('cart');
                   }}
-                  className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2"
+                  className="px-5 py-2.5 bg-white/5 border border-white/10 text-white font-semibold rounded-xl hover:bg-white/10 transition-all duration-300 shadow-glass flex items-center space-x-2 whitespace-nowrap"
                 >
-                  <span>🛒</span>
+                  <ShoppingBag className="w-4 h-4 text-sangeet-400" />
                   <span>Cart ({cart.length} items - ${getCartTotal().toFixed(2)})</span>
                 </button>
               )}
@@ -300,126 +305,58 @@ const UnifiedDashboard = () => {
         </div>
       </div>
 
-      <div className="bg-blue-900/20 border-b border-blue-500/30">
-        <div className="max-w-6xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-center space-x-2 text-blue-300 text-sm">
-            <span className="text-lg">📱</span>
-            <span>QR Code Return: Scan anytime to track orders</span>
-          </div>
-        </div>
-      </div>
+
 
       <div className="max-w-6xl mx-auto px-4 pt-36 sm:pt-6">
         <AnimatePresence mode="wait">
           {currentView === 'menu' && (
             <>
               {menuItems.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">🍽️</div>
-                  <h3 className="text-xl font-semibold text-sangeet-400 mb-2">Loading Menu...</h3>
-                  <p className="text-sangeet-neutral-400">Please wait while we load the menu items</p>
+                <div className="text-center py-32 px-4 bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 shadow-glass max-w-lg mx-auto mt-20">
+                  <div className="text-6xl mb-6 animate-pulse opacity-50">🍽️</div>
+                  <h3 className="font-display text-3xl font-semibold text-sangeet-400 mb-3">Loading Menu</h3>
+                  <p className="text-sangeet-neutral-400 text-lg">Curating the finest dishes for you...</p>
                 </div>
               ) : (
-                <div className="h-screen flex flex-col">
-                  <div className="flex-shrink-0 bg-sangeet-neutral-950/98 backdrop-blur-md border-b-2 border-sangeet-400/30 shadow-lg">
-                    <div className="p-4 pb-2">
-                      <h3 className="text-base sm:text-lg font-semibold text-sangeet-400 mb-2 flex items-center">
-                        <span className="mr-2 text-sm sm:text-base">📋</span> Menu Categories
-                      </h3>
-                      <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                        <button
-                          onClick={() => setSelectedCategory('all')}
-                          className={`px-3 py-2 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${selectedCategory === 'all' ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-lg' : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700'}`}
-                        >
-                          All Items
-                        </button>
-                        {categories.map((category) => (
-                          <button
-                            key={category.id || category.name}
-                            onClick={() => setSelectedCategory(category.name || category)}
-                            className={`px-3 py-2 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${selectedCategory === (category.name || category) ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-lg' : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700'}`}
-                          >
-                            {category.name || category}
-                          </button>
-                        ))}
+                <div className="w-full pt-16">
+                  {/* Liquid Glass Hero Header for Menu */}
+                  <div className="relative h-[40vh] min-h-[300px] w-full overflow-hidden flex items-center justify-center rounded-3xl mb-8">
+                    {/* Parallax Background */}
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#131210] via-[#131210]/60 to-transparent"></div>
+                    
+                    {/* Hero Content */}
+                    <motion.div 
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                      className="relative z-10 text-center px-4"
+                    >
+                      <h1 className="font-display text-4xl md:text-6xl text-white font-bold mb-4 tracking-tight drop-shadow-2xl">
+                        Sangeet <span className="text-sangeet-400 italic font-light">Menu</span>
+                      </h1>
+                      <div className="inline-flex items-center space-x-2 bg-sangeet-400/10 backdrop-blur-md border border-sangeet-400/20 px-6 py-2 rounded-full">
+                        <Sparkles className="w-4 h-4 text-sangeet-400" />
+                        <p className="text-sangeet-400 font-medium tracking-wide">
+                          Continue your culinary journey
+                        </p>
                       </div>
-                    </div>
-                    <div className="px-4 pb-4">
-                      <div className="flex gap-2 items-center">
-                        <div className="relative flex-1">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-sangeet-neutral-400 text-sm sm:text-base">🔍</span>
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Search dishes, ingredients..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-10 py-2.5 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-200 placeholder-sangeet-neutral-400 focus:outline-none focus:ring-2 focus:ring-sangeet-400 transition-all text-sm sm:text-base"
-                          />
-                          {searchTerm && (
-                            <button onClick={() => setSearchTerm('')} className="absolute inset-y-0 right-0 pr-3 flex items-center text-sangeet-neutral-400 hover:text-sangeet-neutral-200 transition-colors">
-                              <span className="text-lg">✕</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                    </motion.div>
                   </div>
-                  <div className="flex-1 overflow-y-auto">
-                    {(() => {
-                      const filteredItems = menuItems.filter(item => {
-                        if (selectedCategory !== 'all') {
-                          const itemCategory = item.category_name || item.category;
-                          const selectedCat = typeof selectedCategory === 'object' ? (selectedCategory as any).name : selectedCategory;
-                          if (itemCategory !== selectedCat) return false;
-                        }
-                        if (searchTerm.trim()) {
-                          const searchLower = searchTerm.toLowerCase();
-                          return item.name.toLowerCase().includes(searchLower) || item.description.toLowerCase().includes(searchLower) || (item.category_name || item.category || '').toLowerCase().includes(searchLower);
-                        }
-                        return true;
-                      });
 
-                      if (filteredItems.length === 0) {
-                        return (
-                          <div className="text-center py-8">
-                            <div className="text-4xl sm:text-6xl mb-3">🔍</div>
-                            <h3 className="text-lg sm:text-xl font-semibold text-sangeet-400 mb-2">No items found</h3>
-                            <p className="text-sangeet-neutral-400 mb-4 px-4">{searchTerm.trim() ? `No items match "${searchTerm}".` : 'No items available in this category.'}</p>
-                          </div>
-                        );
-                      }
-
-                      return (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 pt-4">
-                          {filteredItems.map((item) => (
-                            <div key={item.id} className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl overflow-hidden border border-sangeet-neutral-700 hover:border-sangeet-neutral-600 transition-all flex flex-col h-full shadow-lg">
-                              <div className="h-40 sm:h-48 overflow-hidden">
-                                <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                              </div>
-                              <div className="p-3 sm:p-4 flex flex-col flex-grow">
-                                <div className="flex justify-between items-start mb-2">
-                                  <h3 className="text-sm sm:text-base font-semibold text-sangeet-400 flex-1 mr-2">{item.name}</h3>
-                                  <span className="text-sangeet-400 font-bold text-base">${item.price}</span>
-                                </div>
-                                <p className="text-xs sm:text-sm text-sangeet-neutral-400 mb-2 line-clamp-2">{item.description}</p>
-                                <div className="flex flex-wrap gap-1 mb-3">
-                                  {item.is_vegetarian && <span className="px-1.5 py-0.5 bg-green-600 text-white text-xs rounded-full">🌱 Veg</span>}
-                                  {item.is_spicy && <span className="px-1.5 py-0.5 bg-red-600 text-white text-xs rounded-full">🔥 Spicy</span>}
-                                  {item.is_popular && <span className="px-1.5 py-0.5 bg-yellow-600 text-white text-xs rounded-full">⭐ Popular</span>}
-                                </div>
-                                <div className="mt-auto">
-                                  <button onClick={() => addToCart(item)} className="w-full bg-sangeet-400 text-sangeet-neutral-950 py-2 rounded-lg font-semibold hover:bg-sangeet-300 transition-colors shadow-lg text-xs sm:text-sm">
-                                    Add to Cart
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })()}
+                  {/* Liquid Glass Menu Component */}
+                  <div className="max-w-5xl mx-auto -mt-16 relative z-20">
+                    <MenuView 
+                      menuItems={menuItems}
+                      categories={categories}
+                      selectedCategory={selectedCategory}
+                      setSelectedCategory={setSelectedCategory}
+                      searchTerm={searchTerm}
+                      setSearchTerm={setSearchTerm}
+                      onAddToCart={addToCart}
+                      onViewCart={() => setCurrentView('cart')}
+                      cartLength={cart.length}
+                    />
                   </div>
                 </div>
               )}
