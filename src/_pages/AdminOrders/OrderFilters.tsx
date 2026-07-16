@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, XCircle } from 'lucide-react';
 import CustomDropdown from '../../components/CustomDropdown';
 
 const OrderFilters = ({
@@ -110,9 +110,10 @@ const OrderFilters = ({
           <div className="flex items-end">
             <button
               onClick={() => setFilters({ status: '', table_id: '', date_from: '', date_to: '', query: '' })}
-              className="w-full px-4 py-2 bg-sangeet-neutral-700 text-sangeet-neutral-300 rounded-lg hover:bg-sangeet-neutral-600 transition-colors"
+              className="w-full px-4 py-2 flex items-center justify-center gap-2 bg-sangeet-neutral-800/50 text-sangeet-neutral-400 border border-sangeet-neutral-700 rounded-lg hover:bg-sangeet-neutral-700 hover:text-sangeet-neutral-200 hover:border-sangeet-neutral-500 transition-all duration-200"
             >
-              Clear Filters
+              <XCircle className="w-4 h-4" />
+              <span>Clear Filters</span>
             </button>
           </div>
         </div>
