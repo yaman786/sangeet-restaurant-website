@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
-import { fetchAllOrders, updateOrderStatus, deleteOrder, fetchOrderStats, fetchTables } from '../../../services/api';
+import { fetchAllOrders, updateOrderStatus, deleteOrder, fetchOrderStats, fetchTables, archiveCompletedOrders } from '../../../services/api';
 import { useAuth } from '../../../contexts/AuthContext';
 
 export const useOrderManagement = () => {
@@ -144,9 +144,15 @@ export const useOrderManagement = () => {
     }
   };
 
-  const clearCompletedOrders = () => {
-    setCompletedOrders([]);
-    toast.success('Completed orders cleared');
+  const clearCompletedOrders = async () => {
+    try {
+      await archiveCompletedOrders();
+      toast.success('Completed orders successfully archived');
+      loadData(false); // Reload data to clear them from local state
+    } catch (error) {
+      console.error('Error archiving completed orders:', error);
+      toast.error('Failed to archive completed orders');
+    }
   };
 
   const getFilteredOrders = () => {

@@ -22,8 +22,9 @@ export {
   createOrder, fetchAllOrders, fetchOrderById,
   getOrderById, getOrdersByTable, fetchOrdersByTable,
   updateOrderStatus, deleteOrder, bulkUpdateOrderStatus,
-  searchOrders, fetchOrderStats,
-  fetchTables, getTableByQRCode, getTableByNumber
+  searchOrders, fetchOrderStats, fetchTables,
+  getTableByQRCode, getTableByNumber, archiveCompletedOrders,
+  restoreOrder
 } from './orderApi';
 
 // Reservations

@@ -246,6 +246,7 @@ class OrderService {
     if (query.status) { sql += ` AND o.status = $${paramIdx++}`; params.push(query.status); }
     if (query.archived === 'true') { sql += ` AND o.is_archived = true`; }
     else if (query.archived === 'false') { sql += ` AND o.is_archived = false`; }
+    else { sql += ` AND o.is_archived = false`; } // Default to active orders only
 
     sql += ` ORDER BY o.created_at DESC`;
     

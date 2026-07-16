@@ -58,6 +58,18 @@ export const updateOrderStatus = async (orderId: string | number, status: string
   }, 'updateOrderStatus', false);
 };
 
+export const archiveCompletedOrders = async () => {
+  return apiCallWrapper(async () => {
+    return await api.post('/orders/archive-completed');
+  }, 'archiveCompletedOrders', false);
+};
+
+export const restoreOrder = async (orderId: string | number) => {
+  return apiCallWrapper(async () => {
+    return await api.post(`/orders/${encodeURIComponent(orderId)}/restore`);
+  }, 'restoreOrder', false);
+};
+
 export const deleteOrder = async (orderId: string | number) => {
   return apiCallWrapper(async () => {
     return await api.delete(`/orders/${encodeURIComponent(orderId)}`);
