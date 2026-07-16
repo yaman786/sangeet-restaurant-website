@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { Trash2, XCircle } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import CustomDropdown from '../../components/CustomDropdown';
 
 const OrderFilters = ({
@@ -87,36 +87,6 @@ const OrderFilters = ({
           </div>
         </div>
 
-        {/* Date Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-          <div>
-            <label className="block text-sangeet-neutral-400 text-sm mb-2">From Date</label>
-            <input
-              type="date"
-              value={filters.date_from}
-              onChange={(e) => setFilters((prev: any) => ({ ...prev, date_from: e.target.value }))}
-              className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-300 focus:outline-none focus:border-sangeet-400 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:contrast-200"
-            />
-          </div>
-          <div>
-            <label className="block text-sangeet-neutral-400 text-sm mb-2">To Date</label>
-            <input
-              type="date"
-              value={filters.date_to}
-              onChange={(e) => setFilters((prev: any) => ({ ...prev, date_to: e.target.value }))}
-              className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-300 focus:outline-none focus:border-sangeet-400 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:contrast-200"
-            />
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={() => setFilters({ status: '', table_id: '', date_from: '', date_to: '', query: '' })}
-              className="w-full px-4 py-2 flex items-center justify-center gap-2 bg-sangeet-neutral-800/50 text-sangeet-neutral-400 border border-sangeet-neutral-700 rounded-lg hover:bg-sangeet-neutral-700 hover:text-sangeet-neutral-200 hover:border-sangeet-neutral-500 transition-all duration-200"
-            >
-              <XCircle className="w-4 h-4" />
-              <span>Clear Filters</span>
-            </button>
-          </div>
-        </div>
       </div>
     </>
   );
