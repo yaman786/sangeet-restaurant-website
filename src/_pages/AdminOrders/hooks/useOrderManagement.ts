@@ -6,7 +6,8 @@ import {
   bulkUpdateOrderStatus,
   fetchAllOrders,
   fetchTables,
-  getOrderById
+  getOrderById,
+  archiveCompletedOrders
 } from '../../../services/api';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
 
@@ -299,10 +300,18 @@ export const useOrderManagement = () => {
     setClearModal(true);
   };
 
-  const confirmClearCompletedOrders = () => {
-    setCompletedOrders([]);
-    setClearModal(false);
-    toast.success('Completed orders cleared from screen');
+  const confirmClearCompletedOrders = async () => {
+    try {
+      await archiveCompletedOrders();
+      setCompletedOrders([]);
+      setClearModal(false);
+      toast.success('Completed orders successfully archived and cleared');
+      // Optionally trigger a fresh reload to ensure state is in sync with DB
+      loadDashboardData(true);
+    } catch (error) {
+      toast.error('Failed to clear completed orders');
+      console.error(error);
+    }
   };
 
   const cancelClearCompletedOrders = () => {
