@@ -60,7 +60,7 @@ const OrderFilters = ({
         {/* Search and Table Filter Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
-          <div className="md:col-span-2">
+          <div className={viewMode === 'completed' ? "md:col-span-2" : "md:col-span-3"}>
             <input
               type="text"
               placeholder="Search by customer name or order number..."
@@ -70,21 +70,23 @@ const OrderFilters = ({
             />
           </div>
 
-          {/* Table Filter */}
-          <div>
-            <CustomDropdown
-              value={filters.table_id}
-              onChange={(tableId: any) => setFilters((prev: any) => ({ ...prev, table_id: tableId }))}
-              options={[
-                { value: '', label: 'All Tables' },
-                ...tables.map((table: any) => ({
-                  value: table.id,
-                  label: `Table ${table.table_number}`
-                }))
-              ]}
-              className="w-full"
-            />
-          </div>
+          {/* Table Filter - Only visible in completed tab */}
+          {viewMode === 'completed' && (
+            <div>
+              <CustomDropdown
+                value={filters.table_id}
+                onChange={(tableId: any) => setFilters((prev: any) => ({ ...prev, table_id: tableId }))}
+                options={[
+                  { value: '', label: 'All Tables' },
+                  ...tables.map((table: any) => ({
+                    value: table.id,
+                    label: `Table ${table.table_number}`
+                  }))
+                ]}
+                className="w-full"
+              />
+            </div>
+          )}
         </div>
 
       </div>
