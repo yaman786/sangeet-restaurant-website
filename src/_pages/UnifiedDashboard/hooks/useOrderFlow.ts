@@ -65,7 +65,9 @@ export const useOrderFlow = (tableSession: any) => {
 
     try {
       setLoading(true);
-      const tableId = tableInfo?.id || tableNumber;
+      const tableIdRaw = tableInfo?.id || tableNumber;
+      // Ensure tableId is a number since Zod schema requires table_id to be an integer
+      const tableId = typeof tableIdRaw === 'string' ? parseInt(tableIdRaw, 10) : tableIdRaw;
       
       const orderData = {
         table_id: tableId,
