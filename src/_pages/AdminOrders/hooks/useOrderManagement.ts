@@ -48,7 +48,11 @@ export const useOrderManagement = () => {
       
       let searchParams = { ...filters };
       if (viewMode !== 'all') {
-        searchParams.status = viewMode;
+        if (viewMode === 'completed') {
+          searchParams.status = 'completed,cancelled';
+        } else {
+          searchParams.status = viewMode;
+        }
       }
 
       const [ordersData, tablesData] = await Promise.all([
@@ -56,8 +60,8 @@ export const useOrderManagement = () => {
         fetchTables()
       ]);
 
-      const activeOrdersList = (ordersData || []).filter(order => order.status !== 'completed');
-      const completedOrdersList = (ordersData || []).filter(order => order.status === 'completed');
+      const activeOrdersList = (ordersData || []).filter(order => order.status !== 'completed' && order.status !== 'cancelled');
+      const completedOrdersList = (ordersData || []).filter(order => order.status === 'completed' || order.status === 'cancelled');
 
       setOrders(activeOrdersList);
       setCompletedOrders(completedOrdersList);

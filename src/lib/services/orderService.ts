@@ -243,7 +243,16 @@ class OrderService {
     const params: any[] = [];
     let paramIdx = 1;
 
-    if (query.status) { sql += ` AND o.status = $${paramIdx++}`; params.push(query.status); }
+    if (query.status) { 
+      const statuses = query.status.split(',');
+      if (statuses.length > 1) {
+        sql += ` AND o.status = ANY($${paramIdx++}::text[])`;
+        params.push(statuses);
+      } else {
+        sql += ` AND o.status = $${paramIdx++}`; 
+        params.push(query.status);
+      }
+    }
     if (query.archived === 'true') { sql += ` AND o.is_archived = true`; }
     else if (query.archived === 'false') { sql += ` AND o.is_archived = false`; }
     else { sql += ` AND o.is_archived = false`; } // Default to active orders only
