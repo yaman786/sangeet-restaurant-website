@@ -39,6 +39,7 @@ export const useOrderManagement = () => {
     activeOrders: [],
     blockedOrderId: null
   });
+  const [clearModal, setClearModal] = useState(false);
 
   const loadDashboardData = useCallback(async (isBackgroundPoll = false) => {
     try {
@@ -294,10 +295,18 @@ export const useOrderManagement = () => {
     }
   };
 
-  const handleClearCompletedOrders = () => {
-    if (!window.confirm('Clear completed orders from screen? (Data will be kept for analytics)')) return;
+  const handleClearCompletedOrdersClick = () => {
+    setClearModal(true);
+  };
+
+  const confirmClearCompletedOrders = () => {
     setCompletedOrders([]);
+    setClearModal(false);
     toast.success('Completed orders cleared from screen');
+  };
+
+  const cancelClearCompletedOrders = () => {
+    setClearModal(false);
   };
 
   const handleOrderSelection = (orderId: any) => {
@@ -335,13 +344,16 @@ export const useOrderManagement = () => {
     setShowOrderModal,
     deleteModal,
     activeOrdersModal,
+    clearModal,
     handleStatusUpdate,
     handleDeleteOrderClick,
     confirmDeleteOrder,
     cancelDeleteOrder,
     handleViewOrderDetails,
     handleBulkStatusUpdate,
-    handleClearCompletedOrders,
+    handleClearCompletedOrdersClick,
+    confirmClearCompletedOrders,
+    cancelClearCompletedOrders,
     handleOrderSelection,
     handleSelectAll,
     canCompleteOrder,

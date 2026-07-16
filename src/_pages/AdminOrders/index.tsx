@@ -30,7 +30,10 @@ const AdminOrders = () => {
     cancelDeleteOrder,
     handleViewOrderDetails,
     handleBulkStatusUpdate,
-    handleClearCompletedOrders,
+    handleClearCompletedOrdersClick,
+    confirmClearCompletedOrders,
+    cancelClearCompletedOrders,
+    clearModal,
     handleOrderSelection,
     handleSelectAll,
     canCompleteOrder,
@@ -74,7 +77,7 @@ const AdminOrders = () => {
           viewMode={viewMode}
           setViewMode={setViewMode}
           completedOrders={completedOrders}
-          handleClearCompletedOrders={handleClearCompletedOrders}
+          handleClearCompletedOrders={handleClearCompletedOrdersClick}
           filters={filters}
           setFilters={setFilters}
           tables={tables}
@@ -256,6 +259,47 @@ const AdminOrders = () => {
               >
                 ×
               </button>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Clear Completed Orders Modal */}
+        {clearModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 border border-sangeet-neutral-700 max-w-md w-full"
+            >
+              {/* Header */}
+              <div className="text-center mb-6">
+                <div className="text-4xl mb-4">🧹</div>
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  Clear Completed Orders?
+                </h2>
+                <p className="text-sangeet-neutral-300">
+                  Are you sure you want to clear all completed orders from the screen? 
+                  <br/><br/>
+                  <span className="text-sangeet-400 text-sm">Note: Data will be safely kept for analytics and history.</span>
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex space-x-4">
+                <button
+                  onClick={cancelClearCompletedOrders}
+                  className="flex-1 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 text-sangeet-neutral-200 font-medium py-3 px-4 rounded-xl transition-colors duration-200 border border-sangeet-neutral-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmClearCompletedOrders}
+                  className="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-medium py-3 px-4 rounded-xl transition-colors duration-200 border border-red-500/30"
+                >
+                  Clear Screen
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
