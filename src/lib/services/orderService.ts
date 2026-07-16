@@ -257,6 +257,17 @@ class OrderService {
     else if (query.archived === 'false') { sql += ` AND o.is_archived = false`; }
     else { sql += ` AND o.is_archived = false`; } // Default to active orders only
 
+    if (query.table_id) {
+      sql += ` AND o.table_id = $${paramIdx++}`;
+      params.push(parseInt(query.table_id as string, 10));
+    }
+
+    if (query.query) {
+      sql += ` AND (o.customer_name ILIKE $${paramIdx} OR o.order_number ILIKE $${paramIdx})`;
+      params.push(`%${query.query}%`);
+      paramIdx++;
+    }
+
     sql += ` ORDER BY o.created_at DESC`;
     
     if (query.limit) { sql += ` LIMIT $${paramIdx++}`; params.push(parseInt(query.limit as string, 10)); }
