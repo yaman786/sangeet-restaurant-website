@@ -12,6 +12,15 @@ const OrderFilters = ({
   setFilters,
   tables
 }: any) => {
+  const [localQuery, setLocalQuery] = React.useState(filters.query || '');
+
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setFilters((prev: any) => ({ ...prev, query: localQuery }));
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [localQuery, setFilters]);
+
   return (
     <>
       {/* Live Updates Indicator */}
@@ -64,8 +73,8 @@ const OrderFilters = ({
             <input
               type="text"
               placeholder="Search by customer name or order number..."
-              value={filters.query}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilters((prev: any) => ({ ...prev, query: e.target.value }))}
+              value={localQuery}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocalQuery(e.target.value)}
               className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-300 focus:outline-none focus:border-sangeet-400"
             />
           </div>

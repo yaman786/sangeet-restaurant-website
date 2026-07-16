@@ -44,7 +44,7 @@ export const useOrderManagement = () => {
 
   const loadDashboardData = useCallback(async (isBackgroundPoll = false) => {
     try {
-      if (!isBackgroundPoll) setLoading(true);
+      if (!isBackgroundPoll && orders.length === 0 && completedOrders.length === 0) setLoading(true);
       
       let searchParams = { ...filters };
       if (viewMode !== 'all') {
@@ -82,7 +82,7 @@ export const useOrderManagement = () => {
         }
       }
     } finally {
-      if (!isBackgroundPoll) setLoading(false);
+      setLoading(false);
     }
   }, [filters, viewMode]);
 
