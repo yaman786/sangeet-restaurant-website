@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import CustomDropdown from './CustomDropdown';
 import { isNewItem, sortItemsByNewness, hasMultipleSessions } from '../utils/itemUtils';
 
-const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, activeFilter = 'all', sortBy = 'priority' }: any) => {
+const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, activeFilter = 'all', sortBy = 'priority', searchQuery = '' }: any) => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [completedOrders, setCompletedOrders] = useState<any[]>([]);
@@ -353,11 +353,22 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     }
   };
 
-  const filteredOrders = activeFilter === 'all' 
-    ? sortOrders([...orders]) 
+  let baseOrders = activeFilter === 'all' 
+    ? [...orders] 
     : activeFilter === 'completed' 
-      ? sortOrders([...completedOrders])
-      : sortOrders(orders.filter(order => order.status === activeFilter));
+      ? [...completedOrders]
+      : orders.filter(order => order.status === activeFilter);
+      
+  if (searchQuery) {
+    const query = searchQuery.toLowerCase();
+    baseOrders = baseOrders.filter((o: any) => 
+      (o.customer_name && o.customer_name.toLowerCase().includes(query)) ||
+      (o.order_number && o.order_number.toLowerCase().includes(query)) ||
+      (o.table_number && String(o.table_number).includes(query))
+    );
+  }
+
+  const filteredOrders = sortOrders(baseOrders);
 
   // eslint-disable-next-line no-unused-vars
   const clearCompletedOrders = () => {

@@ -20,6 +20,7 @@ const KitchenDisplayPage = () => {
   });
   const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'pending', 'preparing', 'ready', 'completed'
   const [sortBy, setSortBy] = useState('priority'); // 'priority', 'time', 'table', 'customer', 'amount'
+  const [searchQuery, setSearchQuery] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   const sortOptions = [
@@ -265,37 +266,40 @@ const KitchenDisplayPage = () => {
           </motion.button>
         </div>
 
-        {/* Sort Options - Only show when "All Orders" is selected */}
-        {activeFilter === 'all' && (
-          <div className="mb-4 bg-sangeet-neutral-900 border-2 border-sangeet-neutral-600 rounded-xl p-4 shadow-xl">
-            <div className="flex items-center justify-between">
+        {/* Search and Sort Row */}
+        <div className="mb-4 bg-sangeet-neutral-900 border-2 border-sangeet-neutral-600 rounded-xl p-4 shadow-xl">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Search Bar */}
+            <div className="flex-1 max-w-md relative">
+              <input
+                type="text"
+                placeholder="Search by table, customer, or order #..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 pl-10 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-300 focus:outline-none focus:border-sangeet-400 placeholder-sangeet-neutral-500"
+              />
+              <span className="absolute left-3 top-2.5 text-sangeet-neutral-500">
+                🔍
+              </span>
+            </div>
+
+            {/* Sort Options - Only show when "All Orders" is selected */}
+            {activeFilter === 'all' && (
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <span className="text-sangeet-400 text-lg">📊</span>
-                  <span className="text-sm font-bold text-sangeet-neutral-100">Sort Orders</span>
+                  <span className="text-sm font-bold text-sangeet-neutral-100 hidden sm:inline">Sort</span>
                 </div>
                 <CustomDropdown
                   value={sortBy}
                   onChange={setSortBy}
                   options={sortOptions}
-                  className="min-w-[280px]"
+                  className="min-w-[240px]"
                 />
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-sangeet-400 rounded-full animate-pulse shadow-lg"></div>
-                <span className="text-xs text-sangeet-neutral-300 font-semibold bg-sangeet-neutral-800 px-3 py-1 rounded-full">
-                  {sortBy === 'priority' && '🔄 Priority workflow'}
-                  {sortBy === 'time' && '⏰ Latest orders first'}
-                  {sortBy === 'time-oldest' && '⏰ First-come-first-served'}
-                  {sortBy === 'table' && '🪑 Table grouping'}
-                  {sortBy === 'customer' && '👤 Alphabetical order'}
-                  {sortBy === 'amount' && '💰 Premium orders first'}
-                  {sortBy === 'amount-low' && '💰 Quick orders first'}
-                </span>
-              </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Order Queue - Kitchen Optimized */}
         <div className="bg-sangeet-neutral-900 rounded-lg border border-sangeet-neutral-700">
@@ -305,6 +309,7 @@ const KitchenDisplayPage = () => {
             kitchenMode={true}
             activeFilter={activeFilter}
             sortBy={sortBy}
+            searchQuery={searchQuery}
           />
         </div>
       </div>
