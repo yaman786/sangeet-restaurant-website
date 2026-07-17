@@ -1,78 +1,111 @@
-import pool from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { NotFoundError, ValidationError } from '@/lib/errors';
 import type { EventRow } from '@/lib/types';
 
 class EventService {
-  async getAllEvents(): Promise<EventRow[]> {
-    const result = await pool.query('SELECT * FROM events ORDER BY date ASC');
-    return result.rows;
+  async getAllEvents(): Promise<any[]> {
+    return prisma.events.findMany({
+      orderBy: { date: 'asc' }
+    });
   }
 
-  async getFeaturedEvents(): Promise<EventRow[]> {
-    const result = await pool.query('SELECT * FROM events WHERE is_featured = true ORDER BY date ASC');
-    return result.rows;
+  async getFeaturedEvents(): Promise<any[]> {
+    return prisma.events.findMany({
+      where: { is_featured: true },
+      orderBy: { date: 'asc' }
+    });
   }
 
-  async getUpcomingEvents(): Promise<EventRow[]> {
-    const today = new Date().toISOString().split('T')[0];
-    const result = await pool.query('SELECT * FROM events WHERE date >= $1 ORDER BY date ASC', [today]);
-    return result.rows;
+  async getUpcomingEvents(): Promise<any[]> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+    
+    return prisma.events.findMany({
+      where: { date: { gte: today } },
+      orderBy: { date: 'asc' }
+    });
   }
 
-  async getEventById(id: string): Promise<EventRow> {
-    const result = await pool.query('SELECT * FROM events WHERE id = $1', [id]);
-    if (result.rows.length === 0) throw new NotFoundError('Event');
-    return result.rows[0];
+  async getEventById(id: string): Promise<any> {
+    const event = await prisma.events.findUnique({
+      where: { id: parseInt(id, 10) }
+    });
+    if (!event) throw new NotFoundError('Event');
+    return event;
   }
 
-  async createEvent(data: Record<string, any>): Promise<EventRow> {
+  async createEvent(data: Record<string, any>): Promise<any> {
     const { title, description, date, image_url, is_featured } = data;
-    const result = await pool.query(
-      `INSERT INTO events (title, description, date, image_url, is_featured)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [title, description, date, image_url || null, is_featured || false]
-    );
-    return result.rows[0];
+    return prisma.events.create({
+      data: {
+        title,
+        description,
+        date: new Date(date),
+        image_url: image_url || null,
+        is_featured: is_featured || false
+      }
+    });
   }
 
-  async updateEvent(id: string, data: Record<string, any>): Promise<EventRow> {
+  async updateEvent(id: string, data: Record<string, any>): Promise<any> {
     const { title, description, date, image_url, is_featured } = data;
-    const result = await pool.query(
-      `UPDATE events SET title = $1, description = $2, date = $3, image_url = $4, is_featured = $5
-       WHERE id = $6 RETURNING *`,
-      [title, description, date, image_url || null, is_featured || false, id]
-    );
-    if (result.rows.length === 0) throw new NotFoundError('Event');
-    return result.rows[0];
+    try {
+      return await prisma.events.update({
+        where: { id: parseInt(id, 10) },
+        data: {
+          title,
+          description,
+          date: new Date(date),
+          image_url: image_url || null,
+          is_featured: is_featured || false
+        }
+      });
+    } catch (e: any) {
+      if (e.code === 'P2025') throw new NotFoundError('Event');
+      throw e;
+    }
   }
 
-  async deleteEvent(id: string): Promise<EventRow> {
-    const result = await pool.query('DELETE FROM events WHERE id = $1 RETURNING *', [id]);
-    if (result.rows.length === 0) throw new NotFoundError('Event');
-    return result.rows[0];
+  async deleteEvent(id: string): Promise<any> {
+    try {
+      return await prisma.events.delete({
+        where: { id: parseInt(id, 10) }
+      });
+    } catch (e: any) {
+      if (e.code === 'P2025') throw new NotFoundError('Event');
+      throw e;
+    }
   }
 
-  async getEventsByDateRange(start_date: string, end_date: string): Promise<EventRow[]> {
+  async getEventsByDateRange(start_date: string, end_date: string): Promise<any[]> {
     if (!start_date || !end_date) throw new ValidationError('Start date and end date are required');
-    const result = await pool.query('SELECT * FROM events WHERE date BETWEEN $1 AND $2 ORDER BY date ASC', [start_date, end_date]);
-    return result.rows;
+    return prisma.events.findMany({
+      where: {
+        date: {
+          gte: new Date(start_date),
+          lte: new Date(end_date)
+        }
+      },
+      orderBy: { date: 'asc' }
+    });
   }
 
   async getEventStats(): Promise<Record<string, number>> {
-    const result = await pool.query(`
-      SELECT 
-        COUNT(*) as total_events,
-        COUNT(CASE WHEN is_featured = true THEN 1 END) as featured_events,
-        COUNT(CASE WHEN date >= CURRENT_DATE THEN 1 END) as upcoming_events,
-        COUNT(CASE WHEN date < CURRENT_DATE THEN 1 END) as past_events
-      FROM events
-    `);
-    const r = result.rows[0];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [total_events, featured_events, upcoming_events, past_events] = await prisma.$transaction([
+      prisma.events.count(),
+      prisma.events.count({ where: { is_featured: true } }),
+      prisma.events.count({ where: { date: { gte: today } } }),
+      prisma.events.count({ where: { date: { lt: today } } })
+    ]);
+
     return {
-      total_events: parseInt(r.total_events, 10),
-      featured_events: parseInt(r.featured_events, 10),
-      upcoming_events: parseInt(r.upcoming_events, 10),
-      past_events: parseInt(r.past_events, 10)
+      total_events,
+      featured_events,
+      upcoming_events,
+      past_events
     };
   }
 }

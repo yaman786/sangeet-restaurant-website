@@ -10,9 +10,13 @@ export const menuItemSchema = z.object({
   is_vegetarian: z.boolean(),
   is_spicy: z.boolean(),
   is_popular: z.boolean(),
+  allergens: z.array(z.string()).optional(),
 });
 
 export const categorySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters long'),
   description: z.string().optional(),
 });
+
+export type MenuItemInput = z.infer<typeof menuItemSchema>;
+export type CategoryInput = z.infer<typeof categorySchema>;

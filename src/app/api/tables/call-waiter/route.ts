@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { handleApiError } from '@/lib/errors';
 import { ValidationError, NotFoundError } from '@/lib/errors';
 import { pusherServer } from '@/lib/services/pusherServer';
@@ -13,12 +13,11 @@ export async function POST(req: NextRequest) {
       throw new ValidationError('tableNumber is required');
     }
 
-    const tableResult = await pool.query(
-      'SELECT id, table_number FROM tables WHERE table_number = $1 AND is_active = true',
-      [tableNumber]
-    );
+    const table = await prisma.tables.findFirst({
+      where: { table_number: tableNumber, is_active: true }
+    });
 
-    if (tableResult.rows.length === 0) {
+    if (!table) {
       throw new NotFoundError('Table');
     }
 

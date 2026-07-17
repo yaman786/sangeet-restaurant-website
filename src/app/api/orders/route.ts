@@ -22,8 +22,18 @@ export async function GET(req: NextRequest) {
   }
 }
 
+import { rateLimit } from '@/lib/rateLimit';
+
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit check
+    const ip = req.ip || req.headers.get('x-forwarded-for') || 'unknown';
+    const rateLimitResult = rateLimit(`order_${ip}`, 5, 60000); // 5 orders per minute per IP
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json({ error: 'Too many orders. Please slow down.' }, { status: 429 });
+    }
+
     // Public route (no auth required for table orders)
     const rawBody = await req.json();
     const body = createOrderSchema.parse(rawBody);

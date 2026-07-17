@@ -1,13 +1,16 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireRole } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
   try {
-    const result = await pool.query('SELECT * FROM tables WHERE is_active = true ORDER BY table_number');
-    return NextResponse.json(result.rows);
+    const tables = await prisma.tables.findMany({
+      where: { is_active: true },
+      orderBy: { table_number: 'asc' }
+    });
+    return NextResponse.json(tables);
   } catch (error) {
     return handleApiError(error);
   }
@@ -23,12 +26,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { table_number, capacity, qr_code_url, location } = body;
     
-    const result = await pool.query(
-      'INSERT INTO tables (table_number, capacity, qr_code_url, location) VALUES ($1, $2, $3, $4) RETURNING *',
-      [table_number, capacity, qr_code_url, location]
-    );
+    const table = await prisma.tables.create({
+      data: {
+        table_number,
+        capacity: capacity ? parseInt(capacity, 10) : 4,
+        qr_code_url: qr_code_url || '',
+        table_name: location || null,
+        qr_code_data: ''
+      }
+    });
     
-    return NextResponse.json(result.rows[0], { status: 201 });
+    return NextResponse.json(table, { status: 201 });
   } catch (error) {
     return handleApiError(error);
   }

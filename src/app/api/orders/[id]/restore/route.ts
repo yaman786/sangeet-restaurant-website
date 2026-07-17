@@ -1,30 +1,25 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import { prisma } from '@/lib/db';
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const orderId = params.id;
-  const client = await pool.connect();
+  const orderId = parseInt(params.id, 10);
 
   try {
-    const result = await client.query(
-      'UPDATE orders SET is_archived = false WHERE id = $1 RETURNING *',
-      [orderId]
-    );
-
-    if (result.rowCount === 0) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
+    const order = await prisma.orders.update({
+      where: { id: orderId },
+      data: { is_archived: false }
+    });
 
     return NextResponse.json({ 
       success: true, 
       message: 'Order successfully restored from archives.',
-      order: result.rows[0]
+      order
     });
-
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
     console.error('Restore Order Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  } finally {
-    client.release();
   }
 }

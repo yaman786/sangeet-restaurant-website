@@ -1,4 +1,4 @@
-import pool from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { NotFoundError, ValidationError } from '@/lib/errors';
 // Socket functionality disabled in serverless mode
 import { generateQRCode } from '../utils/qrGenerator';
@@ -7,184 +7,187 @@ import { emitNewOrder, emitNewItemsAdded, emitOrderStatusUpdate } from './pusher
 
 class OrderService {
   async getAllTables() {
-    const result = await pool.query('SELECT * FROM tables WHERE is_active = true ORDER BY table_number ASC');
-    return result.rows;
+    return prisma.tables.findMany({
+      where: { is_active: true },
+      orderBy: { table_number: 'asc' }
+    });
   }
 
   async getTableByQRCode(qrCode: string) {
-    const result = await pool.query('SELECT * FROM tables WHERE qr_code = $1 AND is_active = true', [qrCode]);
-    if (result.rows.length === 0) throw new NotFoundError('Table not found or inactive');
-    return result.rows[0];
+    const table = await prisma.tables.findFirst({
+      where: { qr_code_url: qrCode, is_active: true }
+    });
+    if (!table) throw new NotFoundError('Table not found or inactive');
+    return table;
   }
 
   async createOrder(data: CreateOrderInput) {
     const { table_id, customer_name, items, special_instructions, order_type = 'dine-in' } = data;
-    const client = await pool.connect();
     
-    try {
-      await client.query('BEGIN');
+    // Validate table
+    const table = await prisma.tables.findFirst({
+      where: { id: table_id, is_active: true }
+    });
+    if (!table) throw new ValidationError('Invalid or inactive table selected');
+    const tableNumber = table.table_number;
+    
+    // Validate and fetch menu items
+    const menuItemIds = items.map(i => i.menu_item_id);
+    const menuItemsCheck = await prisma.menu_items.findMany({
+      where: { id: { in: menuItemIds }, is_active: true }
+    });
+    
+    const menuItemMap = new Map<number, { price: number; name: string }>();
+    for (const row of menuItemsCheck) {
+      menuItemMap.set(row.id, {
+        price: row.price ? Number(row.price) : 0,
+        name: row.name
+      });
+    }
+
+    for (const item of items) {
+      if (!menuItemMap.has(item.menu_item_id)) {
+        throw new ValidationError(`Menu item ${item.menu_item_id} not found or inactive`);
+      }
+    }
+    
+    // Find existing pending/active order
+    const existingOrder = await prisma.orders.findFirst({
+      where: {
+        table_id,
+        status: { in: ['pending', 'confirmed', 'preparing', 'ready', 'served'] },
+        is_archived: false
+      },
+      orderBy: { created_at: 'desc' }
+    });
+    
+    let orderId: number;
+    let isNewOrder = false;
+    
+    if (existingOrder) {
+      orderId = existingOrder.id;
+      let totalAmount = existingOrder.total_amount ? Number(existingOrder.total_amount) : 0;
+      const newOrderItems = [];
       
-      const tableCheck = await pool.query('SELECT * FROM tables WHERE id = $1 AND is_active = true', [table_id]);
-      if (tableCheck.rows.length === 0) throw new ValidationError('Invalid or inactive table selected');
-      
-      const tableNumber = tableCheck.rows[0].table_number;
-      
-      // Fetch prices and names for all items upfront to avoid N+1 queries in loops
-      const menuItemIds = items.map(i => i.menu_item_id);
-      const menuItemsCheck = await client.query(
-        'SELECT id, price, name FROM menu_items WHERE id = ANY($1) AND is_active = true',
-        [menuItemIds]
-      );
-      
-      const menuItemMap = new Map<number, { price: number; name: string }>();
-      for (const row of menuItemsCheck.rows) {
-        menuItemMap.set(row.id, {
-          price: parseFloat(row.price),
-          name: row.name
+      const orderItemCreates = [];
+      for (const item of items) {
+        const itemData = menuItemMap.get(item.menu_item_id)!;
+        const itemTotal = itemData.price * item.quantity;
+        totalAmount += itemTotal;
+        
+        orderItemCreates.push({
+          order_id: orderId,
+          menu_item_id: item.menu_item_id,
+          quantity: item.quantity,
+          special_requests: item.special_requests || null,
+          unit_price: itemData.price,
+          total_price: itemTotal
+        });
+        
+        newOrderItems.push({
+          menu_item_id: item.menu_item_id,
+          name: itemData.name,
+          quantity: item.quantity,
+          special_requests: item.special_requests || null,
+          price: itemData.price
         });
       }
-
-      // Check if all requested items exist
+      
+      await prisma.$transaction([
+        prisma.order_items.createMany({ data: orderItemCreates }),
+        prisma.orders.update({
+          where: { id: orderId },
+          data: { total_amount: totalAmount, updated_at: new Date() }
+        })
+      ]);
+      
+      emitNewItemsAdded({ type: 'new-items-added', orderId, newItems: newOrderItems, tableNumber, timestamp: new Date().toISOString() });
+    } else {
+      isNewOrder = true;
+      let totalAmount = 0;
+      
+      const orderItemCreates = [];
       for (const item of items) {
-        if (!menuItemMap.has(item.menu_item_id)) {
-          throw new ValidationError(`Menu item ${item.menu_item_id} not found or inactive`);
-        }
+        const itemData = menuItemMap.get(item.menu_item_id)!;
+        const itemTotal = itemData.price * item.quantity;
+        totalAmount += itemTotal;
+        orderItemCreates.push({
+          menu_item_id: item.menu_item_id,
+          quantity: item.quantity,
+          special_requests: item.special_requests || null,
+          unit_price: itemData.price,
+          total_price: itemTotal
+        });
       }
       
-      const existingOrderResult = await client.query(
-        "SELECT * FROM orders WHERE table_id = $1 AND status IN ('pending', 'confirmed', 'preparing', 'ready', 'served') AND is_archived = false ORDER BY created_at DESC LIMIT 1",
-        [table_id]
-      );
+      const dateStr = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 8);
       
-      let orderId: number;
-      let isNewOrder = false;
-      
-      if (existingOrderResult.rows.length > 0) {
-        orderId = existingOrderResult.rows[0].id;
+      let createdOrder = null;
+      while (!createdOrder) {
+        const randomNum = Math.floor(1000 + Math.random() * 9000);
+        const orderNumber = `ORD${dateStr}${randomNum}`;
         
-        let totalAmount = parseFloat(existingOrderResult.rows[0].total_amount);
-        const newOrderItems = [];
-        
-        for (const item of items) {
-          const itemData = menuItemMap.get(item.menu_item_id)!;
-          const itemTotal = itemData.price * item.quantity;
-          totalAmount += itemTotal;
-          
-          await client.query(
-            'INSERT INTO order_items (order_id, menu_item_id, quantity, special_requests, unit_price, total_price) VALUES ($1, $2, $3, $4, $5, $6)',
-            [orderId, item.menu_item_id, item.quantity, item.special_requests || null, itemData.price, itemTotal]
-          );
-          
-          newOrderItems.push({
-            menu_item_id: item.menu_item_id,
-            name: itemData.name,
-            quantity: item.quantity,
-            special_requests: item.special_requests || null,
-            price: itemData.price
+        try {
+          createdOrder = await prisma.orders.create({
+            data: {
+              order_number: orderNumber,
+              table_id,
+              customer_name,
+              status: 'pending',
+              special_instructions: special_instructions || null,
+              total_amount: totalAmount,
+              order_type,
+              order_items: {
+                create: orderItemCreates
+              }
+            }
           });
-        }
-        
-        await client.query('UPDATE orders SET total_amount = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [totalAmount, orderId]);
-        
-        emitNewItemsAdded({ type: 'new-items-added', orderId, newItems: newOrderItems, tableNumber, timestamp: new Date().toISOString() });
-      } else {
-        isNewOrder = true;
-        let totalAmount = 0;
-        
-        for (const item of items) {
-          const itemData = menuItemMap.get(item.menu_item_id)!;
-          totalAmount += itemData.price * item.quantity;
-        }
-        
-        const dateStr = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 8);
-        let orderNumber = '';
-        let isUnique = false;
-        
-        while (!isUnique) {
-          const randomNum = Math.floor(1000 + Math.random() * 9000);
-          orderNumber = `ORD${dateStr}${randomNum}`;
-          const checkResult = await client.query('SELECT id FROM orders WHERE order_number = $1', [orderNumber]);
-          if (checkResult.rows.length === 0) isUnique = true;
-        }
-        
-        const orderResult = await client.query(
-          'INSERT INTO orders (order_number, table_id, customer_name, status, special_instructions, total_amount, order_type) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-          [orderNumber, table_id, customer_name, 'pending', special_instructions || null, totalAmount, order_type]
-        );
-        
-        orderId = orderResult.rows[0].id;
-        
-        for (const item of items) {
-          const itemData = menuItemMap.get(item.menu_item_id)!;
-          await client.query(
-            'INSERT INTO order_items (order_id, menu_item_id, quantity, special_requests, unit_price, total_price) VALUES ($1, $2, $3, $4, $5, $6)',
-            [orderId, item.menu_item_id, item.quantity, item.special_requests || null, itemData.price, itemData.price * item.quantity]
-          );
+        } catch (e: any) {
+          if (e.code === 'P2002') continue; // Unique constraint failed, retry
+          throw e;
         }
       }
       
-      await client.query('COMMIT');
-      
-      const fullOrder = await this.getOrderWithItems(orderId);
-      
-      if (isNewOrder) {
-        emitNewOrder({ type: 'new-order', orderId, tableNumber, timestamp: new Date().toISOString() });
-      }
-      
-      return { order: fullOrder, merged: !isNewOrder };
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
-  }
-
-  private async addItemsToOrders(orders: any[]) {
-    if (orders.length === 0) return [];
-    const orderIds = orders.map(o => o.id);
-    
-    const itemsResult = await pool.query(
-      `SELECT oi.*, m.name, m.image_url, m.category 
-       FROM order_items oi 
-       JOIN menu_items m ON oi.menu_item_id = m.id 
-       WHERE oi.order_id = ANY($1)`,
-      [orderIds]
-    );
-    
-    const itemsByOrderId = new Map<number, any[]>();
-    for (const item of itemsResult.rows) {
-      const list = itemsByOrderId.get(item.order_id) || [];
-      list.push(item);
-      itemsByOrderId.set(item.order_id, list);
+      orderId = createdOrder.id;
     }
     
-    return orders.map(order => ({
-      ...order,
-      items: itemsByOrderId.get(order.id) || []
-    }));
+    const fullOrder = await this.getOrderWithItems(orderId);
+    
+    if (isNewOrder) {
+      emitNewOrder({ type: 'new-order', orderId, tableNumber, timestamp: new Date().toISOString() });
+    }
+    
+    return { order: fullOrder, merged: !isNewOrder };
   }
 
   private async getOrderWithItems(orderId: number) {
-    const orderResult = await pool.query(
-      `SELECT o.*, t.table_number 
-       FROM orders o 
-       JOIN tables t ON o.table_id = t.id 
-       WHERE o.id = $1`,
-      [orderId]
-    );
+    const order = await prisma.orders.findUnique({
+      where: { id: orderId },
+      include: {
+        tables: true,
+        order_items: {
+          include: {
+            menu_items: true
+          }
+        }
+      }
+    });
     
-    if (orderResult.rows.length === 0) throw new NotFoundError('Order');
+    if (!order) throw new NotFoundError('Order');
     
-    const itemsResult = await pool.query(
-      `SELECT oi.*, m.name, m.image_url, m.category 
-       FROM order_items oi 
-       JOIN menu_items m ON oi.menu_item_id = m.id 
-       WHERE oi.order_id = $1`,
-      [orderId]
-    );
-    
-    return { ...orderResult.rows[0], items: itemsResult.rows };
+    return {
+      ...order,
+      total_amount: order.total_amount ? Number(order.total_amount) : 0,
+      table_number: order.tables?.table_number,
+      items: order.order_items.map(item => ({
+        ...item,
+        unit_price: item.unit_price ? Number(item.unit_price) : 0,
+        total_price: item.total_price ? Number(item.total_price) : 0,
+        name: item.menu_items?.name,
+        image_url: item.menu_items?.image_url,
+        category: item.menu_items?.category
+      }))
+    } as any;
   }
 
   async getOrderById(id: string, tableNumber?: string) {
@@ -196,123 +199,145 @@ class OrderService {
   }
 
   async getOrdersByTable(tableId: string) {
-    const result = await pool.query(
-      `SELECT o.*, t.table_number 
-       FROM orders o 
-       JOIN tables t ON o.table_id = t.id 
-       WHERE o.table_id = $1 
-         AND o.is_archived = false 
-         AND o.status != 'completed' 
-         AND o.status != 'cancelled' 
-       ORDER BY o.created_at DESC`,
-      [tableId]
-    );
-    return this.addItemsToOrders(result.rows);
+    const orders = await prisma.orders.findMany({
+      where: {
+        table_id: parseInt(tableId, 10),
+        is_archived: false,
+        status: { notIn: ['completed', 'cancelled'] }
+      },
+      orderBy: { created_at: 'desc' }
+    });
+    
+    const result = [];
+    for (const o of orders) {
+      result.push(await this.getOrderWithItems(o.id));
+    }
+    return result;
   }
 
   async getOrdersByTableNumber(tableNumber: string) {
-    const tableResult = await pool.query('SELECT id FROM tables WHERE table_number = $1 AND is_active = true', [tableNumber]);
-    if (tableResult.rows.length === 0) throw new NotFoundError('Table');
-    return this.getOrdersByTable(tableResult.rows[0].id.toString());
+    const table = await prisma.tables.findFirst({
+      where: { table_number: tableNumber, is_active: true }
+    });
+    if (!table) throw new NotFoundError('Table');
+    return this.getOrdersByTable(table.id.toString());
   }
 
   async updateOrderStatus(id: string, status: string) {
     const validStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'served', 'completed', 'cancelled'];
     if (!validStatuses.includes(status)) throw new ValidationError('Invalid status');
     
-    const orderResult = await pool.query(
-      'UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
-      [status, id]
-    );
-    
-    if (orderResult.rows.length === 0) throw new NotFoundError('Order');
+    try {
+      await prisma.orders.update({
+        where: { id: parseInt(id, 10) },
+        data: { status, updated_at: new Date() }
+      });
+    } catch (e: any) {
+      if (e.code === 'P2025') throw new NotFoundError('Order');
+      throw e;
+    }
     
     const order = await this.getOrderWithItems(parseInt(id, 10));
-    emitOrderStatusUpdate({ type: 'status-update', orderId: parseInt(id, 10), status, tableNumber: order.table_number, estimatedTime: order.estimated_time, timestamp: new Date().toISOString() });
+    emitOrderStatusUpdate({ 
+      type: 'status-update', 
+      orderId: parseInt(id, 10), 
+      status, 
+      tableNumber: order.table_number, 
+      estimatedTime: order.estimated_time, 
+      timestamp: new Date().toISOString() 
+    });
     
     return order;
   }
 
   async getAllOrders(query: Record<string, any>) {
-    let sql = `
-      SELECT o.*, t.table_number 
-      FROM orders o 
-      JOIN tables t ON o.table_id = t.id 
-      WHERE 1=1
-    `;
-    const params: any[] = [];
-    let paramIdx = 1;
-
-    if (query.status) { 
+    const where: any = {};
+    
+    if (query.status) {
       const statuses = query.status.split(',');
       if (statuses.length > 1) {
-        sql += ` AND o.status = ANY($${paramIdx++}::text[])`;
-        params.push(statuses);
+        where.status = { in: statuses };
       } else {
-        sql += ` AND o.status = $${paramIdx++}`; 
-        params.push(query.status);
+        where.status = query.status;
       }
     }
-    if (query.archived === 'true') { sql += ` AND o.is_archived = true`; }
-    else if (query.archived === 'false') { sql += ` AND o.is_archived = false`; }
-    else { sql += ` AND o.is_archived = false`; } // Default to active orders only
-
+    
+    if (query.archived === 'true') { where.is_archived = true; }
+    else if (query.archived === 'false') { where.is_archived = false; }
+    else { where.is_archived = false; }
+    
     if (query.table_id) {
-      sql += ` AND o.table_id = $${paramIdx++}`;
-      params.push(parseInt(query.table_id as string, 10));
+      where.table_id = parseInt(query.table_id as string, 10);
     }
-
+    
     if (query.query) {
-      sql += ` AND (o.customer_name ILIKE $${paramIdx} OR o.order_number ILIKE $${paramIdx})`;
-      params.push(`%${query.query}%`);
-      paramIdx++;
+      where.OR = [
+        { customer_name: { contains: query.query, mode: 'insensitive' } },
+        { order_number: { contains: query.query, mode: 'insensitive' } }
+      ];
     }
-
-    sql += ` ORDER BY o.created_at DESC`;
     
-    if (query.limit) { sql += ` LIMIT $${paramIdx++}`; params.push(parseInt(query.limit as string, 10)); }
-
-    const result = await pool.query(sql, params);
+    const orders = await prisma.orders.findMany({
+      where,
+      orderBy: { created_at: 'desc' },
+      ...(query.limit ? { take: parseInt(query.limit as string, 10) } : {})
+    });
     
-    return this.addItemsToOrders(result.rows);
+    const result = [];
+    for (const o of orders) {
+      result.push(await this.getOrderWithItems(o.id));
+    }
+    return result;
   }
 
   async getOrderStats() {
-    const statsResult = await pool.query(`
-      SELECT 
-        COUNT(*) as total_orders,
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_orders,
-        COUNT(CASE WHEN status IN ('confirmed', 'preparing') THEN 1 END) as active_orders,
-        COUNT(CASE WHEN status = 'completed' AND DATE(created_at) = CURRENT_DATE THEN 1 END) as completed_today,
-        SUM(CASE WHEN status = 'completed' AND DATE(created_at) = CURRENT_DATE THEN total_amount ELSE 0 END) as revenue_today
-      FROM orders
-    `);
-    return statsResult.rows[0];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [total_orders, pending_orders, active_orders, completed_today_count, completed_today_orders] = await prisma.$transaction([
+      prisma.orders.count(),
+      prisma.orders.count({ where: { status: 'pending' } }),
+      prisma.orders.count({ where: { status: { in: ['confirmed', 'preparing'] } } }),
+      prisma.orders.count({ where: { status: 'completed', created_at: { gte: today } } }),
+      prisma.orders.findMany({ 
+        where: { status: 'completed', created_at: { gte: today } },
+        select: { total_amount: true }
+      })
+    ]);
+
+    const revenue_today = completed_today_orders.reduce((acc, order) => acc + (order.total_amount ? Number(order.total_amount) : 0), 0);
+
+    return {
+      total_orders,
+      pending_orders,
+      active_orders,
+      completed_today: completed_today_count,
+      revenue_today
+    };
   }
 
   async generateTableQRCode(tableNumber: string) {
-    const tableResult = await pool.query('SELECT * FROM tables WHERE table_number = $1', [tableNumber]);
-    if (tableResult.rows.length === 0) throw new NotFoundError(`Table ${tableNumber}`);
+    const table = await prisma.tables.findFirst({ where: { table_number: tableNumber } });
+    if (!table) throw new NotFoundError(`Table ${tableNumber}`);
     
     const qrData = await generateQRCode(tableNumber, process.env.FRONTEND_URL || 'http://localhost:3000');
     
-    const result = await pool.query(
-      `INSERT INTO table_qr_codes (table_id, table_number, qr_url, qr_code_data) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING *`,
-      [tableResult.rows[0].id, tableNumber, qrData.qrUrl, qrData.qrCodeDataURL]
-    );
+    const updatedTable = await prisma.tables.update({
+      where: { id: table.id },
+      data: {
+        qr_code_url: qrData.qrUrl,
+        qr_code_data: qrData.qrCodeDataURL
+      }
+    });
     
-    await pool.query('UPDATE tables SET qr_code_url = $1 WHERE id = $2', [qrData.qrUrl, tableResult.rows[0].id]);
-    
-    return { table: tableResult.rows[0], qrCode: result.rows[0] };
+    return { table: updatedTable, qrCode: qrData };
   }
 
   async generateAllTableQRCodes() {
-    const tablesResult = await pool.query('SELECT * FROM tables WHERE is_active = true');
+    const tables = await prisma.tables.findMany({ where: { is_active: true } });
     const generated = [];
     
-    for (const table of tablesResult.rows) {
+    for (const table of tables) {
       try {
         const result = await this.generateTableQRCode(table.table_number);
         generated.push(result);
@@ -325,17 +350,20 @@ class OrderService {
   }
 
   async deleteOrder(id: string) {
-    const orderResult = await pool.query('SELECT * FROM orders WHERE id = $1', [id]);
-    if (orderResult.rows.length === 0) throw new NotFoundError('Order');
+    const orderId = parseInt(id, 10);
+    const order = await prisma.orders.findUnique({
+      where: { id: orderId },
+      include: { tables: true }
+    });
     
-    const order = orderResult.rows[0];
-    const tableResult = await pool.query('SELECT table_number FROM tables WHERE id = $1', [order.table_id]);
-    const tableNumber = tableResult.rows.length > 0 ? tableResult.rows[0].table_number : null;
+    if (!order) throw new NotFoundError('Order');
     
-    await pool.query('DELETE FROM order_items WHERE order_id = $1', [id]);
-    await pool.query('DELETE FROM orders WHERE id = $1', [id]);
+    await prisma.$transaction([
+      prisma.order_items.deleteMany({ where: { order_id: orderId } }),
+      prisma.orders.delete({ where: { id: orderId } })
+    ]);
     
-    return { order, tableNumber };
+    return { order, tableNumber: order.tables?.table_number || null };
   }
 
   async bulkUpdateOrderStatus(orderIds: number[], status: string) {
@@ -343,61 +371,55 @@ class OrderService {
     if (!validStatuses.includes(status)) throw new ValidationError('Invalid status');
     if (!Array.isArray(orderIds) || orderIds.length === 0) throw new ValidationError('No order IDs provided');
     
-    const client = await pool.connect();
-    const updatedOrders = [];
+    await prisma.orders.updateMany({
+      where: { id: { in: orderIds } },
+      data: { status, updated_at: new Date() }
+    });
     
-    try {
-      await client.query('BEGIN');
-      
-      for (const id of orderIds) {
-        const orderResult = await client.query(
-          'UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
-          [status, id]
-        );
-        
-        if (orderResult.rows.length > 0) {
-          const order = await this.getOrderWithItems(id);
-          updatedOrders.push(order);
-          emitOrderStatusUpdate({ type: 'status-update', orderId: id, status, tableNumber: order.table_number, estimatedTime: order.estimated_time, timestamp: new Date().toISOString() });
-        }
-      }
-      
-      await client.query('COMMIT');
-      return updatedOrders;
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
+    const updatedOrders = [];
+    for (const id of orderIds) {
+      const order = await this.getOrderWithItems(id);
+      updatedOrders.push(order);
+      emitOrderStatusUpdate({ 
+        type: 'status-update', 
+        orderId: id, 
+        status, 
+        tableNumber: order.table_number, 
+        estimatedTime: order.estimated_time, 
+        timestamp: new Date().toISOString() 
+      });
     }
+    
+    return updatedOrders;
   }
 
   async searchOrders(query: Record<string, any>) {
     const { term, status, startDate, endDate, tableId } = query;
-    let sql = `
-      SELECT o.*, t.table_number 
-      FROM orders o 
-      JOIN tables t ON o.table_id = t.id 
-      WHERE 1=1
-    `;
-    const params: any[] = [];
-    let paramIdx = 1;
-
+    const where: any = {};
+    
     if (term) {
-      sql += ` AND (o.order_number ILIKE $${paramIdx} OR o.customer_name ILIKE $${paramIdx})`;
-      params.push(`%${term}%`);
-      paramIdx++;
+      where.OR = [
+        { order_number: { contains: term, mode: 'insensitive' } },
+        { customer_name: { contains: term, mode: 'insensitive' } }
+      ];
     }
     
-    if (status) { sql += ` AND o.status = $${paramIdx++}`; params.push(status); }
-    if (tableId) { sql += ` AND o.table_id = $${paramIdx++}`; params.push(tableId); }
-    if (startDate) { sql += ` AND o.created_at >= $${paramIdx++}`; params.push(startDate); }
-    if (endDate) { sql += ` AND o.created_at <= $${paramIdx++}`; params.push(endDate); }
+    if (status) where.status = status;
+    if (tableId) where.table_id = parseInt(tableId as string, 10);
+    if (startDate) where.created_at = { ...where.created_at, gte: new Date(startDate) };
+    if (endDate) where.created_at = { ...where.created_at, lte: new Date(endDate) };
 
-    sql += ` ORDER BY o.created_at DESC LIMIT 50`;
+    const orders = await prisma.orders.findMany({
+      where,
+      orderBy: { created_at: 'desc' },
+      take: 50
+    });
     
-    const result = await pool.query(sql, params);
-    return this.addItemsToOrders(result.rows);
+    const result = [];
+    for (const o of orders) {
+      result.push(await this.getOrderWithItems(o.id));
+    }
+    return result;
   }
 }
 

@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireRole } from '@/lib/auth';
 
@@ -11,16 +11,18 @@ export async function GET(req: NextRequest) {
     const roleError = requireRole(authResult.user!, ['admin']);
     if (roleError) return roleError;
 
-    const itemsResult = await pool.query('SELECT COUNT(*) FROM menu_items');
-    const categoriesResult = await pool.query('SELECT COUNT(*) FROM menu_categories WHERE is_active = true');
-    const vegResult = await pool.query('SELECT COUNT(*) FROM menu_items WHERE is_vegetarian = true');
-    const spicyResult = await pool.query('SELECT COUNT(*) FROM menu_items WHERE is_spicy = true');
+    const [total_items, total_categories, vegetarian_items, spicy_items] = await prisma.$transaction([
+      prisma.menu_items.count(),
+      prisma.categories.count({ where: { is_active: true } }),
+      prisma.menu_items.count({ where: { is_vegetarian: true } }),
+      prisma.menu_items.count({ where: { is_spicy: true } })
+    ]);
     
     return NextResponse.json({
-      total_items: parseInt(itemsResult.rows[0].count, 10),
-      total_categories: parseInt(categoriesResult.rows[0].count, 10),
-      vegetarian_items: parseInt(vegResult.rows[0].count, 10),
-      spicy_items: parseInt(spicyResult.rows[0].count, 10)
+      total_items,
+      total_categories,
+      vegetarian_items,
+      spicy_items
     });
   } catch (error) {
     return handleApiError(error);

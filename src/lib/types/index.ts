@@ -17,8 +17,7 @@ export interface UserRow {
   email: string;
   password_hash: string;
   role: UserRole;
-  first_name: string | null;
-  last_name: string | null;
+  full_name: string | null;
   phone: string | null;
   is_active: boolean;
   created_at: string;

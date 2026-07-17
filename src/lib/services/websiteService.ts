@@ -1,4 +1,4 @@
-import pool from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { NotFoundError } from '@/lib/errors';
 import fs from 'fs';
 import path from 'path';
@@ -6,11 +6,11 @@ import logger from '../utils/logger';
 
 class WebsiteService {
   async getRestaurantSettings(): Promise<Record<string, any>> {
-    const result = await pool.query(
-      'SELECT setting_key, setting_value, setting_type, description FROM restaurant_settings ORDER BY setting_key'
-    );
+    const rows = await prisma.restaurant_settings.findMany({
+      orderBy: { setting_key: 'asc' }
+    });
     const settings: Record<string, any> = {};
-    result.rows.forEach(row => {
+    rows.forEach(row => {
       let value: any = row.setting_value;
       if (row.setting_type === 'json' && value) {
         try { value = JSON.parse(value); } catch (e: any) { logger.warn('Error parsing JSON setting:', row.setting_key, e.message); }
@@ -23,38 +23,29 @@ class WebsiteService {
   }
 
   async updateRestaurantSettings(userId: number, settings: Record<string, any>): Promise<void> {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      for (const [key, data] of Object.entries(settings)) {
-        let value = data.value;
-        if (typeof value === 'object') value = JSON.stringify(value);
-        else if (typeof value === 'boolean') value = value.toString();
-        
-        await client.query(
-          `INSERT INTO restaurant_settings (setting_key, setting_value, setting_type, updated_by) 
-           VALUES ($1, $2, $3, $4)
-           ON CONFLICT (setting_key) 
-           DO UPDATE SET setting_value = $2, updated_at = CURRENT_TIMESTAMP, updated_by = $4`,
-          [key, value, data.type || 'text', userId]
-        );
-      }
-      await client.query('COMMIT');
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
+    const upserts = [];
+    for (const [key, data] of Object.entries(settings)) {
+      let value = data.value;
+      if (typeof value === 'object') value = JSON.stringify(value);
+      else if (typeof value === 'boolean') value = value.toString();
+      
+      const valStr = String(value);
+      upserts.push(prisma.restaurant_settings.upsert({
+        where: { setting_key: key },
+        update: { setting_value: valStr, updated_at: new Date(), updated_by: userId },
+        create: { setting_key: key, setting_value: valStr, setting_type: data.type || 'text', updated_by: userId }
+      }));
     }
+    await prisma.$transaction(upserts);
   }
 
   async getWebsiteContent(): Promise<Record<string, any>> {
-    const result = await pool.query(
-      `SELECT section_key, title, content, content_type, is_active, display_order 
-       FROM website_content WHERE is_active = true ORDER BY display_order, section_key`
-    );
+    const rows = await prisma.website_content.findMany({
+      where: { is_active: true },
+      orderBy: [{ display_order: 'asc' }, { section_key: 'asc' }]
+    });
     const content: Record<string, any> = {};
-    result.rows.forEach(row => {
+    rows.forEach(row => {
       content[row.section_key] = {
         title: row.title, content: row.content, content_type: row.content_type,
         is_active: row.is_active, display_order: row.display_order
@@ -64,53 +55,55 @@ class WebsiteService {
   }
 
   async updateWebsiteContent(userId: number, content: Record<string, any>): Promise<void> {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      for (const [key, data] of Object.entries(content)) {
-        await client.query(
-          `INSERT INTO website_content (section_key, title, content, content_type, is_active, display_order, updated_by) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
-           ON CONFLICT (section_key) 
-           DO UPDATE SET title = $2, content = $3, content_type = $4, is_active = $5, display_order = $6, updated_at = CURRENT_TIMESTAMP, updated_by = $7`,
-          [key, data.title, data.content, data.content_type || 'text', data.is_active !== false, data.display_order || 0, userId]
-        );
-      }
-      await client.query('COMMIT');
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
+    const upserts = [];
+    for (const [key, data] of Object.entries(content)) {
+      upserts.push(prisma.website_content.upsert({
+        where: { section_key: key },
+        update: {
+          title: data.title, content: data.content, content_type: data.content_type || 'text',
+          is_active: data.is_active !== false, display_order: data.display_order || 0,
+          updated_at: new Date(), updated_by: userId
+        },
+        create: {
+          section_key: key, title: data.title, content: data.content, content_type: data.content_type || 'text',
+          is_active: data.is_active !== false, display_order: data.display_order || 0,
+          updated_by: userId
+        }
+      }));
     }
+    await prisma.$transaction(upserts);
   }
 
   async getWebsiteMedia(): Promise<any[]> {
-    const result = await pool.query(
-      `SELECT id, media_key, file_name, file_path, file_type, alt_text, caption, is_active, display_order
-       FROM website_media WHERE is_active = true ORDER BY media_key, display_order`
-    );
-    return result.rows;
+    return prisma.website_media.findMany({
+      where: { is_active: true },
+      orderBy: [{ media_key: 'asc' }, { display_order: 'asc' }]
+    });
   }
 
   async uploadWebsiteMedia(userId: number, file: any, data: Record<string, any>): Promise<any> {
     const { media_key, alt_text, caption } = data;
     const relativePath = `/uploads/website/${file.filename}`;
-    const result = await pool.query(
-      `INSERT INTO website_media (media_key, file_name, file_path, file_type, file_size, alt_text, caption, updated_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING id, media_key, file_name, file_path, alt_text, caption`,
-      [media_key, file.originalname, relativePath, file.mimetype, file.size, alt_text || '', caption || '', userId]
-    );
-    return result.rows[0];
+    
+    return prisma.website_media.create({
+      data: {
+        media_key, file_name: file.originalname, file_path: relativePath,
+        file_type: file.mimetype, file_size: file.size,
+        alt_text: alt_text || '', caption: caption || '',
+        updated_by: userId
+      }
+    });
   }
 
   async deleteWebsiteMedia(id: string): Promise<{ success: boolean }> {
-    const mediaResult = await pool.query('SELECT file_path FROM website_media WHERE id = $1', [id]);
-    if (mediaResult.rows.length === 0) throw new NotFoundError('Media');
+    const mediaId = parseInt(id, 10);
+    const media = await prisma.website_media.findUnique({ where: { id: mediaId } });
+    if (!media) throw new NotFoundError('Media');
 
-    const media = mediaResult.rows[0];
-    await pool.query('UPDATE website_media SET is_active = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1', [id]);
+    await prisma.website_media.update({
+      where: { id: mediaId },
+      data: { is_active: false, updated_at: new Date() }
+    });
 
     try {
       const fullPath = path.join(__dirname, '../../', media.file_path);
@@ -122,31 +115,29 @@ class WebsiteService {
   }
 
   async getWebsiteStats(): Promise<Record<string, number>> {
-    const [settingsCount, contentCount, mediaCount] = await Promise.all([
-      pool.query('SELECT COUNT(*) as count FROM restaurant_settings'),
-      pool.query('SELECT COUNT(*) as count FROM website_content WHERE is_active = true'),
-      pool.query('SELECT COUNT(*) as count FROM website_media WHERE is_active = true')
+    const [settingsCount, contentCount, mediaCount] = await prisma.$transaction([
+      prisma.restaurant_settings.count(),
+      prisma.website_content.count({ where: { is_active: true } }),
+      prisma.website_media.count({ where: { is_active: true } })
     ]);
 
     return {
-      total_settings: parseInt(settingsCount.rows[0].count, 10),
-      total_content_sections: parseInt(contentCount.rows[0].count, 10),
-      total_media_files: parseInt(mediaCount.rows[0].count, 10)
+      total_settings: settingsCount,
+      total_content_sections: contentCount,
+      total_media_files: mediaCount
     };
   }
 
   // --- Banner Methods ---
 
   async getActiveBanners(): Promise<any[]> {
-    const result = await pool.query(
-      `SELECT id, setting_key, setting_value, updated_at
-       FROM restaurant_settings
-       WHERE setting_key LIKE 'banner_%' AND setting_type = 'json'
-       ORDER BY updated_at DESC`
-    );
-    return result.rows.map(row => {
+    const rows = await prisma.restaurant_settings.findMany({
+      where: { setting_key: { startsWith: 'banner_' }, setting_type: 'json' },
+      orderBy: { updated_at: 'desc' }
+    });
+    return rows.map(row => {
       try {
-        return { id: row.id, ...JSON.parse(row.setting_value) };
+        return { id: row.id, ...(row.setting_value ? JSON.parse(row.setting_value) : {}) };
       } catch {
         return { id: row.id, raw: row.setting_value };
       }
@@ -156,46 +147,42 @@ class WebsiteService {
   async createBanner(data: Record<string, any>): Promise<any> {
     const bannerKey = `banner_${Date.now()}`;
     const value = JSON.stringify(data);
-    const result = await pool.query(
-      `INSERT INTO restaurant_settings (setting_key, setting_value, setting_type, description)
-       VALUES ($1, $2, 'json', 'Website banner')
-       RETURNING id, setting_key, setting_value`,
-      [bannerKey, value]
-    );
-    return { id: result.rows[0].id, ...data };
+    const banner = await prisma.restaurant_settings.create({
+      data: { setting_key: bannerKey, setting_value: value, setting_type: 'json', description: 'Website banner' }
+    });
+    return { id: banner.id, ...data };
   }
 
   async updateBanner(id: string, data: Record<string, any>): Promise<any> {
     const value = JSON.stringify(data);
-    const result = await pool.query(
-      `UPDATE restaurant_settings
-       SET setting_value = $1, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $2 AND setting_key LIKE 'banner_%'
-       RETURNING id, setting_key, setting_value`,
-      [value, id]
-    );
-    if (result.rows.length === 0) throw new NotFoundError('Banner');
-    return { id: result.rows[0].id, ...data };
+    try {
+      await prisma.restaurant_settings.updateMany({
+        where: { id: parseInt(id, 10), setting_key: { startsWith: 'banner_' } },
+        data: { setting_value: value, updated_at: new Date() }
+      });
+      return { id, ...data };
+    } catch (e) {
+      throw new NotFoundError('Banner');
+    }
   }
 
   async deleteBanner(id: string): Promise<{ success: boolean }> {
-    const result = await pool.query(
-      `DELETE FROM restaurant_settings WHERE id = $1 AND setting_key LIKE 'banner_%' RETURNING id`,
-      [id]
-    );
-    if (result.rows.length === 0) throw new NotFoundError('Banner');
+    const result = await prisma.restaurant_settings.deleteMany({
+      where: { id: parseInt(id, 10), setting_key: { startsWith: 'banner_' } }
+    });
+    if (result.count === 0) throw new NotFoundError('Banner');
     return { success: true };
   }
 
   // --- Business Hours Methods ---
 
   async getBusinessHours(): Promise<any> {
-    const result = await pool.query(
-      `SELECT setting_value FROM restaurant_settings WHERE setting_key = 'opening_hours'`
-    );
-    if (result.rows.length === 0) return {};
+    const setting = await prisma.restaurant_settings.findUnique({
+      where: { setting_key: 'opening_hours' }
+    });
+    if (!setting || !setting.setting_value) return {};
     try {
-      return JSON.parse(result.rows[0].setting_value);
+      return JSON.parse(setting.setting_value);
     } catch {
       return {};
     }
@@ -203,80 +190,66 @@ class WebsiteService {
 
   async updateBusinessHours(data: Record<string, any>): Promise<any> {
     const value = JSON.stringify(data);
-    await pool.query(
-      `INSERT INTO restaurant_settings (setting_key, setting_value, setting_type, description)
-       VALUES ('opening_hours', $1, 'json', 'Restaurant opening hours')
-       ON CONFLICT (setting_key)
-       DO UPDATE SET setting_value = $1, updated_at = CURRENT_TIMESTAMP`,
-      [value]
-    );
+    await prisma.restaurant_settings.upsert({
+      where: { setting_key: 'opening_hours' },
+      update: { setting_value: value, updated_at: new Date() },
+      create: { setting_key: 'opening_hours', setting_value: value, setting_type: 'json', description: 'Restaurant opening hours' }
+    });
     return data;
   }
 
   // --- Footer Settings Methods ---
 
   async getFooterSettings(): Promise<Record<string, any>> {
-    const result = await pool.query(
-      `SELECT setting_key, setting_value FROM restaurant_settings
-       WHERE setting_key IN ('footer_description', 'footer_copyright', 'footer_links')
-       ORDER BY setting_key`
-    );
+    const rows = await prisma.restaurant_settings.findMany({
+      where: { setting_key: { in: ['footer_description', 'footer_copyright', 'footer_links'] } },
+      orderBy: { setting_key: 'asc' }
+    });
     const settings: Record<string, any> = {};
-    for (const row of result.rows) {
+    for (const row of rows) {
       const key = row.setting_key.replace('footer_', '');
       try {
-        settings[key] = JSON.parse(row.setting_value);
+        settings[key] = row.setting_value ? JSON.parse(row.setting_value) : '';
       } catch {
         settings[key] = row.setting_value;
       }
     }
-    // Also pull from website_content if footer_description exists there
+    
     if (!settings.description) {
-      const contentResult = await pool.query(
-        `SELECT content FROM website_content WHERE section_key = 'footer_description' AND is_active = true`
-      );
-      if (contentResult.rows.length > 0) {
-        settings.description = contentResult.rows[0].content;
+      const content = await prisma.website_content.findUnique({
+        where: { section_key: 'footer_description' }
+      });
+      if (content && content.is_active && content.content) {
+        settings.description = content.content;
       }
     }
     return settings;
   }
 
   async updateFooterSettings(data: Record<string, any>): Promise<Record<string, any>> {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      for (const [key, value] of Object.entries(data)) {
-        const settingKey = `footer_${key}`;
-        const settingValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
-        await client.query(
-          `INSERT INTO restaurant_settings (setting_key, setting_value, setting_type, description)
-           VALUES ($1, $2, 'text', 'Footer setting')
-           ON CONFLICT (setting_key)
-           DO UPDATE SET setting_value = $2, updated_at = CURRENT_TIMESTAMP`,
-          [settingKey, settingValue]
-        );
-      }
-      await client.query('COMMIT');
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
+    const upserts = [];
+    for (const [key, value] of Object.entries(data)) {
+      const settingKey = `footer_${key}`;
+      const settingValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+      upserts.push(prisma.restaurant_settings.upsert({
+        where: { setting_key: settingKey },
+        update: { setting_value: settingValue, updated_at: new Date() },
+        create: { setting_key: settingKey, setting_value: settingValue, setting_type: 'text', description: 'Footer setting' }
+      }));
     }
+    await prisma.$transaction(upserts);
     return data;
   }
 
   // --- SEO Settings Methods ---
 
   async getSeoSettings(): Promise<Record<string, any>> {
-    const result = await pool.query(
-      `SELECT setting_key, setting_value FROM restaurant_settings
-       WHERE setting_key LIKE 'seo_%'
-       ORDER BY setting_key`
-    );
+    const rows = await prisma.restaurant_settings.findMany({
+      where: { setting_key: { startsWith: 'seo_' } },
+      orderBy: { setting_key: 'asc' }
+    });
     const settings: Record<string, any> = {};
-    for (const row of result.rows) {
+    for (const row of rows) {
       const key = row.setting_key.replace('seo_', '');
       settings[key] = row.setting_value;
     }
@@ -284,39 +257,28 @@ class WebsiteService {
   }
 
   async updateSeoSettings(data: Record<string, any>): Promise<Record<string, any>> {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      for (const [key, value] of Object.entries(data)) {
-        const settingKey = `seo_${key}`;
-        await client.query(
-          `INSERT INTO restaurant_settings (setting_key, setting_value, setting_type, description)
-           VALUES ($1, $2, 'text', 'SEO setting')
-           ON CONFLICT (setting_key)
-           DO UPDATE SET setting_value = $2, updated_at = CURRENT_TIMESTAMP`,
-          [settingKey, String(value)]
-        );
-      }
-      await client.query('COMMIT');
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
+    const upserts = [];
+    for (const [key, value] of Object.entries(data)) {
+      const settingKey = `seo_${key}`;
+      upserts.push(prisma.restaurant_settings.upsert({
+        where: { setting_key: settingKey },
+        update: { setting_value: String(value), updated_at: new Date() },
+        create: { setting_key: settingKey, setting_value: String(value), setting_type: 'text', description: 'SEO setting' }
+      }));
     }
+    await prisma.$transaction(upserts);
     return data;
   }
 
   // --- Social Links Methods ---
 
   async getSocialLinks(): Promise<Record<string, string>> {
-    const result = await pool.query(
-      `SELECT setting_key, setting_value FROM restaurant_settings
-       WHERE setting_key LIKE 'social_%'
-       ORDER BY setting_key`
-    );
+    const rows = await prisma.restaurant_settings.findMany({
+      where: { setting_key: { startsWith: 'social_' } },
+      orderBy: { setting_key: 'asc' }
+    });
     const links: Record<string, string> = {};
-    for (const row of result.rows) {
+    for (const row of rows) {
       const key = row.setting_key.replace('social_', '');
       links[key] = row.setting_value || '';
     }
@@ -324,26 +286,16 @@ class WebsiteService {
   }
 
   async updateSocialLinks(data: Record<string, any>): Promise<Record<string, string>> {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      for (const [key, value] of Object.entries(data)) {
-        const settingKey = `social_${key}`;
-        await client.query(
-          `INSERT INTO restaurant_settings (setting_key, setting_value, setting_type, description)
-           VALUES ($1, $2, 'text', 'Social media link')
-           ON CONFLICT (setting_key)
-           DO UPDATE SET setting_value = $2, updated_at = CURRENT_TIMESTAMP`,
-          [settingKey, String(value)]
-        );
-      }
-      await client.query('COMMIT');
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
+    const upserts = [];
+    for (const [key, value] of Object.entries(data)) {
+      const settingKey = `social_${key}`;
+      upserts.push(prisma.restaurant_settings.upsert({
+        where: { setting_key: settingKey },
+        update: { setting_value: String(value), updated_at: new Date() },
+        create: { setting_key: settingKey, setting_value: String(value), setting_type: 'text', description: 'Social media link' }
+      }));
     }
+    await prisma.$transaction(upserts);
     return data as Record<string, string>;
   }
 }

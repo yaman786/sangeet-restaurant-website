@@ -1,33 +1,33 @@
-import pool from '@/lib/db';
+import { prisma } from '@/lib/db';
 import { NotFoundError, ValidationError } from '@/lib/errors';
 import beautifulQRGenerator from '../utils/beautifulQRGenerator';
 import type { QRCodeRow } from '@/lib/types';
 
 class QRService {
   async getTableByQRCode(qrCode: string): Promise<any> {
-    const result = await pool.query('SELECT * FROM tables WHERE qr_code_url LIKE $1 AND is_active = true', [`%${qrCode}%`]);
-    if (result.rows.length === 0) throw new NotFoundError('Table not found');
-    return result.rows[0];
+    const table = await prisma.tables.findFirst({
+      where: { qr_code_url: { contains: qrCode }, is_active: true }
+    });
+    if (!table) throw new NotFoundError('Table not found');
+    return table;
   }
 
-  async generateTableQRCode(data: Record<string, any>): Promise<{ table: any, qrCode: QRCodeRow }> {
+  async generateTableQRCode(data: { tableNumber: string, theme?: string, colors?: any, design?: string, capacity?: number }): Promise<{ table: any, qrCode: any }> {
     const { tableNumber, theme, colors, design, capacity } = data;
     
-    let tableId;
-    const tableResult = await pool.query('SELECT * FROM tables WHERE table_number = $1', [tableNumber]);
-    if (tableResult.rows.length === 0) {
-      const insertResult = await pool.query(
-        'INSERT INTO tables (table_number, capacity, is_active, qr_code_url, qr_code_data) VALUES ($1, $2, true, \'\', \'\') RETURNING id', 
-        [tableNumber, capacity || 4]
-      );
-      tableId = insertResult.rows[0].id;
+    let table = await prisma.tables.findFirst({
+      where: { table_number: tableNumber }
+    });
+
+    if (!table) {
+      table = await prisma.tables.create({
+        data: { table_number: tableNumber, capacity: capacity || 4, is_active: true, qr_code_url: '', qr_code_data: '' }
+      });
     } else {
-      tableId = tableResult.rows[0].id;
-      // Update capacity if provided and reactivate
-      await pool.query(
-        'UPDATE tables SET capacity = COALESCE($1, capacity), is_active = true WHERE id = $2',
-        [capacity, tableId]
-      );
+      table = await prisma.tables.update({
+        where: { id: table.id },
+        data: { capacity: capacity || table.capacity, is_active: true }
+      });
     }
     
     const qrUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/qr/table-${tableNumber}`;
@@ -36,59 +36,91 @@ class QRService {
     const qrCodeBuffer = await beautifulQRGenerator.generateBeautifulQRCode(tableNumber, qrUrl, options);
     const qrCodeDataURL = `data:image/svg+xml;base64,${qrCodeBuffer.toString('base64')}`;
     
-    const result = await pool.query(
-      `UPDATE tables SET qr_code_url = $1, qr_code_data = $2, design_settings = $3 WHERE id = $4 
-       RETURNING id as qr_code_id, table_number, qr_code_url as qr_url, design_settings as design`,
-      [qrUrl, qrCodeDataURL, JSON.stringify(options), tableId]
-    );
-    
-    const finalTable = await pool.query('SELECT * FROM tables WHERE id = $1', [tableId]);
-    return { table: finalTable.rows[0], qrCode: result.rows[0] };
-  }
-
-  async getAllQRCodes(): Promise<QRCodeRow[]> {
-    const result = await pool.query(`
-      SELECT id, id as table_id, table_number, capacity, table_name as location, qr_code_url as qr_url, qr_code_data, design_settings as design, created_at, is_active
-      FROM tables
-      ORDER BY table_number ASC
-    `);
-    return result.rows;
-  }
-
-  async getQRCodeAnalytics(qrCodeId: string): Promise<Record<string, any>> {
-    const qrResult = await pool.query('SELECT * FROM tables WHERE id = $1', [qrCodeId]);
-    if (qrResult.rows.length === 0) throw new NotFoundError('QR Code');
+    const updatedTable = await prisma.tables.update({
+      where: { id: table.id },
+      data: { qr_code_url: qrUrl, qr_code_data: qrCodeDataURL, design_settings: options }
+    });
     
     return {
-      totalScans: parseInt(qrResult.rows[0].scan_count || '0', 10),
-      lastScanned: qrResult.rows[0].last_scanned_at
+      table: updatedTable,
+      qrCode: { qr_code_id: updatedTable.id, table_number: updatedTable.table_number, qr_url: qrUrl, design: options }
     };
   }
 
-  async updateQRCodeDesign(qrCodeId: string, design: Record<string, any>): Promise<QRCodeRow> {
-    const result = await pool.query(
-      'UPDATE tables SET design_settings = $1 WHERE id = $2 RETURNING id as qr_code_id, design_settings as design',
-      [JSON.stringify(design), qrCodeId]
-    );
-    if (result.rows.length === 0) throw new NotFoundError('QR Code');
-    return result.rows[0];
+  async getAllQRCodes(): Promise<any[]> {
+    const tables = await prisma.tables.findMany({
+      orderBy: { table_number: 'asc' }
+    });
+    return tables.map(t => ({
+      id: t.id,
+      table_id: t.id,
+      table_number: t.table_number,
+      capacity: t.capacity,
+      location: t.table_name,
+      qr_url: t.qr_code_url,
+      qr_code_data: t.qr_code_data,
+      design: t.design_settings,
+      created_at: t.created_at,
+      is_active: t.is_active
+    }));
+  }
+
+  async getQRCodeAnalytics(qrCodeId: string): Promise<Record<string, any>> {
+    const table = await prisma.tables.findUnique({
+      where: { id: parseInt(qrCodeId, 10) }
+    });
+    if (!table) throw new NotFoundError('QR Code');
+    
+    return {
+      totalScans: table.scan_count || 0,
+      lastScanned: table.last_scanned_at
+    };
+  }
+
+  async updateQRCodeDesign(qrCodeId: string, design: Record<string, any>): Promise<any> {
+    try {
+      const table = await prisma.tables.update({
+        where: { id: parseInt(qrCodeId, 10) },
+        data: { design_settings: design }
+      });
+      return { qr_code_id: table.id, design: table.design_settings };
+    } catch (e: any) {
+      if (e.code === 'P2025') throw new NotFoundError('QR Code');
+      throw e;
+    }
   }
 
   async restoreQRCode(qrCodeId: string): Promise<void> {
-    const result = await pool.query('UPDATE tables SET is_active = true WHERE id = $1 RETURNING id', [qrCodeId]);
-    if (result.rows.length === 0) throw new NotFoundError('QR Code');
+    try {
+      await prisma.tables.update({
+        where: { id: parseInt(qrCodeId, 10) },
+        data: { is_active: true }
+      });
+    } catch (e: any) {
+      if (e.code === 'P2025') throw new NotFoundError('QR Code');
+      throw e;
+    }
   }
 
   async deleteQRCode(qrCodeId: string): Promise<void> {
-    const result = await pool.query('UPDATE tables SET is_active = false WHERE id = $1 RETURNING id', [qrCodeId]);
-    if (result.rows.length === 0) throw new NotFoundError('QR Code');
+    try {
+      await prisma.tables.update({
+        where: { id: parseInt(qrCodeId, 10) },
+        data: { is_active: false }
+      });
+    } catch (e: any) {
+      if (e.code === 'P2025') throw new NotFoundError('QR Code');
+      throw e;
+    }
   }
 
   async generatePrintableQRCode(qrCodeId: string, format: string, design: string, theme: string): Promise<{ qrCodeBuffer: Buffer, tableNumber: string }> {
-    const qrResult = await pool.query('SELECT * FROM tables WHERE id = $1 AND qr_code_url IS NOT NULL', [qrCodeId]);
-    if (qrResult.rows.length === 0) throw new NotFoundError('QR Code');
+    const table = await prisma.tables.findFirst({
+      where: { id: parseInt(qrCodeId, 10), qr_code_url: { not: '' } }
+    });
+    if (!table) throw new NotFoundError('QR Code');
     
-    const { table_number, qr_code_url } = qrResult.rows[0];
+    const { table_number, qr_code_url } = table;
     const options: any = { format: format === 'jpeg' ? 'jpeg' : 'png', theme };
     
     let qrCodeBuffer;

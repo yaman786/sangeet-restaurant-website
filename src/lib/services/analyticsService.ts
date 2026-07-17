@@ -1,4 +1,4 @@
-import pool from '@/lib/db';
+import { prisma } from '@/lib/db';
 import type { QRCodeRow, QRCodeResult } from '@/lib/types';
 import beautifulQRGenerator from '../utils/beautifulQRGenerator';
 
@@ -9,7 +9,7 @@ class AnalyticsService {
     else if (timeframe === 'year') dateFilter = "INTERVAL '365 days'";
     else if (timeframe === 'today') dateFilter = "INTERVAL '1 day'";
 
-    const revenueResult = await pool.query(`
+    const revenueResult: any[] = await prisma.$queryRawUnsafe(`
       SELECT 
         COALESCE(SUM(total_amount), 0) as total_revenue,
         COUNT(*) as total_orders,
@@ -19,7 +19,7 @@ class AnalyticsService {
       AND status = 'completed'
     `);
 
-    const recentOrders = await pool.query(`
+    const recentOrders: any[] = await prisma.$queryRawUnsafe(`
       SELECT DATE(created_at) as date, SUM(total_amount) as revenue, COUNT(*) as orders
       FROM orders
       WHERE created_at >= NOW() - ${dateFilter} AND status = 'completed'
@@ -29,14 +29,14 @@ class AnalyticsService {
 
     return {
       summary: {
-        totalRevenue: parseFloat(revenueResult.rows[0].total_revenue),
-        totalOrders: parseInt(revenueResult.rows[0].total_orders, 10),
-        averageOrderValue: parseFloat(revenueResult.rows[0].average_order_value)
+        totalRevenue: parseFloat(revenueResult[0]?.total_revenue || '0'),
+        totalOrders: Number(revenueResult[0]?.total_orders || 0),
+        averageOrderValue: parseFloat(revenueResult[0]?.average_order_value || '0')
       },
-      trends: recentOrders.rows.map(r => ({
+      trends: recentOrders.map(r => ({
         date: r.date,
-        revenue: parseFloat(r.revenue),
-        orders: parseInt(r.orders, 10)
+        revenue: parseFloat(r.revenue || '0'),
+        orders: Number(r.orders || 0)
       }))
     };
   }
@@ -46,7 +46,7 @@ class AnalyticsService {
     if (period === 'week') dateFilter = "INTERVAL '7 days'";
     else if (period === 'year') dateFilter = "INTERVAL '365 days'";
 
-    const result = await pool.query(`
+    const result: any[] = await prisma.$queryRawUnsafe(`
       SELECT 
         date,
         COUNT(*) as total_reservations,
@@ -62,19 +62,19 @@ class AnalyticsService {
 
     return {
       period,
-      trends: result.rows.map(r => ({
+      trends: result.map(r => ({
         date: r.date,
-        totalReservations: parseInt(r.total_reservations, 10),
-        totalGuests: parseInt(r.total_guests, 10),
-        completed: parseInt(r.completed, 10),
-        cancelled: parseInt(r.cancelled, 10),
-        noShow: parseInt(r.no_show, 10)
+        totalReservations: Number(r.total_reservations || 0),
+        totalGuests: Number(r.total_guests || 0),
+        completed: Number(r.completed || 0),
+        cancelled: Number(r.cancelled || 0),
+        noShow: Number(r.no_show || 0)
       }))
     };
   }
 
   async getMenuAnalytics(): Promise<Record<string, any>> {
-    const topItems = await pool.query(`
+    const topItems: any[] = await prisma.$queryRawUnsafe(`
       SELECT m.id, m.name, m.category, COUNT(oi.id) as times_ordered, SUM(oi.quantity) as total_quantity
       FROM menu_items m
       JOIN order_items oi ON m.id = oi.menu_item_id
@@ -85,8 +85,8 @@ class AnalyticsService {
       LIMIT 10
     `);
 
-    const categoryPerformance = await pool.query(`
-      SELECT m.category, COUNT(oi.id) as total_orders, SUM(oi.price * oi.quantity) as total_revenue
+    const categoryPerformance: any[] = await prisma.$queryRawUnsafe(`
+      SELECT m.category, COUNT(oi.id) as total_orders, SUM(oi.unit_price * oi.quantity) as total_revenue
       FROM menu_items m
       JOIN order_items oi ON m.id = oi.menu_item_id
       JOIN orders o ON oi.order_id = o.id
@@ -96,21 +96,21 @@ class AnalyticsService {
     `);
 
     return {
-      topSellingItems: topItems.rows.map(r => ({
+      topSellingItems: topItems.map(r => ({
         id: r.id, name: r.name, category: r.category,
-        timesOrdered: parseInt(r.times_ordered, 10),
-        totalQuantity: parseInt(r.total_quantity, 10)
+        timesOrdered: Number(r.times_ordered || 0),
+        totalQuantity: Number(r.total_quantity || 0)
       })),
-      categoryPerformance: categoryPerformance.rows.map(r => ({
+      categoryPerformance: categoryPerformance.map(r => ({
         category: r.category,
-        totalOrders: parseInt(r.total_orders, 10),
-        totalRevenue: parseFloat(r.total_revenue)
+        totalOrders: Number(r.total_orders || 0),
+        totalRevenue: parseFloat(r.total_revenue || '0')
       }))
     };
   }
 
   async getCustomerInsights(): Promise<Record<string, any>> {
-    const timeDistribution = await pool.query(`
+    const timeDistribution: any[] = await prisma.$queryRawUnsafe(`
       SELECT EXTRACT(HOUR FROM time::time) as hour, COUNT(*) as reservations
       FROM reservations
       WHERE status IN ('completed', 'confirmed')
@@ -118,14 +118,14 @@ class AnalyticsService {
       ORDER BY hour ASC
     `);
 
-    const orderTypes = await pool.query(`
+    const orderTypes: any[] = await prisma.$queryRawUnsafe(`
       SELECT order_type, COUNT(*) as count, SUM(total_amount) as revenue
       FROM orders
       WHERE status = 'completed'
       GROUP BY order_type
     `);
 
-    const reviewSummary = await pool.query(`
+    const reviewSummary: any[] = await prisma.$queryRawUnsafe(`
       SELECT 
         AVG(rating) as avg_rating,
         COUNT(*) as total_reviews,
@@ -135,53 +135,50 @@ class AnalyticsService {
     `);
 
     return {
-      peakHours: timeDistribution.rows.map(r => ({
-        hour: parseInt(r.hour, 10),
-        reservations: parseInt(r.reservations, 10)
+      peakHours: timeDistribution.map(r => ({
+        hour: Number(r.hour || 0),
+        reservations: Number(r.reservations || 0)
       })),
-      orderTypes: orderTypes.rows.map(r => ({
+      orderTypes: orderTypes.map(r => ({
         type: r.order_type,
-        count: parseInt(r.count, 10),
-        revenue: parseFloat(r.revenue)
+        count: Number(r.count || 0),
+        revenue: parseFloat(r.revenue || '0')
       })),
       reviews: {
-        averageRating: parseFloat(reviewSummary.rows[0].avg_rating || 0).toFixed(1),
-        totalReviews: parseInt(reviewSummary.rows[0].total_reviews, 10),
-        positiveReviews: parseInt(reviewSummary.rows[0].positive_reviews, 10)
+        averageRating: parseFloat(reviewSummary[0]?.avg_rating || '0').toFixed(1),
+        totalReviews: Number(reviewSummary[0]?.total_reviews || 0),
+        positiveReviews: Number(reviewSummary[0]?.positive_reviews || 0)
       }
     };
   }
 
   async getPerformanceMetrics(startDate?: string, endDate?: string): Promise<Record<string, any>> {
     let dateFilter = '';
-    const params = [];
+    const params: any[] = [];
     if (startDate && endDate) {
       dateFilter = 'WHERE created_at BETWEEN $1 AND $2';
-      params.push(startDate, endDate);
+      params.push(new Date(startDate), new Date(endDate));
     }
 
-    const completionTimes = await pool.query(`
+    const completionTimes: any[] = await prisma.$queryRawUnsafe(`
       SELECT 
         AVG(EXTRACT(EPOCH FROM (updated_at - created_at)))/60 as avg_prep_time_minutes
       FROM orders
       ${dateFilter ? dateFilter + " AND status = 'completed'" : "WHERE status = 'completed'"}
-    `, params);
+    `, ...params);
 
     return {
-      averagePreparationTime: parseFloat(completionTimes.rows[0].avg_prep_time_minutes || 0).toFixed(1)
+      averagePreparationTime: parseFloat(completionTimes[0]?.avg_prep_time_minutes || '0').toFixed(1)
     };
   }
 
   async getExportData(type: string): Promise<any[]> {
     if (type === 'orders') {
-      const result = await pool.query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 1000');
-      return result.rows;
+      return prisma.orders.findMany({ orderBy: { created_at: 'desc' }, take: 1000 });
     } else if (type === 'reservations') {
-      const result = await pool.query('SELECT * FROM reservations ORDER BY date DESC, time DESC LIMIT 1000');
-      return result.rows;
+      return prisma.reservations.findMany({ orderBy: [{ date: 'desc' }, { time: 'desc' }], take: 1000 });
     } else {
-      const result = await pool.query('SELECT * FROM menu_items ORDER BY category, name');
-      return result.rows;
+      return prisma.menu_items.findMany({ orderBy: [{ category: 'asc' }, { name: 'asc' }] });
     }
   }
 

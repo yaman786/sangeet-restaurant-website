@@ -1,10 +1,10 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 test.describe('Admin Dashboard Flows', () => {
   // Use a sequential execution for admin to avoid session collision if any
   test.describe.configure({ mode: 'serial' });
 
-  let adminPage;
+  let adminPage: Page;
 
   test.beforeAll(async ({ browser }) => {
     adminPage = await browser.newPage();

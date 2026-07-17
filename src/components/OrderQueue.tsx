@@ -98,7 +98,11 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
       const response = await fetchAllOrders();
       
       // Separate completed orders from active orders
-      const activeOrders = response.filter(order => order.status !== 'completed');
+      const activeOrders = response.filter(order => {
+        if (order.status === 'completed') return false;
+        if (kitchenMode && order.status === 'pending') return false;
+        return true;
+      });
       const completedOrders = response.filter(order => order.status === 'completed');
       
       setOrders(sortOrders(activeOrders));
@@ -156,6 +160,15 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
         
         // Update in active orders
         setOrders(prevOrders => {
+          const orderExists = prevOrders.some(order => order.id === orderId);
+          
+          if (!orderExists && kitchenMode && status !== 'completed' && status !== 'cancelled') {
+            // Waiter confirmed a pending order that the kitchen didn't have yet.
+            // Fetch it from the server.
+            loadOrders();
+            return prevOrders;
+          }
+
           const updatedOrders = prevOrders.map(order => 
             order.id === orderId 
               ? { ...order, status, updated_at: new Date().toISOString() }
