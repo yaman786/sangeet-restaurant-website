@@ -33,7 +33,6 @@ export async function POST(req: NextRequest) {
     }
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
-
     if (!isMatch) {
       throw new UnauthorizedError('Invalid credentials');
     }
