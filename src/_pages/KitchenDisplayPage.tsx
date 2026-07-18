@@ -202,7 +202,7 @@ const KitchenDisplayPage = () => {
           >
             <h3 className={`text-xs font-medium ${
               activeFilter === 'pending' ? 'text-yellow-300' : 'text-yellow-400'
-            }`}>Pending</h3>
+            }`}>New Orders</h3>
             <p className={`text-xl font-bold ${
               activeFilter === 'pending' ? 'text-yellow-300' : 'text-yellow-400'
             }`}>{orderStats.pending}</p>
@@ -221,7 +221,7 @@ const KitchenDisplayPage = () => {
           >
             <h3 className={`text-xs font-medium ${
               activeFilter === 'preparing' ? 'text-orange-300' : 'text-orange-400'
-            }`}>Preparing</h3>
+            }`}>To Cook</h3>
             <p className={`text-xl font-bold ${
               activeFilter === 'preparing' ? 'text-orange-300' : 'text-orange-400'
             }`}>{orderStats.preparing}</p>
@@ -259,7 +259,7 @@ const KitchenDisplayPage = () => {
           >
             <h3 className={`text-xs font-medium ${
               activeFilter === 'completed' ? 'text-gray-300' : 'text-gray-400'
-            }`}>Completed</h3>
+            }`}>Paid & Completed</h3>
             <p className={`text-xl font-bold ${
               activeFilter === 'completed' ? 'text-gray-300' : 'text-gray-400'
             }`}>{orderStats.completed}</p>

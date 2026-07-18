@@ -42,12 +42,20 @@ const OrderTable = ({
   };
 
   const statusOptions = [
-    { value: 'pending', label: 'Pending' },
-    { value: 'preparing', label: 'Preparing' },
-    { value: 'ready', label: 'Ready' },
-    { value: 'completed', label: 'Completed' },
+    { value: 'pending', label: 'New Order' },
+    { value: 'preparing', label: 'In Kitchen' },
+    { value: 'ready', label: 'Ready / Served' },
+    { value: 'completed', label: 'Paid & Completed' },
     { value: 'cancelled', label: 'Cancelled' }
   ];
+
+  const statusDisplayNames: Record<string, string> = {
+    'pending': 'New Order',
+    'preparing': 'In Kitchen',
+    'ready': 'Ready / Served',
+    'completed': 'Paid & Completed',
+    'cancelled': 'Cancelled'
+  };
 
   return (
     <>
@@ -64,15 +72,22 @@ const OrderTable = ({
               </p>
             </div>
             <div className="flex space-x-2">
-              {['preparing', 'ready', 'completed', 'cancelled'].map((status) => (
+              {['preparing', 'ready', 'completed', 'cancelled'].map((status) => {
+                const bulkActionLabels: Record<string, string> = {
+                  'preparing': 'Accept Orders',
+                  'ready': 'Mark Ready',
+                  'completed': 'Mark Paid & Completed',
+                  'cancelled': 'Cancel Orders'
+                };
+                return (
                 <button
                   key={status}
                   onClick={() => handleBulkStatusUpdate(status)}
                   className="px-3 py-1 bg-sangeet-400 text-sangeet-neutral-950 rounded text-sm font-medium hover:bg-sangeet-300 transition-colors"
                 >
-                  Mark {status.charAt(0).toUpperCase() + status.slice(1)}
+                  {bulkActionLabels[status] || `Mark ${status}`}
                 </button>
-              ))}
+              )})}
             </div>
           </div>
         </div>
@@ -145,7 +160,7 @@ const OrderTable = ({
                     <td className="px-6 py-4">
                       <div className="relative">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(order.status)} transition-all duration-300`}>
-                          {(order.status || 'unknown').charAt(0).toUpperCase() + (order.status || 'unknown').slice(1)}
+                          {statusDisplayNames[order.status] || (order.status || 'unknown').charAt(0).toUpperCase() + (order.status || 'unknown').slice(1)}
                         </span>
                         {order.updated_at && order.updated_at !== order.created_at && (
                           <div className="text-xs text-sangeet-neutral-500 mt-1">

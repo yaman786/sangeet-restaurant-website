@@ -137,7 +137,13 @@ const AdminOrders = () => {
                             Order #{order.order_number}
                           </span>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(order.status)}`}>
-                            {(order.status || 'unknown').charAt(0).toUpperCase() + (order.status || 'unknown').slice(1)}
+                            {{
+                              'pending': 'New Order',
+                              'preparing': 'In Kitchen',
+                              'ready': 'Ready / Served',
+                              'completed': 'Paid & Completed',
+                              'cancelled': 'Cancelled'
+                            }[order.status as string] || (order.status || 'unknown').charAt(0).toUpperCase() + (order.status || 'unknown').slice(1)}
                           </span>
                         </div>
                         <span className="text-sangeet-neutral-400 text-sm">
