@@ -25,31 +25,31 @@ const OrderTrackingPage = () => {
   // Order status configuration
   const orderStatuses = {
     'pending': {
-      label: 'Order Received',
-      description: 'Your order has been received and is being processed',
+      label: 'Order Placed',
+      description: 'Your order has been received and is awaiting confirmation',
       icon: '📋',
       color: 'text-blue-400',
       bgColor: 'bg-blue-400/10',
       borderColor: 'border-blue-400/30'
     },
     'preparing': {
-      label: 'Preparing',
-      description: 'Our kitchen is preparing your delicious meal',
+      label: 'In the Kitchen',
+      description: 'Our chefs are cooking your delicious meal',
       icon: '👨‍🍳',
       color: 'text-yellow-400',
       bgColor: 'bg-yellow-400/10',
       borderColor: 'border-yellow-400/30'
     },
     'ready': {
-      label: 'Ready for Pickup',
-      description: 'Your order is ready! Please collect from the counter',
-      icon: '✅',
+      label: 'Ready / Served',
+      description: 'Your food is ready and the waiter is bringing it to your table!',
+      icon: '🍽️',
       color: 'text-green-400',
       bgColor: 'bg-green-400/10',
       borderColor: 'border-green-400/30'
     },
     'completed': {
-      label: 'Completed',
+      label: 'Paid & Completed',
       description: 'Thank you for dining with us!',
       icon: '🎉',
       color: 'text-purple-400',
@@ -119,8 +119,8 @@ const OrderTrackingPage = () => {
         
         // Show toast notification for status changes
         const statusMessages = {
-          'preparing': 'Your order is now being prepared! 👨‍🍳',
-          'ready': 'Your order is ready for pickup! ✅',
+          'preparing': 'Your order is now in the kitchen! 👨‍🍳',
+          'ready': 'Your food is ready and will be served shortly! 🍽️',
           'completed': 'Thank you for dining with us! 🎉',
           'cancelled': 'Your order has been cancelled. Redirecting to menu for fresh start...'
         };
