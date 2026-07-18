@@ -169,83 +169,18 @@ const KitchenDisplayPage = () => {
       </header>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* Interactive Filter Cards - Kitchen Focused */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            onClick={() => setActiveFilter('all')}
-            className={`rounded-lg p-3 border transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-xl ${
-              activeFilter === 'all'
-                ? 'bg-sangeet-400/20 border-sangeet-400/50 shadow-lg'
-                : 'bg-sangeet-neutral-900 border-sangeet-neutral-700 hover:bg-sangeet-neutral-800 hover:border-sangeet-neutral-600'
-            }`}
-          >
-            <h3 className={`text-xs font-medium ${
-              activeFilter === 'all' ? 'text-sangeet-400' : 'text-sangeet-neutral-400'
-            }`}>All Orders</h3>
-            <p className={`text-xl font-bold ${
-              activeFilter === 'all' ? 'text-sangeet-400' : 'text-sangeet-neutral-100'
-            }`}>{orderStats.total}</p>
-          </motion.button>
-
-          
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            onClick={() => setActiveFilter('preparing')}
-            className={`rounded-lg p-3 border transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-xl ${
-              activeFilter === 'preparing'
-                ? 'bg-orange-400/20 border-orange-400/50 shadow-lg'
-                : 'bg-orange-900/20 border-orange-500/30 hover:bg-orange-900/30 hover:border-orange-400/50'
-            }`}
-          >
-            <h3 className={`text-xs font-medium ${
-              activeFilter === 'preparing' ? 'text-orange-300' : 'text-orange-400'
-            }`}>To Cook</h3>
-            <p className={`text-xl font-bold ${
-              activeFilter === 'preparing' ? 'text-orange-300' : 'text-orange-400'
-            }`}>{orderStats.preparing}</p>
-          </motion.button>
-          
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            onClick={() => setActiveFilter('ready')}
-            className={`rounded-lg p-3 border transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-xl ${
-              activeFilter === 'ready'
-                ? 'bg-green-400/20 border-green-400/50 shadow-lg'
-                : 'bg-green-900/20 border-green-500/30 hover:bg-green-900/30 hover:border-green-400/50'
-            }`}
-          >
-            <h3 className={`text-xs font-medium ${
-              activeFilter === 'ready' ? 'text-green-300' : 'text-green-400'
-            }`}>Ready</h3>
-            <p className={`text-xl font-bold ${
-              activeFilter === 'ready' ? 'text-green-300' : 'text-green-400'
-            }`}>{orderStats.ready}</p>
-          </motion.button>
-          
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            onClick={() => setActiveFilter('completed')}
-            className={`rounded-lg p-3 border transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-xl ${
-              activeFilter === 'completed'
-                ? 'bg-gray-400/20 border-gray-400/50 shadow-lg'
-                : 'bg-gray-900/20 border-gray-500/30 hover:bg-gray-900/30 hover:border-gray-400/50'
-            }`}
-          >
-            <h3 className={`text-xs font-medium ${
-              activeFilter === 'completed' ? 'text-gray-300' : 'text-gray-400'
-            }`}>Paid & Completed</h3>
-            <p className={`text-xl font-bold ${
-              activeFilter === 'completed' ? 'text-gray-300' : 'text-gray-400'
-            }`}>{orderStats.completed}</p>
-          </motion.button>
+        {/* Kitchen Status Metric */}
+        <div className="mb-4">
+          <div className="bg-orange-900/20 border border-orange-500/30 rounded-lg p-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-orange-400 font-bold text-lg">Active Kitchen Queue</h2>
+              <p className="text-orange-300 text-sm">Orders currently being cooked</p>
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-black text-orange-400">{orderStats.preparing}</p>
+              <p className="text-orange-300 text-xs uppercase tracking-wider font-bold">To Cook</p>
+            </div>
+          </div>
         </div>
 
         {/* Search and Sort Row */}
@@ -265,21 +200,19 @@ const KitchenDisplayPage = () => {
               </span>
             </div>
 
-            {/* Sort Options - Only show when "All Orders" is selected */}
-            {activeFilter === 'all' && (
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sangeet-400 text-lg">📊</span>
-                  <span className="text-sm font-bold text-sangeet-neutral-100 hidden sm:inline">Sort</span>
-                </div>
-                <CustomDropdown
-                  value={sortBy}
-                  onChange={setSortBy}
-                  options={sortOptions}
-                  className="min-w-[240px]"
-                />
+            {/* Sort Options */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-sangeet-400 text-lg">📊</span>
+                <span className="text-sm font-bold text-sangeet-neutral-100 hidden sm:inline">Sort</span>
               </div>
-            )}
+              <CustomDropdown
+                value={sortBy}
+                onChange={setSortBy}
+                options={sortOptions}
+                className="min-w-[240px]"
+              />
+            </div>
           </div>
         </div>
 
