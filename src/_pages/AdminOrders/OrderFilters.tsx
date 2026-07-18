@@ -16,10 +16,12 @@ const OrderFilters = ({
 
   React.useEffect(() => {
     const handler = setTimeout(() => {
-      setFilters((prev: any) => ({ ...prev, query: localQuery }));
+      if (filters.query !== localQuery) {
+        setFilters((prev: any) => ({ ...prev, query: localQuery }));
+      }
     }, 500);
     return () => clearTimeout(handler);
-  }, [localQuery, setFilters]);
+  }, [localQuery, setFilters, filters.query]);
 
   return (
     <>
