@@ -49,12 +49,19 @@ const OrderTable = ({
     { value: 'cancelled', label: 'Cancelled' }
   ];
 
-  const statusDisplayNames: Record<string, string> = {
+  const statusDisplayNames: { [key: string]: string } = {
     'pending': 'New Order',
     'preparing': 'In Kitchen',
     'ready': 'Ready / Served',
     'completed': 'Paid & Completed',
     'cancelled': 'Cancelled'
+  };
+
+  const bulkActionLabels: { [key: string]: string } = {
+    'preparing': 'Accept Orders',
+    'ready': 'Mark Ready',
+    'completed': 'Mark Paid & Completed',
+    'cancelled': 'Cancel Orders'
   };
 
   return (
@@ -72,14 +79,7 @@ const OrderTable = ({
               </p>
             </div>
             <div className="flex space-x-2">
-              {['preparing', 'ready', 'completed', 'cancelled'].map((status) => {
-                const bulkActionLabels: Record<string, string> = {
-                  'preparing': 'Accept Orders',
-                  'ready': 'Mark Ready',
-                  'completed': 'Mark Paid & Completed',
-                  'cancelled': 'Cancel Orders'
-                };
-                return (
+              {['preparing', 'ready', 'completed', 'cancelled'].map((status) => (
                 <button
                   key={status}
                   onClick={() => handleBulkStatusUpdate(status)}
@@ -87,7 +87,7 @@ const OrderTable = ({
                 >
                   {bulkActionLabels[status] || `Mark ${status}`}
                 </button>
-              )})}
+              ))}
             </div>
           </div>
         </div>
@@ -257,6 +257,7 @@ const OrderTable = ({
                             🗑️
                           </button>
                         </div>
+                      </div>
                     </td>
                   </motion.tr>
                 ))}
