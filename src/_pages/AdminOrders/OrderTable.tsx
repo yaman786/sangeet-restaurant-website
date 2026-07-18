@@ -182,27 +182,55 @@ const OrderTable = ({
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex space-x-2">
-                        <div className="relative">
-                          <CustomDropdown
-                            value={order.status}
-                            onChange={(newStatus: any) => handleStatusUpdate(order.id, newStatus)}
-                            options={statusOptions}
-                            className={`text-xs ${order.status === 'completed' || order.status === 'cancelled' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            disabled={order.status === 'completed' || order.status === 'cancelled'}
-                          />
-                          {(order.status === 'completed' || order.status === 'cancelled') && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-sangeet-neutral-600 rounded-full flex items-center justify-center">
-                              <span className="text-xs">🔒</span>
+                        <div className="relative flex items-center space-x-2">
+                          {order.status === 'pending' && (
+                            <button
+                              onClick={() => handleStatusUpdate(order.id, 'preparing')}
+                              className="px-3 py-1.5 bg-green-500 text-white rounded font-bold hover:bg-green-600 transition-colors shadow-lg"
+                            >
+                              Accept & Send to Kitchen
+                            </button>
+                          )}
+                          {order.status === 'preparing' && (
+                            <div className="px-3 py-1.5 bg-orange-500/10 text-orange-400 border border-orange-500/30 rounded font-medium flex items-center space-x-2">
+                                <span>👨‍🍳 Waiting on Chef...</span>
+                                <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></div>
                             </div>
                           )}
-                          {!canCompleteOrder(order) && order.status !== 'completed' && order.status !== 'cancelled' && (
-                            <button
-                              onClick={() => showActiveOrdersModalDetails(order)}
-                              className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors cursor-pointer"
-                              title="Cannot complete - customer has other active orders. Click to view details."
-                            >
-                              <span className="text-xs">⚠️</span>
-                            </button>
+                          {order.status === 'ready' && (
+                            <div className="relative flex items-center">
+                              <button
+                                onClick={() => {
+                                  if (canCompleteOrder(order)) {
+                                    handleStatusUpdate(order.id, 'completed');
+                                  } else {
+                                    showActiveOrdersModalDetails(order);
+                                  }
+                                }}
+                                className={`px-3 py-1.5 rounded font-bold transition-colors shadow-lg ${
+                                  canCompleteOrder(order) 
+                                    ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                                    : 'bg-sangeet-neutral-700 text-sangeet-neutral-400 hover:bg-sangeet-neutral-600'
+                                }`}
+                              >
+                                Collect Payment & Complete
+                              </button>
+                              {!canCompleteOrder(order) && (
+                                <button
+                                  onClick={() => showActiveOrdersModalDetails(order)}
+                                  className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors cursor-pointer shadow-lg animate-bounce"
+                                  title="Cannot complete - customer has other active orders. Click to view details."
+                                >
+                                  <span className="text-xs">⚠️</span>
+                                </button>
+                              )}
+                            </div>
+                          )}
+                          {(order.status === 'completed' || order.status === 'cancelled') && (
+                            <div className="px-3 py-1.5 bg-sangeet-neutral-800 text-sangeet-neutral-500 rounded flex items-center space-x-1 border border-sangeet-neutral-700">
+                              <span className="text-sm">🔒</span>
+                              <span className="font-medium text-sm">{order.status === 'completed' ? 'Completed' : 'Cancelled'}</span>
+                            </div>
                           )}
                         </div>
                         <button

@@ -23,7 +23,7 @@ export const useOrderManagement = () => {
     query: ''
   });
   const [tables, setTables] = useState<any[]>([]);
-  const [viewMode, setViewMode] = useState('all'); 
+  const [viewMode, setViewMode] = useState('pending'); 
   const [completedOrders, setCompletedOrders] = useState<any[]>([]); 
   const [selectedOrderDetails, setSelectedOrderDetails] = useState<any>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
