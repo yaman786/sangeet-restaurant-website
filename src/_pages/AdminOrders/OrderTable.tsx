@@ -158,8 +158,14 @@ const OrderTable = ({
                     <td className="px-6 py-4 text-sangeet-neutral-300">Table {order.table_number}</td>
                     <td className="px-6 py-4 text-sangeet-400 font-medium">${order.total_amount}</td>
                     <td className="px-6 py-4">
-                      <div className="relative">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(order.status)} transition-all duration-300`}>
+                      <div className="relative inline-flex">
+                        <span className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-bold shadow-sm border ${
+                          order.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
+                          order.status === 'preparing' ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' :
+                          order.status === 'ready' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                          order.status === 'completed' ? 'bg-sangeet-neutral-700/50 text-sangeet-neutral-400 border-sangeet-neutral-600' :
+                          'bg-red-500/20 text-red-400 border-red-500/30'
+                        }`}>
                           {statusDisplayNames[order.status] || (order.status || 'unknown').charAt(0).toUpperCase() + (order.status || 'unknown').slice(1)}
                         </span>
                         {order.updated_at && order.updated_at !== order.created_at && (
@@ -186,14 +192,15 @@ const OrderTable = ({
                           {order.status === 'pending' && (
                             <button
                               onClick={() => handleStatusUpdate(order.id, 'preparing')}
-                              className="px-3 py-1.5 bg-green-500 text-white rounded font-bold hover:bg-green-600 transition-colors shadow-lg"
+                              className="whitespace-nowrap px-4 py-1.5 bg-green-500/20 text-green-400 border border-green-500/50 rounded-lg font-bold text-sm hover:bg-green-500/30 transition-all shadow-sm flex items-center space-x-2"
                             >
-                              Accept & Send to Kitchen
+                              <span>Accept & Send</span>
+                              <span>→</span>
                             </button>
                           )}
                           {order.status === 'preparing' && (
-                            <div className="px-3 py-1.5 bg-orange-500/10 text-orange-400 border border-orange-500/30 rounded font-medium flex items-center space-x-2">
-                                <span>👨‍🍳 Waiting on Chef...</span>
+                            <div className="whitespace-nowrap px-4 py-1.5 bg-orange-500/10 text-orange-400 border border-orange-500/30 rounded-lg font-medium text-sm flex items-center space-x-2">
+                                <span>👨‍🍳 Cooking...</span>
                                 <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></div>
                             </div>
                           )}
@@ -207,13 +214,14 @@ const OrderTable = ({
                                     showActiveOrdersModalDetails(order);
                                   }
                                 }}
-                                className={`px-3 py-1.5 rounded font-bold transition-colors shadow-lg ${
+                                className={`whitespace-nowrap px-4 py-1.5 rounded-lg font-bold text-sm transition-all shadow-sm flex items-center space-x-2 ${
                                   canCompleteOrder(order) 
-                                    ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                                    : 'bg-sangeet-neutral-700 text-sangeet-neutral-400 hover:bg-sangeet-neutral-600'
+                                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50 hover:bg-blue-500/30' 
+                                    : 'bg-sangeet-neutral-800 text-sangeet-neutral-500 border border-sangeet-neutral-700 cursor-not-allowed'
                                 }`}
                               >
-                                Collect Payment & Complete
+                                <span>Collect Payment</span>
+                                <span>💵</span>
                               </button>
                               {!canCompleteOrder(order) && (
                                 <button
@@ -227,25 +235,28 @@ const OrderTable = ({
                             </div>
                           )}
                           {(order.status === 'completed' || order.status === 'cancelled') && (
-                            <div className="px-3 py-1.5 bg-sangeet-neutral-800 text-sangeet-neutral-500 rounded flex items-center space-x-1 border border-sangeet-neutral-700">
-                              <span className="text-sm">🔒</span>
+                            <div className="whitespace-nowrap px-4 py-1.5 bg-sangeet-neutral-800/50 text-sangeet-neutral-500 rounded-lg flex items-center space-x-2 border border-sangeet-neutral-700/50">
+                              <span className="text-xs">🔒</span>
                               <span className="font-medium text-sm">{order.status === 'completed' ? 'Completed' : 'Cancelled'}</span>
                             </div>
                           )}
                         </div>
-                        <button
-                          onClick={() => handleViewOrderDetails(order.id)}
-                          className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleDeleteOrderClick(order.id)}
-                          className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </div>
+                        <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-sangeet-neutral-700/50">
+                          <button
+                            onClick={() => handleViewOrderDetails(order.id)}
+                            className="p-1.5 text-sangeet-neutral-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-md transition-colors"
+                            title="View Details"
+                          >
+                            👁️
+                          </button>
+                          <button
+                            onClick={() => handleDeleteOrderClick(order.id)}
+                            className="p-1.5 text-sangeet-neutral-500 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors"
+                            title="Delete Order"
+                          >
+                            🗑️
+                          </button>
+                        </div>
                     </td>
                   </motion.tr>
                 ))}
