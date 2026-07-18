@@ -19,19 +19,9 @@ const KitchenDisplayPage = () => {
     completed: 0
   });
   const [activeFilter, setActiveFilter] = useState('preparing'); // 'all', 'preparing', 'ready', 'completed'
-  const [sortBy, setSortBy] = useState('priority'); // 'priority', 'time', 'table', 'customer', 'amount'
   const [searchQuery, setSearchQuery] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  const sortOptions = [
-    { value: 'priority', label: 'Priority (Pending → Ready)' },
-    { value: 'time', label: 'Time (Newest First)' },
-    { value: 'time-oldest', label: 'Time (Oldest First)' },
-    { value: 'table', label: 'Table Number' },
-    { value: 'customer', label: 'Customer Name' },
-    { value: 'amount', label: 'Amount (High to Low)' },
-    { value: 'amount-low', label: 'Amount (Low to High)' }
-  ];
   
   const [connectionStatus, setConnectionStatus] = useState('connected');
   const [kitchenUser, setKitchenUser] = useState<any>(null);
@@ -200,19 +190,6 @@ const KitchenDisplayPage = () => {
               </span>
             </div>
 
-            {/* Sort Options */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-sangeet-400 text-lg">📊</span>
-                <span className="text-sm font-bold text-sangeet-neutral-100 hidden sm:inline">Sort</span>
-              </div>
-              <CustomDropdown
-                value={sortBy}
-                onChange={setSortBy}
-                options={sortOptions}
-                className="min-w-[240px]"
-              />
-            </div>
           </div>
         </div>
 
@@ -223,7 +200,7 @@ const KitchenDisplayPage = () => {
             soundEnabled={soundEnabled}
             kitchenMode={true}
             activeFilter={activeFilter}
-            sortBy={sortBy}
+            sortBy="time-oldest"
             searchQuery={searchQuery}
           />
         </div>
