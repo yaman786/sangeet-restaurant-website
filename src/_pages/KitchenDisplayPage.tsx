@@ -18,7 +18,7 @@ const KitchenDisplayPage = () => {
     ready: 0,
     completed: 0
   });
-  const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'pending', 'preparing', 'ready', 'completed'
+  const [activeFilter, setActiveFilter] = useState('preparing'); // 'all', 'preparing', 'ready', 'completed'
   const [sortBy, setSortBy] = useState('priority'); // 'priority', 'time', 'table', 'customer', 'amount'
   const [searchQuery, setSearchQuery] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -170,7 +170,7 @@ const KitchenDisplayPage = () => {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Interactive Filter Cards - Kitchen Focused */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
           <motion.button
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -188,25 +188,7 @@ const KitchenDisplayPage = () => {
               activeFilter === 'all' ? 'text-sangeet-400' : 'text-sangeet-neutral-100'
             }`}>{orderStats.total}</p>
           </motion.button>
-          
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            onClick={() => setActiveFilter('pending')}
-            className={`rounded-lg p-3 border transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-xl ${
-              activeFilter === 'pending'
-                ? 'bg-yellow-400/20 border-yellow-400/50 shadow-lg'
-                : 'bg-yellow-900/20 border-yellow-500/30 hover:bg-yellow-900/30 hover:border-yellow-400/50'
-            }`}
-          >
-            <h3 className={`text-xs font-medium ${
-              activeFilter === 'pending' ? 'text-yellow-300' : 'text-yellow-400'
-            }`}>New Orders</h3>
-            <p className={`text-xl font-bold ${
-              activeFilter === 'pending' ? 'text-yellow-300' : 'text-yellow-400'
-            }`}>{orderStats.pending}</p>
-          </motion.button>
+
           
           <motion.button
             initial={{ opacity: 0, y: 10 }}
