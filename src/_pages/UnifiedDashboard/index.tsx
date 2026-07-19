@@ -230,12 +230,6 @@ const UnifiedDashboard = () => {
       setOrderNumber(firstOrder.order_number);
       setTotalAmount(firstOrder.total_amount);
     }
-    if (currentView === 'menu' && manualMenuNavigation) {
-      setTimeout(() => {
-        setManualMenuNavigation(false);
-        setForceMenuView(false);
-      }, 10000);
-    }
   }, [orders, currentView, manualMenuNavigation, forceMenuView, setOrderId, setOrderNumber, setTotalAmount]);
 
   const formatTime = (dateString: string | Date | undefined) => dateString ? new Date(dateString).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '';
@@ -355,7 +349,7 @@ const UnifiedDashboard = () => {
                   </div>
 
                   {/* Liquid Glass Menu Component */}
-                  <div className="max-w-5xl mx-auto -mt-16 relative z-20">
+                  <div className="max-w-5xl mx-auto -mt-16 relative z-20 pb-24">
                     <MenuView 
                       menuItems={menuItems}
                       categories={categories}
@@ -368,6 +362,45 @@ const UnifiedDashboard = () => {
                       cartLength={cart.length}
                     />
                   </div>
+
+                  {/* Floating Glassmorphism Cart Bar */}
+                  <AnimatePresence>
+                    {cart.length > 0 && (
+                      <motion.div 
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 100, opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                        className="fixed bottom-6 left-0 right-0 px-4 z-50 pointer-events-none"
+                      >
+                        <div className="max-w-2xl mx-auto pointer-events-auto">
+                          <button
+                            onClick={() => setCurrentView('cart')}
+                            className="w-full bg-[#1C1917]/90 backdrop-blur-xl border border-white/10 text-white p-4 rounded-2xl shadow-[0_0_30px_rgba(212,175,55,0.15)] hover:shadow-[0_0_40px_rgba(212,175,55,0.25)] transition-all duration-300 flex items-center justify-between group overflow-hidden relative cursor-pointer"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                            
+                            <div className="flex items-center space-x-4 relative z-10">
+                              <div className="w-12 h-12 bg-sangeet-400 rounded-xl flex items-center justify-center shadow-lg">
+                                <ShoppingBag className="w-6 h-6 text-[#1C1917]" />
+                              </div>
+                              <div className="text-left">
+                                <p className="font-semibold text-lg leading-tight">{cart.length} Item{cart.length !== 1 ? 's' : ''}</p>
+                                <p className="text-sangeet-neutral-400 text-sm">View your order details</p>
+                              </div>
+                            </div>
+                            
+                            <div className="text-right relative z-10">
+                              <p className="text-xs text-sangeet-neutral-400 uppercase tracking-wider mb-0.5">Total Estimate</p>
+                              <p className="font-display text-2xl font-bold text-sangeet-400">
+                                ${getCartTotal().toFixed(2)}
+                              </p>
+                            </div>
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               )}
             </>
