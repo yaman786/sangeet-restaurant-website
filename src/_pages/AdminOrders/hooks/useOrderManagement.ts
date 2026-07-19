@@ -210,10 +210,11 @@ export const useOrderManagement = () => {
   };
 
   const showActiveOrdersModalDetails = (order: any) => {
+    const allActive = [order, ...getOtherActiveOrders(order)];
     setActiveOrdersModal({
       isOpen: true,
       customerName: order.customer_name,
-      activeOrders: getOtherActiveOrders(order),
+      activeOrders: allActive,
       blockedOrderId: order.id
     });
   };
@@ -228,14 +229,11 @@ export const useOrderManagement = () => {
   };
 
   const handleCompleteAllCustomerOrders = async () => {
-    if (!activeOrdersModal.blockedOrderId || activeOrdersModal.activeOrders.length === 0) return;
+    if (activeOrdersModal.activeOrders.length === 0) return;
     
     try {
-      // Gather all order IDs (the one they clicked + the blocking ones)
-      const allIdsToComplete = [
-        activeOrdersModal.blockedOrderId,
-        ...activeOrdersModal.activeOrders.map((o: any) => o.id)
-      ];
+      // Gather all order IDs
+      const allIdsToComplete = activeOrdersModal.activeOrders.map((o: any) => o.id);
       
       await bulkUpdateOrderStatus(allIdsToComplete, 'completed');
       toast.success(`${allIdsToComplete.length} orders successfully consolidated and completed!`);
