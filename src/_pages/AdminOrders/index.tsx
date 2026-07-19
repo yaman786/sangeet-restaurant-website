@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Receipt, X, CheckCircle } from 'lucide-react';
 import AdminHeader from '../../components/AdminHeader';
 import OrderFilters from './OrderFilters';
 import OrderTable from './OrderTable';
@@ -108,94 +109,74 @@ const AdminOrders = () => {
 
         {/* Active Orders Modal */}
         {activeOrdersModal.isOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 border border-sangeet-neutral-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-[#171717]/90 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]"
             >
-              {/* Header */}
-              <div className="text-center mb-6">
-                <div className="text-4xl mb-4">💳</div>
-                <h2 className="text-2xl font-bold text-blue-400 mb-2">
-                  Consolidated Checkout
-                </h2>
-                <p className="text-sangeet-neutral-300">
-                  Review all active orders for <span className="font-semibold text-sangeet-400">{activeOrdersModal.customerName}</span> before payment.
-                </p>
+              {/* Receipt Header */}
+              <div className="px-6 py-8 text-center border-b border-white/10 relative">
+                <button
+                  onClick={closeActiveOrdersModal}
+                  className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors p-2"
+                >
+                  <X size={20} />
+                </button>
+                <div className="w-12 h-12 bg-[#D4AF37]/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#D4AF37]/30">
+                  <Receipt className="text-[#D4AF37]" size={24} />
+                </div>
+                <h2 className="text-white text-lg font-medium opacity-80 mb-1">Total Due</h2>
+                <div className="text-4xl font-bold text-white mb-2 tracking-tight">
+                  ${activeOrdersModal.activeOrders.reduce((sum: any, order: any) => sum + Number(order.total_amount || 0), 0).toFixed(2)}
+                </div>
+                <div className="flex items-center justify-center space-x-2 text-sm text-white/60">
+                  <span>Table {activeOrdersModal.activeOrders[0]?.table_number}</span>
+                  <span>•</span>
+                  <span>{activeOrdersModal.customerName}</span>
+                </div>
               </div>
 
-              {/* Active Orders List */}
-              <div className="bg-sangeet-neutral-800/80 border border-sangeet-neutral-700 rounded-xl p-4 mb-6">
-                <h3 className="text-sangeet-neutral-300 font-medium mb-3">Customer Tickets:</h3>
-                <div className="space-y-3">
-                  {activeOrdersModal.activeOrders.map((order: any) => (
-                    <div key={order.id} className="bg-sangeet-neutral-800/50 rounded-lg p-3 border border-sangeet-neutral-700">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sangeet-400 font-semibold">
-                            Order #{order.order_number}
-                          </span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(order.status)}`}>
-                            {{
-                              'pending': 'New Order',
-                              'preparing': 'In Kitchen',
-                              'ready': 'Ready / Served',
-                              'completed': 'Paid & Completed',
-                              'cancelled': 'Cancelled'
-                            }[order.status as string] || (order.status || 'unknown').charAt(0).toUpperCase() + (order.status || 'unknown').slice(1)}
-                          </span>
+              {/* Itemized List */}
+              <div className="p-6 overflow-y-auto flex-1">
+                <h3 className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-4">Itemized Tickets</h3>
+                <div className="space-y-4">
+                  {activeOrdersModal.activeOrders.map((order: any, idx: number) => (
+                    <div key={order.id} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 text-xs font-medium">
+                          {idx + 1}
                         </div>
-                        <span className="text-sangeet-neutral-400 text-sm">
-                          Table {order.table_number}
-                        </span>
+                        <div>
+                          <div className="text-white/90 text-sm font-medium">Order #{order.order_number}</div>
+                          <div className="text-white/40 text-xs">{formatDate(order.created_at)}</div>
+                        </div>
                       </div>
-                      <div className="text-sangeet-neutral-300 text-sm">
-                        Created: {formatDate(order.created_at)}
+                      <div className="text-white font-medium">
+                        ${Number(order.total_amount || 0).toFixed(2)}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Instructions */}
-              <div className="bg-blue-900/20 border border-blue-500/30 rounded-xl p-4 mb-6">
-                <div className="flex items-start space-x-3">
-                  <span className="text-blue-400 text-xl">💡</span>
-                  <div>
-                    <p className="text-blue-300 font-medium mb-1">Consolidated Payment:</p>
-                    <p className="text-blue-200 text-sm">
-                      This customer has multiple active tickets. To prevent deadlocks and ensure a smooth checkout, you can collect payment and complete all of their orders at once.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex space-x-3">
+              {/* Sticky Footer */}
+              <div className="p-6 bg-white/5 border-t border-white/10">
                 <button
                   onClick={handleCompleteAllCustomerOrders}
-                  className="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl transition-colors duration-200 shadow-lg flex items-center justify-center space-x-2"
+                  className="w-full bg-[#D4AF37] hover:bg-[#B8972E] text-black font-semibold text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all flex items-center justify-center space-x-2 cursor-pointer"
                 >
-                  <span>Pay All Orders</span>
-                  <span>💵</span>
+                  <CheckCircle size={20} />
+                  <span>Charge ${activeOrdersModal.activeOrders.reduce((sum: any, order: any) => sum + Number(order.total_amount || 0), 0).toFixed(2)}</span>
                 </button>
                 <button
                   onClick={closeActiveOrdersModal}
-                  className="bg-sangeet-neutral-700 hover:bg-sangeet-neutral-600 text-sangeet-neutral-200 font-medium py-3 px-6 rounded-xl transition-colors duration-200"
+                  className="w-full mt-4 text-white/50 hover:text-white transition-colors text-sm font-medium cursor-pointer"
                 >
-                  Cancel
+                  Cancel Checkout
                 </button>
               </div>
-
-              {/* Close Button */}
-              <button
-                onClick={closeActiveOrdersModal}
-                className="absolute top-4 right-4 text-sangeet-neutral-400 hover:text-sangeet-neutral-200 text-2xl transition-colors duration-200"
-              >
-                ×
-              </button>
             </motion.div>
           </div>
         )}
