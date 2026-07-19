@@ -24,8 +24,13 @@ export const useTableSession = () => {
       if (typeof window !== 'undefined' && tableNumber) {
         const stored = localStorage.getItem(`customer_${tableNumber}`);
         if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed.name) return parsed.name;
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed && parsed.name) return parsed.name;
+          } catch (parseError) {
+            // If it's not JSON, it might just be the raw string (saved by QRCartPage)
+            if (typeof stored === 'string' && stored.length > 0) return stored;
+          }
         }
       }
     } catch (e) {}
