@@ -38,7 +38,8 @@ const AdminOrders = () => {
     handleSelectAll,
     canCompleteOrder,
     showActiveOrdersModalDetails,
-    closeActiveOrdersModal
+    closeActiveOrdersModal,
+    handleCompleteAllCustomerOrders
   } = useOrderManagement();
 
   const getStatusColor = (status: any) => {
@@ -159,27 +160,32 @@ const AdminOrders = () => {
               </div>
 
               {/* Instructions */}
-              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4 mb-6">
+              <div className="bg-blue-900/20 border border-blue-500/30 rounded-xl p-4 mb-6">
                 <div className="flex items-start space-x-3">
-                  <span className="text-yellow-400 text-xl">💡</span>
+                  <span className="text-blue-400 text-xl">💡</span>
                   <div>
-                    <p className="text-yellow-300 font-medium mb-1">Instructions:</p>
-                    <ul className="text-yellow-200 text-sm space-y-1">
-                      <li>• Complete all active orders for this customer first</li>
-                      <li>• Then you can complete the current order</li>
-                      <li>• This prevents orphaned orders and ensures proper payment flow</li>
-                    </ul>
+                    <p className="text-blue-300 font-medium mb-1">Consolidated Payment:</p>
+                    <p className="text-blue-200 text-sm">
+                      This customer has multiple active tickets. To prevent deadlocks and ensure a smooth checkout, you can collect payment and complete all of their orders at once.
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Action Button */}
-              <div className="flex justify-center">
+              {/* Action Buttons */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleCompleteAllCustomerOrders}
+                  className="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl transition-colors duration-200 shadow-lg flex items-center justify-center space-x-2"
+                >
+                  <span>Pay All Orders</span>
+                  <span>💵</span>
+                </button>
                 <button
                   onClick={closeActiveOrdersModal}
-                  className="bg-sangeet-neutral-700 hover:bg-sangeet-neutral-600 text-sangeet-neutral-200 font-medium py-3 px-8 rounded-xl transition-colors duration-200"
+                  className="bg-sangeet-neutral-700 hover:bg-sangeet-neutral-600 text-sangeet-neutral-200 font-medium py-3 px-6 rounded-xl transition-colors duration-200"
                 >
-                  Got It
+                  Cancel
                 </button>
               </div>
 

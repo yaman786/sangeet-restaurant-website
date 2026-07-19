@@ -227,6 +227,25 @@ export const useOrderManagement = () => {
     });
   };
 
+  const handleCompleteAllCustomerOrders = async () => {
+    if (!activeOrdersModal.blockedOrderId || activeOrdersModal.activeOrders.length === 0) return;
+    
+    try {
+      // Gather all order IDs (the one they clicked + the blocking ones)
+      const allIdsToComplete = [
+        activeOrdersModal.blockedOrderId,
+        ...activeOrdersModal.activeOrders.map((o: any) => o.id)
+      ];
+      
+      await bulkUpdateOrderStatus(allIdsToComplete, 'completed');
+      toast.success(`${allIdsToComplete.length} orders successfully consolidated and completed!`);
+      closeActiveOrdersModal();
+    } catch (error) {
+      console.error('Error completing all customer orders:', error);
+      toast.error('Failed to complete consolidated orders. Please try again.');
+    }
+  };
+
   const handleStatusUpdate = async (orderId: any, newStatus: any) => {
     try {
       const currentOrder = orders.find(order => order.id === orderId) || completedOrders.find(order => order.id === orderId);
@@ -295,6 +314,11 @@ export const useOrderManagement = () => {
       console.error('Error fetching order details:', error);
       toast.error('Failed to load order details');
     }
+  };
+
+  const closeOrderModal = () => {
+    setShowOrderModal(false);
+    setSelectedOrderDetails(null);
   };
 
   const handleBulkStatusUpdate = async (status: any) => {
@@ -380,8 +404,11 @@ export const useOrderManagement = () => {
     cancelClearCompletedOrders,
     handleOrderSelection,
     handleSelectAll,
+    closeOrderModal,
+    isValidStatusTransition,
     canCompleteOrder,
     showActiveOrdersModalDetails,
-    closeActiveOrdersModal
+    closeActiveOrdersModal,
+    handleCompleteAllCustomerOrders
   };
 };
