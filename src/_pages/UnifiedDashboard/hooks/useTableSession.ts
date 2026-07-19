@@ -16,8 +16,21 @@ export const useTableSession = () => {
   const tableNumber = searchParams.get('table');
   const initialOrderNumber = searchParams.get('orderNumber');
   const initialTotalAmount = searchParams.get('totalAmount');
+  const initialCustomerName = searchParams.get('customerName');
 
-  const [customerName, setCustomerName] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState<string | null>(() => {
+    if (initialCustomerName) return initialCustomerName;
+    try {
+      if (typeof window !== 'undefined' && tableNumber) {
+        const stored = localStorage.getItem(`customer_${tableNumber}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.name) return parsed.name;
+        }
+      }
+    } catch (e) {}
+    return null;
+  });
   const [orderId, setOrderId] = useState(initialOrderId);
   const [orderNumber, setOrderNumber] = useState(initialOrderNumber);
   const [totalAmount, setTotalAmount] = useState(initialTotalAmount);
