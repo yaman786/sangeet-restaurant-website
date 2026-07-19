@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { fetchMenuItems, fetchMenuCategories, getOrdersByTable } from '../../services/api';
+import { fetchMenuItems, fetchMenuCategories, getOrdersByTable, getTableByNumber } from '../../services/api';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import toast from 'react-hot-toast';
 
@@ -25,6 +25,7 @@ const UnifiedDashboard = () => {
     totalAmount,
     orders,
     tableInfo,
+    setTableInfo,
     hasCancelledOrder,
     setOrders,
     setOrderId,
@@ -95,12 +96,21 @@ const UnifiedDashboard = () => {
 
       if (tableNumber) {
         try {
-          const activeOrders = await getOrdersByTable(tableNumber as string);
+          const [activeOrders, tableData] = await Promise.all([
+            getOrdersByTable(tableNumber as string),
+            getTableByNumber(tableNumber as string).catch(e => {
+              console.error("Failed to fetch table info:", e);
+              return null;
+            })
+          ]);
           if (activeOrders && activeOrders.length > 0) {
             setOrders(activeOrders);
           }
+          if (tableData) {
+            setTableInfo(tableData);
+          }
         } catch (e) {
-          console.error("Error fetching active orders", e);
+          console.error("Error fetching active orders or table info", e);
         }
       }
     } catch (error) {
@@ -108,7 +118,7 @@ const UnifiedDashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [checkCancelledOrderTimeout, tableNumber, setOrders]);
+  }, [checkCancelledOrderTimeout, tableNumber, setOrders, setTableInfo]);
 
   const setupRealTimeUpdates = useCallback(() => {
     socketService.connect();
