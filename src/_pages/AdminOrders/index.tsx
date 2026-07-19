@@ -117,18 +117,18 @@ const AdminOrders = () => {
             >
               {/* Header */}
               <div className="text-center mb-6">
-                <div className="text-4xl mb-4">⚠️</div>
-                <h2 className="text-2xl font-bold text-red-400 mb-2">
-                  Cannot Complete Order
+                <div className="text-4xl mb-4">💳</div>
+                <h2 className="text-2xl font-bold text-blue-400 mb-2">
+                  Consolidated Checkout
                 </h2>
                 <p className="text-sangeet-neutral-300">
-                  {activeOrdersModal.customerName} has other active orders that must be completed first.
+                  Review all active orders for <span className="font-semibold text-sangeet-400">{activeOrdersModal.customerName}</span> before payment.
                 </p>
               </div>
 
               {/* Active Orders List */}
-              <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 mb-6">
-                <h3 className="text-red-300 font-medium mb-3">Active Orders:</h3>
+              <div className="bg-sangeet-neutral-800/80 border border-sangeet-neutral-700 rounded-xl p-4 mb-6">
+                <h3 className="text-sangeet-neutral-300 font-medium mb-3">Customer Tickets:</h3>
                 <div className="space-y-3">
                   {activeOrdersModal.activeOrders.map((order: any) => (
                     <div key={order.id} className="bg-sangeet-neutral-800/50 rounded-lg p-3 border border-sangeet-neutral-700">
