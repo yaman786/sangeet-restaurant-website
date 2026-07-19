@@ -11,6 +11,17 @@ import {
 } from '../../../services/api';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
 
+const sortOrdersByTable = (ordersArray: any[]) => {
+  return [...ordersArray].sort((a, b) => {
+    const tableA = a.tables?.table_number || a.table_number || '';
+    const tableB = b.tables?.table_number || b.table_number || '';
+    const tableCompare = tableA.localeCompare(tableB, undefined, { numeric: true });
+    if (tableCompare !== 0) return tableCompare;
+    // Fallback to chronological if table is the same
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+};
+
 export const useOrderManagement = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +74,7 @@ export const useOrderManagement = () => {
       const activeOrdersList = (ordersData || []).filter(order => order.status !== 'completed' && order.status !== 'cancelled');
       const completedOrdersList = (ordersData || []).filter(order => order.status === 'completed' || order.status === 'cancelled');
 
-      setOrders(activeOrdersList);
+      setOrders(sortOrdersByTable(activeOrdersList));
       setCompletedOrders(completedOrdersList);
       setTables(tablesData);
     } catch (error: any) {
@@ -109,7 +120,7 @@ export const useOrderManagement = () => {
             if (prevOrders.some(order => order.id === orderData.id)) {
               return prevOrders;
             }
-            return [orderData, ...prevOrders];
+            return sortOrdersByTable([orderData, ...prevOrders]);
           });
           toast.success(`New order #${orderData.order_number || orderData.id} received from ${orderData.customer_name || 'Customer'}`, {
             duration: 5000,
@@ -124,11 +135,11 @@ export const useOrderManagement = () => {
       const handleStatusUpdateEvent = (data: any) => {
         const { orderId, status } = data;
         setOrders(prevOrders =>
-          prevOrders.map(order =>
+          sortOrdersByTable(prevOrders.map(order =>
             order.id === orderId
               ? { ...order, status, updated_at: new Date().toISOString() }
               : order
-          )
+          ))
         );
         setCompletedOrders(prevCompleted =>
           prevCompleted.map(order =>

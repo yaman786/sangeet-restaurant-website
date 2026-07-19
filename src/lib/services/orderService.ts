@@ -51,113 +51,58 @@ class OrderService {
       }
     }
     
-    // Find existing pending/active order
-    const existingOrder = await prisma.orders.findFirst({
-      where: {
-        table_id,
-        status: { in: ['pending', 'confirmed', 'preparing', 'ready', 'served'] },
-        is_archived: false
-      },
-      orderBy: { created_at: 'desc' }
-    });
-    
     let orderId: number;
-    let isNewOrder = false;
+    let totalAmount = 0;
     
-    if (existingOrder) {
-      orderId = existingOrder.id;
-      let totalAmount = existingOrder.total_amount ? Number(existingOrder.total_amount) : 0;
-      const newOrderItems = [];
-      
-      const orderItemCreates = [];
-      for (const item of items) {
-        const itemData = menuItemMap.get(item.menu_item_id)!;
-        const itemTotal = itemData.price * item.quantity;
-        totalAmount += itemTotal;
-        
-        orderItemCreates.push({
-          order_id: orderId,
-          menu_item_id: item.menu_item_id,
-          quantity: item.quantity,
-          special_requests: item.special_requests || null,
-          unit_price: itemData.price,
-          total_price: itemTotal
-        });
-        
-        newOrderItems.push({
-          menu_item_id: item.menu_item_id,
-          name: itemData.name,
-          quantity: item.quantity,
-          special_requests: item.special_requests || null,
-          price: itemData.price
-        });
-      }
-      
-      await prisma.$transaction([
-        prisma.order_items.createMany({ data: orderItemCreates }),
-        prisma.orders.update({
-          where: { id: orderId },
-          data: { total_amount: totalAmount, updated_at: new Date() }
-        })
-      ]);
-      
-      emitNewItemsAdded({ type: 'new-items-added', orderId, newItems: newOrderItems, tableNumber, timestamp: new Date().toISOString() });
-    } else {
-      isNewOrder = true;
-      let totalAmount = 0;
-      
-      const orderItemCreates = [];
-      for (const item of items) {
-        const itemData = menuItemMap.get(item.menu_item_id)!;
-        const itemTotal = itemData.price * item.quantity;
-        totalAmount += itemTotal;
-        orderItemCreates.push({
-          menu_item_id: item.menu_item_id,
-          quantity: item.quantity,
-          special_requests: item.special_requests || null,
-          unit_price: itemData.price,
-          total_price: itemTotal
-        });
-      }
-      
-      const dateStr = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 8);
-      
-      let createdOrder = null;
-      while (!createdOrder) {
-        const randomNum = Math.floor(1000 + Math.random() * 9000);
-        const orderNumber = `ORD${dateStr}${randomNum}`;
-        
-        try {
-          createdOrder = await prisma.orders.create({
-            data: {
-              order_number: orderNumber,
-              table_id,
-              customer_name,
-              status: 'pending',
-              special_instructions: special_instructions || null,
-              total_amount: totalAmount,
-              order_type,
-              order_items: {
-                create: orderItemCreates
-              }
-            }
-          });
-        } catch (e: any) {
-          if (e.code === 'P2002') continue; // Unique constraint failed, retry
-          throw e;
-        }
-      }
-      
-      orderId = createdOrder.id;
+    const orderItemCreates = [];
+    for (const item of items) {
+      const itemData = menuItemMap.get(item.menu_item_id)!;
+      const itemTotal = itemData.price * item.quantity;
+      totalAmount += itemTotal;
+      orderItemCreates.push({
+        menu_item_id: item.menu_item_id,
+        quantity: item.quantity,
+        special_requests: item.special_requests || null,
+        unit_price: itemData.price,
+        total_price: itemTotal
+      });
     }
+    
+    const dateStr = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 8);
+    
+    let createdOrder = null;
+    while (!createdOrder) {
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      const orderNumber = `ORD${dateStr}${randomNum}`;
+      
+      try {
+        createdOrder = await prisma.orders.create({
+          data: {
+            order_number: orderNumber,
+            table_id,
+            customer_name,
+            status: 'pending',
+            special_instructions: special_instructions || null,
+            total_amount: totalAmount,
+            order_type,
+            order_items: {
+              create: orderItemCreates
+            }
+          }
+        });
+      } catch (e: any) {
+        if (e.code === 'P2002') continue; // Unique constraint failed, retry
+        throw e;
+      }
+    }
+    
+    orderId = createdOrder.id;
     
     const fullOrder = await this.getOrderWithItems(orderId);
     
-    if (isNewOrder) {
-      emitNewOrder({ type: 'new-order', orderId, tableNumber, timestamp: new Date().toISOString() });
-    }
+    emitNewOrder({ type: 'new-order', orderId, tableNumber, timestamp: new Date().toISOString() });
     
-    return { order: fullOrder, merged: !isNewOrder };
+    return { order: fullOrder, merged: false };
   }
 
   private async getOrderWithItems(orderId: number) {
