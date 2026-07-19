@@ -27,6 +27,7 @@ export const useTableSession = () => {
           try {
             const parsed = JSON.parse(stored);
             if (parsed && parsed.name) return parsed.name;
+            if (typeof parsed === 'string' && parsed.length > 0) return parsed;
           } catch (parseError) {
             // If it's not JSON, it might just be the raw string (saved by QRCartPage)
             if (typeof stored === 'string' && stored.length > 0) return stored;
