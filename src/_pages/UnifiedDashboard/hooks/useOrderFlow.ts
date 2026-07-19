@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { createOrder } from '../../../services/api';
+import { createOrder, getTableByNumber } from '../../../services/api';
 import toast from 'react-hot-toast';
 
 export const useOrderFlow = (tableSession: any) => {
@@ -65,9 +65,32 @@ export const useOrderFlow = (tableSession: any) => {
 
     try {
       setLoading(true);
-      const tableIdRaw = tableInfo?.id || tableNumber;
-      // Ensure tableId is a number since Zod schema requires table_id to be an integer
-      const tableId = typeof tableIdRaw === 'string' ? parseInt(tableIdRaw, 10) : tableIdRaw;
+      let tableId = tableInfo?.id;
+      
+      if (!tableId) {
+        if (!tableNumber) {
+          toast.error('Table information is missing. Please scan the QR code again.');
+          setLoading(false);
+          return;
+        }
+        
+        try {
+          const tableData = await getTableByNumber(tableNumber as string);
+          if (tableData && tableData.id) {
+            tableId = tableData.id;
+          } else {
+            throw new Error('Invalid table data');
+          }
+        } catch (error) {
+          console.error('Failed to fetch table info for order:', error);
+          toast.error('Could not verify table. Please scan the QR code again.');
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // Ensure tableId is an integer for the backend schema
+      tableId = typeof tableId === 'string' ? parseInt(tableId, 10) : tableId;
       
       const orderData = {
         table_id: tableId,
