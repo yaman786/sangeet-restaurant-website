@@ -114,13 +114,14 @@ export const useOrderFlow = (tableSession: any) => {
       setOrderItems(currentCartItems);
       
       setOrders((prevOrders: any[]) => {
-        if (isMerged) {
+        const orderExists = prevOrders.some((order: any) => order.id === newOrder.id);
+        if (orderExists) {
+          // If we already have this order in state, update it (useful for both merged and normal updates)
           return prevOrders.map((order: any) => 
             order.id === newOrder.id ? newOrder : order
           );
         } else {
-          const orderExists = prevOrders.some((order: any) => order.id === newOrder.id);
-          if (orderExists) return prevOrders;
+          // If we don't have it (e.g., page was reloaded, or it's a brand new order), append it!
           return [...prevOrders, newOrder];
         }
       });
