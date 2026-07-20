@@ -4,10 +4,11 @@ import orderService from '@/lib/services/orderService';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireAuth } from '@/lib/auth';
 import { z } from 'zod';
+import { orderStatusSchema } from '@/lib/validations/order';
 
 const bulkUpdateSchema = z.object({
   orderIds: z.array(z.number().or(z.string()).transform(val => Number(val))),
-  status: z.enum(['pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled']),
+  status: orderStatusSchema,
 });
 
 export async function PATCH(req: NextRequest) {

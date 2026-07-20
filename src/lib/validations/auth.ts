@@ -11,7 +11,7 @@ export const registerSchema = z.object({
     .max(50, 'Username must be at most 50 characters')
     .regex(/^[a-zA-Z0-9_]+$/, 'Only letters, numbers, and underscores allowed'),
   email: z.string().email('Invalid email address').toLowerCase(),
-  role: z.enum(['admin', 'waiter', 'kitchen', 'manager'], {
+  role: z.enum(['admin', 'waiter', 'kitchen', 'reception'], {
     message: 'Invalid role'
   }),
   password: z.string()

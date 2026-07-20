@@ -1,4 +1,5 @@
 import Pusher from 'pusher-js';
+import env from '@/lib/utils/env';
 
 class PusherClientService {
   private pusher: Pusher | null = null;
@@ -8,8 +9,8 @@ class PusherClientService {
   connect() {
     if (this.pusher) return;
 
-    const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
-    const cluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+    const key = env.NEXT_PUBLIC_PUSHER_KEY;
+    const cluster = env.NEXT_PUBLIC_PUSHER_CLUSTER;
     if (!key || !cluster) {
       console.warn('Pusher credentials not configured. Real-time features disabled.');
       return;

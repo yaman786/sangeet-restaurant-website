@@ -5,10 +5,14 @@ interface RateLimitStore {
 
 const store = new Map<string, RateLimitStore>();
 
+let lastCleanup = Date.now();
+const CLEANUP_INTERVAL = 60000; // 1 minute
+
 /**
  * Basic in-memory rate limiter.
- * Note: In a serverless environment (like Vercel), this state may be lost between cold starts.
- * For production with high traffic, consider using Redis (e.g., Upstash).
+ * Note: In a serverless environment (like Vercel), this state may be lost between cold starts
+ * and is not shared across edge nodes. For robust production rate limiting, integrate 
+ * @upstash/ratelimit with Redis.
  * 
  * @param ip The IP address or unique identifier to limit
  * @param limit Max number of requests allowed in the window
@@ -17,6 +21,17 @@ const store = new Map<string, RateLimitStore>();
  */
 export function rateLimit(ip: string, limit = 5, windowMs = 60000) {
   const now = Date.now();
+
+  // Passive cleanup to prevent memory leaks in long-running processes
+  if (now - lastCleanup > CLEANUP_INTERVAL) {
+    for (const [key, value] of Array.from(store.entries())) {
+      if (now > value.resetTime) {
+        store.delete(key);
+      }
+    }
+    lastCleanup = now;
+  }
+
   const record = store.get(ip);
 
   if (!record || now > record.resetTime) {

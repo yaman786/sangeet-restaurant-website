@@ -1,8 +1,10 @@
 "use client";
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
+import type { UserRole } from '@/lib/types';
+
 export interface User {
-  role: 'admin' | 'kitchen' | 'reception' | 'waiter' | 'user';
+  role: UserRole | 'user';
   migrated?: boolean;
   [key: string]: any;
 }

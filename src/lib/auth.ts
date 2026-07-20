@@ -2,14 +2,8 @@ import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-export interface JwtPayload {
-  id: number;
-  username: string;
-  role: 'admin' | 'kitchen' | 'reception' | 'waiter';
-  email: string;
-  iat?: number;
-  exp?: number;
-}
+import type { JwtPayload, UserRole } from './types';
+export type { JwtPayload, UserRole };
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {

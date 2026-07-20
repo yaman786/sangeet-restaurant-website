@@ -16,6 +16,12 @@ export const metadata: Metadata = {
   description: "Authentic South Asian Cuisine",
 };
 
+const LoadingFallback = () => (
+  <div className="min-h-screen bg-sangeet-neutral-950 flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sangeet-400"></div>
+  </div>
+);
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,7 +32,7 @@ export default function RootLayout({
       <body className={`${playfair.variable} ${playfairSC.variable} ${outfit.variable} ${inter.variable} ${karla.variable} font-sans`}>
         <ErrorBoundary>
           <Providers>
-            <Suspense fallback={null}>
+            <Suspense fallback={<LoadingFallback />}>
               {children}
             </Suspense>
           </Providers>

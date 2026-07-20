@@ -3,6 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import orderService from '@/lib/services/orderService';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireAuth } from '@/lib/auth';
+import { z } from 'zod';
+import { orderStatusSchema } from '@/lib/validations/order';
+
+const updateStatusSchema = z.object({
+  status: orderStatusSchema
+});
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -11,8 +17,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const roleError = requireAuth(authResult.user!);
     if (roleError) return roleError;
 
-    const body = await req.json();
-    const order = await orderService.updateOrderStatus(params.id, body.status);
+    const rawBody = await req.json();
+    const { status } = updateStatusSchema.parse(rawBody);
+    
+    const order = await orderService.updateOrderStatus(params.id, status);
     
     return NextResponse.json({ message: 'Order status updated successfully', order });
   } catch (error) {

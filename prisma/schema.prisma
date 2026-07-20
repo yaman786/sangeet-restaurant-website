@@ -42,7 +42,7 @@ model customer_reviews {
   id            Int       @id @default(autoincrement())
   customer_name String    @db.VarChar(255)
   review_text   String
-  rating        Int?
+  rating        Int?      @db.SmallInt
   image_url     String?
   order_id      Int?
   table_number  String?   @db.VarChar(10)

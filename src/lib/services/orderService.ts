@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { NotFoundError, ValidationError } from '@/lib/errors';
+import { AppError, NotFoundError, ValidationError } from '@/lib/errors';
 // Socket functionality disabled in serverless mode
 import { generateQRCode } from '../utils/qrGenerator';
 import type { OrderRow, OrderItemRow, CreateOrderInput } from '@/lib/types';
@@ -118,7 +118,11 @@ class OrderService {
       const dateStr = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 8);
       
       let createdOrder = null;
-      while (!createdOrder) {
+      let attempts = 0;
+      const MAX_ATTEMPTS = 10;
+      
+      while (!createdOrder && attempts < MAX_ATTEMPTS) {
+        attempts++;
         const randomNum = Math.floor(1000 + Math.random() * 9000);
         const orderNumber = `ORD${dateStr}${randomNum}`;
         
@@ -143,6 +147,10 @@ class OrderService {
         }
       }
       
+      if (!createdOrder) {
+        throw new AppError('Failed to generate a unique order number after multiple attempts.', 500);
+      }
+      
       orderId = createdOrder.id;
       fullOrder = await this.getOrderWithItems(orderId);
       
@@ -152,34 +160,35 @@ class OrderService {
     return { order: fullOrder, merged };
   }
 
-  private async getOrderWithItems(orderId: number) {
-    const order = await prisma.orders.findUnique({
-      where: { id: orderId },
-      include: {
-        tables: true,
-        order_items: {
-          include: {
-            menu_items: true
-          }
-        }
-      }
-    });
-    
-    if (!order) throw new NotFoundError('Order');
-    
+  private formatOrder = (order: any) => {
     return {
       ...order,
       total_amount: order.total_amount ? Number(order.total_amount) : 0,
       table_number: order.tables?.table_number,
-      items: order.order_items.map(item => ({
+      items: order.order_items?.map((item: any) => ({
         ...item,
         unit_price: item.unit_price ? Number(item.unit_price) : 0,
         total_price: item.total_price ? Number(item.total_price) : 0,
         name: item.menu_items?.name,
         image_url: item.menu_items?.image_url,
         category: item.menu_items?.category
-      }))
+      })) || []
     } as any;
+  }
+
+  private async getOrderWithItems(orderId: number) {
+    const order = await prisma.orders.findUnique({
+      where: { id: orderId },
+      include: {
+        tables: true,
+        order_items: {
+          include: { menu_items: true }
+        }
+      }
+    });
+    
+    if (!order) throw new NotFoundError('Order');
+    return this.formatOrder(order);
   }
 
   async getOrderById(id: string, tableNumber?: string) {
@@ -197,14 +206,14 @@ class OrderService {
         is_archived: false,
         status: { notIn: ['completed', 'cancelled'] }
       },
+      include: {
+        tables: true,
+        order_items: { include: { menu_items: true } }
+      },
       orderBy: { created_at: 'desc' }
     });
     
-    const result = [];
-    for (const o of orders) {
-      result.push(await this.getOrderWithItems(o.id));
-    }
-    return result;
+    return orders.map(this.formatOrder);
   }
 
   async getOrdersByTableNumber(tableNumber: string) {
@@ -271,15 +280,15 @@ class OrderService {
     
     const orders = await prisma.orders.findMany({
       where,
+      include: {
+        tables: true,
+        order_items: { include: { menu_items: true } }
+      },
       orderBy: { created_at: 'desc' },
       ...(query.limit ? { take: parseInt(query.limit as string, 10) } : {})
     });
     
-    const result = [];
-    for (const o of orders) {
-      result.push(await this.getOrderWithItems(o.id));
-    }
-    return result;
+    return orders.map(this.formatOrder);
   }
 
   async getOrderStats() {
@@ -368,13 +377,20 @@ class OrderService {
       data: { status, updated_at: new Date() }
     });
     
-    const updatedOrders = [];
-    for (const id of orderIds) {
-      const order = await this.getOrderWithItems(id);
-      updatedOrders.push(order);
+    const orders = await prisma.orders.findMany({
+      where: { id: { in: orderIds } },
+      include: {
+        tables: true,
+        order_items: { include: { menu_items: true } }
+      }
+    });
+
+    const updatedOrders = orders.map(this.formatOrder);
+    
+    for (const order of updatedOrders) {
       emitOrderStatusUpdate({ 
         type: 'status-update', 
-        orderId: id, 
+        orderId: order.id, 
         status, 
         tableNumber: order.table_number, 
         estimatedTime: order.estimated_time, 
@@ -403,15 +419,15 @@ class OrderService {
 
     const orders = await prisma.orders.findMany({
       where,
+      include: {
+        tables: true,
+        order_items: { include: { menu_items: true } }
+      },
       orderBy: { created_at: 'desc' },
       take: 50
     });
     
-    const result = [];
-    for (const o of orders) {
-      result.push(await this.getOrderWithItems(o.id));
-    }
-    return result;
+    return orders.map(this.formatOrder);
   }
 }
 

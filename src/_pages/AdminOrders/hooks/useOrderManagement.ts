@@ -57,7 +57,7 @@ export const useOrderManagement = () => {
     try {
       if (!isBackgroundPoll && orders.length === 0 && completedOrders.length === 0) setLoading(true);
       
-      let searchParams = { ...filters };
+      const searchParams = { ...filters };
       if (viewMode !== 'all') {
         if (viewMode === 'completed') {
           searchParams.status = 'completed,cancelled';

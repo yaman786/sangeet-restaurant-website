@@ -125,8 +125,7 @@ class AuthService {
       where.OR = [
         { username: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
-        { first_name: { contains: search, mode: 'insensitive' } },
-        { last_name: { contains: search, mode: 'insensitive' } },
+        { full_name: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -204,7 +203,11 @@ class AuthService {
       throw new UnauthorizedError('Only administrators can update users');
     }
 
-    const { username, email, password, role, first_name, last_name, phone, is_active } = data;
+    const { username, email, password, role, first_name, last_name, full_name, phone, is_active } = data;
+
+    // Support either full_name or first_name + last_name formats
+    const computedFullName = full_name || 
+      (first_name || last_name ? [first_name, last_name].filter(Boolean).join(' ') : undefined);
 
     const existing = await prisma.users.findFirst({
       where: {
@@ -221,7 +224,7 @@ class AuthService {
     }
 
     const updateData: any = {
-      username, email, role, first_name, last_name, 
+      username, email, role, full_name: computedFullName, 
       phone: phone || null, is_active, updated_at: new Date()
     };
 

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'Explore our authentic South Asian menu. From Butter Chicken to spicy Biryanis, discover your next favorite dish.',
 };
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export default async function Page() {
   let menuItems: any[] = [];

@@ -13,3 +13,13 @@ export const createOrderSchema = z.object({
   special_instructions: z.string().max(1000).nullable().optional(),
   order_type: z.enum(['dine-in', 'takeaway', 'delivery']).optional().default('dine-in'),
 });
+
+export const orderStatusSchema = z.enum([
+  'pending', 
+  'confirmed', 
+  'preparing', 
+  'ready', 
+  'served',
+  'completed', 
+  'cancelled'
+]);

@@ -1,10 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
+import env from '@/lib/utils/env';
 
 // Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = (supabaseUrl && supabaseKey) 
+  ? createClient(supabaseUrl, supabaseKey) 
+  : null;
 
 /**
  * Upload an image to Supabase Storage
@@ -20,10 +23,16 @@ export async function uploadImage(
   contentType: string,
   bucket: string = 'menu-images'
 ): Promise<string> {
-  if (!supabaseUrl || !supabaseKey) {
-    console.warn('Supabase credentials not found. Ensure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.');
-    // Fallback URL for development if missing credentials
-    return `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop`;
+  if (!supabaseUrl || !supabaseKey || !supabase) {
+    const errorMsg = 'Supabase credentials not found. Ensure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.';
+    console.error(errorMsg);
+    
+    if (env.isDev) {
+      // Allow fallback ONLY in development for UI testing
+      console.warn('Development mode: Using stock photo fallback');
+      return `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop`;
+    }
+    throw new Error(errorMsg);
   }
 
   const { data, error } = await supabase.storage

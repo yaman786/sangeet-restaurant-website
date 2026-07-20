@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, CheckCircle, AlertCircle, Package, Timer } from 'lucide-react';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
@@ -7,11 +7,10 @@ import { fetchAllOrders, updateOrderStatus } from '../services/api';
 import toast from 'react-hot-toast';
 import CustomDropdown from './CustomDropdown';
 import { isNewItem, sortItemsByNewness, hasMultipleSessions } from '../utils/itemUtils';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, activeFilter = 'all', sortBy = 'priority', searchQuery = '' }: any) => {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [completedOrders, setCompletedOrders] = useState<any[]>([]);
+  const queryClient = useQueryClient();
 
   const statusOptions = [
     { value: 'pending', label: 'Pending' },
@@ -93,179 +92,81 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     });
   }, [activeFilter, sortBy]);
 
-  const loadOrders = useCallback(async (isBackgroundPoll = false) => {
-    try {
-      const response = await fetchAllOrders();
-      
-      // Separate completed orders from active orders
-      const activeOrders = response.filter(order => {
-        if (order.status === 'completed') return false;
-        if (kitchenMode && order.status === 'pending') return false;
-        return true;
-      });
-      const completedOrders = response.filter(order => order.status === 'completed');
-      
-      setOrders(sortOrders(activeOrders));
-      setCompletedOrders(sortOrders(completedOrders));
-    } catch (error) {
-      console.error('Error loading orders:', error);
-      
-      if (!isBackgroundPoll) {
-        // Show error message instead of demo data
-        toast.error('Failed to load orders. Please check your connection and try again.');
-        
-        // Set empty arrays instead of demo data
-        setOrders([]);
-        setCompletedOrders([]);
-      }
-    } finally {
-      if (!isBackgroundPoll) setLoading(false);
+  const { data: allOrders = [], isLoading: loading } = useQuery({
+    queryKey: ['orders'],
+    queryFn: () => fetchAllOrders(),
+    refetchInterval: 60000, // Background polling fallback
+  });
+
+  const orders = sortOrders(allOrders.filter((order: any) => 
+    order.status !== 'completed' && order.status !== 'cancelled' && !(kitchenMode && order.status === 'pending')
+  ));
+  
+  const completedOrders = sortOrders(allOrders.filter((order: any) => 
+    order.status === 'completed' || order.status === 'cancelled'
+  ));
+
+  const statusMutation = useMutation({
+    mutationFn: ({ orderId, newStatus }: { orderId: any, newStatus: any }) => updateOrderStatus(orderId, newStatus),
+    onSuccess: (data, variables) => {
+      toast.success(`Order #${variables.orderId} status updated to ${variables.newStatus}`);
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+    onError: () => {
+      toast.error('Failed to update order status');
     }
-  }, [sortOrders]);
+  });
 
   const setupSocketListeners = useCallback(() => {
     try {
-      // Ensure socket is connected before setting up listeners
       if (!socketService.isConnected) {
         socketService.connect();
       }
-      
-      // Join kitchen room to receive notifications
       socketService.joinKitchen();
 
-      // Listen for new orders → real-time addition
       socketService.onNewOrder((orderData: any) => {
         if (soundEnabled) socketService.playNotificationSound('notification');
-        
-        if (orderData && orderData.id) {
-          // Add new order to the beginning of active orders
-          setOrders(prevOrders => sortOrders([orderData, ...prevOrders]));
-          
-          // Show notification
-          toast.success(`New order #${orderData.order_number || orderData.id} received!`, {
-            duration: 4000,
-            icon: '🔔'
-          });
-        } else {
-          // Fallback to refresh if no order data
-          loadOrders();
-        }
+        toast.success(`New order received!`, { duration: 4000, icon: '🔔' });
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
       });
 
-      // Listen for status updates → real-time update
       socketService.onOrderStatusUpdate((data: any) => {
         if (data.status === 'ready' && soundEnabled) socketService.playNotificationSound('completion');
-        
-        const { orderId, status } = data;
-        
-        // Update in active orders
-        setOrders(prevOrders => {
-          const orderExists = prevOrders.some(order => order.id === orderId);
-          
-          if (!orderExists && kitchenMode && status !== 'completed' && status !== 'cancelled') {
-            // Waiter confirmed a pending order that the kitchen didn't have yet.
-            // Fetch it from the server.
-            loadOrders();
-            return prevOrders;
-          }
-
-          const updatedOrders = prevOrders.map(order => 
-            order.id === orderId 
-              ? { ...order, status, updated_at: new Date().toISOString() }
-              : order
-          );
-          return sortOrders(updatedOrders);
-        });
-        
-        // Update in completed orders if it exists there
-        setCompletedOrders(prevCompleted => 
-          prevCompleted.map(order => 
-            order.id === orderId 
-              ? { ...order, status, updated_at: new Date().toISOString() }
-              : order
-          )
-        );
-        
-        // If order is completed, move it from active to completed after a delay
-        if (status === 'completed') {
-          setTimeout(() => {
-            setOrders(prevOrders => {
-              const orderToMove = prevOrders.find(order => order.id === orderId);
-              if (orderToMove) {
-                const updatedOrder = { ...orderToMove, status: 'completed', updated_at: new Date().toISOString() };
-                setCompletedOrders(prev => sortOrders([updatedOrder, ...prev]));
-                return prevOrders.filter(order => order.id !== orderId);
-              }
-              return prevOrders;
-            });
-          }, 3000); // 3 second delay for kitchen display
-        }
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
       });
 
-      // Listen for order deletions → real-time removal
       socketService.onOrderDeleted((data: any) => {
-        const deletedOrderId = data.orderId;
-        
-        // Remove from active orders
-        setOrders(prevOrders => prevOrders.filter(order => order.id !== deletedOrderId));
-        
-        // Remove from completed orders
-        setCompletedOrders(prevCompleted => prevCompleted.filter(order => order.id !== deletedOrderId));
-        
-        // Show success message
-        toast.success(`Order #${data.orderId} deleted`, {
-          duration: 3000,
-          icon: '🗑️'
+        queryClient.setQueryData(['orders'], (oldData: any) => {
+          if (!oldData) return oldData;
+          return oldData.filter((order: any) => order.id !== data.orderId);
         });
+        toast.success(`Order #${data.orderId} deleted`, { duration: 3000, icon: '🗑️' });
       });
 
-      // Listen for new items added to existing orders
       socketService.onNewItemsAdded((data: any) => {
-        // Show notification for kitchen
-        toast.success(`New items added to Order #${data.orderId}!`, {
-          duration: 4000,
-          icon: '➕'
-        });
-        
-        // Reload orders for new items (this is complex to update in-place)
-        loadOrders();
+        toast.success(`New items added to Order #${data.orderId}!`, { duration: 4000, icon: '➕' });
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
       });
 
     } catch (error) {
       console.error('Error setting up socket listeners:', error);
     }
-  }, [soundEnabled, sortOrders, loadOrders]);
-
-  useEffect(() => {
-    // Initial load
-    loadOrders(false);
-
-    // Industry Standard: Auto-refresh fallback polling every 60 seconds
-    // This ensures no orders are missed if WebSockets silently disconnect
-    const pollingInterval = setInterval(() => {
-      loadOrders(true);
-    }, 60000);
-
-    // Industry Standard: Instant Reconnect Fetcher
-    // If the internet drops and comes back, instantly fetch any missed orders
-    socketService.onConnectionStateChange((status: string) => {
-      if (status === 'connected') {
-        loadOrders(true); // Fetch silently in background instantly upon reconnect
-      }
-    });
-
-    return () => clearInterval(pollingInterval);
-  }, [loadOrders]);
+  }, [soundEnabled, queryClient]);
 
   useEffect(() => {
     setupSocketListeners();
+    socketService.onConnectionStateChange((status: string) => {
+      if (status === 'connected') {
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+      }
+    });
 
     return () => {
       socketService.removeListener('new-order');
       socketService.removeListener('order-status-update');
       socketService.removeListener('order-deleted');
     };
-  }, [setupSocketListeners]);
+  }, [setupSocketListeners, queryClient]);
 
   // Validate status transitions to prevent backward movement
   const isValidStatusTransition = (currentStatus: any, newStatus: any) => {
@@ -281,55 +182,18 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
   };
 
   const handleStatusUpdate = async (orderId: any, newStatus: any) => {
-    try {
-      // Find the current order to get its status
-      const currentOrder = orders.find(order => order.id === orderId) || 
-                          completedOrders.find(order => order.id === orderId);
-      
-      if (!currentOrder) {
-        toast.error('Order not found');
-        return;
-      }
-
-      // Validate status transition
-      if (!isValidStatusTransition(currentOrder.status, newStatus)) {
-        toast.error(`Cannot change status from "${currentOrder.status}" to "${newStatus}". Invalid transition.`);
-        return;
-      }
-
-      await updateOrderStatus(orderId, newStatus);
-      
-      if (newStatus === 'completed') {
-        // Move to completed orders and remove from active queue after delay
-        const completedOrder = orders.find(order => order.id === orderId);
-        if (completedOrder) {
-          // Update the order status first
-          const updatedOrder = { ...completedOrder, status: newStatus };
-          setCompletedOrders(prev => sortOrders([updatedOrder, ...prev]));
-          
-          // Remove from active orders after 5 seconds
-          setTimeout(() => {
-            setOrders(prev => prev.filter(order => order.id !== orderId));
-          }, 5000);
-          
-          toast.success(`Order #${orderId} completed! Will be removed in 5 seconds.`);
-        }
-      } else {
-        // Update status normally
-        setOrders(prev => {
-          const updatedOrders = prev.map(order => 
-            order.id === orderId 
-              ? { ...order, status: newStatus }
-              : order
-          );
-          return sortOrders(updatedOrders);
-        });
-        toast.success(`Order #${orderId} status updated to ${newStatus}`);
-      }
-    } catch (error) {
-      console.error('Error updating order status:', error);
-      toast.error('Failed to update order status');
+    const currentOrder = allOrders.find((order: any) => order.id === orderId);
+    if (!currentOrder) {
+      toast.error('Order not found');
+      return;
     }
+    if (!isValidStatusTransition(currentOrder.status, newStatus)) {
+      toast.error(`Cannot change status from "${currentOrder.status}" to "${newStatus}". Invalid transition.`);
+      return;
+    }
+    
+    // React Query Mutation triggers immediate optimistic updates & backend synchronization
+    statusMutation.mutate({ orderId, newStatus });
   };
 
   const getStatusColor = (status: any) => {
@@ -370,7 +234,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     ? [...orders] 
     : activeFilter === 'completed' 
       ? [...completedOrders]
-      : orders.filter(order => order.status === activeFilter);
+      : orders.filter((order: any) => order.status === activeFilter);
       
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
@@ -383,18 +247,14 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
 
   const filteredOrders = sortOrders(baseOrders);
 
-  // eslint-disable-next-line no-unused-vars
-  const clearCompletedOrders = () => {
-    setCompletedOrders([]);
-    toast.success('Completed orders cleared');
-  };
+
 
   const calculateStats = useCallback(() => {
     const stats = {
       total: orders.length,
-      pending: orders.filter(order => order.status === 'pending').length,
-      preparing: orders.filter(order => order.status === 'preparing').length,
-      ready: orders.filter(order => order.status === 'ready').length,
+      pending: orders.filter((order: any) => order.status === 'pending').length,
+      preparing: orders.filter((order: any) => order.status === 'preparing').length,
+      ready: orders.filter((order: any) => order.status === 'ready').length,
       completed: completedOrders.length
     };
     

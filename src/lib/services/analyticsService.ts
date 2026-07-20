@@ -4,28 +4,31 @@ import beautifulQRGenerator from '../utils/beautifulQRGenerator';
 
 class AnalyticsService {
   async getBusinessAnalytics(timeframe: string = 'week'): Promise<Record<string, any>> {
-    let dateFilter = "INTERVAL '7 days'";
-    if (timeframe === 'month') dateFilter = "INTERVAL '30 days'";
-    else if (timeframe === 'year') dateFilter = "INTERVAL '365 days'";
-    else if (timeframe === 'today') dateFilter = "INTERVAL '1 day'";
+    const ALLOWED_INTERVALS: Record<string, string> = {
+      today: '1 day',
+      week: '7 days',
+      month: '30 days',
+      year: '365 days'
+    };
+    const interval = ALLOWED_INTERVALS[timeframe] ?? '7 days';
 
-    const revenueResult: any[] = await prisma.$queryRawUnsafe(`
+    const revenueResult: any[] = await prisma.$queryRaw`
       SELECT 
         COALESCE(SUM(total_amount), 0) as total_revenue,
         COUNT(*) as total_orders,
         COALESCE(AVG(total_amount), 0) as average_order_value
       FROM orders 
-      WHERE created_at >= NOW() - ${dateFilter} 
+      WHERE created_at >= NOW() - ${interval}::interval 
       AND status = 'completed'
-    `);
+    `;
 
-    const recentOrders: any[] = await prisma.$queryRawUnsafe(`
+    const recentOrders: any[] = await prisma.$queryRaw`
       SELECT DATE(created_at) as date, SUM(total_amount) as revenue, COUNT(*) as orders
       FROM orders
-      WHERE created_at >= NOW() - ${dateFilter} AND status = 'completed'
+      WHERE created_at >= NOW() - ${interval}::interval AND status = 'completed'
       GROUP BY DATE(created_at)
       ORDER BY date ASC
-    `);
+    `;
 
     return {
       summary: {
@@ -42,11 +45,14 @@ class AnalyticsService {
   }
 
   async getReservationTrends(period: string = 'month'): Promise<{ trends: any[], period: string }> {
-    let dateFilter = "INTERVAL '30 days'";
-    if (period === 'week') dateFilter = "INTERVAL '7 days'";
-    else if (period === 'year') dateFilter = "INTERVAL '365 days'";
+    const ALLOWED_INTERVALS: Record<string, string> = {
+      week: '7 days',
+      month: '30 days',
+      year: '365 days'
+    };
+    const interval = ALLOWED_INTERVALS[period] ?? '30 days';
 
-    const result: any[] = await prisma.$queryRawUnsafe(`
+    const result: any[] = await prisma.$queryRaw`
       SELECT 
         date,
         COUNT(*) as total_reservations,
@@ -55,10 +61,10 @@ class AnalyticsService {
         COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled,
         COUNT(CASE WHEN status = 'no-show' THEN 1 END) as no_show
       FROM reservations
-      WHERE date >= CURRENT_DATE - ${dateFilter}
+      WHERE date >= CURRENT_DATE - ${interval}::interval
       GROUP BY date
       ORDER BY date ASC
-    `);
+    `;
 
     return {
       period,

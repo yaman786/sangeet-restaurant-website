@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import HomePage from '@/_pages/HomePage';
 import { serverFetchMenuItems, serverFetchReviews, serverFetchEvents } from '@/services/api';
 import type { Metadata } from 'next';

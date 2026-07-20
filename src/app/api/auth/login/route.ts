@@ -2,7 +2,6 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { cookies } from 'next/headers';
 import { prisma } from '@/lib/db';
 import { handleApiError, UnauthorizedError } from '@/lib/errors';
 import { JwtPayload } from '@/lib/auth';
@@ -54,6 +53,7 @@ export async function POST(req: NextRequest) {
       { expiresIn: '24h' }
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password_hash, ...userWithoutPassword } = user;
 
     const response = NextResponse.json({

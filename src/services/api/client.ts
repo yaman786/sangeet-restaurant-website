@@ -1,11 +1,12 @@
 import axios, { InternalAxiosRequestConfig, AxiosError } from 'axios';
 import toast from 'react-hot-toast';
+import env from '@/lib/utils/env';
 
 let baseUrl = '/api';
 
 if (typeof window === 'undefined') {
-  baseUrl = process.env.NEXT_PUBLIC_FRONTEND_URL 
-    ? `${process.env.NEXT_PUBLIC_FRONTEND_URL}/api`
+  baseUrl = env.NEXT_PUBLIC_FRONTEND_URL 
+    ? `${env.NEXT_PUBLIC_FRONTEND_URL}/api`
     : 'http://localhost:3000/api';
 }
 

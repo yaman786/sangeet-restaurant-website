@@ -1,4 +1,5 @@
 import Pusher from 'pusher';
+import logger from '../utils/logger';
 
 export const pusherServer = new Pusher({
   appId: process.env.PUSHER_APP_ID!,
@@ -12,8 +13,10 @@ export const emitNewOrder = async (data: any) => {
   try {
     await pusherServer.trigger('admin-channel', 'new-order', data);
     await pusherServer.trigger('kitchen-channel', 'new-order', data);
+    return true;
   } catch (error) {
-    console.error('Error triggering Pusher event new-order:', error);
+    logger.error('Error triggering Pusher event new-order:', error);
+    return false;
   }
 };
 
@@ -21,8 +24,10 @@ export const emitNewItemsAdded = async (data: any) => {
   try {
     await pusherServer.trigger('admin-channel', 'new-items-added', data);
     await pusherServer.trigger('kitchen-channel', 'new-items-added', data);
+    return true;
   } catch (error) {
-    console.error('Error triggering Pusher event new-items-added:', error);
+    logger.error('Error triggering Pusher event new-items-added:', error);
+    return false;
   }
 };
 
@@ -38,8 +43,10 @@ export const emitOrderStatusUpdate = async (data: any) => {
     if (data.tableNumber) {
       await pusherServer.trigger(`table-channel-${data.tableNumber}`, 'order-status-update', data);
     }
+    return true;
   } catch (error) {
-    console.error('Error triggering Pusher event order-status-update:', error);
+    logger.error('Error triggering Pusher event order-status-update:', error);
+    return false;
   }
 };
 
@@ -54,24 +61,30 @@ export const emitOrderDeleted = async (data: any) => {
     if (data.tableNumber) {
       await pusherServer.trigger(`table-channel-${data.tableNumber}`, 'order-deleted', data);
     }
+    return true;
   } catch (error) {
-    console.error('Error triggering Pusher event order-deleted:', error);
+    logger.error('Error triggering Pusher event order-deleted:', error);
+    return false;
   }
 };
 
 export const emitNewReservation = async (data: any) => {
   try {
     await pusherServer.trigger('admin-channel', 'new-reservation', data);
+    return true;
   } catch (error) {
-    console.error('Error triggering Pusher event new-reservation:', error);
+    logger.error('Error triggering Pusher event new-reservation:', error);
+    return false;
   }
 };
 
 export const emitReservationUpdate = async (data: any) => {
   try {
     await pusherServer.trigger('admin-channel', 'reservation-status-update', data);
+    return true;
   } catch (error) {
-    console.error('Error triggering Pusher event reservation-status-update:', error);
+    logger.error('Error triggering Pusher event reservation-status-update:', error);
+    return false;
   }
 };
 

@@ -31,17 +31,6 @@ class ReservationService {
     if (!date || !time) throw new ValidationError('Date and time are required');
     
     const parsedGuests = guests ? parseInt(guests, 10) : 1;
-    const allTables = await prisma.tables.findMany({
-      where: {
-        is_active: true,
-        // Using arbitrary capacity field check, ignoring capacity if it isn't in tables schema
-        // wait, I need to check tables schema. It doesn't have capacity. Wait, restaurant_tables has capacity!
-        // But the SQL queried `tables`. Let me just query tables and filter.
-      }
-    });
-    
-    // In original SQL it queried `tables` and checked capacity. But `tables` schema doesn't have capacity.
-    // Wait, let me query restaurant_tables instead since it has capacity.
     const validRestaurantTables = await prisma.restaurant_tables.findMany({
       where: {
         is_active: true,

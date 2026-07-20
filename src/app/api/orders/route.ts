@@ -4,6 +4,7 @@ import orderService from '@/lib/services/orderService';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireAuth } from '@/lib/auth';
 import { createOrderSchema } from '@/lib/validations';
+import { rateLimit } from '@/lib/rateLimit';
 
 export async function GET(req: NextRequest) {
   try {
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-import { rateLimit } from '@/lib/rateLimit';
+
 
 export async function POST(req: NextRequest) {
   try {

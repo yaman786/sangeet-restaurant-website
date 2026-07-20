@@ -186,6 +186,8 @@ const QRMenuPage = () => {
 
   // Socket connection and order deletion listener
   useEffect(() => {
+    if (cart.length === 0) return; // Lazy connect: only if they have items in cart
+
     // Connect to socket service
     socketService.connect();
     
@@ -220,7 +222,7 @@ const QRMenuPage = () => {
     return () => {
       socketService.removeListener('order-deleted');
     };
-  }, [tableInfo, qrCode]);
+  }, [tableInfo, qrCode, cart.length]);
 
   const handleAddToCart = (item: any) => {
     setCart((prevCart: any[]) => {
