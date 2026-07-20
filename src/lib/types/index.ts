@@ -55,7 +55,7 @@ export interface CategoryRow {
 
 // ── Orders ──────────────────────────────────────────────────
 
-export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled';
+export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled';
 export type OrderType = 'dine-in' | 'takeaway' | 'delivery';
 
 export interface OrderRow {

@@ -46,7 +46,6 @@ const AdminOrders = () => {
   const getStatusColor = (status: any) => {
     const colors = {
       pending: 'bg-yellow-500',
-      confirmed: 'bg-blue-500',
       preparing: 'bg-orange-500',
       ready: 'bg-green-500',
       completed: 'bg-gray-500',

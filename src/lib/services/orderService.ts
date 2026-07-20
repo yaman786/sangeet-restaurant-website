@@ -71,7 +71,7 @@ class OrderService {
       where: {
         table_id,
         customer_name,
-        status: { in: ['pending', 'confirmed', 'preparing', 'ready', 'served'] }
+        status: { in: ['pending', 'preparing', 'ready', 'served'] }
       },
       orderBy: { created_at: 'desc' }
     });
@@ -225,7 +225,7 @@ class OrderService {
   }
 
   async updateOrderStatus(id: string, status: string) {
-    const validStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'served', 'completed', 'cancelled'];
+    const validStatuses = ['pending', 'preparing', 'ready', 'served', 'completed', 'cancelled'];
     if (!validStatuses.includes(status)) throw new ValidationError('Invalid status');
     
     try {
@@ -298,7 +298,7 @@ class OrderService {
     const [total_orders, pending_orders, active_orders, completed_today_count, completed_today_orders] = await prisma.$transaction([
       prisma.orders.count(),
       prisma.orders.count({ where: { status: 'pending' } }),
-      prisma.orders.count({ where: { status: { in: ['confirmed', 'preparing'] } } }),
+      prisma.orders.count({ where: { status: { in: ['preparing'] } } }),
       prisma.orders.count({ where: { status: 'completed', created_at: { gte: today } } }),
       prisma.orders.findMany({ 
         where: { status: 'completed', created_at: { gte: today } },
@@ -368,7 +368,7 @@ class OrderService {
   }
 
   async bulkUpdateOrderStatus(orderIds: number[], status: string) {
-    const validStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'served', 'completed', 'cancelled'];
+    const validStatuses = ['pending', 'preparing', 'ready', 'served', 'completed', 'cancelled'];
     if (!validStatuses.includes(status)) throw new ValidationError('Invalid status');
     if (!Array.isArray(orderIds) || orderIds.length === 0) throw new ValidationError('No order IDs provided');
     

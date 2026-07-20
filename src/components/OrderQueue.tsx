@@ -200,8 +200,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     switch (status) {
       case 'pending':
         return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
-      case 'confirmed':
-        return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
+
       case 'preparing':
         return 'text-orange-500 bg-orange-500/10 border-orange-500/20';
       case 'ready':
@@ -217,8 +216,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     switch (status) {
       case 'pending':
         return <Clock className="h-5 w-5" />;
-      case 'confirmed':
-        return <Package className="h-5 w-5" />;
+
       case 'preparing':
         return <Timer className="h-5 w-5" />;
       case 'ready':
