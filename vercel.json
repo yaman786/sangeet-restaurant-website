@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/archive-orders",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/realtime-sweep",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

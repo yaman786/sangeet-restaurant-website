@@ -19,10 +19,18 @@ export async function GET(request: Request) {
       data: { is_archived: true }
     });
 
+    const rule2Result = await prisma.reservations.updateMany({
+      where: {
+        status: { in: ['completed', 'cancelled'] },
+        is_archived: false
+      },
+      data: { is_archived: true }
+    });
+
     const twelveHoursAgo = new Date();
     twelveHoursAgo.setHours(twelveHoursAgo.getHours() - 12);
 
-    const rule2Result = await prisma.orders.updateMany({
+    const rule3Result = await prisma.orders.updateMany({
       where: {
         status: { in: ['pending', 'confirmed', 'preparing', 'ready'] },
         created_at: { lt: twelveHoursAgo },
@@ -35,27 +43,12 @@ export async function GET(request: Request) {
       }
     });
 
-    // 3. Sweep no-show / ghost reservations (yesterday or older, still pending/confirmed)
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-
-    const rule3Result = await prisma.reservations.updateMany({
-      where: {
-        status: { in: ['pending', 'confirmed'] },
-        date: { lt: startOfToday },
-      },
-      data: { 
-        status: 'cancelled',
-        updated_at: new Date()
-      }
-    });
-
     return NextResponse.json({ 
       success: true, 
       message: 'End of day sweep completed successfully.',
       archived_completed_orders: rule1Result.count,
-      swept_ghost_orders: rule2Result.count,
-      swept_ghost_reservations: rule3Result.count
+      archived_completed_reservations: rule2Result.count,
+      swept_abandoned_orders: rule3Result.count
     });
   } catch (error) {
     console.error('Cron Archive Error:', error);

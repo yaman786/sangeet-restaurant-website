@@ -10,6 +10,14 @@ class ReservationService {
     if (query.date) whereClause.date = new Date(query.date);
     if (query.status) whereClause.status = query.status;
     
+    if (query.archived === 'true') {
+      whereClause.is_archived = true;
+    } else if (query.archived === 'false') {
+      whereClause.is_archived = false;
+    } else {
+      whereClause.is_archived = false; // By default, only show non-archived
+    }
+    
     return prisma.reservations.findMany({
       where: whereClause,
       orderBy: [
