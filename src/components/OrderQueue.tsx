@@ -229,7 +229,15 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
 
       socketService.onOrderStatusUpdate((data: any) => {
         if (data.status === 'ready' && soundEnabled) socketService.playNotificationSound('completion');
-        queryClient.invalidateQueries({ queryKey: ['orders'] });
+        // Update in-place instead of invalidating to avoid clobbering optimistic updates
+        queryClient.setQueryData(['orders'], (oldData: any) => {
+          if (!oldData) return oldData;
+          return oldData.map((order: any) =>
+            order.id === data.orderId
+              ? { ...order, status: data.status, updated_at: new Date().toISOString() }
+              : order
+          );
+        });
       });
 
       socketService.onOrderDeleted((data: any) => {

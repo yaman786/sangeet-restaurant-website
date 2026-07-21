@@ -134,13 +134,36 @@ export const useOrderManagement = () => {
 
       const handleStatusUpdateEvent = (data: any) => {
         const { orderId, status } = data;
-        setOrders(prevOrders =>
-          sortOrdersByTable(prevOrders.map(order =>
+        
+        // Update order in the active list
+        setOrders(prevOrders => {
+          const existingOrder = prevOrders.find(order => order.id === orderId);
+          
+          // If the order is already at this status (from optimistic update), skip
+          if (existingOrder && existingOrder.status === status) return prevOrders;
+          
+          if (status === 'completed' || status === 'cancelled') {
+            // Move from active → completed
+            if (existingOrder) {
+              const updatedOrder = { ...existingOrder, status, updated_at: new Date().toISOString() };
+              setCompletedOrders(prev => {
+                if (prev.some(o => o.id === orderId && o.status === status)) return prev;
+                return [updatedOrder, ...prev];
+              });
+              return prevOrders.filter(order => order.id !== orderId);
+            }
+            return prevOrders;
+          }
+          
+          // Otherwise update in-place
+          return sortOrdersByTable(prevOrders.map(order =>
             order.id === orderId
               ? { ...order, status, updated_at: new Date().toISOString() }
               : order
-          ))
-        );
+          ));
+        });
+        
+        // Also update in completed list if it exists there
         setCompletedOrders(prevCompleted =>
           prevCompleted.map(order =>
             order.id === orderId
@@ -148,19 +171,6 @@ export const useOrderManagement = () => {
               : order
           )
         );
-        if (status === 'completed') {
-          setTimeout(() => {
-            setOrders(prevOrders => {
-              const orderToMove = prevOrders.find(order => order.id === orderId);
-              if (orderToMove) {
-                const updatedOrder = { ...orderToMove, status: 'completed', updated_at: new Date().toISOString() };
-                setCompletedOrders(prev => [updatedOrder, ...prev]);
-                return prevOrders.filter(order => order.id !== orderId);
-              }
-              return prevOrders;
-            });
-          }, 2000);
-        }
       };
 
       const handleOrderDeletedEvent = (data: any) => {
@@ -235,12 +245,22 @@ export const useOrderManagement = () => {
       // Gather all order IDs
       const allIdsToComplete = activeOrdersModal.activeOrders.map((o: any) => o.id);
       
+      // Optimistic update — move all to completed immediately
+      setOrders(prev => prev.filter(o => !allIdsToComplete.includes(o.id)));
+      setCompletedOrders(prev => [
+        ...activeOrdersModal.activeOrders.map((o: any) => ({ ...o, status: 'completed', updated_at: new Date().toISOString() })),
+        ...prev
+      ]);
+      
+      closeActiveOrdersModal();
+      
       await bulkUpdateOrderStatus(allIdsToComplete, 'completed');
       toast.success(`${allIdsToComplete.length} orders successfully consolidated and completed!`);
-      closeActiveOrdersModal();
     } catch (error) {
       console.error('Error completing all customer orders:', error);
       toast.error('Failed to complete consolidated orders. Please try again.');
+      // Revert on failure
+      loadDashboardData(true);
     }
   };
 
@@ -256,10 +276,24 @@ export const useOrderManagement = () => {
         return;
       }
 
+      // Optimistic local state update — apply immediately so UI doesn't need a second click
+      const updatedOrder = { ...currentOrder, status: newStatus, updated_at: new Date().toISOString() };
+      
+      if (newStatus === 'completed' || newStatus === 'cancelled') {
+        // Move from active → completed list
+        setOrders(prev => prev.filter(o => o.id !== orderId));
+        setCompletedOrders(prev => [updatedOrder, ...prev]);
+      } else {
+        // Update in-place within active list
+        setOrders(prev => sortOrdersByTable(prev.map(o => o.id === orderId ? updatedOrder : o)));
+      }
+
       await updateOrderStatus(orderId, newStatus);
       toast.success('Order status updated successfully');
     } catch (error: any) {
       console.error('Error updating order status:', error);
+      // Revert optimistic update on failure
+      loadDashboardData(true);
       if (error.response?.data?.error?.includes('other active orders')) {
         const activeOrdersList = error.response.data.activeOrders;
         const customerName = error.response.data.customerName;
@@ -325,11 +359,28 @@ export const useOrderManagement = () => {
       return;
     }
     try {
-      await bulkUpdateOrderStatus(selectedOrders, status);
-      toast.success(`${selectedOrders.length} orders updated successfully`);
+      // Optimistic update
+      if (status === 'completed' || status === 'cancelled') {
+        const ordersToMove = orders.filter(o => selectedOrders.includes(o.id));
+        setOrders(prev => prev.filter(o => !selectedOrders.includes(o.id)));
+        setCompletedOrders(prev => [
+          ...ordersToMove.map(o => ({ ...o, status, updated_at: new Date().toISOString() })),
+          ...prev
+        ]);
+      } else {
+        setOrders(prev => sortOrdersByTable(prev.map(o => 
+          selectedOrders.includes(o.id) ? { ...o, status, updated_at: new Date().toISOString() } : o
+        )));
+      }
+      
+      const idsToUpdate = [...selectedOrders];
       setSelectedOrders([]);
+
+      await bulkUpdateOrderStatus(idsToUpdate, status);
+      toast.success(`${idsToUpdate.length} orders updated successfully`);
     } catch (error: any) {
       toast.error('Failed to bulk update orders');
+      loadDashboardData(true);
     }
   };
 
