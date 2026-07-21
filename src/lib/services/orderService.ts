@@ -72,7 +72,6 @@ class OrderService {
     const verifiedSession = await prisma.orders.findFirst({
       where: {
         table_id,
-        customer_name,
         status: { in: ['preparing', 'ready', 'served'] }
       }
     });
