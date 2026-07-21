@@ -212,8 +212,6 @@ const QRCartPage = () => {
       
       const orderId = (orderResponse as any)?.order?.id;
       const orderNumber = (orderResponse as any)?.order?.order_number;
-      const isMerged = (orderResponse as any)?.merged || false;
-      
       if (!orderId) {
         throw new Error('Order ID not found in response');
       }
@@ -226,12 +224,7 @@ const QRCartPage = () => {
       localStorage.removeItem(`customer_${qrCode}`);
       localStorage.removeItem(`instructions_${qrCode}`);
       
-      // Show appropriate success message based on whether items were merged
-      if (isMerged) {
-        toast.success('Items added to your existing order successfully!');
-      } else {
-        toast.success('Order placed successfully!');
-      }
+      toast.success('Order placed successfully!');
       
       // Navigate to unified dashboard page using React Router instead of window.location.href
       const dashboardUrl = `/dashboard?orderId=${orderId}&table=${(tableInfo as any)?.table_number}&customerName=${encodeURIComponent(customerName)}&orderNumber=${orderNumber || ''}&totalAmount=${getTotalAmount().toFixed(2)}`;

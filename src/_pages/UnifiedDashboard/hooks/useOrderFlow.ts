@@ -104,7 +104,6 @@ export const useOrderFlow = (tableSession: any) => {
       
       const response: any = await createOrder(orderData);
       const newOrder = response.order;
-      const isMerged = response.merged;
       
       const currentCartItems = [...cart];
       
@@ -113,33 +112,15 @@ export const useOrderFlow = (tableSession: any) => {
       setTotalAmount(newOrder.total_amount);
       setOrderItems(currentCartItems);
       
-      setOrders((prevOrders: any[]) => {
-        const orderExists = prevOrders.some((order: any) => order.id === newOrder.id);
-        if (orderExists) {
-          // If we already have this order in state, update it (useful for both merged and normal updates)
-          return prevOrders.map((order: any) => 
-            order.id === newOrder.id ? newOrder : order
-          );
-        } else {
-          // If we don't have it (e.g., page was reloaded, or it's a brand new order), append it!
-          return [...prevOrders, newOrder];
-        }
-      });
+      setOrders((prevOrders: any[]) => [...prevOrders, newOrder]);
       
       setCart([]);
       setCurrentView('tracking');
       
-      if (isMerged) {
-        toast.success('Items added to your existing order! 🍽️', {
-          duration: 4000,
-          icon: '➕'
-        });
-      } else {
-        toast.success('Order placed successfully! 🎉', {
-          duration: 4000,
-          icon: '✅'
-        });
-      }
+      toast.success('Order placed successfully! 🎉', {
+        duration: 4000,
+        icon: '✅'
+      });
       
       setTimeout(() => {
         toast.success('📱 You can close this page and scan QR code later!', {

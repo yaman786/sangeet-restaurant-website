@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CustomDropdown from '../../components/CustomDropdown';
-import { hasMultipleSessions } from '../../utils/itemUtils';
 
 const OrderTable = ({
   orders,
@@ -245,11 +244,6 @@ const OrderTable = ({
                               <div className="flex items-center space-x-3 ml-4">
                                 <span className="text-sangeet-neutral-400 text-sm">Round {index + 1}</span>
                                 <span className="text-sangeet-neutral-500 text-xs">#{order.order_number}</span>
-                                {order.items && hasMultipleSessions(order.items) && (
-                                  <span className="bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded text-xs border border-blue-500/30">
-                                    Merged
-                                  </span>
-                                )}
                               </div>
                             </td>
                             <td className="px-6 py-3 text-sangeet-neutral-400 text-sm">

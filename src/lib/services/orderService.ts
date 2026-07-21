@@ -3,7 +3,7 @@ import { AppError, NotFoundError, ValidationError } from '@/lib/errors';
 // Socket functionality disabled in serverless mode
 import { generateQRCode } from '../utils/qrGenerator';
 import type { OrderRow, OrderItemRow, CreateOrderInput } from '@/lib/types';
-import { emitNewOrder, emitNewItemsAdded, emitOrderStatusUpdate } from './pusherServer';
+import { emitNewOrder, emitOrderStatusUpdate } from './pusherServer';
 
 class OrderService {
   async getAllTables() {
@@ -67,97 +67,50 @@ class OrderService {
         total_price: itemTotal
       });
     }
-    const activeOrder = await prisma.orders.findFirst({
-      where: {
-        table_id,
-        customer_name,
-        status: { in: ['pending', 'preparing', 'ready', 'served'] }
-      },
-      orderBy: { created_at: 'desc' }
-    });
-
-    let merged = false;
-    let fullOrder = null;
-
-    if (activeOrder) {
-      // Merge into existing active order
-      orderId = activeOrder.id;
-      merged = true;
+    
+    // Create new order
+    const dateStr = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 8);
+    
+    let createdOrder = null;
+    let attempts = 0;
+    const MAX_ATTEMPTS = 10;
+    
+    while (!createdOrder && attempts < MAX_ATTEMPTS) {
+      attempts++;
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      const orderNumber = `ORD${dateStr}${randomNum}`;
       
-      const newStatus = ['ready', 'served'].includes(activeOrder.status || '') ? 'preparing' : activeOrder.status;
-
-      await prisma.$transaction([
-        prisma.order_items.createMany({
-          data: orderItemCreates.map(item => ({
-            ...item,
-            order_id: activeOrder.id
-          }))
-        }),
-        prisma.orders.update({
-          where: { id: activeOrder.id },
+      try {
+        createdOrder = await prisma.orders.create({
           data: {
-            total_amount: { increment: totalAmount },
-            status: newStatus,
-            updated_at: new Date()
-          }
-        })
-      ]);
-
-      fullOrder = await this.getOrderWithItems(orderId);
-      
-      emitNewItemsAdded({ 
-        type: 'items-added', 
-        orderId, 
-        tableNumber, 
-        itemsAdded: orderItemCreates.length, 
-        timestamp: new Date().toISOString() 
-      });
-      
-    } else {
-      // Create new order
-      const dateStr = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 8);
-      
-      let createdOrder = null;
-      let attempts = 0;
-      const MAX_ATTEMPTS = 10;
-      
-      while (!createdOrder && attempts < MAX_ATTEMPTS) {
-        attempts++;
-        const randomNum = Math.floor(1000 + Math.random() * 9000);
-        const orderNumber = `ORD${dateStr}${randomNum}`;
-        
-        try {
-          createdOrder = await prisma.orders.create({
-            data: {
-              order_number: orderNumber,
-              table_id,
-              customer_name,
-              status: 'pending',
-              special_instructions: special_instructions || null,
-              total_amount: totalAmount,
-              order_type,
-              order_items: {
-                create: orderItemCreates
-              }
+            order_number: orderNumber,
+            table_id,
+            customer_name,
+            status: 'pending',
+            special_instructions: special_instructions || null,
+            total_amount: totalAmount,
+            order_type,
+            order_items: {
+              create: orderItemCreates
             }
-          });
-        } catch (e: any) {
-          if (e.code === 'P2002') continue; // Unique constraint failed, retry
-          throw e;
-        }
+          }
+        });
+      } catch (e: any) {
+        if (e.code === 'P2002') continue; // Unique constraint failed, retry
+        throw e;
       }
-      
-      if (!createdOrder) {
-        throw new AppError('Failed to generate a unique order number after multiple attempts.', 500);
-      }
-      
-      orderId = createdOrder.id;
-      fullOrder = await this.getOrderWithItems(orderId);
-      
-      emitNewOrder({ type: 'new-order', orderId, tableNumber, timestamp: new Date().toISOString() });
     }
     
-    return { order: fullOrder, merged };
+    if (!createdOrder) {
+      throw new AppError('Failed to generate a unique order number after multiple attempts.', 500);
+    }
+    
+    orderId = createdOrder.id;
+    let fullOrder = await this.getOrderWithItems(orderId);
+    
+    emitNewOrder({ type: 'new-order', orderId, tableNumber, timestamp: new Date().toISOString() });
+    
+    return { order: fullOrder };
   }
 
   private formatOrder = (order: any) => {

@@ -1,16 +1,39 @@
 "use client";
-import React, { useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, CheckCircle, AlertCircle, Package, Timer } from 'lucide-react';
+import { Clock, CheckCircle, AlertCircle, Timer } from 'lucide-react';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import { fetchAllOrders, updateOrderStatus } from '../services/api';
 import toast from 'react-hot-toast';
 import CustomDropdown from './CustomDropdown';
-import { isNewItem, sortItemsByNewness, hasMultipleSessions } from '../utils/itemUtils';
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, activeFilter = 'all', sortBy = 'priority', searchQuery = '' }: any) => {
   const queryClient = useQueryClient();
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getElapsedMinutes = (createdAt: any) => {
+    if (!createdAt) return 0;
+    const createdTime = new Date(createdAt).getTime();
+    if (isNaN(createdTime)) return 0;
+    return Math.floor((now - createdTime) / 60000);
+  };
+  
+  const getTicketColorClasses = (status: string, elapsedMin: number) => {
+    if (status === 'ready') return 'border-green-500 bg-green-500/10 shadow-lg shadow-green-500/20';
+    if (status === 'completed') return 'border-sangeet-neutral-700 opacity-60';
+    if (status === 'cancelled') return 'border-red-900 opacity-60';
+    
+    if (elapsedMin >= 20) return 'border-red-500 bg-red-500/10 shadow-md shadow-red-500/10';
+    if (elapsedMin >= 10) return 'border-yellow-500 bg-yellow-500/10 shadow-md shadow-yellow-500/10';
+    return 'border-green-500 bg-green-500/5 shadow-sm shadow-green-500/5';
+  };
 
   const statusOptions = [
     { value: 'pending', label: 'Pending' },
@@ -295,11 +318,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
                 damping: 30,
                 layout: { duration: 0.3 }
               }}
-              className={`bg-sangeet-neutral-800 rounded-lg p-4 border ${
-                order.status === 'ready' 
-                  ? 'border-green-500 bg-green-500/10 shadow-lg shadow-green-500/20' 
-                  : 'border-sangeet-neutral-700'
-              } ${order.status === 'completed' ? 'opacity-60' : ''} flex flex-col h-full min-h-[320px]`}
+              className={`bg-sangeet-neutral-800 rounded-lg p-4 border ${getTicketColorClasses(order.status, getElapsedMinutes(order.created_at))} flex flex-col h-full min-h-[320px]`}
             >
               {/* Order Header - Compact */}
               <div className="flex justify-between items-start mb-3">
@@ -308,27 +327,13 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
                     {order.status === 'ready' && <span className="text-green-400 mr-1">🍽️</span>}
                     #{order.order_number}
                   </h3>
-                  <p className="text-xs text-sangeet-neutral-400">
-                    Table {order.table_number} • {(() => {
-                      try {
-                        const date = new Date(order.created_at);
-                        return isNaN(date.getTime()) ? 'Just now' : date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                      } catch (error) {
-                        return 'Just now';
-                      }
-                    })()}
-                    {order.updated_at && order.updated_at !== order.created_at && (
-                      <span className="text-green-400 ml-1">
-                        • Updated: {(() => {
-                          try {
-                            const date = new Date(order.updated_at);
-                            return isNaN(date.getTime()) ? 'Just now' : date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                          } catch (error) {
-                            return 'Just now';
-                          }
-                        })()}
-                      </span>
-                    )}
+                  <p className="text-xs text-sangeet-neutral-400 flex items-center gap-1 mt-1">
+                    <span>Table {order.table_number}</span>
+                    <span className="text-sangeet-neutral-600">•</span>
+                    <Clock size={12} className={getElapsedMinutes(order.created_at) >= 20 ? 'text-red-400 animate-pulse' : 'text-sangeet-neutral-500'} />
+                    <span className={`font-medium ${getElapsedMinutes(order.created_at) >= 20 ? 'text-red-400' : getElapsedMinutes(order.created_at) >= 10 ? 'text-yellow-400' : 'text-sangeet-neutral-400'}`}>
+                      {getElapsedMinutes(order.created_at)} min ago
+                    </span>
                   </p>
                 </div>
                 <div className={`flex items-center space-x-1 px-2 py-1 rounded-full border text-xs ${getStatusColor(order.status)}`}>
@@ -355,25 +360,13 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
               <div className="mb-3 flex-grow">
                 <h4 className="text-xs font-medium text-sangeet-neutral-400 mb-1">Items:</h4>
                 
-                {/* Merge Alert */}
-                {hasMultipleSessions(order.items) && (
-                  <div className="mb-2 p-1 bg-orange-900/20 border border-orange-500/30 rounded text-xs">
-                    <span className="text-orange-400">⚠️ Merged Order</span>
-                  </div>
-                )}
-                
                 <div className="space-y-1">
-                  {order.items && sortItemsByNewness(order.items).map((item: any) => (
+                  {order.items && order.items.map((item: any) => (
                     <div key={item.id} className="flex justify-between text-xs py-0.5">
                       <div className="flex items-center space-x-1">
                         <span className="text-sangeet-neutral-300">
                           {item.quantity}x {item.menu_item_name || item.name}
                         </span>
-                        {isNewItem(item.created_at) && (
-                          <span className="bg-green-500 text-white px-1 py-0.5 rounded text-xs font-medium animate-pulse">
-                            NEW
-                          </span>
-                        )}
                       </div>
                       {item.special_instructions && (
                         <span className="text-orange-400">

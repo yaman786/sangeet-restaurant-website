@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     const result = await orderService.createOrder(body);
     
     return NextResponse.json(
-      { message: result.merged ? 'Items added to existing order successfully!' : 'Order placed successfully!', ...result },
+      { message: 'Order placed successfully!', ...result },
       { status: 201 }
     );
   } catch (error) {

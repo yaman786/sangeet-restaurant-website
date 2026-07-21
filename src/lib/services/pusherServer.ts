@@ -20,16 +20,7 @@ export const emitNewOrder = async (data: any) => {
   }
 };
 
-export const emitNewItemsAdded = async (data: any) => {
-  try {
-    await pusherServer.trigger('admin-channel', 'new-items-added', data);
-    await pusherServer.trigger('kitchen-channel', 'new-items-added', data);
-    return true;
-  } catch (error) {
-    logger.error('Error triggering Pusher event new-items-added:', error);
-    return false;
-  }
-};
+
 
 export const emitOrderStatusUpdate = async (data: any) => {
   try {
