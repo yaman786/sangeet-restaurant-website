@@ -140,7 +140,17 @@ const UnifiedOrderPage = () => {
             }
             return prevOrder;
           });
-          toast.success('Thank you for dining with us! 🎉');
+          toast.success('🎉 All orders completed! Thank you for dining with us! Redirecting to home page...', { duration: 5000, icon: '🏠' });
+          try {
+            Object.keys(localStorage).forEach(key => {
+              if (key.startsWith('cart_') || key.startsWith('orderId_') || key.startsWith('orderNumber_') || key.startsWith('customer_') || key.startsWith('customerName_')) {
+                localStorage.removeItem(key);
+              }
+            });
+          } catch (e) {}
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 3000);
         }
       };
 
@@ -174,6 +184,19 @@ const UnifiedOrderPage = () => {
       setError(null);
       const orderData = await getOrderById(orderId as string);
       setOrder(orderData);
+      if (orderData && orderData.status === 'completed') {
+        toast.success('🎉 This order has been completed! Thank you for dining with us!', { duration: 5000, icon: '🏠' });
+        try {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('cart_') || key.startsWith('orderId_') || key.startsWith('orderNumber_') || key.startsWith('customer_') || key.startsWith('customerName_')) {
+              localStorage.removeItem(key);
+            }
+          });
+        } catch (e) {}
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 3000);
+      }
     } catch (err) {
       setError('Unable to load order details');
       console.error('Error fetching order:', err);

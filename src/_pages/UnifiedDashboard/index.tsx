@@ -103,8 +103,10 @@ const UnifiedDashboard = () => {
               return null;
             })
           ]);
-          if (activeOrders && activeOrders.length > 0) {
+          if (activeOrders) {
             setOrders(activeOrders);
+          } else {
+            setOrders([]);
           }
           if (tableData) {
             setTableInfo(tableData);
@@ -132,7 +134,7 @@ const UnifiedDashboard = () => {
     socketService.onOrderStatusUpdate((updateData: any) => {
       setOrders(prevOrders => {
         const updatedOrders = prevOrders.map(order => {
-          if (order.id.toString() === updateData.orderId.toString()) {
+          if (String(order.id) === String(updateData.orderId)) {
             return { ...order, status: updateData.status, updated_at: updateData.timestamp };
           }
           return order;
@@ -146,8 +148,8 @@ const UnifiedDashboard = () => {
           if (!hasActiveOrders) {
             clearSession();
             setCurrentView('menu');
-            toast.success('🎉 All orders completed! Thank you for dining with us!', { duration: 6000 });
-            setTimeout(() => { window.location.href = '/'; }, 2000);
+            toast.success('🎉 All orders completed! Thank you for dining with us! Redirecting to home page...', { duration: 5000, icon: '🏠' });
+            setTimeout(() => { window.location.href = '/'; }, 2500);
           } else {
             toast.success(`🎉 Order #${updateData.orderId} completed!`, { duration: 4000 });
           }

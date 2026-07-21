@@ -78,6 +78,19 @@ const OrderTrackingPage = () => {
         setLoading(true);
         const orderData = await getOrderById(orderId);
         setOrder(orderData);
+        if (orderData && orderData.status === 'completed') {
+          toast.success('🎉 This order has been completed! Thank you for dining with us!', { duration: 5000, icon: '🏠' });
+          try {
+            Object.keys(localStorage).forEach(key => {
+              if (key.startsWith('cart_') || key.startsWith('orderId_') || key.startsWith('orderNumber_') || key.startsWith('customer_') || key.startsWith('customerName_')) {
+                localStorage.removeItem(key);
+              }
+            });
+          } catch (e) {}
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 3000);
+        }
       } catch (err) {
         setError('Order not found or unable to load order details');
         console.error('Error fetching order:', err);
@@ -134,17 +147,27 @@ const OrderTrackingPage = () => {
             
             // Set timeout to redirect to home after 2 minutes
             setTimeout(() => {
-              // Show redirect message
               toast.success('Redirecting to home page for fresh start! 🏠', {
                 duration: 3000,
                 icon: '🔄'
               });
-              
-              // Redirect to home page
               setTimeout(() => {
                 window.location.href = '/';
               }, 1000);
-            }, 2 * 60 * 1000); // 2 minutes
+            }, 2 * 60 * 1000);
+          } else if (data.status === 'completed') {
+            toast.success('🎉 All orders completed! Thank you for dining with us! Redirecting to home page...', { duration: 5000, icon: '🏠' });
+            // Clear customer session from localStorage
+            try {
+              Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('cart_') || key.startsWith('orderId_') || key.startsWith('orderNumber_') || key.startsWith('customer_') || key.startsWith('customerName_')) {
+                  localStorage.removeItem(key);
+                }
+              });
+            } catch (e) {}
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 3000);
           } else {
             toast.success((statusMessages as any)[data.status]);
           }
