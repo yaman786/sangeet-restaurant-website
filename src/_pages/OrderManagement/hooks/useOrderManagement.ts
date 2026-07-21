@@ -113,6 +113,7 @@ export const useOrderManagement = () => {
       socketService.joinAdmin();
       
       socketService.onNewOrder(() => {
+        socketService.playNotificationSound('notification');
         queryClient.invalidateQueries({ queryKey: ['orders'] });
         queryClient.invalidateQueries({ queryKey: ['orderStats'] });
       });

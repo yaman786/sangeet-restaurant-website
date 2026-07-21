@@ -136,9 +136,64 @@ class PusherClientService {
   playNotificationSound(type: 'notification' | 'completion') {
     try {
       const audio = new Audio(type === 'notification' ? '/sounds/notification.mp3' : '/sounds/completion.mp3');
-      audio.play().catch(e => console.error('Error playing sound:', e));
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          this.playSynthesizedChime(type);
+        });
+      }
     } catch (error) {
-      console.error('Audio play failed', error);
+      this.playSynthesizedChime(type);
+    }
+  }
+
+  private playSynthesizedChime(type: 'notification' | 'completion') {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+
+      if (type === 'notification') {
+        // High-pitched pleasant dual-tone kitchen chime (D5 -> A5)
+        const notes = [587.33, 880.00];
+        notes.forEach((freq, index) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + index * 0.15);
+          
+          gain.gain.setValueAtTime(0, ctx.currentTime + index * 0.15);
+          gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + index * 0.15 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + index * 0.15 + 0.5);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(ctx.currentTime + index * 0.15);
+          osc.stop(ctx.currentTime + index * 0.15 + 0.5);
+        });
+      } else {
+        // Completion chime (C5 -> E5 -> G5)
+        const notes = [523.25, 659.25, 783.99];
+        notes.forEach((freq, index) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + index * 0.12);
+
+          gain.gain.setValueAtTime(0, ctx.currentTime + index * 0.12);
+          gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + index * 0.12 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + index * 0.12 + 0.4);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(ctx.currentTime + index * 0.12);
+          osc.stop(ctx.currentTime + index * 0.12 + 0.4);
+        });
+      }
+    } catch (e) {
+      console.warn('Synthesized chime error:', e);
     }
   }
 

@@ -115,6 +115,8 @@ export const useOrderManagement = () => {
       socketService.joinAdminRoom();
 
       const handleNewOrder = (orderData: any) => {
+        // Play notification chime for admin dashboard
+        socketService.playNotificationSound('notification');
         if (orderData && orderData.id) {
           setOrders(prevOrders => {
             if (prevOrders.some(order => order.id === orderData.id)) {
