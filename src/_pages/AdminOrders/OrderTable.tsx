@@ -58,13 +58,16 @@ const OrderTable = ({
 
   // Group orders by table and customer
   const groupedOrders = currentOrders.reduce((acc: any, order: any) => {
-    // We group by table number AND customer name to represent a distinct "Tab"
-    const key = `${order.table_number}_${order.customer_name}`;
+    // Normalize to handle potential whitespace/case mismatches from different sessions
+    const normalizedTable = String(order.table_number || '').trim();
+    const normalizedCustomer = String(order.customer_name || 'Guest').trim().toLowerCase();
+    const key = `${normalizedTable}_${normalizedCustomer}`;
+    
     if (!acc[key]) {
       acc[key] = {
         key,
         table_number: order.table_number,
-        customer_name: order.customer_name,
+        customer_name: order.customer_name || 'Guest',
         orders: [],
         total_amount: 0,
         hasReady: false,
@@ -195,7 +198,7 @@ const OrderTable = ({
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end items-center space-x-4">
                             {/* Master Checkout Button */}
-                            {group.hasReady && !group.allCompleted && (
+                            {group.hasReady && !group.hasPending && !group.hasPreparing && !group.allCompleted && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
