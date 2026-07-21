@@ -215,6 +215,53 @@ class OrderService {
     return order;
   }
 
+  async cancelOrderItem(orderId: string, itemId: string) {
+    const oId = parseInt(orderId, 10);
+    const iId = parseInt(itemId, 10);
+
+    const item = await prisma.order_items.findFirst({
+      where: { id: iId, order_id: oId }
+    });
+
+    if (!item) throw new NotFoundError('Order Item');
+    if (item.status === 'cancelled') throw new ValidationError('Item is already cancelled');
+
+    await prisma.order_items.update({
+      where: { id: iId },
+      data: { status: 'cancelled' }
+    });
+
+    const order = await prisma.orders.findUnique({
+      where: { id: oId },
+      include: { order_items: true, tables: true }
+    });
+
+    if (order) {
+      const newTotal = Math.max(0, Number(order.total_amount || 0) - Number(item.total_price || 0));
+      await prisma.orders.update({
+        where: { id: oId },
+        data: { total_amount: newTotal, updated_at: new Date() }
+      });
+
+      const hasActiveItems = order.order_items.some(oi => oi.id !== iId && oi.status !== 'cancelled');
+      if (!hasActiveItems && order.status !== 'completed' && order.status !== 'cancelled') {
+        await this.updateOrderStatus(orderId, 'cancelled');
+      }
+    }
+
+    const fullOrder = await this.getOrderWithItems(oId);
+    
+    emitOrderStatusUpdate({ 
+      type: 'item-cancelled', 
+      orderId: oId, 
+      itemId: iId,
+      tableNumber: fullOrder.table_number,
+      timestamp: new Date().toISOString() 
+    });
+
+    return fullOrder;
+  }
+
   async getAllOrders(query: Record<string, any>) {
     const where: any = {};
     

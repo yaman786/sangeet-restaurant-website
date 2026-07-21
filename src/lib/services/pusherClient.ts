@@ -109,6 +109,12 @@ class PusherClientService {
     });
   }
 
+  onItemCancelled(callback: (data: any) => void) {
+    Object.values(this.channels).forEach(channel => {
+      channel.bind('item-cancelled', callback);
+    });
+  }
+
   onNewItemsAdded(callback: (data: any) => void) {
     if (this.channels['admin-channel']) this.channels['admin-channel'].bind('new-items-added', callback);
     if (this.channels['kitchen-channel']) this.channels['kitchen-channel'].bind('new-items-added', callback);

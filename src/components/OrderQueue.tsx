@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, CheckCircle, AlertCircle, Timer } from 'lucide-react';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
-import { fetchAllOrders, updateOrderStatus } from '../services/api';
+import { fetchAllOrders, updateOrderStatus, cancelOrderItemApi } from '../services/api';
 import toast from 'react-hot-toast';
 import CustomDropdown from './CustomDropdown';
 
@@ -129,16 +129,90 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     order.status === 'completed' || order.status === 'cancelled'
   ));
 
-  const statusMutation = useMutation({
-    mutationFn: ({ orderId, newStatus }: { orderId: any, newStatus: any }) => updateOrderStatus(orderId, newStatus),
-    onSuccess: (data, variables) => {
-      toast.success(`Order #${variables.orderId} status updated to ${variables.newStatus}`);
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
+  const updateStatusMutation = useMutation({
+    mutationFn: (data: { id: string; status: string }) => updateOrderStatus(data.id, data.status),
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: ['orders'] });
+      const previousOrders = queryClient.getQueryData(['orders']);
+      queryClient.setQueryData(['orders'], (old: any) => {
+        return old.map((order: any) => 
+          order.id.toString() === variables.id 
+            ? { ...order, status: variables.status }
+            : order
+        );
+      });
+      return { previousOrders };
     },
-    onError: () => {
+    onError: (err, variables, context: any) => {
+      if (context?.previousOrders) {
+        queryClient.setQueryData(['orders'], context.previousOrders);
+      }
       toast.error('Failed to update order status');
     }
   });
+
+  const cancelItemMutation = useMutation({
+    mutationFn: (data: { orderId: string; itemId: string }) => cancelOrderItemApi(data.orderId, data.itemId),
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: ['orders'] });
+      const previousOrders = queryClient.getQueryData(['orders']);
+      queryClient.setQueryData(['orders'], (old: any) => {
+        return old.map((order: any) => {
+          if (order.id.toString() === variables.orderId) {
+            return {
+              ...order,
+              items: order.items.map((item: any) => 
+                item.id.toString() === variables.itemId
+                  ? { ...item, status: 'cancelled' }
+                  : item
+              )
+            };
+          }
+          return order;
+        });
+      });
+      return { previousOrders };
+    },
+    onError: (err, variables, context: any) => {
+      if (context?.previousOrders) {
+        queryClient.setQueryData(['orders'], context.previousOrders);
+      }
+      toast.error('Failed to cancel item');
+    },
+    onSuccess: () => {
+      toast.success('Item cancelled successfully');
+    }
+  });
+
+  const handleStatusUpdate = (orderId: string, newStatus: string) => {
+    const currentOrder = allOrders.find((order: any) => order.id === orderId);
+    if (!currentOrder) {
+      toast.error('Order not found');
+      return;
+    }
+    
+    // Validate status transitions
+    const statusFlow = {
+      'pending': ['preparing', 'cancelled'],
+      'preparing': ['ready', 'cancelled'],
+      'ready': ['completed', 'cancelled'],
+      'completed': [],
+      'cancelled': []
+    };
+    
+    if (!(statusFlow as any)[currentOrder.status]?.includes(newStatus)) {
+      toast.error(`Cannot change status from "${currentOrder.status}" to "${newStatus}". Invalid transition.`);
+      return;
+    }
+    
+    updateStatusMutation.mutate({ id: orderId, status: newStatus });
+  };
+
+  const handleItemCancel = (orderId: string, itemId: string, itemName: string) => {
+    if (window.confirm(`Are you sure you want to cancel the item: ${itemName}?`)) {
+      cancelItemMutation.mutate({ orderId, itemId });
+    }
+  };
 
   const setupSocketListeners = useCallback(() => {
     try {
@@ -191,33 +265,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     };
   }, [setupSocketListeners, queryClient]);
 
-  // Validate status transitions to prevent backward movement
-  const isValidStatusTransition = (currentStatus: any, newStatus: any) => {
-    const statusFlow = {
-      'pending': ['preparing', 'cancelled'],
-      'preparing': ['ready', 'cancelled'],
-      'ready': ['completed', 'cancelled'],
-      'completed': [], // No further transitions allowed
-      'cancelled': [] // No further transitions allowed
-    };
-    
-    return (statusFlow as any)[currentStatus]?.includes(newStatus) || false;
-  };
 
-  const handleStatusUpdate = async (orderId: any, newStatus: any) => {
-    const currentOrder = allOrders.find((order: any) => order.id === orderId);
-    if (!currentOrder) {
-      toast.error('Order not found');
-      return;
-    }
-    if (!isValidStatusTransition(currentOrder.status, newStatus)) {
-      toast.error(`Cannot change status from "${currentOrder.status}" to "${newStatus}". Invalid transition.`);
-      return;
-    }
-    
-    // React Query Mutation triggers immediate optimistic updates & backend synchronization
-    statusMutation.mutate({ orderId, newStatus });
-  };
 
   const getStatusColor = (status: any) => {
     switch (status) {
@@ -362,16 +410,30 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
                 
                 <div className="space-y-1">
                   {order.items && order.items.map((item: any) => (
-                    <div key={item.id} className="flex justify-between text-xs py-0.5">
-                      <div className="flex items-center space-x-1">
-                        <span className="text-sangeet-neutral-300">
+                    <div key={item.id} className="flex justify-between items-center text-xs py-1 group">
+                      <div className="flex items-center space-x-2 flex-grow">
+                        <span className={`transition-all ${item.status === 'cancelled' ? 'text-red-500/70 line-through' : 'text-sangeet-neutral-300'}`}>
                           {item.quantity}x {item.menu_item_name || item.name}
                         </span>
+                        {item.status === 'cancelled' && (
+                          <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded uppercase font-bold">Cancelled</span>
+                        )}
+                        {item.special_instructions && item.status !== 'cancelled' && (
+                          <span className="text-orange-400 text-[11px] bg-orange-400/10 px-1 rounded truncate max-w-[120px]">
+                            {item.special_instructions}
+                          </span>
+                        )}
                       </div>
-                      {item.special_instructions && (
-                        <span className="text-orange-400">
-                          ({item.special_instructions})
-                        </span>
+                      
+                      {/* Cancel Item Button for Kitchen */}
+                      {kitchenMode && item.status !== 'cancelled' && order.status !== 'completed' && order.status !== 'cancelled' && (
+                        <button 
+                          onClick={() => handleItemCancel(order.id, item.id, item.menu_item_name || item.name)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 text-sangeet-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded"
+                          title="Cancel this item"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        </button>
                       )}
                     </div>
                   ))}

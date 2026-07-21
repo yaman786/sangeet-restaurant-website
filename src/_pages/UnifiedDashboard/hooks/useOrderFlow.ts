@@ -114,6 +114,12 @@ export const useOrderFlow = (tableSession: any) => {
       
       setOrders((prevOrders: any[]) => [...prevOrders, newOrder]);
       
+      // Abort any pending cancellation kickouts since they are ordering again!
+      if (tableId) {
+        localStorage.removeItem(`cancelledOrder_${tableId}`);
+        localStorage.removeItem(`cancelledOrder_${tableNumber}`);
+      }
+      
       setCart([]);
       setCurrentView('tracking');
       

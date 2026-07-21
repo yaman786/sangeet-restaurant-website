@@ -300,24 +300,33 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
                   <span>{getSessionTitle(session, sessionIndex === 0)}</span>
                 </h5>
                 <div className="space-y-2">
-                  {session.items.map((item, index) => (
-                    <div key={index} className="flex items-center space-x-2 sm:space-x-3 py-2 border-b border-sangeet-neutral-700/30 last:border-b-0">
-                      <div className="w-8 h-8 rounded-full bg-sangeet-neutral-700/80 flex items-center justify-center text-xs font-semibold text-sangeet-neutral-200 border border-sangeet-neutral-600 shadow-inner">{(item as any).quantity}</div>
+                  {session.items.map((item: any, index: number) => (
+                    <div key={index} className={`flex items-center space-x-2 sm:space-x-3 py-2 border-b border-sangeet-neutral-700/30 last:border-b-0 ${item.status === 'cancelled' ? 'opacity-70 grayscale' : ''}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shadow-inner ${item.status === 'cancelled' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-sangeet-neutral-700/80 text-sangeet-neutral-200 border border-sangeet-neutral-600'}`}>
+                        {item.status === 'cancelled' ? '❌' : item.quantity}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <p className="text-sangeet-neutral-200 font-medium tracking-wide">{(item as any).name}</p>
-                          {isNewItem(item.created_at) && (
+                        <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                          <p className={`font-medium tracking-wide ${item.status === 'cancelled' ? 'text-sangeet-neutral-500 line-through' : 'text-sangeet-neutral-200'}`}>
+                            {item.name}
+                          </p>
+                          {item.status === 'cancelled' && (
+                            <span className="bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold uppercase truncate">
+                              Item Cancelled & Refunded
+                            </span>
+                          )}
+                          {isNewItem(item.created_at) && item.status !== 'cancelled' && (
                             <span className="bg-green-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium animate-pulse flex-shrink-0">
                               NEW
                             </span>
                           )}
                         </div>
-                        <p className="text-xs sm:text-sm text-sangeet-neutral-400">
-                          ${parseFloat((item as any).unit_price).toFixed(2)} each
+                        <p className={`text-xs sm:text-sm ${item.status === 'cancelled' ? 'text-sangeet-neutral-600 line-through' : 'text-sangeet-neutral-400'}`}>
+                          ${parseFloat(item.unit_price).toFixed(2)} each
                         </p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-sangeet-neutral-200 font-semibold text-sm sm:text-base">
+                        <p className={`font-semibold text-sm sm:text-base ${item.status === 'cancelled' ? 'text-sangeet-neutral-600 line-through' : 'text-sangeet-neutral-200'}`}>
                           ${parseFloat((item as any).total_price).toFixed(2)}
                         </p>
                       </div>

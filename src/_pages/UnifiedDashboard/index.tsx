@@ -163,9 +163,13 @@ const UnifiedDashboard = () => {
           localStorage.setItem(`cancelledOrder_${tableNumber}`, JSON.stringify(cancelledOrderData));
           toast.error('Order cancelled. Auto-redirecting to home in 2 minutes.', { duration: 6000, icon: '❌' });
           setTimeout(() => {
-            clearSession();
-            toast.success('Redirecting to home page for fresh start! 🏠', { duration: 3000, icon: '🔄' });
-            setTimeout(() => { window.location.href = '/'; }, 1000);
+            // Check if they placed a new order (which clears this flag) before kicking them out
+            const stillCancelled = localStorage.getItem(`cancelledOrder_${tableNumber}`);
+            if (stillCancelled) {
+              clearSession();
+              toast.success('Redirecting to home page for fresh start! 🏠', { duration: 3000, icon: '🔄' });
+              setTimeout(() => { window.location.href = '/'; }, 1000);
+            }
           }, CANCELLED_ORDER_TIMEOUT);
         }
         return updatedOrders;
@@ -202,11 +206,27 @@ const UnifiedDashboard = () => {
         }
       }
     });
+    socketService.onItemCancelled((data: any) => {
+      if (data.tableNumber && tableNumber && data.tableNumber.toString() === tableNumber.toString()) {
+        setOrders(prevOrders => prevOrders.map(order => {
+          if (order.id !== data.orderId) return order;
+          return {
+            ...order,
+            items: order.items.map((item: any) => 
+              item.id === data.itemId ? { ...item, status: 'cancelled' } : item
+            )
+          };
+        }));
+        toast.error('An item in your order was unavailable and has been cancelled/refunded.', { duration: 5000, icon: '⚠️' });
+        try { socketService.playNotificationSound('notification'); } catch (e) {}
+      }
+    });
     
     return () => {
       socketService.removeListener('order-status-update');
       socketService.removeListener('new-order');
       socketService.removeListener('order-deleted');
+      socketService.removeListener('item-cancelled');
     };
   }, [tableNumber, orderId, setOrders, clearSession, CANCELLED_ORDER_TIMEOUT]);
 

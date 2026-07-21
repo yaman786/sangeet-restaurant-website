@@ -125,3 +125,9 @@ export const getTableByNumber = async (tableNumber: string | number): Promise<Ta
     return table;
   }, 'getTableByNumber');
 };
+
+export const cancelOrderItemApi = async (orderId: string | number, itemId: string | number): Promise<OrderRow> => {
+  return apiCallWrapper(async () => {
+    return await api.post(`/orders/${orderId}/items/${itemId}/cancel`, {});
+  }, 'cancelOrderItemApi');
+};

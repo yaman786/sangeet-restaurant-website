@@ -23,6 +23,7 @@ export {
   getOrderById, getOrdersByTable, fetchOrdersByTable,
   updateOrderStatus, deleteOrder, bulkUpdateOrderStatus,
   searchOrders, fetchOrderStats, fetchTables,
+  cancelOrderItemApi,
   getTableByQRCode, getTableByNumber, archiveCompletedOrders,
   restoreOrder
 } from './orderApi';
