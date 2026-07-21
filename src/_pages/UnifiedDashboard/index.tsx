@@ -54,7 +54,7 @@ const UnifiedDashboard = () => {
 
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [manualMenuNavigation, setManualMenuNavigation] = useState(false);
@@ -312,14 +312,24 @@ const UnifiedDashboard = () => {
 
 
       <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Global Loading Spinner */}
+        {loading && (
+          <div className="text-center py-32 px-4 bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 shadow-glass max-w-lg mx-auto mt-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sangeet-400 mx-auto mb-6"></div>
+            <h3 className="font-display text-2xl font-semibold text-sangeet-400 mb-3">Loading...</h3>
+            <p className="text-sangeet-neutral-400 text-base">Setting up your dining experience</p>
+          </div>
+        )}
+
+        {!loading && (
         <AnimatePresence mode="wait">
           {currentView === 'menu' && (
             <>
               {menuItems.length === 0 ? (
                 <div className="text-center py-32 px-4 bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 shadow-glass max-w-lg mx-auto mt-20">
-                  <div className="text-6xl mb-6 animate-pulse opacity-50">🍽️</div>
-                  <h3 className="font-display text-3xl font-semibold text-sangeet-400 mb-3">Loading Menu</h3>
-                  <p className="text-sangeet-neutral-400 text-lg">Curating the finest dishes for you...</p>
+                  <div className="text-6xl mb-6">🍽️</div>
+                  <h3 className="font-display text-3xl font-semibold text-sangeet-400 mb-3">No Menu Items</h3>
+                  <p className="text-sangeet-neutral-400 text-lg">The menu is being updated. Please check back soon!</p>
                 </div>
               ) : (
                 <div className="w-full">
@@ -432,6 +442,7 @@ const UnifiedDashboard = () => {
             />
           )}
         </AnimatePresence>
+        )}
       </div>
     </div>
   );
