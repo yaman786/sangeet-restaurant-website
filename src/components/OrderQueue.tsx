@@ -135,8 +135,9 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
       await queryClient.cancelQueries({ queryKey: ['orders'] });
       const previousOrders = queryClient.getQueryData(['orders']);
       queryClient.setQueryData(['orders'], (old: any) => {
+        if (!old) return old;
         return old.map((order: any) => 
-          order.id.toString() === variables.id 
+          String(order.id) === String(variables.id) 
             ? { ...order, status: variables.status }
             : order
         );
@@ -157,12 +158,13 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
       await queryClient.cancelQueries({ queryKey: ['orders'] });
       const previousOrders = queryClient.getQueryData(['orders']);
       queryClient.setQueryData(['orders'], (old: any) => {
+        if (!old) return old;
         return old.map((order: any) => {
-          if (order.id.toString() === variables.orderId) {
+          if (String(order.id) === String(variables.orderId)) {
             return {
               ...order,
               items: order.items.map((item: any) => 
-                item.id.toString() === variables.itemId
+                String(item.id) === String(variables.itemId)
                   ? { ...item, status: 'cancelled' }
                   : item
               )
@@ -185,7 +187,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
   });
 
   const handleStatusUpdate = (orderId: string, newStatus: string) => {
-    const currentOrder = allOrders.find((order: any) => order.id === orderId);
+    const currentOrder = allOrders.find((order: any) => String(order.id) === String(orderId));
     if (!currentOrder) {
       toast.error('Order not found');
       return;
@@ -233,7 +235,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
         queryClient.setQueryData(['orders'], (oldData: any) => {
           if (!oldData) return oldData;
           return oldData.map((order: any) =>
-            order.id === data.orderId
+            String(order.id) === String(data.orderId)
               ? { ...order, status: data.status, updated_at: new Date().toISOString() }
               : order
           );
@@ -243,7 +245,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
       socketService.onOrderDeleted((data: any) => {
         queryClient.setQueryData(['orders'], (oldData: any) => {
           if (!oldData) return oldData;
-          return oldData.filter((order: any) => order.id !== data.orderId);
+          return oldData.filter((order: any) => String(order.id) !== String(data.orderId));
         });
         toast.success(`Order #${data.orderId} deleted`, { duration: 3000, icon: '🗑️' });
       });
