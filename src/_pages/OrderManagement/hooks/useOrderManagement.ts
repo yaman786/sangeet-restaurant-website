@@ -51,13 +51,29 @@ export const useOrderManagement = () => {
   // Mutations
   const statusMutation = useMutation({
     mutationFn: ({ orderId, newStatus }: { orderId: any, newStatus: any }) => updateOrderStatus(orderId, newStatus),
+    onMutate: async ({ orderId, newStatus }) => {
+      await queryClient.cancelQueries({ queryKey: ['orders', filters] });
+      const previousOrders = queryClient.getQueryData(['orders', filters]);
+      queryClient.setQueryData(['orders', filters], (old: any) => {
+        if (!old) return old;
+        return old.map((order: any) => 
+          order.id === orderId ? { ...order, status: newStatus } : order
+        );
+      });
+      return { previousOrders };
+    },
     onSuccess: (data, variables) => {
       toast.success(`Order status updated to ${variables.newStatus}`);
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['orderStats'] });
     },
-    onError: () => {
+    onError: (err, variables, context) => {
+      if (context?.previousOrders) {
+        queryClient.setQueryData(['orders', filters], context.previousOrders);
+      }
       toast.error('Failed to update order status');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders', filters] });
     }
   });
 
@@ -101,8 +117,13 @@ export const useOrderManagement = () => {
         queryClient.invalidateQueries({ queryKey: ['orderStats'] });
       });
       
-      socketService.onOrderStatusUpdate(() => {
-        queryClient.invalidateQueries({ queryKey: ['orders'] });
+      socketService.onOrderStatusUpdate((data: any) => {
+        queryClient.setQueryData(['orders', filters], (oldData: any) => {
+          if (!oldData) return oldData;
+          return oldData.map((order: any) =>
+            order.id === data.orderId ? { ...order, status: data.status, updated_at: new Date().toISOString() } : order
+          );
+        });
         queryClient.invalidateQueries({ queryKey: ['orderStats'] });
       });
       
