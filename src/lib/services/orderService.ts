@@ -68,6 +68,18 @@ class OrderService {
       });
     }
     
+    // Check if the table already has an active, verified order
+    const verifiedSession = await prisma.orders.findFirst({
+      where: {
+        table_id,
+        customer_name,
+        status: { in: ['preparing', 'ready', 'served'] }
+      }
+    });
+    
+    // If they are verified, auto-approve the new order directly to the kitchen
+    const initialStatus = verifiedSession ? 'preparing' : 'pending';
+    
     // Create new order
     const dateStr = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 8);
     
@@ -86,7 +98,7 @@ class OrderService {
             order_number: orderNumber,
             table_id,
             customer_name,
-            status: 'pending',
+            status: initialStatus,
             special_instructions: special_instructions || null,
             total_amount: totalAmount,
             order_type,
