@@ -66,6 +66,7 @@ export const useTableSession = () => {
     localStorage.removeItem(`session_timestamp_${tableNumber}`);
     localStorage.removeItem(`customer_${tableNumber}`);
     localStorage.removeItem(`instructions_${tableNumber}`);
+    localStorage.removeItem(`cancelledOrder_${tableNumber}`);
   }, [tableNumber]);
 
   return {

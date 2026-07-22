@@ -82,10 +82,7 @@ const UnifiedDashboard = () => {
     try {
       setLoading(true);
       const timeoutResult = checkCancelledOrderTimeout();
-      if (timeoutResult === 'fresh_start') {
-        setLoading(false);
-        return;
-      }
+      // Even if it was a fresh start, we still need to fetch the menu items!
       
       const [menuData, categoriesData] = await Promise.all([
         fetchMenuItems(),
