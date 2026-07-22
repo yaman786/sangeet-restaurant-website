@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, activeFilter = 'all', sortBy = 'priority', searchQuery = '' }: any) => {
   const queryClient = useQueryClient();
   const [now, setNow] = useState(Date.now());
+  const [itemToCancel, setItemToCancel] = useState<{orderId: string, itemId: string, itemName: string} | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 60000);
@@ -211,9 +212,18 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
   };
 
   const handleItemCancel = (orderId: string, itemId: string, itemName: string) => {
-    if (window.confirm(`Are you sure you want to cancel the item: ${itemName}?`)) {
-      cancelItemMutation.mutate({ orderId, itemId });
+    setItemToCancel({ orderId, itemId, itemName });
+  };
+
+  const confirmItemCancel = () => {
+    if (itemToCancel) {
+      cancelItemMutation.mutate({ orderId: itemToCancel.orderId, itemId: itemToCancel.itemId });
+      setItemToCancel(null);
     }
+  };
+
+  const cancelItemCancel = () => {
+    setItemToCancel(null);
   };
 
   const setupSocketListeners = useCallback(() => {
@@ -538,6 +548,47 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
           </p>
         </div>
       )}
+
+      {/* Custom Item Cancellation Modal */}
+      <AnimatePresence>
+        {itemToCancel && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-[#1C1917] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+            >
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/20 text-red-500 mb-4 mx-auto">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-display font-bold text-white text-center mb-2">Cancel Item?</h3>
+              <p className="text-sangeet-neutral-300 text-center mb-6">
+                Are you sure you want to cancel <span className="text-sangeet-400 font-semibold">{itemToCancel.itemName}</span> from this order? This action cannot be undone.
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={cancelItemCancel}
+                  className="flex-1 py-2.5 px-4 rounded-xl font-medium border border-white/10 text-white hover:bg-white/5 transition-colors"
+                >
+                  Keep Item
+                </button>
+                <button
+                  onClick={confirmItemCancel}
+                  className="flex-1 py-2.5 px-4 rounded-xl font-medium bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20"
+                >
+                  Yes, Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
