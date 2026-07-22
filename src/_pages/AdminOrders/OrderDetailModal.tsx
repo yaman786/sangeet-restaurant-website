@@ -60,21 +60,30 @@ const OrderDetailModal = ({ selectedOrderDetails, setShowOrderModal }: any) => {
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-sangeet-neutral-200 mb-4">Order Items</h3>
             <div className="space-y-3">
-              {sortItemsByNewness(selectedOrderDetails.items).map((item, index) => (
-                <div key={index} className="flex items-center space-x-3 py-2 border-b border-sangeet-neutral-700/50 last:border-b-0 relative">
-                  <div className="w-8 h-8 bg-sangeet-neutral-700 rounded-full flex items-center justify-center text-xs font-semibold">
+              {sortItemsByNewness(selectedOrderDetails.items).map((item, index) => {
+                const isCancelled = (item as any).status === 'cancelled';
+                return (
+                <div key={index} className={`flex items-center space-x-3 py-2 border-b border-sangeet-neutral-700/50 last:border-b-0 relative ${isCancelled ? 'opacity-60' : ''}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${isCancelled ? 'bg-red-500/20 text-red-400' : 'bg-sangeet-neutral-700'}`}>
                     {(item as any).quantity}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2">
-                      <p className="text-sangeet-neutral-200 font-medium">{(item as any).name}</p>
-                      {isNewItem(item.created_at) && (
+                      <p className={`font-medium ${isCancelled ? 'text-red-400 line-through' : 'text-sangeet-neutral-200'}`}>
+                        {(item as any).name}
+                      </p>
+                      {isCancelled && (
+                        <span className="bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase">
+                          Cancelled
+                        </span>
+                      )}
+                      {!isCancelled && isNewItem(item.created_at) && (
                         <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium animate-pulse">
                           NEW
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-sangeet-neutral-400">
+                    <p className={`text-sm ${isCancelled ? 'text-red-400/60 line-through' : 'text-sangeet-neutral-400'}`}>
                       ${parseFloat((item as any).unit_price).toFixed(2)} each
                     </p>
                     <p className="text-xs text-sangeet-neutral-500">
@@ -82,12 +91,12 @@ const OrderDetailModal = ({ selectedOrderDetails, setShowOrderModal }: any) => {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sangeet-neutral-200 font-semibold">
+                    <p className={`font-semibold ${isCancelled ? 'text-red-400/60 line-through' : 'text-sangeet-neutral-200'}`}>
                       ${parseFloat((item as any).total_price).toFixed(2)}
                     </p>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
         )}
