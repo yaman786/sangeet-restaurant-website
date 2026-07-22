@@ -243,6 +243,13 @@ const UnifiedDashboard = () => {
     };
   }, [tableNumber, loadDashboardData, setupRealTimeUpdates]);
 
+  // Guard: If no table number (user navigated here directly without QR scan), redirect to home
+  useEffect(() => {
+    if (!tableNumber) {
+      window.location.href = '/';
+    }
+  }, [tableNumber]);
+
   useEffect(() => {
     if (forceMenuView) return;
     if (orders.length > 0 && currentView === 'menu' && !manualMenuNavigation) {
@@ -261,6 +268,11 @@ const UnifiedDashboard = () => {
     if (status === 'cancelled') return 0;
     return statusOrder.indexOf(status) + 1;
   };
+
+  // If no table number, show nothing while redirect happens
+  if (!tableNumber) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-[#131210] selection:bg-sangeet-400 selection:text-[#131210]">
