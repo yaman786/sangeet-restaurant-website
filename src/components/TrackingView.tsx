@@ -100,7 +100,12 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
         </div>
       ) : (
         <div className="space-y-4 sm:space-y-6">
-          {orders.map((order: any) => (
+          {orders.map((order: any) => {
+            const reviewedArray = Array.from(reviewedOrders);
+            const firstEligibleOrder = orders.find((o: any) => (o.status === 'ready' || o.status === 'completed') && !reviewedArray.includes(o.id));
+            const shouldShowReview = firstEligibleOrder?.id === order.id;
+            
+            return (
             <OrderCard
               key={`${order.id}-${order.status}-${order.updated_at}`}
               order={order}
@@ -110,9 +115,10 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
               formatDate={formatDate}
               tableNumber={tableNumber}
               onReviewClick={handleReviewClick}
-              reviewedOrders={Array.from(reviewedOrders)}
+              reviewedOrders={reviewedArray}
+              showReviewOption={shouldShowReview}
             />
-          ))}
+          )})}
         </div>
       )}
 
@@ -139,7 +145,7 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
   );
 };
 
-const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate, tableNumber, onReviewClick, reviewedOrders }: any) => {
+const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate, tableNumber, onReviewClick, reviewedOrders, showReviewOption = false }: any) => {
   const currentStatus = orderStatuses[order.status] || orderStatuses.pending;
   const statusStep = getStatusStep(order.status);
 
@@ -379,7 +385,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
       </div>
 
       {/* Professional Review Link - Strategic Placement */}
-      {(order.status === 'ready' || order.status === 'completed') && !reviewedOrders.includes(order.id) && (
+      {showReviewOption && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
