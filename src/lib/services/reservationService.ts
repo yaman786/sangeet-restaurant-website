@@ -95,30 +95,33 @@ class ReservationService {
   async createReservation(data: Record<string, any>): Promise<any> {
     const { customer_name, email, phone, date, time, guests, special_requests, table_id } = data;
     
-    if (table_id) {
-      const existing = await prisma.reservations.findFirst({
-        where: {
+    // Wrap the availability check and insertion in an atomic transaction to prevent race conditions
+    const reservation = await prisma.$transaction(async (tx) => {
+      if (table_id) {
+        const existing = await tx.reservations.findFirst({
+          where: {
+            date: new Date(date),
+            time: new Date(`1970-01-01T${time}:00.000Z`),
+            table_id: parseInt(table_id),
+            status: { in: ['pending', 'confirmed'] }
+          }
+        });
+        if (existing) throw new ConflictError('Table is already reserved for this date and time');
+      }
+
+      return await tx.reservations.create({
+        data: {
+          customer_name,
+          email,
+          phone,
           date: new Date(date),
           time: new Date(`1970-01-01T${time}:00.000Z`),
-          table_id: parseInt(table_id),
-          status: { in: ['pending', 'confirmed'] }
+          guests: parseInt(guests),
+          special_requests: special_requests || null,
+          table_id: table_id ? parseInt(table_id) : null,
+          status: 'pending'
         }
       });
-      if (existing) throw new ConflictError('Table is already reserved for this date and time');
-    }
-
-    const reservation = await prisma.reservations.create({
-      data: {
-        customer_name,
-        email,
-        phone,
-        date: new Date(date),
-        time: new Date(`1970-01-01T${time}:00.000Z`),
-        guests: parseInt(guests),
-        special_requests: special_requests || null,
-        table_id: table_id ? parseInt(table_id) : null,
-        status: 'pending'
-      }
     });
 
     if (reservation.email) {
@@ -133,33 +136,36 @@ class ReservationService {
   async updateReservation(id: string, data: Record<string, any>): Promise<any> {
     const { customer_name, email, phone, date, time, guests, special_requests, table_id, status } = data;
     
-    if (table_id) {
-      const existing = await prisma.reservations.findFirst({
-        where: {
+    // Wrap the availability check and update in an atomic transaction to prevent race conditions
+    const reservation = await prisma.$transaction(async (tx) => {
+      if (table_id) {
+        const existing = await tx.reservations.findFirst({
+          where: {
+            date: new Date(date),
+            time: new Date(`1970-01-01T${time}:00.000Z`),
+            table_id: parseInt(table_id),
+            id: { not: parseInt(id) },
+            status: { in: ['pending', 'confirmed'] }
+          }
+        });
+        if (existing) throw new ConflictError('Table is already reserved for this date and time');
+      }
+
+      return await tx.reservations.update({
+        where: { id: parseInt(id) },
+        data: {
+          customer_name,
+          email,
+          phone,
           date: new Date(date),
           time: new Date(`1970-01-01T${time}:00.000Z`),
-          table_id: parseInt(table_id),
-          id: { not: parseInt(id) },
-          status: { in: ['pending', 'confirmed'] }
+          guests: parseInt(guests),
+          special_requests: special_requests || null,
+          table_id: table_id ? parseInt(table_id) : null,
+          status,
+          updated_at: new Date()
         }
       });
-      if (existing) throw new ConflictError('Table is already reserved for this date and time');
-    }
-
-    const reservation = await prisma.reservations.update({
-      where: { id: parseInt(id) },
-      data: {
-        customer_name,
-        email,
-        phone,
-        date: new Date(date),
-        time: new Date(`1970-01-01T${time}:00.000Z`),
-        guests: parseInt(guests),
-        special_requests: special_requests || null,
-        table_id: table_id ? parseInt(table_id) : null,
-        status,
-        updated_at: new Date()
-      }
     });
 
     emitReservationUpdate(reservation).catch(err => console.error('Pusher error:', err));
