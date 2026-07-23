@@ -6,6 +6,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown, Search } from 'lucide-react';
 import AdminHeader from '../components/AdminHeader';
 import { fetchAllReservations, updateReservationStatus, deleteReservation, fetchReservationStats, fetchTables, updateReservation } from '../services/api';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
+import { formatRestaurantTime } from '@/lib/utils/timeUtils';
 
 const ReservationManagementPage = () => {
   const [reservations, setReservations] = useState<any[]>([]);
@@ -227,20 +228,11 @@ const ReservationManagementPage = () => {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    });
+    return formatRestaurantTime(dateString, 'ddd, MMM D');
   };
 
   const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
+    return formatRestaurantTime(timeString, 'h:mm A');
   };
 
   // eslint-disable-next-line no-unused-vars

@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { reservationSchema } from '@/lib/validations';
 import { createReservationAction } from '@/app/actions/reservationActions';
+import { parseRestaurantTime, formatRestaurantTime } from '@/lib/utils/timeUtils';
 
 const ReservationsPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,11 +67,8 @@ const ReservationsPage = () => {
   };
 
   const formatTime = (time: string) => {
-    return new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    const parsed = parseRestaurantTime('2000-01-01', time);
+    return formatRestaurantTime(parsed);
   };
 
   return (

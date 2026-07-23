@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, subDays, isValid, parseISO } from 'date-fns';
+import { formatRestaurantTime } from '@/lib/utils/timeUtils';
 import { toast } from 'react-hot-toast';
 import { X, Eye, User, Phone, Mail, Calendar, Clock, MessageSquare, Tag, Users } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -56,10 +57,9 @@ const HistoryDashboard = () => {
 
   const safeFormatDate = (dateVal: any, formatStr: any) => {
     if (!dateVal) return 'N/A';
-    const dateObj = new Date(dateVal);
-    // Check if valid date
-    if (isNaN(dateObj.getTime())) return 'Invalid Date';
-    return format(dateObj, formatStr);
+    // Convert date-fns format strings to dayjs format strings
+    const dayjsFormat = formatStr.replace('dd', 'DD').replace('yyyy', 'YYYY');
+    return formatRestaurantTime(dateVal, dayjsFormat);
   };
 
   return (
@@ -217,8 +217,8 @@ const HistoryDashboard = () => {
                           </>
                         ) : (
                           <>
-                            <td className="p-4 text-white font-medium">
-                              {safeFormatDate(item.date, 'MMM dd, yyyy')} <span className="text-sangeet-neutral-400 ml-2">{item.time || ''}</span>
+                            <td className="p-4">
+                              {formatRestaurantTime(item.date, 'MMM DD, YYYY')} <span className="text-sangeet-neutral-400 ml-2">{item.time ? formatRestaurantTime(item.time, 'h:mm A') : ''}</span>
                             </td>
                             <td className="p-4 text-sangeet-neutral-300">{item.customer_name}</td>
                             <td className="p-4 text-sangeet-neutral-300">{item.customer_phone}</td>
@@ -374,15 +374,15 @@ const HistoryDashboard = () => {
                     <Calendar className="mr-3 text-sangeet-400" size={20} />
                     <div>
                       <p className="text-xs text-sangeet-neutral-500">Date</p>
-                      <p className="font-semibold text-white">{safeFormatDate(selectedReservation.date, 'MMM dd, yyyy')}</p>
+                      <p className="font-semibold text-white">{formatRestaurantTime(selectedReservation.date, 'MMM DD, YYYY')}</p>
                     </div>
                   </div>
                   <div className="flex items-center text-sangeet-neutral-300 bg-sangeet-neutral-800 p-4 rounded-xl">
                     <Clock className="mr-3 text-sangeet-400" size={20} />
                     <div>
-                      <p className="text-xs text-sangeet-neutral-500">Time</p>
-                      <p className="font-semibold text-white">{selectedReservation.time || 'N/A'}</p>
-                    </div>
+                    <p className="text-sangeet-neutral-400 mb-1">Time</p>
+                    <p className="font-semibold text-white">{selectedReservation.time ? formatRestaurantTime(selectedReservation.time, 'h:mm A') : 'N/A'}</p>
+                  </div>
                   </div>
                 </div>
                 <div className="flex items-center text-sangeet-neutral-300 bg-sangeet-neutral-800 p-4 rounded-xl">

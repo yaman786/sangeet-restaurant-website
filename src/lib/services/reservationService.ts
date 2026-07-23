@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db';
 import { NotFoundError, ConflictError, ValidationError } from '@/lib/errors';
 import { sendReservationCreatedEmail, sendReservationConfirmedEmail, sendReservationCancelledEmail } from '../utils/emailService';
 import { emitNewReservation, emitReservationUpdate } from './pusherServer';
+import { parseRestaurantTime } from '../utils/timeUtils';
 import type { ReservationRow } from '@/lib/types';
 
 class ReservationService {
@@ -51,7 +52,7 @@ class ReservationService {
       where: {
         date: new Date(date),
         // Time might need specific date parsing, assuming exact match for now
-        time: new Date(`1970-01-01T${time}:00.000Z`),
+        time: parseRestaurantTime(date, time).toDate(),
         status: { in: ['pending', 'confirmed'] },
         table_id: { not: null }
       },
@@ -101,7 +102,7 @@ class ReservationService {
         const existing = await tx.reservations.findFirst({
           where: {
             date: new Date(date),
-            time: new Date(`1970-01-01T${time}:00.000Z`),
+            time: parseRestaurantTime(date, time).toDate(),
             table_id: parseInt(table_id),
             status: { in: ['pending', 'confirmed'] }
           }
@@ -115,7 +116,7 @@ class ReservationService {
           email,
           phone,
           date: new Date(date),
-          time: new Date(`1970-01-01T${time}:00.000Z`),
+          time: parseRestaurantTime(date, time).toDate(),
           guests: parseInt(guests),
           special_requests: special_requests || null,
           table_id: table_id ? parseInt(table_id) : null,
@@ -142,7 +143,7 @@ class ReservationService {
         const existing = await tx.reservations.findFirst({
           where: {
             date: new Date(date),
-            time: new Date(`1970-01-01T${time}:00.000Z`),
+            time: parseRestaurantTime(date, time).toDate(),
             table_id: parseInt(table_id),
             id: { not: parseInt(id) },
             status: { in: ['pending', 'confirmed'] }
@@ -158,7 +159,7 @@ class ReservationService {
           email,
           phone,
           date: new Date(date),
-          time: new Date(`1970-01-01T${time}:00.000Z`),
+          time: parseRestaurantTime(date, time).toDate(),
           guests: parseInt(guests),
           special_requests: special_requests || null,
           table_id: table_id ? parseInt(table_id) : null,
@@ -208,7 +209,7 @@ class ReservationService {
     const reservationsCount = await prisma.reservations.count({
       where: {
         date: new Date(date),
-        time: new Date(`1970-01-01T${time}:00.000Z`),
+        time: parseRestaurantTime(date, time).toDate(),
         status: { in: ['pending', 'confirmed'] },
         ...(table_id ? { table_id: parseInt(table_id) } : {})
       }
