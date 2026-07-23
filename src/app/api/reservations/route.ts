@@ -4,6 +4,7 @@ import reservationService from '@/lib/services/reservationService';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireAuth } from '@/lib/auth';
 import { reservationSchema } from '@/lib/validations';
+import { checkRateLimit } from '@/lib/utils/rateLimit';
 
 export async function GET(req: NextRequest) {
   try {
@@ -24,6 +25,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimit = await checkRateLimit(req, 'reservation');
+    if (!rateLimit.success && rateLimit.response) {
+      return rateLimit.response;
+    }
+
     const rawBody = await req.json();
     const body = reservationSchema.parse(rawBody);
     const reservation = await reservationService.createReservation(body);

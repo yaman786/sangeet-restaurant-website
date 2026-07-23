@@ -7,6 +7,7 @@ import { handleApiError, UnauthorizedError } from '@/lib/errors';
 import { JwtPayload } from '@/lib/auth';
 import type { UserRole } from '@/lib/types';
 import { loginSchema } from '@/lib/validations';
+import { checkRateLimit } from '@/lib/utils/rateLimit';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -15,6 +16,11 @@ if (!JWT_SECRET) {
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimit = await checkRateLimit(req, 'login');
+    if (!rateLimit.success && rateLimit.response) {
+      return rateLimit.response;
+    }
+
     const rawBody = await req.json();
     // Validate with Zod
     const { username, password } = loginSchema.parse(rawBody);
