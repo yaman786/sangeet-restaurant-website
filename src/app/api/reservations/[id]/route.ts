@@ -31,3 +31,19 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return handleApiError(error);
   }
 }
+
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const authResult = await authenticateToken(req);
+    if (authResult.errorResponse) return authResult.errorResponse;
+    const roleError = requireAuth(authResult.user!);
+    if (roleError) return roleError;
+
+    const body = await req.json();
+    const reservation = await reservationService.updateReservation(params.id, body);
+    
+    return NextResponse.json({ message: 'Reservation updated successfully', reservation });
+  } catch (error) {
+    return handleApiError(error);
+  }
+}

@@ -6,7 +6,7 @@ import { authenticateToken, requireRole } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
   try {
-    const tables = await prisma.tables.findMany({
+    const tables = await prisma.restaurant_tables.findMany({
       where: { is_active: true },
       orderBy: { table_number: 'asc' }
     });
@@ -24,15 +24,13 @@ export async function POST(req: NextRequest) {
     if (roleError) return roleError;
 
     const body = await req.json();
-    const { table_number, capacity, qr_code_url, location } = body;
+    const { table_number, capacity, table_type } = body;
     
-    const table = await prisma.tables.create({
+    const table = await prisma.restaurant_tables.create({
       data: {
         table_number,
         capacity: capacity ? parseInt(capacity, 10) : 4,
-        qr_code_url: qr_code_url || '',
-        table_name: location || null,
-        qr_code_data: ''
+        table_type: table_type || 'standard'
       }
     });
     
