@@ -85,3 +85,27 @@ export const fetchReservationStats = async (date: string | null = null): Promise
     return await api.get(url);
   }, 'fetchReservationStats');
 };
+
+export const getAllTimeSlots = async () => {
+  return apiCallWrapper(async () => {
+    return await api.get('/reservations/timeslots');
+  }, 'getAllTimeSlots');
+};
+
+export const createTimeSlot = async (data: any) => {
+  return apiCallWrapper(async () => {
+    return await api.post('/reservations/timeslots', data);
+  }, 'createTimeSlot', false);
+};
+
+export const updateTimeSlot = async (id: string | number, data: any) => {
+  return apiCallWrapper(async () => {
+    return await api.put(`/reservations/timeslots/${encodeURIComponent(id)}`, data);
+  }, 'updateTimeSlot', false);
+};
+
+export const deleteTimeSlot = async (id: string | number) => {
+  return apiCallWrapper(async () => {
+    return await api.delete(`/reservations/timeslots/${encodeURIComponent(id)}`);
+  }, 'deleteTimeSlot', false);
+};

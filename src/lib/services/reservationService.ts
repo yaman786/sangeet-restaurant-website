@@ -3,7 +3,8 @@ import { NotFoundError, ConflictError, ValidationError } from '@/lib/errors';
 import { sendReservationCreatedEmail, sendReservationConfirmedEmail, sendReservationCancelledEmail } from '../utils/emailService';
 import { emitNewReservation, emitReservationUpdate } from './pusherServer';
 import { parseRestaurantTime } from '../utils/timeUtils';
-import type { ReservationRow, ReservationQueryDTO, CreateReservationDTO, UpdateReservationDTO } from '@/lib/types';
+import type { ReservationRow } from '@/lib/types';
+import { CreateReservationDTO, UpdateReservationDTO, ReservationQueryDTO, CreateTimeSlotDTO, UpdateTimeSlotDTO } from '../types/dtos';
 
 class ReservationService {
   async getAllReservations(query: ReservationQueryDTO): Promise<any[]> {
@@ -63,15 +64,69 @@ class ReservationService {
     return validRestaurantTables.filter(table => !reservedTableIds.includes(table.id));
   }
 
+  // Admin Timeslot Management Methods
+  async getAllTimeSlots(): Promise<any[]> {
+    const slots = await prisma.reservation_time_slots.findMany({
+      orderBy: { time_slot: 'asc' }
+    });
+    return slots.map(slot => ({
+      id: slot.id,
+      time_slot: slot.time_slot.toISOString().substring(11, 16),
+      is_active: slot.is_active,
+      max_reservations: slot.max_reservations,
+      created_at: slot.created_at
+    }));
+  }
+
+  async createTimeSlot(data: CreateTimeSlotDTO): Promise<any> {
+    const { time_slot, is_active, max_reservations } = data;
+    // Store dummy date since it's just a Time column
+    const dummyDate = new Date(`1970-01-01T${time_slot}:00.000Z`);
+    return prisma.reservation_time_slots.create({
+      data: {
+        time_slot: dummyDate,
+        is_active: is_active ?? true,
+        max_reservations: max_reservations ?? 10
+      }
+    });
+  }
+
+  async updateTimeSlot(id: string, data: UpdateTimeSlotDTO): Promise<any> {
+    const { time_slot, is_active, max_reservations } = data;
+    const updateData: any = {};
+    
+    if (time_slot !== undefined) {
+      updateData.time_slot = new Date(`1970-01-01T${time_slot}:00.000Z`);
+    }
+    if (is_active !== undefined) updateData.is_active = is_active;
+    if (max_reservations !== undefined) updateData.max_reservations = max_reservations;
+
+    return prisma.reservation_time_slots.update({
+      where: { id: parseInt(id, 10) },
+      data: updateData
+    });
+  }
+
+  async deleteTimeSlot(id: string): Promise<void> {
+    await prisma.reservation_time_slots.delete({
+      where: { id: parseInt(id, 10) }
+    });
+  }
+
   async getAvailableTimeSlots(date: string): Promise<string[]> {
     if (!date) throw new ValidationError('Date is required');
     
-    const allSlots = ['17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00'];
-    const totalTables = await prisma.restaurant_tables.count({
-      where: { is_active: true }
+    // Fetch active slots from the database
+    const dbSlots = await prisma.reservation_time_slots.findMany({
+      where: { is_active: true },
+      orderBy: { time_slot: 'asc' }
     });
+    const allSlots = dbSlots.map(slot => slot.time_slot.toISOString().substring(11, 16));
+    const slotCapacities = Object.fromEntries(
+      dbSlots.map(slot => [slot.time_slot.toISOString().substring(11, 16), slot.max_reservations || 10])
+    );
     
-    // Group by time
+    // Group by time for the specific date
     const reservations = await prisma.reservations.groupBy({
       by: ['time'],
       where: {
@@ -85,12 +140,12 @@ class ReservationService {
     
     const bookedSlots: Record<string, number> = {};
     reservations.forEach(row => {
-      // Prisma returns time as DateTime. We need to extract HH:mm.
       const timeStr = row.time.toISOString().substring(11, 16);
       bookedSlots[timeStr] = row._count.time;
     });
     
-    return allSlots.filter(slot => (bookedSlots[slot] || 0) < totalTables);
+    // Check against individual slot capacities instead of total tables
+    return allSlots.filter(slot => (bookedSlots[slot] || 0) < slotCapacities[slot]);
   }
 
   async createReservation(data: CreateReservationDTO): Promise<any> {

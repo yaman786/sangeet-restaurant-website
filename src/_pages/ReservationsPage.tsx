@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
@@ -12,6 +12,29 @@ const ReservationsPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [reservationDetails, setReservationDetails] = useState<any>(null);
+  const [timeOptions, setTimeOptions] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch('/api/reservations/timeslots')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          // Filter to only show active ones
+          const activeSlots = data.filter(s => s.is_active).map(s => s.time_slot);
+          setTimeOptions(activeSlots.length > 0 ? activeSlots : [
+            '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
+            '20:00', '20:30', '21:00', '21:30', '22:00'
+          ]);
+        }
+      })
+      .catch(() => {
+        // Fallback
+        setTimeOptions([
+          '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
+          '20:00', '20:30', '21:00', '21:30', '22:00'
+        ]);
+      });
+  }, []);
 
   const {
     register,
@@ -40,11 +63,7 @@ const ReservationsPage = () => {
   maxDate.setDate(maxDate.getDate() + 30);
   const maxDateStr = maxDate.toISOString().split('T')[0];
 
-  // Simple time options
-  const timeOptions = [
-    '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
-    '20:00', '20:30', '21:00', '21:30', '22:00'
-  ];
+  // timeOptions fetched dynamically
 
   const onSubmit = async (data: any) => {
     try {

@@ -12,7 +12,11 @@ import {
   getWebsiteMedia,
   uploadWebsiteMedia,
   deleteWebsiteMedia,
-  getWebsiteStats
+  getWebsiteStats,
+  getAllTimeSlots,
+  createTimeSlot,
+  updateTimeSlot,
+  deleteTimeSlot
 } from '../services/api';
 
 const RestaurantWebsiteManagementPage = () => {
@@ -23,6 +27,7 @@ const RestaurantWebsiteManagementPage = () => {
   const [settings, setSettings] = useState<any>({});
   const [content, setContent] = useState<any>({});
   const [media, setMedia] = useState<any[]>([]);
+  const [timeSlots, setTimeSlots] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
 
   // Load all data
@@ -30,17 +35,19 @@ const RestaurantWebsiteManagementPage = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const [statsData, settingsData, contentData, mediaData] = await Promise.all([
+        const [statsData, settingsData, contentData, mediaData, timeSlotsData] = await Promise.all([
           getWebsiteStats(),
           getRestaurantSettings(),
           getWebsiteContent(),
-          getWebsiteMedia()
+          getWebsiteMedia(),
+          getAllTimeSlots()
         ]);
 
         setStats((statsData as any).stats);
         setSettings((settingsData as any).settings);
         setContent((contentData as any).content);
         setMedia((mediaData as any).media);
+        setTimeSlots((timeSlotsData as any) || []);
       } catch (error: any) {
         console.error('Error loading website data:', error);
         if (error.response?.status === 401) {
@@ -104,14 +111,51 @@ const RestaurantWebsiteManagementPage = () => {
   };
 
   // Delete media
-  const handleDeleteMedia = async (id: any) => {
+  const handleDeleteMedia = async (id: string) => {
     try {
       await deleteWebsiteMedia(id);
-      setMedia(media.filter(item => item.id !== id));
-      toast.success('Image deleted successfully!');
+      setMedia(media.filter(m => m.id !== parseInt(id, 10)));
+      toast.success('Media deleted successfully!');
     } catch (error) {
       console.error('Error deleting media:', error);
-      toast.error('Failed to delete image');
+      toast.error('Failed to delete media');
+    }
+  };
+
+  // Timeslot Actions
+  const [newTimeSlot, setNewTimeSlot] = useState('');
+  const handleCreateTimeSlot = async () => {
+    if (!newTimeSlot) return;
+    try {
+      setSaving(true);
+      await createTimeSlot({ time_slot: newTimeSlot });
+      const times = await getAllTimeSlots();
+      setTimeSlots((times as any) || []);
+      setNewTimeSlot('');
+      toast.success('Time slot created');
+    } catch (e) {
+      toast.error('Failed to create time slot');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggleTimeSlot = async (id: number, isActive: boolean) => {
+    try {
+      await updateTimeSlot(id, { is_active: !isActive });
+      setTimeSlots(timeSlots.map(t => t.id === id ? { ...t, is_active: !isActive } : t));
+    } catch (e) {
+      toast.error('Failed to update time slot');
+    }
+  };
+
+  const handleDeleteTimeSlot = async (id: number) => {
+    try {
+      await deleteTimeSlot(id);
+      setTimeSlots(timeSlots.filter(t => t.id !== id));
+      toast.success('Time slot deleted');
+    } catch (e) {
+      toast.error('Failed to delete time slot');
     }
   };
 
@@ -150,7 +194,8 @@ const RestaurantWebsiteManagementPage = () => {
     { id: 'overview', name: 'Overview', icon: '📊' },
     { id: 'settings', name: 'Restaurant Settings', icon: '⚙️' },
     { id: 'content', name: 'Website Content', icon: '📝' },
-    { id: 'media', name: 'Media Gallery', icon: '🖼️' }
+    { id: 'media', name: 'Media Gallery', icon: '🖼️' },
+    { id: 'timeslots', name: 'Reservation Timeslots', icon: '🕒' }
   ];
 
   return (
@@ -234,7 +279,7 @@ const RestaurantWebsiteManagementPage = () => {
                 {/* Quick Actions */}
                 <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
                   <h3 className="text-xl font-bold text-sangeet-400 mb-4">Quick Actions</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <button
                       onClick={() => setActiveTab('settings')}
                       className="flex items-center gap-3 p-4 bg-sangeet-neutral-700 rounded-lg hover:bg-sangeet-neutral-600 transition-colors text-left"
@@ -641,6 +686,85 @@ const RestaurantWebsiteManagementPage = () => {
                       </p>
                     </div>
                   )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Timeslots Tab */}
+            {activeTab === 'timeslots' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-sangeet-400">Reservation Timeslots</h2>
+                    <p className="text-sangeet-neutral-400 mt-1">Manage the available booking times for guests.</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="time"
+                      value={newTimeSlot}
+                      onChange={(e) => setNewTimeSlot(e.target.value)}
+                      className="px-4 py-2 bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-md text-sangeet-neutral-100"
+                    />
+                    <button
+                      onClick={handleCreateTimeSlot}
+                      disabled={saving || !newTimeSlot}
+                      className="px-6 py-2 bg-sangeet-500 hover:bg-sangeet-600 text-white font-medium rounded-md transition-colors disabled:opacity-50"
+                    >
+                      Add Timeslot
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-sangeet-neutral-900 rounded-xl border border-sangeet-neutral-700 overflow-hidden">
+                  <table className="w-full text-left">
+                    <thead className="bg-sangeet-neutral-800 text-sangeet-neutral-300">
+                      <tr>
+                        <th className="px-6 py-4 font-medium">Time (HH:MM)</th>
+                        <th className="px-6 py-4 font-medium">Max Tables</th>
+                        <th className="px-6 py-4 font-medium">Status</th>
+                        <th className="px-6 py-4 text-right font-medium">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-sangeet-neutral-800 text-sangeet-neutral-100">
+                      {timeSlots.map((slot) => (
+                        <tr key={slot.id} className="hover:bg-sangeet-neutral-800/50">
+                          <td className="px-6 py-4 text-lg">{slot.time_slot}</td>
+                          <td className="px-6 py-4 text-sangeet-neutral-400">{slot.max_reservations}</td>
+                          <td className="px-6 py-4">
+                            <button
+                              onClick={() => handleToggleTimeSlot(slot.id, slot.is_active)}
+                              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                slot.is_active 
+                                  ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
+                                  : 'bg-sangeet-neutral-700 text-sangeet-neutral-400 border border-sangeet-neutral-600'
+                              }`}
+                            >
+                              {slot.is_active ? 'Active' : 'Inactive'}
+                            </button>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button
+                              onClick={() => handleDeleteTimeSlot(slot.id)}
+                              className="text-red-400 hover:text-red-300 transition-colors px-3 py-1 bg-red-400/10 rounded-md hover:bg-red-400/20"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {timeSlots.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="px-6 py-8 text-center text-sangeet-neutral-400">
+                            No timeslots configured. Add one above.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </motion.div>
             )}

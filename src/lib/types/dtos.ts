@@ -42,6 +42,18 @@ export interface UpdateReservationDTO {
   status?: string;
 }
 
+export interface CreateTimeSlotDTO {
+  time_slot: string; // 'HH:mm'
+  is_active?: boolean;
+  max_reservations?: number;
+}
+
+export interface UpdateTimeSlotDTO {
+  time_slot?: string;
+  is_active?: boolean;
+  max_reservations?: number;
+}
+
 export interface ReservationQueryDTO {
   date?: string | Date;
   status?: string;

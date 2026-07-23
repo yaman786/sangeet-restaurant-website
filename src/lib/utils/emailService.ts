@@ -163,55 +163,75 @@ export const sendTestEmail = async (to: string, template: EmailTemplate, data: R
   }
 };
 
-// Send email function using Brevo REST API
+// Send email function using Brevo REST API with Exponential Backoff
 export const sendEmail = async (to: string, template: EmailTemplate, data: ReservationEmailData): Promise<EmailResult> => {
-  try {
-    const emailContent = emailTemplates[template](data);
-    const apiKey = getApiKey();
-    
-    // Check if we have proper API credentials
-    if (!apiKey) {
-      logger.info('📧 EMAIL LOGGED (not sent - missing BREVO_API_KEY):');
-      logger.info('📧 To:', to);
-      logger.info('📧 Subject:', emailContent.subject);
-      return { success: true, messageId: 'logged-' + Date.now() };
-    }
-    
-    const payload = {
-      sender: {
-        name: 'Sangeet Restaurant',
-        email: getSenderEmail()
-      },
-      to: [
-        { email: to }
-      ],
-      subject: emailContent.subject,
-      htmlContent: emailContent.html
-    };
-
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'api-key': apiKey
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Brevo API Error: ${JSON.stringify(errorData)}`);
-    }
-
-    const result = await response.json() as { messageId: string };
-    logger.info('📧 Email sent successfully via Brevo:', result.messageId);
-    return { success: true, messageId: result.messageId };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    logger.error('❌ Error sending email via Brevo:', message);
-    return { success: false, error: message };
+  const emailContent = emailTemplates[template](data);
+  const apiKey = getApiKey();
+  const senderEmail = getSenderEmail();
+  
+  // Check if we have proper API credentials
+  if (!apiKey) {
+    logger.info('📧 EMAIL LOGGED (not sent - missing BREVO_API_KEY):');
+    logger.info('📧 To:', to);
+    logger.info('📧 Subject:', emailContent.subject);
+    return { success: true, messageId: 'logged-' + Date.now() };
   }
+  
+  const payload = {
+    sender: {
+      name: 'Sangeet Restaurant',
+      email: senderEmail
+    },
+    to: [
+      { email: to }
+    ],
+    replyTo: {
+      email: senderEmail,
+      name: 'Sangeet Restaurant'
+    },
+    subject: emailContent.subject,
+    htmlContent: emailContent.html
+  };
+
+  let lastError: Error | null = null;
+  const maxRetries = 3;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'api-key': apiKey
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Brevo API Error: ${JSON.stringify(errorData)}`);
+      }
+
+      const result = await response.json() as { messageId: string };
+      logger.info(`📧 Email sent successfully via Brevo (Attempt ${attempt}):`, result.messageId);
+      return { success: true, messageId: result.messageId };
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      logger.warn(`⚠️ Email attempt ${attempt} failed: ${lastError.message}`);
+      
+      if (attempt < maxRetries) {
+        // Exponential backoff: 2s, 4s
+        const backoffMs = attempt * 2000;
+        logger.info(`⏳ Waiting ${backoffMs}ms before retrying...`);
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+      }
+    }
+  }
+
+  // If we reach here, all retries exhausted
+  logger.error('❌ CRITICAL: All email sending attempts failed:', lastError?.message);
+  return { success: false, error: lastError?.message || 'Unknown error occurred after retries' };
 };
 
 // Email notification functions
