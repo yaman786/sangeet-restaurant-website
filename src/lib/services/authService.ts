@@ -2,8 +2,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/db';
 import config from '@/lib/utils/env';
-import { UnauthorizedError, NotFoundError, ConflictError, AppError } from '@/lib/errors';
-import type { UserRow, UserInfo, UserRole, JwtPayload, PaginationQuery, PaginatedResult } from '@/lib/types';
+import { UnauthorizedError, NotFoundError, ConflictError, AppError, ValidationError } from '@/lib/errors';
+import type { UserRow, UserInfo, UserRole, JwtPayload, PaginationQuery, PaginatedResult, ChangePasswordDTO, UpdateUserDTO } from '@/lib/types';
 import { registerSchema, RegisterInput } from '@/lib/validations/auth';
 
 interface LoginInput {
@@ -77,8 +77,11 @@ class AuthService {
     return user as any;
   }
 
-  async changePassword(userId: number, data: Record<string, any>): Promise<void> {
+  async changePassword(userId: number, data: ChangePasswordDTO): Promise<void> {
     const { currentPassword, newPassword } = data;
+    if (!currentPassword || !newPassword) {
+      throw new ValidationError('Current and new passwords are required');
+    }
 
     const user = await prisma.users.findUnique({
       where: { id: userId },
@@ -198,7 +201,7 @@ class AuthService {
     return user as any;
   }
 
-  async updateUser(requesterRole: UserRole, userId: string, data: Record<string, any>): Promise<UserInfo> {
+  async updateUser(requesterRole: UserRole, userId: string, data: UpdateUserDTO): Promise<UserInfo> {
     if (requesterRole !== 'admin') {
       throw new UnauthorizedError('Only administrators can update users');
     }

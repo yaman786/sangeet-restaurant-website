@@ -2,7 +2,7 @@ import { prisma } from '@/lib/db';
 import { AppError, NotFoundError, ValidationError } from '@/lib/errors';
 // Socket functionality disabled in serverless mode
 import { generateQRCode } from '../utils/qrGenerator';
-import type { OrderRow, OrderItemRow, CreateOrderInput } from '@/lib/types';
+import type { OrderRow, OrderItemRow, OrderStatus, OrderType, CreateOrderInput, OrderQueryDTO } from '@/lib/types';
 import { emitNewOrder, emitOrderStatusUpdate } from './pusherServer';
 
 class OrderService {
@@ -262,7 +262,7 @@ class OrderService {
     return fullOrder;
   }
 
-  async getAllOrders(query: Record<string, any>) {
+  async getAllOrders(query: OrderQueryDTO) {
     const where: any = {};
     
     if (query.status) {
@@ -412,7 +412,7 @@ class OrderService {
     return updatedOrders;
   }
 
-  async searchOrders(query: Record<string, any>) {
+  async searchOrders(query: OrderQueryDTO) {
     const { term, status, startDate, endDate, tableId } = query;
     const where: any = {};
     

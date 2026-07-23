@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db';
 import { NotFoundError, ValidationError } from '@/lib/errors';
-import type { EventRow } from '@/lib/types';
+import type { EventRow, CreateEventDTO, UpdateEventDTO } from '@/lib/types';
 
 class EventService {
   async getAllEvents(): Promise<any[]> {
@@ -34,7 +34,7 @@ class EventService {
     return event;
   }
 
-  async createEvent(data: Record<string, any>): Promise<any> {
+  async createEvent(data: CreateEventDTO): Promise<any> {
     const { title, description, date, image_url, is_featured } = data;
     return prisma.events.create({
       data: {
@@ -47,15 +47,15 @@ class EventService {
     });
   }
 
-  async updateEvent(id: string, data: Record<string, any>): Promise<any> {
+  async updateEvent(id: string, data: UpdateEventDTO): Promise<any> {
     const { title, description, date, image_url, is_featured } = data;
     try {
       return await prisma.events.update({
         where: { id: parseInt(id, 10) },
         data: {
           title,
-          description,
-          date: new Date(date),
+          description: description || null,
+          date: date ? new Date(date) : undefined,
           image_url: image_url || null,
           is_featured: is_featured || false
         }

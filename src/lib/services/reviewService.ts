@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db';
 import { NotFoundError, ValidationError } from '@/lib/errors';
-import type { ReviewRow } from '@/lib/types';
+import type { ReviewRow, CreateReviewDTO } from '@/lib/types';
 
 class ReviewService {
   async getAllReviews(): Promise<any[]> {
@@ -16,9 +16,9 @@ class ReviewService {
     });
   }
 
-  async createReview(data: Record<string, any>): Promise<any> {
+  async createReview(data: CreateReviewDTO): Promise<any> {
     const { customer_name, review_text, rating, image_url, order_id, table_number } = data;
-    const parsedOrderId = order_id ? parseInt(order_id, 10) : null;
+    const parsedOrderId = order_id ? Number(order_id) : null;
     
     if (order_id && (isNaN(parsedOrderId as number) || (parsedOrderId as number) <= 0)) {
       throw new ValidationError('Invalid order ID');
@@ -27,11 +27,11 @@ class ReviewService {
     return prisma.customer_reviews.create({
       data: {
         customer_name,
-        review_text,
-        rating: rating ? parseInt(rating, 10) : null,
+        review_text: review_text || '',
+        rating: Number(rating),
         image_url: image_url || null,
         order_id: parsedOrderId,
-        table_number: table_number || null,
+        table_number: table_number ? String(table_number) : null,
         is_verified: false
       }
     });

@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/db';
 import { NotFoundError } from '@/lib/errors';
-import type { MenuItemRow, CategoryRow } from '@/lib/types';
+import type { MenuItemRow, CategoryRow, MenuQueryDTO } from '@/lib/types';
 import type { MenuItemInput, CategoryInput } from '@/lib/validations/menu';
 
 class MenuService {
-  async getAllMenuItems(query: Record<string, any> = {}): Promise<MenuItemRow[]> {
+  async getAllMenuItems(query: MenuQueryDTO = {}): Promise<MenuItemRow[]> {
     const where: any = {};
     if (query.category) where.category = query.category;
     if (query.is_vegetarian === 'true') where.is_vegetarian = true;

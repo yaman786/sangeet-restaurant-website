@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db';
 import { NotFoundError, ValidationError } from '@/lib/errors';
 import beautifulQRGenerator from '../utils/beautifulQRGenerator';
-import type { QRCodeRow } from '@/lib/types';
+import type { QRCodeRow, QRDesignDTO, BulkQRGenerateDTO } from '@/lib/types';
 
 class QRService {
   async getTableByQRCode(qrCode: string): Promise<any> {
@@ -77,11 +77,11 @@ class QRService {
     };
   }
 
-  async updateQRCodeDesign(qrCodeId: string, design: Record<string, any>): Promise<any> {
+  async updateQRCodeDesign(qrCodeId: string, design: QRDesignDTO): Promise<any> {
     try {
       const table = await prisma.tables.update({
         where: { id: parseInt(qrCodeId, 10) },
-        data: { design_settings: design }
+        data: { design_settings: design as any }
       });
       return { qr_code_id: table.id, design: table.design_settings };
     } catch (e: any) {
@@ -135,7 +135,7 @@ class QRService {
     return { qrCodeBuffer, tableNumber: table_number };
   }
 
-  async bulkGenerateTableQRCodes(data: Record<string, any>): Promise<{ generated: any[], errors: any[] }> {
+  async bulkGenerateTableQRCodes(data: BulkQRGenerateDTO): Promise<{ generated: any[], errors: any[] }> {
     const { tableNumbers, theme, design } = data;
     if (!tableNumbers || !Array.isArray(tableNumbers)) throw new ValidationError('tableNumbers must be an array');
     
@@ -144,7 +144,11 @@ class QRService {
     
     for (const tableNumber of tableNumbers) {
       try {
-        const result = await this.generateTableQRCode({ tableNumber, theme, design });
+        const result = await this.generateTableQRCode({ 
+          tableNumber: String(tableNumber), 
+          theme, 
+          design: design as any 
+        });
         generated.push(result);
       } catch (error: any) {
         errors.push({ tableNumber, error: error.message });

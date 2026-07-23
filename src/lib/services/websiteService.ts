@@ -3,6 +3,7 @@ import { NotFoundError } from '@/lib/errors';
 import fs from 'fs';
 import path from 'path';
 import logger from '../utils/logger';
+import type { WebsiteSettingsDTO, WebsiteContentDTO, BannerDTO, UpdateBannerDTO, BusinessHoursDTO, FooterSettingsDTO, SeoSettingsDTO, SocialLinksDTO, UploadMediaDTO } from '@/lib/types';
 
 class WebsiteService {
   async getRestaurantSettings(): Promise<Record<string, any>> {
@@ -22,7 +23,7 @@ class WebsiteService {
     return settings;
   }
 
-  async updateRestaurantSettings(userId: number, settings: Record<string, any>): Promise<void> {
+  async updateRestaurantSettings(userId: number, settings: WebsiteSettingsDTO): Promise<void> {
     const upserts = [];
     for (const [key, data] of Object.entries(settings)) {
       let value = data.value;
@@ -54,7 +55,7 @@ class WebsiteService {
     return content;
   }
 
-  async updateWebsiteContent(userId: number, content: Record<string, any>): Promise<void> {
+  async updateWebsiteContent(userId: number, content: WebsiteContentDTO): Promise<void> {
     const upserts = [];
     for (const [key, data] of Object.entries(content)) {
       upserts.push(prisma.website_content.upsert({
@@ -81,13 +82,13 @@ class WebsiteService {
     });
   }
 
-  async uploadWebsiteMedia(userId: number, file: any, data: Record<string, any>): Promise<any> {
+  async uploadWebsiteMedia(userId: number, file: any, data: UploadMediaDTO): Promise<any> {
     const { media_key, alt_text, caption } = data;
     const relativePath = `/uploads/website/${file.filename}`;
     
     return prisma.website_media.create({
       data: {
-        media_key, file_name: file.originalname, file_path: relativePath,
+        media_key: media_key || 'default', file_name: file.originalname, file_path: relativePath,
         file_type: file.mimetype, file_size: file.size,
         alt_text: alt_text || '', caption: caption || '',
         updated_by: userId
@@ -144,7 +145,7 @@ class WebsiteService {
     });
   }
 
-  async createBanner(data: Record<string, any>): Promise<any> {
+  async createBanner(data: BannerDTO): Promise<any> {
     const bannerKey = `banner_${Date.now()}`;
     const value = JSON.stringify(data);
     const banner = await prisma.restaurant_settings.create({
@@ -153,7 +154,7 @@ class WebsiteService {
     return { id: banner.id, ...data };
   }
 
-  async updateBanner(id: string, data: Record<string, any>): Promise<any> {
+  async updateBanner(id: string, data: UpdateBannerDTO): Promise<any> {
     const value = JSON.stringify(data);
     try {
       await prisma.restaurant_settings.updateMany({
@@ -188,7 +189,7 @@ class WebsiteService {
     }
   }
 
-  async updateBusinessHours(data: Record<string, any>): Promise<any> {
+  async updateBusinessHours(data: BusinessHoursDTO): Promise<any> {
     const value = JSON.stringify(data);
     await prisma.restaurant_settings.upsert({
       where: { setting_key: 'opening_hours' },
@@ -226,7 +227,7 @@ class WebsiteService {
     return settings;
   }
 
-  async updateFooterSettings(data: Record<string, any>): Promise<Record<string, any>> {
+  async updateFooterSettings(data: FooterSettingsDTO): Promise<Record<string, any>> {
     const upserts = [];
     for (const [key, value] of Object.entries(data)) {
       const settingKey = `footer_${key}`;
@@ -256,7 +257,7 @@ class WebsiteService {
     return settings;
   }
 
-  async updateSeoSettings(data: Record<string, any>): Promise<Record<string, any>> {
+  async updateSeoSettings(data: SeoSettingsDTO): Promise<Record<string, any>> {
     const upserts = [];
     for (const [key, value] of Object.entries(data)) {
       const settingKey = `seo_${key}`;
@@ -285,7 +286,7 @@ class WebsiteService {
     return links;
   }
 
-  async updateSocialLinks(data: Record<string, any>): Promise<Record<string, string>> {
+  async updateSocialLinks(data: SocialLinksDTO): Promise<Record<string, string>> {
     const upserts = [];
     for (const [key, value] of Object.entries(data)) {
       const settingKey = `social_${key}`;

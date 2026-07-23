@@ -1,5 +1,5 @@
 // ── User & Auth ─────────────────────────────────────────────
-
+export * from './dtos';
 export type UserRole = 'admin' | 'kitchen' | 'reception' | 'waiter';
 
 export interface JwtPayload {

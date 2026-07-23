@@ -3,10 +3,10 @@ import { NotFoundError, ConflictError, ValidationError } from '@/lib/errors';
 import { sendReservationCreatedEmail, sendReservationConfirmedEmail, sendReservationCancelledEmail } from '../utils/emailService';
 import { emitNewReservation, emitReservationUpdate } from './pusherServer';
 import { parseRestaurantTime } from '../utils/timeUtils';
-import type { ReservationRow } from '@/lib/types';
+import type { ReservationRow, ReservationQueryDTO, CreateReservationDTO, UpdateReservationDTO } from '@/lib/types';
 
 class ReservationService {
-  async getAllReservations(query: Record<string, any>): Promise<any[]> {
+  async getAllReservations(query: ReservationQueryDTO): Promise<any[]> {
     const whereClause: any = {};
     if (query.date) whereClause.date = new Date(query.date);
     if (query.status) whereClause.status = query.status;
@@ -93,7 +93,7 @@ class ReservationService {
     return allSlots.filter(slot => (bookedSlots[slot] || 0) < totalTables);
   }
 
-  async createReservation(data: Record<string, any>): Promise<any> {
+  async createReservation(data: CreateReservationDTO): Promise<any> {
     const { customer_name, email, phone, date, time, guests, special_requests, table_id } = data;
     
     // Wrap the availability check and insertion in an atomic transaction to prevent race conditions
@@ -102,8 +102,8 @@ class ReservationService {
         const existing = await tx.reservations.findFirst({
           where: {
             date: new Date(date),
-            time: parseRestaurantTime(date, time).toDate(),
-            table_id: parseInt(table_id),
+            time: parseRestaurantTime(date as any, time as any).toDate(),
+            table_id: Number(table_id),
             status: { in: ['pending', 'confirmed'] }
           }
         });
@@ -116,10 +116,10 @@ class ReservationService {
           email,
           phone,
           date: new Date(date),
-          time: parseRestaurantTime(date, time).toDate(),
-          guests: parseInt(guests),
+          time: parseRestaurantTime(date as any, time as any).toDate(),
+          guests: Number(guests),
           special_requests: special_requests || null,
-          table_id: table_id ? parseInt(table_id) : null,
+          table_id: table_id ? Number(table_id) : null,
           status: 'pending'
         }
       });
@@ -134,7 +134,7 @@ class ReservationService {
     return reservation;
   }
 
-  async updateReservation(id: string, data: Record<string, any>): Promise<any> {
+  async updateReservation(id: string, data: UpdateReservationDTO): Promise<any> {
     const { customer_name, email, phone, date, time, guests, special_requests, table_id, status } = data;
     
     // Wrap the availability check and update in an atomic transaction to prevent race conditions
@@ -142,10 +142,10 @@ class ReservationService {
       if (table_id) {
         const existing = await tx.reservations.findFirst({
           where: {
-            date: new Date(date),
-            time: parseRestaurantTime(date, time).toDate(),
-            table_id: parseInt(table_id),
-            id: { not: parseInt(id) },
+            date: date ? new Date(date) : undefined,
+            time: date && time ? parseRestaurantTime(date as any, time as any).toDate() : undefined,
+            table_id: Number(table_id),
+            id: { not: Number(id) },
             status: { in: ['pending', 'confirmed'] }
           }
         });
@@ -158,11 +158,11 @@ class ReservationService {
           customer_name,
           email,
           phone,
-          date: new Date(date),
-          time: parseRestaurantTime(date, time).toDate(),
-          guests: parseInt(guests),
+          date: date ? new Date(date) : undefined,
+          time: date && time ? parseRestaurantTime(date as any, time as any).toDate() : undefined,
+          guests: guests ? Number(guests) : undefined,
           special_requests: special_requests || null,
-          table_id: table_id ? parseInt(table_id) : null,
+          table_id: table_id ? Number(table_id) : null,
           status,
           updated_at: new Date()
         }
