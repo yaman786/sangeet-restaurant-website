@@ -240,7 +240,7 @@ const AnalyticsReportsPage = () => {
               >
                 {/* Key Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="bg-gradient-to-br from-sangeet-400/10 to-sangeet-400/5 rounded-lg p-6 border border-sangeet-400/20">
+                  <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-gradient-to-br from-sangeet-400/10 to-sangeet-400/5 rounded-lg p-6 border border-sangeet-400/20 shadow-lg shadow-sangeet-400/5 transition-all">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-sangeet-400/20 rounded-lg flex items-center justify-center">
                         <span className="text-2xl">📅</span>
@@ -253,9 +253,9 @@ const AnalyticsReportsPage = () => {
                     <p className="text-sangeet-neutral-400 text-sm">
                       {businessData.reservations?.recent_reservations || 0} in last {timeframe} days
                     </p>
-                  </div>
+                  </motion.div>
 
-                  <div className="bg-gradient-to-br from-green-400/10 to-green-400/5 rounded-lg p-6 border border-green-400/20">
+                  <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-gradient-to-br from-green-400/10 to-green-400/5 rounded-lg p-6 border border-green-400/20 shadow-lg shadow-green-400/5 transition-all">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center">
                         <span className="text-2xl">⭐</span>
@@ -268,9 +268,9 @@ const AnalyticsReportsPage = () => {
                     <p className="text-sangeet-neutral-400 text-sm">
                       {businessData.reviews?.total_reviews || 0} total reviews
                     </p>
-                  </div>
+                  </motion.div>
 
-                  <div className="bg-gradient-to-br from-blue-400/10 to-blue-400/5 rounded-lg p-6 border border-blue-400/20">
+                  <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-gradient-to-br from-blue-400/10 to-blue-400/5 rounded-lg p-6 border border-blue-400/20 shadow-lg shadow-blue-400/5 transition-all">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-blue-400/20 rounded-lg flex items-center justify-center">
                         <span className="text-2xl">🍽️</span>
@@ -283,9 +283,9 @@ const AnalyticsReportsPage = () => {
                     <p className="text-sangeet-neutral-400 text-sm">
                       {businessData.menu?.popular_items || 0} popular items
                     </p>
-                  </div>
+                  </motion.div>
 
-                  <div className="bg-gradient-to-br from-purple-400/10 to-purple-400/5 rounded-lg p-6 border border-purple-400/20">
+                  <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-gradient-to-br from-purple-400/10 to-purple-400/5 rounded-lg p-6 border border-purple-400/20 shadow-lg shadow-purple-400/5 transition-all">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-purple-400/20 rounded-lg flex items-center justify-center">
                         <span className="text-2xl">🎉</span>
@@ -298,7 +298,7 @@ const AnalyticsReportsPage = () => {
                     <p className="text-sangeet-neutral-400 text-sm">
                       {businessData.events?.total_events || 0} total events
                     </p>
-                  </div>
+                  </motion.div>
                 </div>
 
                 {/* Reservation Status Chart */}
