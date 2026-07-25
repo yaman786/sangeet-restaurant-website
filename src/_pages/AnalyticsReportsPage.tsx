@@ -304,33 +304,52 @@ const AnalyticsReportsPage = () => {
                 {/* Reservation Status Chart */}
                 <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
                   <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Reservation Status Distribution</h3>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={[
-                            { name: 'Confirmed', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.completed || 0), 0) },
-                            { name: 'Cancelled', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.cancelled || 0), 0) },
-                            { name: 'No Show', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.noShow || 0), 0) }
-                          ]}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={100}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {[
-                            { name: 'Confirmed', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.completed || 0), 0) },
-                            { name: 'Cancelled', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.cancelled || 0), 0) },
-                            { name: 'No Show', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.noShow || 0), 0) }
-                          ].map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
+                  <div className="h-80 flex items-center justify-center">
+                    {(reservationTrends.reduce((acc: number, val: any) => acc + (val.completed || 0), 0) === 0 &&
+                      reservationTrends.reduce((acc: number, val: any) => acc + (val.cancelled || 0), 0) === 0 &&
+                      reservationTrends.reduce((acc: number, val: any) => acc + (val.noShow || 0), 0) === 0) ? (
+                        <div className="text-center text-sangeet-neutral-400">
+                          <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                          </svg>
+                          <p>No reservation data available for this period.</p>
+                        </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={[
+                              { name: 'Confirmed', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.completed || 0), 0) },
+                              { name: 'Cancelled', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.cancelled || 0), 0) },
+                              { name: 'No Show', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.noShow || 0), 0) }
+                            ]}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={100}
+                            fill="#8884d8"
+                            dataKey="value"
+                            label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          >
+                            {[
+                              { name: 'Confirmed', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.completed || 0), 0) },
+                              { name: 'Cancelled', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.cancelled || 0), 0) },
+                              { name: 'No Show', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.noShow || 0), 0) }
+                            ].map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: '#1F2937', 
+                              border: '1px solid #374151',
+                              borderRadius: '8px',
+                              color: '#F9FAFB'
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -501,7 +520,7 @@ const AnalyticsReportsPage = () => {
                             <p className="text-sm text-sangeet-neutral-400">{item.category}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-sangeet-400">{Number(item.times_ordered)} orders</p>
+                            <p className="font-bold text-sangeet-400">{Number(item.timesOrdered || 0)} orders</p>
                           </div>
                         </div>
                       ))}
@@ -571,12 +590,23 @@ const AnalyticsReportsPage = () => {
                 className="space-y-6"
               >
                 <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                  <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Kitchen Performance</h3>
-                  <div className="flex items-center gap-4">
-                     <div className="text-4xl font-bold text-sangeet-400">
-                       {performanceData.averagePreparationTime || '0.0'} min
-                     </div>
-                     <p className="text-sangeet-neutral-300">Average Preparation Time</p>
+                  <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Kitchen Performance Overview</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-gradient-to-br from-blue-400/10 to-blue-400/5 rounded-lg p-6 border border-blue-400/20">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 bg-blue-400/20 rounded-lg">
+                          <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <span className="text-green-400 text-sm font-medium flex items-center">
+                          On Track
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-sangeet-neutral-100 mb-1">Avg Prep Time</h3>
+                      <p className="text-3xl font-bold text-white mb-2">{performanceData.averagePreparationTime || '0.0'} <span className="text-lg text-sangeet-neutral-400 font-normal">min</span></p>
+                      <p className="text-sangeet-neutral-400 text-sm">Target: &lt; 25 min per order</p>
+                    </motion.div>
                   </div>
                 </div>
               </motion.div>
