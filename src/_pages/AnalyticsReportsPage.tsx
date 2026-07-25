@@ -349,7 +349,15 @@ const AnalyticsReportsPage = () => {
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={reservationTrends}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                        <XAxis dataKey="period" stroke="#9CA3AF" />
+                        <XAxis 
+                          dataKey="date" 
+                          stroke="#9CA3AF" 
+                          tickFormatter={(val) => {
+                            if (!val) return '';
+                            const d = new Date(val);
+                            return `${d.getMonth()+1}/${d.getDate()}`;
+                          }}
+                        />
                         <YAxis stroke="#9CA3AF" />
                         <Tooltip 
                           contentStyle={{ 
@@ -358,10 +366,11 @@ const AnalyticsReportsPage = () => {
                             borderRadius: '8px',
                             color: '#F9FAFB'
                           }} 
+                          labelFormatter={(val) => new Date(val).toLocaleDateString()}
                         />
                         <Area 
                           type="monotone" 
-                          dataKey="total_reservations" 
+                          dataKey="totalReservations" 
                           stroke="#D97706" 
                           fill="#D97706" 
                           fillOpacity={0.3}
@@ -369,11 +378,11 @@ const AnalyticsReportsPage = () => {
                         />
                         <Area 
                           type="monotone" 
-                          dataKey="confirmed" 
+                          dataKey="completed" 
                           stroke="#059669" 
                           fill="#059669" 
                           fillOpacity={0.3}
-                          name="Confirmed"
+                          name="Completed"
                         />
                       </AreaChart>
                     </ResponsiveContainer>
@@ -386,9 +395,17 @@ const AnalyticsReportsPage = () => {
                     <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Reservations by Day</h3>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={customerInsights.reservationPatterns || []}>
+                        <BarChart data={reservationTrends}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                          <XAxis dataKey="day_name" stroke="#9CA3AF" />
+                          <XAxis 
+                            dataKey="date" 
+                            stroke="#9CA3AF" 
+                            tickFormatter={(val) => {
+                              if (!val) return '';
+                              const d = new Date(val);
+                              return `${d.getMonth()+1}/${d.getDate()}`;
+                            }}
+                          />
                           <YAxis stroke="#9CA3AF" />
                           <Tooltip 
                             contentStyle={{ 
@@ -397,8 +414,10 @@ const AnalyticsReportsPage = () => {
                               borderRadius: '8px',
                               color: '#F9FAFB'
                             }} 
+                            labelFormatter={(val) => new Date(val).toLocaleDateString()}
                           />
-                          <Bar dataKey="reservation_count" fill="#D97706" name="Reservations" />
+                          <Bar dataKey="totalReservations" fill="#D97706" name="Total Reservations" />
+                          <Bar dataKey="cancelled" fill="#DC2626" name="Cancelled" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -410,7 +429,11 @@ const AnalyticsReportsPage = () => {
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={customerInsights.peakHours || []}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                          <XAxis dataKey="hour" stroke="#9CA3AF" />
+                          <XAxis 
+                            dataKey="hour" 
+                            stroke="#9CA3AF" 
+                            tickFormatter={(val) => `${val}:00`}
+                          />
                           <YAxis stroke="#9CA3AF" />
                           <Tooltip 
                             contentStyle={{ 
@@ -419,10 +442,11 @@ const AnalyticsReportsPage = () => {
                               borderRadius: '8px',
                               color: '#F9FAFB'
                             }} 
+                            labelFormatter={(val) => `${val}:00`}
                           />
                           <Line 
                             type="monotone" 
-                            dataKey="reservation_count" 
+                            dataKey="reservations" 
                             stroke="#059669" 
                             strokeWidth={3}
                             name="Reservations"
@@ -447,10 +471,11 @@ const AnalyticsReportsPage = () => {
                     <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Category Performance</h3>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={menuData.categories || []}>
+                        <BarChart data={menuData.categoryPerformance || []}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                          <XAxis dataKey="category_name" stroke="#9CA3AF" />
-                          <YAxis stroke="#9CA3AF" />
+                          <XAxis dataKey="category" stroke="#9CA3AF" />
+                          <YAxis yAxisId="left" stroke="#9CA3AF" />
+                          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" />
                           <Tooltip 
                             contentStyle={{ 
                               backgroundColor: '#1F2937', 
@@ -459,8 +484,8 @@ const AnalyticsReportsPage = () => {
                               color: '#F9FAFB'
                             }} 
                           />
-                          <Bar dataKey="item_count" fill="#7C3AED" name="Items" />
-                          <Bar dataKey="popular_count" fill="#D97706" name="Popular Items" />
+                          <Bar yAxisId="left" dataKey="total_orders" fill="#7C3AED" name="Total Orders" />
+                          <Bar yAxisId="right" dataKey="total_revenue" fill="#D97706" name="Revenue ($)" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -469,58 +494,17 @@ const AnalyticsReportsPage = () => {
                   <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
                     <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Popular Items</h3>
                     <div className="space-y-3 max-h-64 overflow-y-auto">
-                      {menuData.popularItems?.map((item: any, index: any) => (
+                      {menuData.topSellingItems?.map((item: any, index: any) => (
                         <div key={index} className="flex justify-between items-center p-3 bg-sangeet-neutral-700 rounded-lg">
                           <div>
                             <h4 className="font-medium text-sangeet-neutral-100">{item.name}</h4>
-                            <p className="text-sm text-sangeet-neutral-400">{item.category_name}</p>
+                            <p className="text-sm text-sangeet-neutral-400">{item.category}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-sangeet-400">${parseFloat(item.price).toFixed(2)}</p>
-                            <div className="flex gap-1 text-xs">
-                              {item.is_vegetarian && <span className="text-green-400">🌱</span>}
-                              {item.is_spicy && <span className="text-red-400">🌶️</span>}
-                            </div>
+                            <p className="font-bold text-sangeet-400">{Number(item.times_ordered)} orders</p>
                           </div>
                         </div>
                       ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Menu Statistics */}
-                <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                  <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Menu Statistics</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-sangeet-400 mb-2">
-                        {menuData.dietaryStats?.vegetarian_items || 0}
-                      </div>
-                      <p className="text-sangeet-neutral-300">Vegetarian Items</p>
-                      <p className="text-sm text-sangeet-neutral-400">
-                        {menuData.dietaryStats?.total_items ? 
-                          Math.round((menuData.dietaryStats.vegetarian_items / menuData.dietaryStats.total_items) * 100) : 0}% of menu
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-red-400 mb-2">
-                        {menuData.dietaryStats?.spicy_items || 0}
-                      </div>
-                      <p className="text-sangeet-neutral-300">Spicy Items</p>
-                      <p className="text-sm text-sangeet-neutral-400">
-                        {menuData.dietaryStats?.total_items ? 
-                          Math.round((menuData.dietaryStats.spicy_items / menuData.dietaryStats.total_items) * 100) : 0}% of menu
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-green-400 mb-2">
-                        ${menuData.dietaryStats?.avg_price ? parseFloat(menuData.dietaryStats.avg_price).toFixed(2) : '0.00'}
-                      </div>
-                      <p className="text-sangeet-neutral-300">Average Price</p>
-                      <p className="text-sm text-sangeet-neutral-400">
-                        ${menuData.dietaryStats?.min_price ? parseFloat(menuData.dietaryStats.min_price).toFixed(2) : '0.00'} - 
-                        ${menuData.dietaryStats?.max_price ? parseFloat(menuData.dietaryStats.max_price).toFixed(2) : '0.00'}
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -536,12 +520,12 @@ const AnalyticsReportsPage = () => {
               >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                    <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Review Distribution</h3>
+                    <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Order Types</h3>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={customerInsights.reviewDistribution || []}>
+                        <BarChart data={customerInsights.orderTypes || []}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                          <XAxis dataKey="rating" stroke="#9CA3AF" />
+                          <XAxis dataKey="type" stroke="#9CA3AF" />
                           <YAxis stroke="#9CA3AF" />
                           <Tooltip 
                             contentStyle={{ 
@@ -551,26 +535,25 @@ const AnalyticsReportsPage = () => {
                               color: '#F9FAFB'
                             }} 
                           />
-                          <Bar dataKey="count" fill="#D97706" name="Reviews" />
+                          <Bar dataKey="count" fill="#D97706" name="Total Orders" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
 
                   <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                    <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Reservation Patterns</h3>
+                    <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Revenue by Order Type</h3>
                     <div className="space-y-4">
-                      {customerInsights.reservationPatterns?.map((pattern: any, index: any) => (
+                      {customerInsights.orderTypes?.map((pattern: any, index: any) => (
                         <div key={index} className="flex justify-between items-center p-3 bg-sangeet-neutral-700 rounded-lg">
                           <div>
-                            <h4 className="font-medium text-sangeet-neutral-100">{pattern.day_name}</h4>
+                            <h4 className="font-medium text-sangeet-neutral-100 capitalize">{pattern.type}</h4>
                             <p className="text-sm text-sangeet-neutral-400">
-                              Avg party size: {parseFloat(pattern.avg_party_size || 0).toFixed(1)}
+                              {pattern.count} total orders
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-sangeet-400">{pattern.reservation_count}</p>
-                            <p className="text-sm text-green-400">{pattern.confirmed_count} confirmed</p>
+                            <p className="font-bold text-green-400">${parseFloat(pattern.revenue).toFixed(2)}</p>
                           </div>
                         </div>
                       ))}
@@ -588,68 +571,12 @@ const AnalyticsReportsPage = () => {
                 className="space-y-6"
               >
                 <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                  <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Monthly Trends</h3>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={performanceData.monthlyTrends || []}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                        <XAxis dataKey="month" stroke="#9CA3AF" />
-                        <YAxis stroke="#9CA3AF" />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: '#1F2937', 
-                            border: '1px solid #374151',
-                            borderRadius: '8px',
-                            color: '#F9FAFB'
-                          }} 
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="total_reservations" 
-                          stroke="#D97706" 
-                          strokeWidth={3}
-                          name="Reservations"
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="avg_rating" 
-                          stroke="#059669" 
-                          strokeWidth={3}
-                          name="Avg Rating"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* System Health */}
-                <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                  <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">System Health</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-400 mb-2">
-                        {performanceData.systemHealth?.active_menu_items || 0}
-                      </div>
-                      <p className="text-sangeet-neutral-300">Active Menu Items</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-yellow-400 mb-2">
-                        {performanceData.systemHealth?.pending_reservations || 0}
-                      </div>
-                      <p className="text-sangeet-neutral-300">Pending Reservations</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-green-400 mb-2">
-                        {performanceData.systemHealth?.recent_reviews || 0}
-                      </div>
-                      <p className="text-sangeet-neutral-300">Recent Reviews</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-purple-400 mb-2">
-                        {performanceData.systemHealth?.upcoming_events || 0}
-                      </div>
-                      <p className="text-sangeet-neutral-300">Upcoming Events</p>
-                    </div>
+                  <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Kitchen Performance</h3>
+                  <div className="flex items-center gap-4">
+                     <div className="text-4xl font-bold text-sangeet-400">
+                       {performanceData.averagePreparationTime || '0.0'} min
+                     </div>
+                     <p className="text-sangeet-neutral-300">Average Preparation Time</p>
                   </div>
                 </div>
               </motion.div>
