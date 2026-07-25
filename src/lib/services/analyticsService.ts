@@ -3,32 +3,62 @@ import type { QRCodeRow, QRCodeResult } from '@/lib/types';
 import beautifulQRGenerator from '../utils/beautifulQRGenerator';
 
 class AnalyticsService {
-  async getBusinessAnalytics(timeframe: string = 'week'): Promise<Record<string, any>> {
-    const ALLOWED_INTERVALS: Record<string, string> = {
-      today: '1 day',
-      week: '7 days',
-      month: '30 days',
-      year: '365 days'
-    };
-    const interval = ALLOWED_INTERVALS[timeframe] ?? '7 days';
+  async getBusinessAnalytics(timeframe: string = 'month', startDate?: string, endDate?: string): Promise<Record<string, any>> {
+    let revenueResult: any[];
+    let recentOrders: any[];
 
-    const revenueResult: any[] = await prisma.$queryRaw`
-      SELECT 
-        COALESCE(SUM(total_amount), 0) as total_revenue,
-        COUNT(*) as total_orders,
-        COALESCE(AVG(total_amount), 0) as average_order_value
-      FROM orders 
-      WHERE created_at >= NOW() - ${interval}::interval 
-      AND status = 'completed'
-    `;
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
 
-    const recentOrders: any[] = await prisma.$queryRaw`
-      SELECT DATE(created_at) as date, SUM(total_amount) as revenue, COUNT(*) as orders
-      FROM orders
-      WHERE created_at >= NOW() - ${interval}::interval AND status = 'completed'
-      GROUP BY DATE(created_at)
-      ORDER BY date ASC
-    `;
+      revenueResult = await prisma.$queryRaw`
+        SELECT 
+          COALESCE(SUM(total_amount), 0) as total_revenue,
+          COUNT(*) as total_orders,
+          COALESCE(AVG(total_amount), 0) as average_order_value
+        FROM orders 
+        WHERE created_at >= ${start} AND created_at <= ${end}
+        AND status = 'completed'
+      `;
+
+      recentOrders = await prisma.$queryRaw`
+        SELECT DATE(created_at) as date, SUM(total_amount) as revenue, COUNT(*) as orders
+        FROM orders
+        WHERE created_at >= ${start} AND created_at <= ${end} AND status = 'completed'
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+      `;
+    } else {
+      const ALLOWED_INTERVALS: Record<string, string> = {
+        today: '1 day',
+        week: '7 days',
+        month: '30 days',
+        year: '365 days',
+        '7': '7 days',
+        '30': '30 days',
+        '90': '90 days'
+      };
+      const interval = ALLOWED_INTERVALS[timeframe] ?? '30 days';
+
+      revenueResult = await prisma.$queryRaw`
+        SELECT 
+          COALESCE(SUM(total_amount), 0) as total_revenue,
+          COUNT(*) as total_orders,
+          COALESCE(AVG(total_amount), 0) as average_order_value
+        FROM orders 
+        WHERE created_at >= NOW() - ${interval}::interval 
+        AND status = 'completed'
+      `;
+
+      recentOrders = await prisma.$queryRaw`
+        SELECT DATE(created_at) as date, SUM(total_amount) as revenue, COUNT(*) as orders
+        FROM orders
+        WHERE created_at >= NOW() - ${interval}::interval AND status = 'completed'
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+      `;
+    }
 
     return {
       summary: {
@@ -37,34 +67,55 @@ class AnalyticsService {
         averageOrderValue: parseFloat(revenueResult[0]?.average_order_value || '0')
       },
       trends: recentOrders.map(r => ({
-        date: r.date,
+        date: r.date ? new Date(r.date).toISOString().split('T')[0] : '',
         revenue: parseFloat(r.revenue || '0'),
         orders: Number(r.orders || 0)
       }))
     };
   }
 
-  async getReservationTrends(period: string = 'month'): Promise<{ trends: any[], period: string }> {
-    const ALLOWED_INTERVALS: Record<string, string> = {
-      week: '7 days',
-      month: '30 days',
-      year: '365 days'
-    };
-    const interval = ALLOWED_INTERVALS[period] ?? '30 days';
+  async getReservationTrends(period: string = 'month', startDate?: string, endDate?: string): Promise<{ trends: any[], period: string }> {
+    let result: any[];
 
-    const result: any[] = await prisma.$queryRaw`
-      SELECT 
-        date,
-        COUNT(*) as total_reservations,
-        SUM(guests) as total_guests,
-        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
-        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled,
-        COUNT(CASE WHEN status = 'no-show' THEN 1 END) as no_show
-      FROM reservations
-      WHERE date >= CURRENT_DATE - ${interval}::interval
-      GROUP BY date
-      ORDER BY date ASC
-    `;
+    if (startDate && endDate) {
+      result = await prisma.$queryRaw`
+        SELECT 
+          date,
+          COUNT(*) as total_reservations,
+          SUM(guests) as total_guests,
+          COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+          COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled,
+          COUNT(CASE WHEN status = 'no-show' THEN 1 END) as no_show
+        FROM reservations
+        WHERE date >= ${startDate} AND date <= ${endDate}
+        GROUP BY date
+        ORDER BY date ASC
+      `;
+    } else {
+      const ALLOWED_INTERVALS: Record<string, string> = {
+        week: '7 days',
+        month: '30 days',
+        year: '365 days',
+        '7': '7 days',
+        '30': '30 days',
+        '90': '90 days'
+      };
+      const interval = ALLOWED_INTERVALS[period] ?? '30 days';
+
+      result = await prisma.$queryRaw`
+        SELECT 
+          date,
+          COUNT(*) as total_reservations,
+          SUM(guests) as total_guests,
+          COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+          COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled,
+          COUNT(CASE WHEN status = 'no-show' THEN 1 END) as no_show
+        FROM reservations
+        WHERE date >= (CURRENT_DATE - ${interval}::interval)::text
+        GROUP BY date
+        ORDER BY date ASC
+      `;
+    }
 
     return {
       period,
@@ -77,6 +128,69 @@ class AnalyticsService {
         noShow: Number(r.no_show || 0)
       }))
     };
+  }
+
+  async getDrillDownData(dateStr: string, type: 'orders' | 'reservations'): Promise<any[]> {
+    if (type === 'orders') {
+      const start = new Date(dateStr);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(dateStr);
+      end.setHours(23, 59, 59, 999);
+
+      const orders = await prisma.orders.findMany({
+        where: {
+          created_at: {
+            gte: start,
+            lte: end
+          }
+        },
+        include: {
+          order_items: {
+            include: {
+              menu_items: true
+            }
+          }
+        },
+        orderBy: { created_at: 'desc' }
+      });
+
+      return orders.map(o => ({
+        id: o.id,
+        orderNumber: o.order_number,
+        customerName: o.customer_name || 'Guest',
+        tableNumber: o.table_number,
+        orderType: o.order_type,
+        status: o.status,
+        totalAmount: Number(o.total_amount),
+        createdAt: o.created_at,
+        itemsCount: o.order_items.reduce((acc, item) => acc + item.quantity, 0),
+        items: o.order_items.map(i => ({
+          name: i.menu_items?.name || 'Item',
+          quantity: i.quantity,
+          price: Number(i.unit_price)
+        }))
+      }));
+    } else {
+      const reservations = await prisma.reservations.findMany({
+        where: {
+          date: dateStr
+        },
+        orderBy: { time: 'asc' }
+      });
+
+      return reservations.map(r => ({
+        id: r.id,
+        customerName: r.customer_name,
+        customerEmail: r.customer_email,
+        customerPhone: r.customer_phone,
+        date: r.date,
+        time: r.time,
+        guests: r.guests,
+        status: r.status,
+        tableId: r.table_id,
+        specialRequests: r.special_requests
+      }));
+    }
   }
 
   async getMenuAnalytics(): Promise<Record<string, any>> {

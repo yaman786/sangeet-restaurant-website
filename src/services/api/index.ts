@@ -68,7 +68,7 @@ export {
 export {
   getBusinessAnalytics, getReservationTrends, getMenuAnalytics,
   getCustomerInsights, getPerformanceMetrics, exportAnalyticsData,
-  checkApiHealth
+  getAnalyticsDrillDown, checkApiHealth
 } from './analyticsApi';
 
 // SERVER COMPONENT FETCHERS

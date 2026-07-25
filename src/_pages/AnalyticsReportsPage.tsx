@@ -26,7 +26,8 @@ import {
   getMenuAnalytics,
   getCustomerInsights,
   getPerformanceMetrics,
-  exportAnalyticsData
+  exportAnalyticsData,
+  getAnalyticsDrillDown
 } from '../services/api';
 
 const AnalyticsReportsPage = () => {
@@ -35,6 +36,22 @@ const AnalyticsReportsPage = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [timeframe, setTimeframe] = useState('30');
   const [period, setPeriod] = useState('month');
+  
+  // Custom Date Range State
+  const [useCustomDates, setUseCustomDates] = useState(false);
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+  // Drilldown Modal State
+  const [drillDownModalOpen, setDrillDownModalOpen] = useState(false);
+  const [drillDownType, setDrillDownType] = useState<'orders' | 'reservations'>('orders');
+  const [drillDownDate, setDrillDownDate] = useState('');
+  const [drillDownData, setDrillDownData] = useState<any[]>([]);
+  const [drillDownLoading, setDrillDownLoading] = useState(false);
   
   // Data states
   const [businessData, setBusinessData] = useState<any>({});
@@ -48,16 +65,15 @@ const AnalyticsReportsPage = () => {
     const loadAnalytics = async () => {
       try {
         setLoading(true);
-        // Calculate default date range (last 30 days)
-        const endDate = new Date().toISOString().split('T')[0];
-        const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const start = useCustomDates ? startDate : undefined;
+        const end = useCustomDates ? endDate : undefined;
 
         const results = await Promise.allSettled([
-          getBusinessAnalytics(timeframe),
-          getReservationTrends(period),
+          getBusinessAnalytics(timeframe, start, end),
+          getReservationTrends(period, start, end),
           getMenuAnalytics(),
           getCustomerInsights(),
-          getPerformanceMetrics(startDate, endDate)
+          getPerformanceMetrics(start || startDate, end || endDate)
         ]);
 
         const business = results[0].status === 'fulfilled' ? results[0].value : {};
@@ -84,7 +100,24 @@ const AnalyticsReportsPage = () => {
     };
 
     loadAnalytics();
-  }, [navigate, timeframe, period]);
+  }, [navigate, timeframe, period, useCustomDates, startDate, endDate]);
+
+  const handleDrillDown = async (dateStr: string, type: 'orders' | 'reservations') => {
+    if (!dateStr) return;
+    try {
+      setDrillDownDate(dateStr);
+      setDrillDownType(type);
+      setDrillDownModalOpen(true);
+      setDrillDownLoading(true);
+      const res = await getAnalyticsDrillDown(dateStr, type);
+      setDrillDownData(res?.data || res || []);
+    } catch (err) {
+      console.error('Drilldown error:', err);
+      toast.error('Failed to load detail data');
+    } finally {
+      setDrillDownLoading(false);
+    }
+  };
 
   // Handle data export
   const handleExport = async (type: any, format: any) => {
@@ -161,23 +194,59 @@ const AnalyticsReportsPage = () => {
         {/* Controls */}
         <div className="bg-sangeet-neutral-900 rounded-xl border border-sangeet-neutral-700 p-4 mb-6">
           <div className="flex flex-wrap gap-4 items-center justify-between">
-            <div className="flex gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <div>
                 <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
-                  Timeframe
+                  Date Mode
                 </label>
                 <select
-                  value={timeframe}
-                  onChange={(e) => setTimeframe(e.target.value)}
+                  value={useCustomDates ? 'custom' : timeframe}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === 'custom') {
+                      setUseCustomDates(true);
+                    } else {
+                      setUseCustomDates(false);
+                      setTimeframe(val);
+                    }
+                  }}
                   className="bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg px-3 py-2 text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
                 >
                   <option value="7">Last 7 days</option>
                   <option value="30">Last 30 days</option>
                   <option value="90">Last 90 days</option>
                   <option value="365">Last year</option>
+                  <option value="custom">📅 Custom Date Range</option>
                 </select>
               </div>
               
+              {useCustomDates && (
+                <div className="flex items-center gap-2">
+                  <div>
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg px-3 py-2 text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                      End Date
+                    </label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg px-3 py-2 text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
                   Period
@@ -366,7 +435,16 @@ const AnalyticsReportsPage = () => {
                   <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Reservation Trends</h3>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={reservationTrends}>
+                      <AreaChart 
+                        data={reservationTrends}
+                        onClick={(state: any) => {
+                          if (state && state.activePayload && state.activePayload.length > 0) {
+                            const date = state.activePayload[0].payload.date;
+                            if (date) handleDrillDown(date, 'reservations');
+                          }
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                         <XAxis 
                           dataKey="date" 
@@ -393,7 +471,7 @@ const AnalyticsReportsPage = () => {
                           stroke="#D97706" 
                           fill="#D97706" 
                           fillOpacity={0.3}
-                          name="Total Reservations"
+                          name="Total Reservations (Click to drill down)"
                         />
                         <Area 
                           type="monotone" 
@@ -414,7 +492,16 @@ const AnalyticsReportsPage = () => {
                     <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Reservations by Day</h3>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={reservationTrends}>
+                        <BarChart 
+                          data={reservationTrends}
+                          onClick={(state: any) => {
+                            if (state && state.activePayload && state.activePayload.length > 0) {
+                              const date = state.activePayload[0].payload.date;
+                              if (date) handleDrillDown(date, 'reservations');
+                            }
+                          }}
+                          style={{ cursor: 'pointer' }}
+                        >
                           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                           <XAxis 
                             dataKey="date" 
@@ -614,6 +701,124 @@ const AnalyticsReportsPage = () => {
           </div>
         </div>
       </main>
+
+      {/* Drill-Down Detail Modal */}
+      {drillDownModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-xl p-6 w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-sangeet-neutral-800 pb-4 mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-sangeet-neutral-100 flex items-center gap-2">
+                  <span>{drillDownType === 'orders' ? '📋 Order Tickets' : '📅 Guest Bookings'}</span>
+                  <span className="text-sm font-normal text-sangeet-400">({drillDownDate})</span>
+                </h2>
+                <p className="text-sm text-sangeet-neutral-400">
+                  Detailed drilldown for selected date
+                </p>
+              </div>
+              <button 
+                onClick={() => setDrillDownModalOpen(false)}
+                className="text-sangeet-neutral-400 hover:text-white p-2 rounded-lg bg-sangeet-neutral-800 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-2 space-y-4">
+              {drillDownLoading ? (
+                <div className="py-12 text-center text-sangeet-neutral-400 flex flex-col items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sangeet-400 mb-2"></div>
+                  Loading breakdown...
+                </div>
+              ) : drillDownData.length === 0 ? (
+                <div className="py-12 text-center text-sangeet-neutral-400">
+                  No {drillDownType} recorded for {drillDownDate}.
+                </div>
+              ) : drillDownType === 'orders' ? (
+                <div className="space-y-3">
+                  {drillDownData.map((order: any) => (
+                    <div key={order.id} className="bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-3">
+                          <span className="font-bold text-sangeet-400">#{order.orderNumber}</span>
+                          <span className="text-sm text-sangeet-neutral-200">{order.customerName}</span>
+                          {order.tableNumber && (
+                            <span className="text-xs bg-sangeet-neutral-700 px-2 py-0.5 rounded text-sangeet-neutral-300">
+                              Table {order.tableNumber}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                            order.status === 'completed' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                            order.status === 'cancelled' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                            'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                          }`}>
+                            {order.status}
+                          </span>
+                          <span className="font-bold text-white">${Number(order.totalAmount).toFixed(2)}</span>
+                        </div>
+                      </div>
+                      {order.items && order.items.length > 0 && (
+                        <div className="text-xs text-sangeet-neutral-400 border-t border-sangeet-neutral-700/50 pt-2 mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                          {order.items.map((it: any, idx: number) => (
+                            <span key={idx}>
+                              {it.quantity}x {it.name} (${Number(it.price).toFixed(2)})
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {drillDownData.map((res: any) => (
+                    <div key={res.id} className="bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg p-4 flex flex-wrap items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-bold text-sangeet-neutral-100">{res.customerName}</span>
+                          <span className="text-xs bg-sangeet-400/20 text-sangeet-400 px-2 py-0.5 rounded">
+                            {res.guests} Guests
+                          </span>
+                        </div>
+                        <p className="text-xs text-sangeet-neutral-400 mt-1">
+                          ⏰ {res.time} | 📧 {res.customerEmail || 'No email'} | 📞 {res.customerPhone || 'N/A'}
+                        </p>
+                        {res.specialRequests && (
+                          <p className="text-xs text-amber-400/90 italic mt-1">
+                            Note: "{res.specialRequests}"
+                          </p>
+                        )}
+                      </div>
+                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                        res.status === 'completed' || res.status === 'confirmed' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                        res.status === 'cancelled' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                        'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                      }`}>
+                        {res.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-sangeet-neutral-800 pt-4 mt-4 flex justify-end">
+              <button
+                onClick={() => setDrillDownModalOpen(false)}
+                className="bg-sangeet-neutral-800 text-sangeet-neutral-200 px-4 py-2 rounded-lg hover:bg-sangeet-neutral-700 transition-colors text-sm font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

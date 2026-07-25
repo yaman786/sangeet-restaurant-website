@@ -12,14 +12,16 @@ export async function GET(req: NextRequest) {
     if (roleError) return roleError;
 
     const { searchParams } = req.nextUrl;
-    const period = searchParams.get("period") ?? undefined;
-    const startDate = searchParams.get("startDate") ?? undefined;
-    const endDate = searchParams.get("endDate") ?? undefined;
+    const date = searchParams.get("date");
+    const type = (searchParams.get("type") as 'orders' | 'reservations') || 'orders';
 
-    const result = await analyticsService.getReservationTrends(period, startDate, endDate);
+    if (!date) {
+      return NextResponse.json({ error: 'Date parameter is required' }, { status: 400 });
+    }
+
+    const result = await analyticsService.getDrillDownData(date, type);
     return NextResponse.json(result);
   } catch (error) {
     return handleApiError(error);
   }
 }
-
