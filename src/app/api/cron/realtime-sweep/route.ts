@@ -54,7 +54,6 @@ export async function GET(request: Request) {
     }
 
     // --- 2. Sweep No-Show Reservations (More than 45 mins late) ---
-    // Fetch all active reservations (we do JS filtering because date and time are separate columns)
     const activeReservations = await prisma.reservations.findMany({
       where: {
         status: { in: ['pending', 'confirmed'] },
@@ -66,43 +65,37 @@ export async function GET(request: Request) {
     const noShowIds: number[] = [];
 
     for (const res of activeReservations) {
-      // res.date is the date (e.g., 2024-11-20T00:00:00Z)
-      // res.time is the time (e.g., 1970-01-01T18:30:00Z)
-      const resDate = new Date(res.date);
-      const resTime = new Date(res.time);
+      if (!res.date || !res.time) continue;
       
-      // Combine them into a single local DateTime
-      const scheduledAt = new Date(
-        resDate.getFullYear(),
-        resDate.getMonth(),
-        resDate.getDate(),
-        resTime.getUTCHours(),
-        resTime.getUTCMinutes(),
-        0
-      );
+      const dateStr = new Date(res.date).toISOString().split('T')[0];
+      const timeObj = new Date(res.time);
+      const hours = String(timeObj.getUTCHours()).padStart(2, '0');
+      const mins = String(timeObj.getUTCMinutes()).padStart(2, '0');
+      
+      const scheduledAt = new Date(`${dateStr}T${hours}:${mins}:00.000Z`);
 
-      // If the scheduled time is older than 45 mins ago, they are a no-show
+      // If scheduled time is older than 45 mins ago, mark as no-show
       if (scheduledAt < fortyFiveMinsAgo) {
         noShowIds.push(res.id);
       }
     }
 
-    let cancelledReservationsCount = 0;
+    let noShowReservationsCount = 0;
     if (noShowIds.length > 0) {
       const updateResResult = await prisma.reservations.updateMany({
         where: { id: { in: noShowIds } },
         data: {
-          status: 'cancelled',
+          status: 'no-show',
           updated_at: new Date()
         }
       });
-      cancelledReservationsCount = updateResResult.count;
+      noShowReservationsCount = updateResResult.count;
       
-      // Trigger pusher events for UI updates
+      // Trigger pusher events for real-time UI updates
       for (const id of noShowIds) {
         await pusherServer.trigger('admin-channel', 'reservation-status-update', {
           id: id,
-          status: 'cancelled'
+          status: 'no-show'
         });
       }
     }
@@ -111,7 +104,7 @@ export async function GET(request: Request) {
       success: true, 
       message: 'Real-time sweep completed.',
       cancelled_orders: cancelledOrdersCount,
-      cancelled_reservations: cancelledReservationsCount
+      no_show_reservations: noShowReservationsCount
     });
   } catch (error) {
     console.error('Realtime Sweep Error:', error);
