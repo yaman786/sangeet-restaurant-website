@@ -66,11 +66,11 @@ const AnalyticsReportsPage = () => {
           getPerformanceMetrics(startDate, endDate)
         ])) as any[];
 
-        setBusinessData(business.analytics);
-        setReservationTrends(trends.trends);
-        setMenuData(menu.analytics);
-        setCustomerInsights(customer.insights);
-        setPerformanceData(performance.metrics);
+        setBusinessData(business || {});
+        setReservationTrends(trends?.trends || []);
+        setMenuData(menu || {});
+        setCustomerInsights(customer || {});
+        setPerformanceData(performance || {});
       } catch (error: any) {
         console.error('Error loading analytics:', error);
         if (error.response?.status === 401) {
@@ -246,12 +246,12 @@ const AnalyticsReportsPage = () => {
                         <span className="text-2xl">📅</span>
                       </div>
                       <span className="text-2xl font-bold text-sangeet-400">
-                        {businessData.reservations?.total_reservations || 0}
+                        {reservationTrends.reduce((acc: number, val: any) => acc + (val.totalReservations || 0), 0)}
                       </span>
                     </div>
                     <h3 className="text-lg font-semibold text-sangeet-neutral-100 mb-1">Total Reservations</h3>
                     <p className="text-sangeet-neutral-400 text-sm">
-                      {businessData.reservations?.recent_reservations || 0} in last {timeframe} days
+                      {reservationTrends.reduce((acc: number, val: any) => acc + (val.completed || 0), 0)} completed
                     </p>
                   </motion.div>
 
@@ -261,12 +261,12 @@ const AnalyticsReportsPage = () => {
                         <span className="text-2xl">⭐</span>
                       </div>
                       <span className="text-2xl font-bold text-green-400">
-                        {businessData.reviews?.avg_rating ? parseFloat(businessData.reviews.avg_rating).toFixed(1) : '0.0'}
+                        {customerInsights.reviews?.averageRating || '0.0'}
                       </span>
                     </div>
                     <h3 className="text-lg font-semibold text-sangeet-neutral-100 mb-1">Average Rating</h3>
                     <p className="text-sangeet-neutral-400 text-sm">
-                      {businessData.reviews?.total_reviews || 0} total reviews
+                      {customerInsights.reviews?.totalReviews || 0} total reviews
                     </p>
                   </motion.div>
 
@@ -276,27 +276,27 @@ const AnalyticsReportsPage = () => {
                         <span className="text-2xl">🍽️</span>
                       </div>
                       <span className="text-2xl font-bold text-blue-400">
-                        {businessData.menu?.total_items || 0}
+                        {businessData.summary?.totalOrders || 0}
                       </span>
                     </div>
-                    <h3 className="text-lg font-semibold text-sangeet-neutral-100 mb-1">Menu Items</h3>
+                    <h3 className="text-lg font-semibold text-sangeet-neutral-100 mb-1">Total Orders</h3>
                     <p className="text-sangeet-neutral-400 text-sm">
-                      {businessData.menu?.popular_items || 0} popular items
+                      Avg value: ${businessData.summary?.averageOrderValue ? businessData.summary.averageOrderValue.toFixed(2) : '0.00'}
                     </p>
                   </motion.div>
 
                   <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-gradient-to-br from-purple-400/10 to-purple-400/5 rounded-lg p-6 border border-purple-400/20 shadow-lg shadow-purple-400/5 transition-all">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-purple-400/20 rounded-lg flex items-center justify-center">
-                        <span className="text-2xl">🎉</span>
+                        <span className="text-2xl">💰</span>
                       </div>
                       <span className="text-2xl font-bold text-purple-400">
-                        {businessData.events?.upcoming_events || 0}
+                        ${businessData.summary?.totalRevenue ? businessData.summary.totalRevenue.toFixed(2) : '0.00'}
                       </span>
                     </div>
-                    <h3 className="text-lg font-semibold text-sangeet-neutral-100 mb-1">Upcoming Events</h3>
+                    <h3 className="text-lg font-semibold text-sangeet-neutral-100 mb-1">Total Revenue</h3>
                     <p className="text-sangeet-neutral-400 text-sm">
-                      {businessData.events?.total_events || 0} total events
+                      In last {timeframe} days
                     </p>
                   </motion.div>
                 </div>
@@ -309,9 +309,9 @@ const AnalyticsReportsPage = () => {
                       <PieChart>
                         <Pie
                           data={[
-                            { name: 'Confirmed', value: parseInt(businessData.reservations?.confirmed_reservations || 0) },
-                            { name: 'Pending', value: parseInt(businessData.reservations?.pending_reservations || 0) },
-                            { name: 'Cancelled', value: parseInt(businessData.reservations?.cancelled_reservations || 0) }
+                            { name: 'Confirmed', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.completed || 0), 0) },
+                            { name: 'Cancelled', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.cancelled || 0), 0) },
+                            { name: 'No Show', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.noShow || 0), 0) }
                           ]}
                           cx="50%"
                           cy="50%"
@@ -321,9 +321,9 @@ const AnalyticsReportsPage = () => {
                           label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
                         >
                           {[
-                            { name: 'Confirmed', value: parseInt(businessData.reservations?.confirmed_reservations || 0) },
-                            { name: 'Pending', value: parseInt(businessData.reservations?.pending_reservations || 0) },
-                            { name: 'Cancelled', value: parseInt(businessData.reservations?.cancelled_reservations || 0) }
+                            { name: 'Confirmed', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.completed || 0), 0) },
+                            { name: 'Cancelled', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.cancelled || 0), 0) },
+                            { name: 'No Show', value: reservationTrends.reduce((acc: number, val: any) => acc + (val.noShow || 0), 0) }
                           ].map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                           ))}
