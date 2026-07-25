@@ -568,16 +568,44 @@ const AnalyticsReportsPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-6"
               >
+                {/* Financial & Profitability Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <motion.div whileHover={{ y: -4 }} className="bg-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 shadow-md">
+                    <p className="text-xs font-semibold text-sangeet-neutral-400 uppercase tracking-wider mb-1">Total Revenue</p>
+                    <p className="text-2xl font-bold text-sangeet-100">${(menuData.financialSummary?.totalRevenue || 0).toFixed(2)}</p>
+                    <p className="text-xs text-sangeet-neutral-400 mt-1">From completed orders</p>
+                  </motion.div>
+
+                  <motion.div whileHover={{ y: -4 }} className="bg-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 shadow-md">
+                    <p className="text-xs font-semibold text-sangeet-neutral-400 uppercase tracking-wider mb-1">Estimated COGS</p>
+                    <p className="text-2xl font-bold text-amber-400">${(menuData.financialSummary?.totalCost || 0).toFixed(2)}</p>
+                    <p className="text-xs text-sangeet-neutral-400 mt-1">Cost of Goods Sold (~32% benchmark)</p>
+                  </motion.div>
+
+                  <motion.div whileHover={{ y: -4 }} className="bg-sangeet-neutral-800 rounded-xl p-5 border border-emerald-500/30 bg-emerald-500/5 shadow-md">
+                    <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1">Total Net Profit</p>
+                    <p className="text-2xl font-bold text-emerald-400">${(menuData.financialSummary?.totalNetProfit || 0).toFixed(2)}</p>
+                    <p className="text-xs text-emerald-300/70 mt-1">Gross Revenue minus COGS</p>
+                  </motion.div>
+
+                  <motion.div whileHover={{ y: -4 }} className="bg-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-400/30 bg-sangeet-400/5 shadow-md">
+                    <p className="text-xs font-semibold text-sangeet-400 uppercase tracking-wider mb-1">Average Profit Margin</p>
+                    <p className="text-2xl font-bold text-sangeet-400">{menuData.financialSummary?.overallMarginPct || '0.0'}%</p>
+                    <p className="text-xs text-sangeet-neutral-400 mt-1">Overall menu margin health</p>
+                  </motion.div>
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Category Revenue vs Net Profit Chart */}
                   <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                    <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Category Performance</h3>
+                    <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">Category Financial Breakdown</h3>
+                    <p className="text-xs text-sangeet-neutral-400 mb-4">Comparing Total Revenue against Net Profit by category</p>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={menuData.categoryPerformance || []}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                           <XAxis dataKey="category" stroke="#9CA3AF" />
-                          <YAxis yAxisId="left" stroke="#9CA3AF" />
-                          <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" />
+                          <YAxis stroke="#9CA3AF" />
                           <Tooltip 
                             contentStyle={{ 
                               backgroundColor: '#1F2937', 
@@ -585,25 +613,33 @@ const AnalyticsReportsPage = () => {
                               borderRadius: '8px',
                               color: '#F9FAFB'
                             }} 
+                            formatter={(val: any) => `$${Number(val).toFixed(2)}`}
                           />
-                          <Bar yAxisId="left" dataKey="total_orders" fill="#7C3AED" name="Total Orders" />
-                          <Bar yAxisId="right" dataKey="total_revenue" fill="#D97706" name="Revenue ($)" />
+                          <Bar dataKey="totalRevenue" fill="#D97706" name="Total Revenue ($)" />
+                          <Bar dataKey="netProfit" fill="#10B981" name="Net Profit ($)" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
 
+                  {/* 🌟 Top Profit Stars */}
                   <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                    <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-4">Popular Items</h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xl font-bold text-sangeet-neutral-100">🌟 Top Profit Stars</h3>
+                      <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/30">
+                        Highest Contribution
+                      </span>
+                    </div>
                     <div className="space-y-3 max-h-64 overflow-y-auto">
-                      {menuData.topSellingItems?.map((item: any, index: any) => (
-                        <div key={index} className="flex justify-between items-center p-3 bg-sangeet-neutral-700 rounded-lg">
+                      {menuData.profitStars?.map((item: any, index: any) => (
+                        <div key={index} className="flex justify-between items-center p-3 bg-sangeet-neutral-700/80 rounded-lg border border-sangeet-neutral-600/50">
                           <div>
                             <h4 className="font-medium text-sangeet-neutral-100">{item.name}</h4>
-                            <p className="text-sm text-sangeet-neutral-400">{item.category}</p>
+                            <p className="text-xs text-sangeet-neutral-400">{item.category} • ${item.price.toFixed(2)} ea</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-sangeet-400">{Number(item.timesOrdered || 0)} orders</p>
+                            <p className="font-bold text-emerald-400">+${item.netProfit.toFixed(2)}</p>
+                            <p className="text-xs text-sangeet-neutral-300">{item.profitMarginPct}% margin ({item.timesOrdered} orders)</p>
                           </div>
                         </div>
                       ))}

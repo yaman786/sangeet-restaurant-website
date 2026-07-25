@@ -194,19 +194,30 @@ class AnalyticsService {
   }
 
   async getMenuAnalytics(): Promise<Record<string, any>> {
-    const topItems: any[] = await prisma.$queryRawUnsafe(`
-      SELECT m.id, m.name, m.category, COUNT(oi.id) as times_ordered, SUM(oi.quantity) as total_quantity
+    const itemPerformance: any[] = await prisma.$queryRawUnsafe(`
+      SELECT 
+        m.id, 
+        m.name, 
+        m.category, 
+        m.price,
+        COUNT(oi.id) as times_ordered, 
+        SUM(oi.quantity) as total_quantity,
+        SUM(oi.unit_price * oi.quantity) as total_revenue,
+        SUM(oi.unit_price * 0.32 * oi.quantity) as total_cost
       FROM menu_items m
       JOIN order_items oi ON m.id = oi.menu_item_id
       JOIN orders o ON oi.order_id = o.id
       WHERE o.status = 'completed'
-      GROUP BY m.id, m.name, m.category
-      ORDER BY times_ordered DESC
-      LIMIT 10
+      GROUP BY m.id, m.name, m.category, m.price
+      ORDER BY total_revenue DESC
     `);
 
     const categoryPerformance: any[] = await prisma.$queryRawUnsafe(`
-      SELECT m.category, COUNT(oi.id) as total_orders, SUM(oi.unit_price * oi.quantity) as total_revenue
+      SELECT 
+        m.category, 
+        COUNT(oi.id) as total_orders, 
+        SUM(oi.unit_price * oi.quantity) as total_revenue,
+        SUM(oi.unit_price * 0.32 * oi.quantity) as total_cost
       FROM menu_items m
       JOIN order_items oi ON m.id = oi.menu_item_id
       JOIN orders o ON oi.order_id = o.id
@@ -215,17 +226,61 @@ class AnalyticsService {
       ORDER BY total_revenue DESC
     `);
 
-    return {
-      topSellingItems: topItems.map(r => ({
-        id: r.id, name: r.name, category: r.category,
+    let grandRevenue = 0;
+    let grandCost = 0;
+
+    const formattedItems = itemPerformance.map(r => {
+      const revenue = parseFloat(r.total_revenue || '0');
+      const cost = parseFloat(r.total_cost || '0');
+      const profit = revenue - cost;
+      const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+      grandRevenue += revenue;
+      grandCost += cost;
+
+      return {
+        id: r.id, 
+        name: r.name, 
+        category: r.category,
+        price: parseFloat(r.price || '0'),
         timesOrdered: Number(r.times_ordered || 0),
-        totalQuantity: Number(r.total_quantity || 0)
-      })),
-      categoryPerformance: categoryPerformance.map(r => ({
+        totalQuantity: Number(r.total_quantity || 0),
+        totalRevenue: revenue,
+        totalCost: cost,
+        netProfit: profit,
+        profitMarginPct: parseFloat(margin.toFixed(1))
+      };
+    });
+
+    const formattedCategories = categoryPerformance.map(r => {
+      const revenue = parseFloat(r.total_revenue || '0');
+      const cost = parseFloat(r.total_cost || '0');
+      const profit = revenue - cost;
+      return {
         category: r.category,
         totalOrders: Number(r.total_orders || 0),
-        totalRevenue: parseFloat(r.total_revenue || '0')
-      }))
+        totalRevenue: revenue,
+        totalCost: cost,
+        netProfit: profit,
+        profitMarginPct: revenue > 0 ? parseFloat(((profit / revenue) * 100).toFixed(1)) : 0
+      };
+    });
+
+    const grandProfit = grandRevenue - grandCost;
+    const overallMargin = grandRevenue > 0 ? (grandProfit / grandRevenue) * 100 : 0;
+
+    // Top Profit Stars (sorted by highest net profit contribution)
+    const profitStars = [...formattedItems].sort((a, b) => b.netProfit - a.netProfit).slice(0, 5);
+
+    return {
+      financialSummary: {
+        totalRevenue: grandRevenue,
+        totalCost: grandCost,
+        totalNetProfit: grandProfit,
+        overallMarginPct: parseFloat(overallMargin.toFixed(1))
+      },
+      topSellingItems: formattedItems.slice(0, 10),
+      profitStars,
+      categoryPerformance: formattedCategories
     };
   }
 
