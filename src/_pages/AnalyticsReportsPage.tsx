@@ -20,6 +20,7 @@ import {
   Area
 } from 'recharts';
 import AdminHeader from '../components/AdminHeader';
+import { pusherClient } from '@/lib/services/pusherClient';
 import {
   getBusinessAnalytics,
   getReservationTrends,
@@ -60,33 +61,41 @@ const AnalyticsReportsPage = () => {
   const [customerInsights, setCustomerInsights] = useState<any>({});
   const [performanceData, setPerformanceData] = useState<any>({});
 
+  const reloadData = async () => {
+    try {
+      const start = useCustomDates ? startDate : undefined;
+      const end = useCustomDates ? endDate : undefined;
+
+      const results = await Promise.allSettled([
+        getBusinessAnalytics(timeframe, start, end),
+        getReservationTrends(period, start, end),
+        getMenuAnalytics(),
+        getCustomerInsights(),
+        getPerformanceMetrics(start || startDate, end || endDate)
+      ]);
+
+      const business = results[0].status === 'fulfilled' ? results[0].value : {};
+      const trends = results[1].status === 'fulfilled' ? results[1].value : {};
+      const menu = results[2].status === 'fulfilled' ? results[2].value : {};
+      const customer = results[3].status === 'fulfilled' ? results[3].value : {};
+      const performance = results[4].status === 'fulfilled' ? results[4].value : {};
+
+      setBusinessData(business || {});
+      setReservationTrends(trends?.trends || []);
+      setMenuData(menu || {});
+      setCustomerInsights(customer || {});
+      setPerformanceData(performance || {});
+    } catch (error) {
+      console.error('Real-time refetch error:', error);
+    }
+  };
+
   // Load analytics data
   useEffect(() => {
     const loadAnalytics = async () => {
       try {
         setLoading(true);
-        const start = useCustomDates ? startDate : undefined;
-        const end = useCustomDates ? endDate : undefined;
-
-        const results = await Promise.allSettled([
-          getBusinessAnalytics(timeframe, start, end),
-          getReservationTrends(period, start, end),
-          getMenuAnalytics(),
-          getCustomerInsights(),
-          getPerformanceMetrics(start || startDate, end || endDate)
-        ]);
-
-        const business = results[0].status === 'fulfilled' ? results[0].value : {};
-        const trends = results[1].status === 'fulfilled' ? results[1].value : {};
-        const menu = results[2].status === 'fulfilled' ? results[2].value : {};
-        const customer = results[3].status === 'fulfilled' ? results[3].value : {};
-        const performance = results[4].status === 'fulfilled' ? results[4].value : {};
-
-        setBusinessData(business || {});
-        setReservationTrends(trends?.trends || []);
-        setMenuData(menu || {});
-        setCustomerInsights(customer || {});
-        setPerformanceData(performance || {});
+        await reloadData();
       } catch (error: any) {
         console.error('Error loading analytics:', error);
         if (error.response?.status === 401) {
@@ -101,6 +110,32 @@ const AnalyticsReportsPage = () => {
 
     loadAnalytics();
   }, [navigate, timeframe, period, useCustomDates, startDate, endDate]);
+
+  // Real-time WebSocket connection for live revenue & reservation updates
+  useEffect(() => {
+    try {
+      pusherClient.connect();
+      const channel = pusherClient.subscribeToAdminChannel();
+
+      const handleOrderUpdate = (data: any) => {
+        if (data?.status === 'completed' || data?.type === 'new-order') {
+          toast.success(`⚡ Live Revenue Update: New order completed!`, { id: 'live-analytics' });
+          pusherClient.playNotificationSound('completion');
+          reloadData();
+        }
+      };
+
+      channel.bind('order-status-update', handleOrderUpdate);
+      channel.bind('new-order', handleOrderUpdate);
+
+      return () => {
+        channel.unbind('order-status-update', handleOrderUpdate);
+        channel.unbind('new-order', handleOrderUpdate);
+      };
+    } catch (err) {
+      console.warn('Real-time analytics subscription error:', err);
+    }
+  }, [useCustomDates, startDate, endDate, timeframe, period]);
 
   const handleDrillDown = async (dateStr: string, type: 'orders' | 'reservations') => {
     if (!dateStr) return;
@@ -259,18 +294,27 @@ const AnalyticsReportsPage = () => {
               )}
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => {
+                  toast.success('Opening Executive Print Report...');
+                  window.print();
+                }}
+                className="bg-purple-500/20 text-purple-400 px-4 py-2 rounded-lg hover:bg-purple-500/30 transition-colors border border-purple-500/30 text-sm font-medium flex items-center gap-1.5"
+              >
+                <span>🖨️</span> Executive PDF
+              </button>
               <button
                 onClick={() => handleExport('summary', 'json')}
-                className="bg-sangeet-400/20 text-sangeet-400 px-4 py-2 rounded-lg hover:bg-sangeet-400/30 transition-colors border border-sangeet-400/30"
+                className="bg-sangeet-400/20 text-sangeet-400 px-4 py-2 rounded-lg hover:bg-sangeet-400/30 transition-colors border border-sangeet-400/30 text-sm font-medium flex items-center gap-1.5"
               >
-                📄 Export JSON
+                <span>📄</span> Export JSON
               </button>
               <button
                 onClick={() => handleExport('reservations', 'csv')}
-                className="bg-green-400/20 text-green-400 px-4 py-2 rounded-lg hover:bg-green-400/30 transition-colors border border-green-400/30"
+                className="bg-green-400/20 text-green-400 px-4 py-2 rounded-lg hover:bg-green-400/30 transition-colors border border-green-400/30 text-sm font-medium flex items-center gap-1.5"
               >
-                📊 Export CSV
+                <span>📊</span> Export CSV
               </button>
             </div>
           </div>
