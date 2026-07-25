@@ -196,53 +196,64 @@ const AnalyticsReportsPage = () => {
           <div className="flex flex-wrap gap-4 items-center justify-between">
             <div className="flex flex-wrap items-center gap-4">
               <div>
-                <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
-                  Date Mode
+                <label className="block text-xs font-semibold text-sangeet-neutral-400 uppercase tracking-wider mb-1.5">
+                  Date Range Selection
                 </label>
-                <select
-                  value={useCustomDates ? 'custom' : timeframe}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === 'custom') {
-                      setUseCustomDates(true);
-                    } else {
-                      setUseCustomDates(false);
-                      setTimeframe(val);
-                    }
-                  }}
-                  className="bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg px-3 py-2 text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
-                >
-                  <option value="7">Last 7 days</option>
-                  <option value="30">Last 30 days</option>
-                  <option value="90">Last 90 days</option>
-                  <option value="365">Last year</option>
-                  <option value="custom">📅 Custom Date Range</option>
-                </select>
+                <div className="relative inline-block w-64">
+                  <select
+                    value={useCustomDates ? 'custom' : timeframe}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === 'custom') {
+                        setUseCustomDates(true);
+                      } else {
+                        setUseCustomDates(false);
+                        setTimeframe(val);
+                      }
+                    }}
+                    className="w-full appearance-none bg-sangeet-neutral-800/90 text-sangeet-neutral-100 border border-sangeet-neutral-700 hover:border-sangeet-400/50 rounded-xl px-4 py-2.5 pr-10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sangeet-400/40 focus:border-sangeet-400 transition-all cursor-pointer shadow-sm"
+                  >
+                    <option value="7" className="bg-sangeet-neutral-900 py-2">Last 7 Days</option>
+                    <option value="30" className="bg-sangeet-neutral-900 py-2">Last 30 Days</option>
+                    <option value="90" className="bg-sangeet-neutral-900 py-2">Last 90 Days</option>
+                    <option value="365" className="bg-sangeet-neutral-900 py-2">Last 1 Year</option>
+                    <option value="custom" className="bg-sangeet-neutral-900 py-2 font-semibold text-sangeet-400">📅 Custom Range...</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-sangeet-neutral-400">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
               
               {useCustomDates && (
                 <div className="flex items-center gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                    <label className="block text-xs font-semibold text-sangeet-neutral-400 uppercase tracking-wider mb-1.5">
                       Start Date
                     </label>
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg px-3 py-2 text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400 cursor-pointer [color-scheme:dark]"
-                    />
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="appearance-none bg-sangeet-neutral-800/90 text-sangeet-neutral-100 border border-sangeet-neutral-700 hover:border-sangeet-400/50 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sangeet-400/40 focus:border-sangeet-400 transition-all cursor-pointer [color-scheme:dark] shadow-sm"
+                      />
+                    </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                    <label className="block text-xs font-semibold text-sangeet-neutral-400 uppercase tracking-wider mb-1.5">
                       End Date
                     </label>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg px-3 py-2 text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400 cursor-pointer [color-scheme:dark]"
-                    />
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="appearance-none bg-sangeet-neutral-800/90 text-sangeet-neutral-100 border border-sangeet-neutral-700 hover:border-sangeet-400/50 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sangeet-400/40 focus:border-sangeet-400 transition-all cursor-pointer [color-scheme:dark] shadow-sm"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
