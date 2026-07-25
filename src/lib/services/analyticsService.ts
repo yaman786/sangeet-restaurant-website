@@ -78,6 +78,9 @@ class AnalyticsService {
     let result: any[];
 
     if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
       result = await prisma.$queryRaw`
         SELECT 
           date,
@@ -87,7 +90,7 @@ class AnalyticsService {
           COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled,
           COUNT(CASE WHEN status = 'no-show' THEN 1 END) as no_show
         FROM reservations
-        WHERE date >= ${startDate} AND date <= ${endDate}
+        WHERE date >= ${start} AND date <= ${end}
         GROUP BY date
         ORDER BY date ASC
       `;
@@ -111,7 +114,7 @@ class AnalyticsService {
           COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled,
           COUNT(CASE WHEN status = 'no-show' THEN 1 END) as no_show
         FROM reservations
-        WHERE date >= (CURRENT_DATE - ${interval}::interval)::text
+        WHERE date >= (CURRENT_DATE - ${interval}::interval)
         GROUP BY date
         ORDER BY date ASC
       `;
