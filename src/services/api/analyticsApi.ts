@@ -8,7 +8,7 @@ export const getBusinessAnalytics = async (timeframe: string | number = '30'): P
 
 export const getReservationTrends = async (period: string = 'month'): Promise<any> => {
   return apiCallWrapper(async () => {
-    return await api.get(`/analytics/reservations/trends?period=${encodeURIComponent(period)}`);
+    return await api.get(`/analytics/trends?period=${encodeURIComponent(period)}`);
   }, 'getReservationTrends');
 };
 

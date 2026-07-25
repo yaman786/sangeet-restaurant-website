@@ -52,19 +52,19 @@ const AnalyticsReportsPage = () => {
         const endDate = new Date().toISOString().split('T')[0];
         const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-        const [
-          business,
-          trends,
-          menu,
-          customer,
-          performance
-        ] = (await Promise.all([
+        const results = await Promise.allSettled([
           getBusinessAnalytics(timeframe),
           getReservationTrends(period),
           getMenuAnalytics(),
           getCustomerInsights(),
           getPerformanceMetrics(startDate, endDate)
-        ])) as any[];
+        ]);
+
+        const business = results[0].status === 'fulfilled' ? results[0].value : {};
+        const trends = results[1].status === 'fulfilled' ? results[1].value : {};
+        const menu = results[2].status === 'fulfilled' ? results[2].value : {};
+        const customer = results[3].status === 'fulfilled' ? results[3].value : {};
+        const performance = results[4].status === 'fulfilled' ? results[4].value : {};
 
         setBusinessData(business || {});
         setReservationTrends(trends?.trends || []);
