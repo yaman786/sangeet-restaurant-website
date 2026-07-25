@@ -221,7 +221,7 @@ const AnalyticsReportsPage = () => {
               </div>
               
               {useCustomDates && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <div>
                     <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
                       Start Date
@@ -230,7 +230,7 @@ const AnalyticsReportsPage = () => {
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      className="bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg px-3 py-2 text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                      className="bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg px-3 py-2 text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400 cursor-pointer [color-scheme:dark]"
                     />
                   </div>
                   <div>
@@ -241,26 +241,11 @@ const AnalyticsReportsPage = () => {
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg px-3 py-2 text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                      className="bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg px-3 py-2 text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400 cursor-pointer [color-scheme:dark]"
                     />
                   </div>
                 </div>
               )}
-
-              <div>
-                <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
-                  Period
-                </label>
-                <select
-                  value={period}
-                  onChange={(e) => setPeriod(e.target.value)}
-                  className="bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg px-3 py-2 text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
-                >
-                  <option value="week">Weekly</option>
-                  <option value="month">Monthly</option>
-                  <option value="year">Yearly</option>
-                </select>
-              </div>
             </div>
 
             <div className="flex gap-2">
