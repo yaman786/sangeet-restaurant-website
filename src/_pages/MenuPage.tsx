@@ -23,7 +23,8 @@ const FALLBACK_CATEGORIES = [
  * Optimized for touch interactions and mobile performance
  */
 const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: any[], initialCategories?: any[] }) => {
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [activeTopCategory, setActiveTopCategory] = useState('all');
+  const [activeSubCategory, setActiveSubCategory] = useState('all');
   const [filters, setFilters] = useState({
     vegetarian: false,
     spicy: false,
@@ -48,9 +49,21 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
 
   const loading = menuLoading;
 
-  const filteredMenuItems = selectedCategory === 'all' 
-    ? menuItems
-    : menuItems.filter(item => item.category_name === selectedCategory);
+  const topLevelCategories = categories.filter((c: any) => !c.parent_id);
+
+  let filteredMenuItems = menuItems;
+  
+  if (activeTopCategory !== 'all') {
+    const parentCat = categories.find((c: any) => c.name === activeTopCategory);
+    const childCats = categories.filter((c: any) => c.parent_id === parentCat?.id);
+    
+    if (activeSubCategory !== 'all') {
+       filteredMenuItems = menuItems.filter((item: any) => item.category_name === activeSubCategory);
+    } else {
+       const validCategoryNames = [activeTopCategory, ...childCats.map((c: any) => c.name)];
+       filteredMenuItems = menuItems.filter((item: any) => validCategoryNames.includes(item.category_name));
+    }
+  }
 
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
@@ -114,30 +127,71 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
               </motion.button>
             </div>
 
-            {/* Category Filter - Horizontal Scroll on Mobile */}
-            <div className="relative w-full">
+            {/* Primary Category Filter - Horizontal Scroll on Mobile */}
+            <div className="relative w-full mb-4">
               <div className="flex overflow-x-auto gap-2 md:gap-4 pb-2 md:pb-0 scrollbar-hide max-w-full">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setSelectedCategory('all')}
-                  className={`filter-tab ${selectedCategory === 'all' ? 'filter-tab-active' : 'filter-tab-inactive'}`}
+                  onClick={() => { setActiveTopCategory('all'); setActiveSubCategory('all'); }}
+                  className={`filter-tab ${activeTopCategory === 'all' ? 'filter-tab-active' : 'filter-tab-inactive'}`}
                 >
                   All Items
                 </motion.button>
-                {categories.map((category) => (
+                {topLevelCategories.map((category: any) => (
                   <motion.button
                     key={category.id}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedCategory(category.name)}
-                    className={`filter-tab ${selectedCategory === category.name ? 'filter-tab-active' : 'filter-tab-inactive'}`}
+                    onClick={() => { setActiveTopCategory(category.name); setActiveSubCategory('all'); }}
+                    className={`filter-tab ${activeTopCategory === category.name ? 'filter-tab-active' : 'filter-tab-inactive'}`}
                   >
                     {category.name}
                   </motion.button>
                 ))}
               </div>
             </div>
+
+            {/* Secondary Category Filter (Subcategories) */}
+            {activeTopCategory !== 'all' && categories.filter((c: any) => c.parent_id === categories.find((p: any) => p.name === activeTopCategory)?.id).length > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="relative w-full"
+              >
+                <div className="flex overflow-x-auto gap-2 md:gap-3 pb-2 scrollbar-hide max-w-full">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setActiveSubCategory('all')}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${
+                      activeSubCategory === 'all'
+                        ? 'bg-sangeet-400 text-sangeet-neutral-950 border-sangeet-400'
+                        : 'bg-transparent text-sangeet-neutral-300 border-sangeet-neutral-600 hover:border-sangeet-400 hover:text-sangeet-400'
+                    }`}
+                  >
+                    All {activeTopCategory}
+                  </motion.button>
+                  {categories
+                    .filter((c: any) => c.parent_id === categories.find((p: any) => p.name === activeTopCategory)?.id)
+                    .map((childCategory: any) => (
+                      <motion.button
+                        key={childCategory.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setActiveSubCategory(childCategory.name)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors border ${
+                          activeSubCategory === childCategory.name
+                            ? 'bg-sangeet-400 text-sangeet-neutral-950 border-sangeet-400'
+                            : 'bg-transparent text-sangeet-neutral-300 border-sangeet-neutral-600 hover:border-sangeet-400 hover:text-sangeet-400'
+                        }`}
+                      >
+                        {childCategory.name}
+                      </motion.button>
+                    ))}
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
