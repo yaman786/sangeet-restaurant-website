@@ -110,7 +110,9 @@ export async function createCategoryAction(data: z.infer<typeof categorySchema>)
     const category = await prisma.categories.create({
       data: {
         name: parsedData.name,
-        display_order: (data as any).display_order || 0
+        display_order: (data as any).display_order || 0,
+        parent_id: (data as any).parent_id || null,
+        description: (data as any).description || null
       }
     });
 
@@ -137,6 +139,8 @@ export async function updateCategoryAction(id: number | string, data: z.infer<ty
       data: {
         name: parsedData.name,
         display_order: (data as any).display_order || 0,
+        parent_id: (data as any).parent_id === undefined ? undefined : (data as any).parent_id,
+        description: (data as any).description === undefined ? undefined : (data as any).description,
         updated_at: new Date()
       }
     });

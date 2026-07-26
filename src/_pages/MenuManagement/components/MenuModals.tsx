@@ -51,21 +51,40 @@ const MenuModals = ({
     register: registerCategory,
     handleSubmit: handleSubmitCategory,
     reset: resetCategory,
+    setValue: setCategoryValue,
+    watch: watchCategoryForm,
     formState: { errors: categoryErrors }
   } = useForm({
     resolver: zodResolver(categorySchema),
-    defaultValues: { name: '', description: '', display_order: 0 } as any
+    defaultValues: { name: '', description: '', display_order: 0, parent_id: null } as any
   });
 
   useEffect(() => {
     if (showCategoryModal) {
       if (selectedCategory) {
-        resetCategory(selectedCategory);
+        resetCategory({ ...selectedCategory, parent_id: selectedCategory.parent_id || '' });
       } else {
-        resetCategory({ name: '', description: '', display_order: 0 } as any);
+        resetCategory({ name: '', description: '', display_order: 0, parent_id: '' } as any);
       }
     }
   }, [showCategoryModal, selectedCategory, resetCategory]);
+
+  const itemCategoryOptions = categories.flatMap((c: any) => {
+    if (c.parent_id) return []; // skip children, handled by parent
+    
+    const children = categories.filter((child: any) => child.parent_id === c.id);
+    if (children.length > 0) {
+      return children.map((child: any) => ({ label: `${c.name} > ${child.name}`, value: child.name }));
+    }
+    return [{ label: c.name, value: c.name }];
+  });
+
+  const parentCategoryOptions = [
+    { label: 'None (Top Level)', value: '' },
+    ...categories
+      .filter((c: any) => !c.parent_id && (!selectedCategory || c.id !== selectedCategory.id))
+      .map((c: any) => ({ label: c.name, value: c.id }))
+  ];
 
   return (
     <>
@@ -111,7 +130,7 @@ const MenuModals = ({
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Category</label>
                   <CustomDropdown
                     label="Category"
-                    options={categories.map((c: any) => ({ label: c.name, value: c.name }))}
+                    options={itemCategoryOptions}
                     value={watchItem('category')}
                     onChange={(val: any) => setItemValue('category', val, { shouldValidate: true })}
                     error={itemErrors.category?.message}
@@ -196,6 +215,16 @@ const MenuModals = ({
                   {...registerCategory('description')}
                   rows={3}
                   className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Parent Category</label>
+                <CustomDropdown
+                  label="Parent Category"
+                  options={parentCategoryOptions}
+                  value={watchCategoryForm('parent_id') || ''}
+                  onChange={(val: any) => setCategoryValue('parent_id', val === '' ? null : Number(val), { shouldValidate: true })}
+                  className="w-full"
                 />
               </div>
               <div>

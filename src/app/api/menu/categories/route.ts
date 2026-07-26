@@ -8,6 +8,10 @@ export async function GET(req: NextRequest) {
   try {
     const categories = await prisma.categories.findMany({
       where: { is_active: true },
+      include: {
+        children: true,
+        parent: true
+      },
       orderBy: [
         { display_order: 'asc' },
         { name: 'asc' }
@@ -27,11 +31,13 @@ export async function POST(req: NextRequest) {
     if (roleError) return roleError;
 
     const body = await req.json();
-    const { name, display_order } = body;
+    const { name, display_order, description, parent_id } = body;
     
     const category = await prisma.categories.create({
       data: {
         name,
+        description,
+        parent_id: parent_id || null,
         display_order: display_order || 0
       }
     });

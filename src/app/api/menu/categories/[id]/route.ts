@@ -13,13 +13,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     const id = parseInt(params.id, 10);
     const body = await req.json();
-    const { name, display_order, is_active } = body;
+    const { name, display_order, is_active, parent_id, description } = body;
     
     try {
       const category = await prisma.categories.update({
         where: { id },
         data: {
           name, 
+          description,
+          parent_id: parent_id === undefined ? undefined : parent_id,
           display_order: display_order || 0, 
           is_active: is_active !== false
         }

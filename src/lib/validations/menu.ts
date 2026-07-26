@@ -16,6 +16,8 @@ export const menuItemSchema = z.object({
 export const categorySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters long'),
   description: z.string().optional(),
+  parent_id: z.preprocess((val) => (val === '' || val === undefined || val === null) ? null : Number(val), z.number().nullable().optional()),
+  display_order: z.preprocess((val) => Number(val), z.number().optional())
 });
 
 export type MenuItemInput = z.infer<typeof menuItemSchema>;

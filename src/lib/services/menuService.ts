@@ -92,25 +92,29 @@ class MenuService {
   async getAllCategories(): Promise<CategoryRow[]> {
     const categories = await prisma.categories.findMany({
       where: { is_active: true },
+      include: {
+        children: true,
+        parent: true
+      },
       orderBy: [{ display_order: 'asc' }, { name: 'asc' }]
     });
     return categories as any;
   }
 
-  async createCategory(data: CategoryInput & { display_order?: number }): Promise<CategoryRow> {
-    const { name, display_order } = data;
+  async createCategory(data: CategoryInput & { display_order?: number; parent_id?: number | null }): Promise<CategoryRow> {
+    const { name, display_order, parent_id, description } = data;
     const category = await prisma.categories.create({
-      data: { name, display_order: display_order || 0 }
+      data: { name, description, display_order: display_order || 0, parent_id: parent_id || null }
     });
     return category as any;
   }
 
-  async updateCategory(id: string, data: Partial<CategoryInput> & { display_order?: number; is_active?: boolean }): Promise<CategoryRow> {
-    const { name, display_order, is_active } = data;
+  async updateCategory(id: string, data: Partial<CategoryInput> & { display_order?: number; is_active?: boolean; parent_id?: number | null }): Promise<CategoryRow> {
+    const { name, display_order, is_active, parent_id, description } = data;
     try {
       const category = await prisma.categories.update({
         where: { id: parseInt(id, 10) },
-        data: { name, display_order: display_order || 0, is_active: is_active !== false }
+        data: { name, description, display_order: display_order || 0, is_active: is_active !== false, parent_id: parent_id === undefined ? undefined : parent_id }
       });
       return category as any;
     } catch (e: any) {
