@@ -42,8 +42,13 @@ const ReservationManagementPage = () => {
   const loadData = useCallback(async (isBackgroundPoll = false) => {
     try {
       if (!isBackgroundPoll) setIsLoading(true);
+      
+      const queryParams: any = {};
+      // Industry Standard: Default to fetching today + upcoming reservations, not the entire historical DB
+      queryParams.startDate = new Date().toISOString().split('T')[0];
+
       const [reservationsData, statsData, tablesData] = await Promise.all([
-        fetchAllReservations(),
+        fetchAllReservations(queryParams),
         fetchReservationStats(),
         fetchTables()
       ]);
@@ -62,13 +67,7 @@ const ReservationManagementPage = () => {
 
   useEffect(() => {
     loadData(false);
-    
-    // Industry Standard: Auto-refresh fallback polling every 60 seconds (prevents rate limits)
-    const pollingInterval = setInterval(() => {
-      loadData(true);
-    }, 60000);
-
-    return () => clearInterval(pollingInterval);
+    // Removed 60-second polling to save bandwidth and prevent server crashes
   }, [loadData]);
 
   // Real-time Pusher Subscription
@@ -79,6 +78,10 @@ const ReservationManagementPage = () => {
     // 2. Setup connection status listener
     socketService.onConnectionStateChange((status) => {
       setConnectionStatus(status);
+      // Smart Sync: Re-fetch data if connection is restored
+      if (status === 'connected') {
+        loadData(true);
+      }
     });
 
     // 3. Subscribe to admin-channel

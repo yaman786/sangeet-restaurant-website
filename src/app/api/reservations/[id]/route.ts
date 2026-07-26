@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import reservationService from '@/lib/services/reservationService';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireAuth, requireRole } from '@/lib/auth';
+import { updateReservationSchema } from '@/lib/validations/reservation';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -39,8 +40,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const roleError = requireAuth(authResult.user!);
     if (roleError) return roleError;
 
-    const body = await req.json();
-    const reservation = await reservationService.updateReservation(params.id, body);
+    const rawBody = await req.json();
+    const body = updateReservationSchema.parse(rawBody);
+    const reservation = await reservationService.updateReservation(params.id, body as any);
     
     return NextResponse.json({ message: 'Reservation updated successfully', reservation });
   } catch (error) {

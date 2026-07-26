@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
@@ -7,40 +7,21 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { reservationSchema } from '@/lib/validations';
 import { createReservationAction } from '@/app/actions/reservationActions';
 import { parseRestaurantTime, formatRestaurantTime } from '@/lib/utils/timeUtils';
+import { getAvailableTimeSlots } from '@/services/api/reservationApi';
 
 const ReservationsPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [reservationDetails, setReservationDetails] = useState<any>(null);
   const [timeOptions, setTimeOptions] = useState<string[]>([]);
-
-  useEffect(() => {
-    fetch('/api/reservations/timeslots')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          // Filter to only show active ones
-          const activeSlots = data.filter(s => s.is_active).map(s => s.time_slot);
-          setTimeOptions(activeSlots.length > 0 ? activeSlots : [
-            '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
-            '20:00', '20:30', '21:00', '21:30', '22:00'
-          ]);
-        }
-      })
-      .catch(() => {
-        // Fallback
-        setTimeOptions([
-          '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
-          '20:00', '20:30', '21:00', '21:30', '22:00'
-        ]);
-      });
-  }, []);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
   const {
     register,
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors }
   } = useForm({
     resolver: zodResolver(reservationSchema),
@@ -55,7 +36,45 @@ const ReservationsPage = () => {
     }
   });
 
+  const selectedDate = watch('date');
+  const selectedGuests = watch('guests');
   const specialRequests = watch('special_requests');
+  const selectedTimeRef = useRef(watch('time'));
+  selectedTimeRef.current = watch('time');
+
+  useEffect(() => {
+    if (!selectedDate) {
+      setTimeOptions([]);
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoadingSlots(true);
+
+    getAvailableTimeSlots(selectedDate as string, selectedGuests ? Number(selectedGuests) : 2)
+      .then((slots: any) => {
+        if (!isMounted) return;
+        if (Array.isArray(slots)) {
+          setTimeOptions(slots);
+          if (selectedTimeRef.current && !slots.includes(selectedTimeRef.current)) {
+            setValue('time', '');
+          }
+        } else {
+          setTimeOptions([]);
+        }
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setTimeOptions([]);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingSlots(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedDate, selectedGuests, setValue]);
 
   // Date constraints
   const today = new Date().toISOString().split('T')[0];
@@ -214,9 +233,12 @@ const ReservationsPage = () => {
                 </label>
                 <select
                   {...register('time')}
-                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
+                  disabled={!selectedDate || isLoadingSlots}
+                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <option value="">Select a time</option>
+                  <option value="">
+                    {isLoadingSlots ? 'Loading available times...' : (!selectedDate ? 'Select a date first' : (timeOptions.length === 0 ? 'No slots available' : 'Select a time'))}
+                  </option>
                   {timeOptions.map(time => (
                     <option key={time} value={time}>
                       {formatTime(time)}

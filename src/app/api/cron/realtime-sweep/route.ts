@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { pusherServer } from '@/lib/services/pusherServer';
+import reservationService from '@/lib/services/reservationService';
 
 export async function GET(request: Request) {
   // 1. Authenticate the Cron request
@@ -53,52 +54,8 @@ export async function GET(request: Request) {
       }
     }
 
-    // --- 2. Sweep No-Show Reservations (More than 45 mins late) ---
-    const activeReservations = await prisma.reservations.findMany({
-      where: {
-        status: { in: ['pending', 'confirmed'] },
-        is_archived: false
-      }
-    });
-
-    const fortyFiveMinsAgo = new Date(now.getTime() - 45 * 60000);
-    const noShowIds: number[] = [];
-
-    for (const res of activeReservations) {
-      if (!res.date || !res.time) continue;
-      
-      const dateStr = new Date(res.date).toISOString().split('T')[0];
-      const timeObj = new Date(res.time);
-      const hours = String(timeObj.getUTCHours()).padStart(2, '0');
-      const mins = String(timeObj.getUTCMinutes()).padStart(2, '0');
-      
-      const scheduledAt = new Date(`${dateStr}T${hours}:${mins}:00.000Z`);
-
-      // If scheduled time is older than 45 mins ago, mark as no-show
-      if (scheduledAt < fortyFiveMinsAgo) {
-        noShowIds.push(res.id);
-      }
-    }
-
-    let noShowReservationsCount = 0;
-    if (noShowIds.length > 0) {
-      const updateResResult = await prisma.reservations.updateMany({
-        where: { id: { in: noShowIds } },
-        data: {
-          status: 'no-show',
-          updated_at: new Date()
-        }
-      });
-      noShowReservationsCount = updateResResult.count;
-      
-      // Trigger pusher events for real-time UI updates
-      for (const id of noShowIds) {
-        await pusherServer.trigger('admin-channel', 'reservation-status-update', {
-          id: id,
-          status: 'no-show'
-        });
-      }
-    }
+    // --- 2. Sweep No-Show Reservations (More than 45 mins late) via shared On-Demand Service ---
+    const noShowReservationsCount = await reservationService.sweepOverdueReservations();
 
     return NextResponse.json({ 
       success: true, 

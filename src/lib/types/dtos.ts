@@ -56,6 +56,8 @@ export interface UpdateTimeSlotDTO {
 
 export interface ReservationQueryDTO {
   date?: string | Date;
+  startDate?: string | Date;
+  endDate?: string | Date;
   status?: string;
   archived?: 'true' | 'false' | boolean;
 }

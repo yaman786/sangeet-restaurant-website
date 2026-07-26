@@ -9,3 +9,8 @@ export const reservationSchema = z.object({
   phone: z.string().min(5, 'Valid phone number is required'),
   special_requests: z.string().optional()
 });
+
+export const updateReservationSchema = reservationSchema.partial().extend({
+  table_id: z.preprocess((val) => (val !== undefined && val !== null ? Number(val) : null), z.number().nullable().optional()),
+  status: z.enum(['pending', 'confirmed', 'completed', 'cancelled']).optional()
+});
