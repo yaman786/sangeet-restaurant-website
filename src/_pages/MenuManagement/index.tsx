@@ -68,6 +68,7 @@ const MenuManagement = () => {
             <MenuList 
               filteredItems={filteredItems}
               menuItems={menuItems}
+              categories={categories}
               setShowAddModal={setShowAddModal}
               openEditModal={openEditModal}
               handleDeleteItem={handleDeleteItem}

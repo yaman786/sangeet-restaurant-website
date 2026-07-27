@@ -4,10 +4,21 @@ import React from 'react';
 const MenuList = ({
   filteredItems,
   menuItems,
+  categories = [],
   setShowAddModal,
   openEditModal,
   handleDeleteItem
 }: any) => {
+  const getCategoryDisplay = (categoryId: number, categoryName: string) => {
+    if (!categoryId) return categoryName || 'Uncategorized';
+    const cat = categories.find((c: any) => c.id === categoryId);
+    if (cat && cat.parent_id) {
+      const parent = categories.find((p: any) => p.id === cat.parent_id);
+      if (parent) return `${cat.name} (${parent.name})`;
+    }
+    return categoryName || 'Uncategorized';
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -56,7 +67,7 @@ const MenuList = ({
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sangeet-neutral-500 text-sm">
-                    {item.category_name || 'Uncategorized'}
+                    {getCategoryDisplay(item.category_id, item.category_name)}
                   </span>
                   <div className="flex space-x-2">
                     <button

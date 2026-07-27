@@ -5,6 +5,29 @@ import { prisma } from '@/lib/db';
 import { menuItemSchema, categorySchema } from '@/lib/validations';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { uploadImage } from '@/lib/storage';
+
+export async function uploadMenuImageAction(formData: FormData) {
+  try {
+    const user = await getAuthUser();
+    if (!user || user.role !== 'admin') {
+      return { success: false, error: 'Unauthorized. Admin access required.' };
+    }
+
+    const file = formData.get('file') as File;
+    if (!file) {
+      return { success: false, error: 'No file provided' };
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const publicUrl = await uploadImage(buffer, file.name, file.type, 'menu-images');
+
+    return { success: true, url: publicUrl };
+  } catch (error: any) {
+    console.error('Error in uploadMenuImageAction:', error);
+    return { success: false, error: error.message || 'Failed to upload image' };
+  }
+}
 
 export async function createMenuItemAction(data: z.infer<typeof menuItemSchema>) {
   try {

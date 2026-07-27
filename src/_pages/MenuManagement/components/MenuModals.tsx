@@ -1,9 +1,11 @@
 "use client";
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { menuItemSchema, categorySchema } from '@/lib/validations';
 import CustomDropdown from '../../../components/CustomDropdown';
+import { uploadMenuImageAction } from '@/app/actions/menuActions';
+import toast from 'react-hot-toast';
 
 const MenuModals = ({
   showAddModal, setShowAddModal,
@@ -32,6 +34,8 @@ const MenuModals = ({
       preparation_time: 15, is_vegetarian: false, is_spicy: false, is_popular: false
     }
   });
+
+  const [isUploading, setIsUploading] = useState(false);
 
   const watchCategory = watchItem('category');
 
@@ -139,11 +143,45 @@ const MenuModals = ({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Image URL</label>
-                  <input
-                    type="url"
-                    {...registerItem('image_url')}
-                    className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      {...registerItem('image_url')}
+                      placeholder="https://..."
+                      className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
+                    />
+                    <label className={`shrink-0 flex items-center justify-center px-4 py-2 rounded-lg cursor-pointer transition-colors ${isUploading ? 'bg-sangeet-neutral-700 text-sangeet-neutral-400' : 'bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 border border-sangeet-neutral-600'}`}>
+                      <span className="text-sm">{isUploading ? '...' : 'Upload'}</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        disabled={isUploading}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          
+                          setIsUploading(true);
+                          const toastId = toast.loading('Uploading image...');
+                          try {
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            const res = await uploadMenuImageAction(formData);
+                            if (res.success) {
+                              setItemValue('image_url', res.url, { shouldValidate: true });
+                              toast.success('Image uploaded', { id: toastId });
+                            } else {
+                              toast.error(res.error || 'Upload failed', { id: toastId });
+                            }
+                          } catch (err: any) {
+                            toast.error('Upload failed: ' + err.message, { id: toastId });
+                          } finally {
+                            setIsUploading(false);
+                          }
+                        }} 
+                      />
+                    </label>
+                  </div>
                   {itemErrors.image_url && <p className="text-red-500 text-xs mt-1">{itemErrors.image_url.message}</p>}
                 </div>
               </div>
