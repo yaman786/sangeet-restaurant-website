@@ -1,7 +1,8 @@
 export const dynamic = 'force-dynamic';
 
 import HomePage from '@/_pages/HomePage';
-import { serverFetchMenuItems, serverFetchReviews, serverFetchEvents } from '@/services/api';
+import { serverFetchReviews, serverFetchEvents } from '@/services/api';
+import menuService from '@/lib/services/menuService';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -54,17 +55,16 @@ export default async function Home() {
 
   try {
     const [menuRes, reviewsRes, eventsRes] = await Promise.all([
-      serverFetchMenuItems().catch(() => FALLBACK_MENU),
+      menuService.getAllMenuItems().then(res => JSON.parse(JSON.stringify(res))).catch(() => FALLBACK_MENU),
       serverFetchReviews().catch(() => FALLBACK_REVIEWS),
       serverFetchEvents().catch(() => FALLBACK_EVENTS)
     ]);
     
-    // serverFetch returns the direct data, no need for .data extraction
     menuItems = menuRes || FALLBACK_MENU;
     reviews = reviewsRes || FALLBACK_REVIEWS;
     events = eventsRes || FALLBACK_EVENTS;
   } catch (err) {
-    console.error("Failed to fetch server data", err);
+    console.error("Failed to fetch home page data on server", err);
   }
 
   // Pass fallback if the response was an empty array and we want to show something rich initially

@@ -1,5 +1,5 @@
 import MenuPage from '@/_pages/MenuPage';
-import { serverFetchMenuItems, serverFetchMenuCategories } from '@/services/api';
+import menuService from '@/lib/services/menuService';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -15,11 +15,13 @@ export default async function Page() {
 
   try {
     const [menuRes, catRes] = await Promise.all([
-      serverFetchMenuItems().catch(() => []),
-      serverFetchMenuCategories().catch(() => [])
+      menuService.getAllMenuItems(),
+      menuService.getAllCategories()
     ]);
-    menuItems = menuRes || [];
-    categories = catRes || [];
+    
+    // We need to parse/stringify to handle Prisma Date objects for client components
+    menuItems = JSON.parse(JSON.stringify(menuRes || []));
+    categories = JSON.parse(JSON.stringify(catRes || []));
   } catch (err) {
     console.error("Failed to fetch menu data on server", err);
   }
