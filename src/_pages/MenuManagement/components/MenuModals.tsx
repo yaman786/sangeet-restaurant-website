@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { menuItemSchema, categorySchema } from '@/lib/validations';
@@ -45,6 +45,7 @@ const MenuModals = ({
   });
 
   const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const watchCategory = watchItem('category');
 
@@ -151,7 +152,7 @@ const MenuModals = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Image URL</label>
+                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Image</label>
                   <div className="flex gap-2">
                     <input
                       type="url"
@@ -159,44 +160,49 @@ const MenuModals = ({
                       placeholder="https://..."
                       className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
                     />
-                    <label className={`shrink-0 flex items-center justify-center px-4 py-2 rounded-lg cursor-pointer transition-colors ${isUploading ? 'bg-sangeet-neutral-700 text-sangeet-neutral-400' : 'bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 border border-sangeet-neutral-600'}`}>
-                      <span className="text-sm">{isUploading ? '...' : 'Upload'}</span>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        className="hidden" 
-                        disabled={isUploading}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          
-                          setIsUploading(true);
-                          const originalSizeMB = (file.size / 1024 / 1024).toFixed(1);
-                          const toastId = toast.loading(`Compressing ${originalSizeMB}MB image...`);
-                          try {
-                            // Step 1: Compress on the client before uploading
-                            const compressedFile = await imageCompression(file, IMAGE_COMPRESSION_OPTIONS);
-                            const compressedSizeKB = (compressedFile.size / 1024).toFixed(0);
-                            toast.loading(`Uploading ${compressedSizeKB}KB (was ${originalSizeMB}MB)...`, { id: toastId });
+                    <button
+                      type="button"
+                      disabled={isUploading}
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isUploading ? 'bg-sangeet-neutral-700 text-sangeet-neutral-400 cursor-not-allowed' : 'bg-sangeet-400 text-sangeet-neutral-950 hover:bg-sangeet-300 cursor-pointer'}`}
+                    >
+                      {isUploading ? 'Uploading...' : '📷 Upload'}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
 
-                            // Step 2: Upload the compressed file
-                            const formData = new FormData();
-                            formData.append('file', compressedFile);
-                            const res = await uploadMenuImageAction(formData);
-                            if (res.success) {
-                              setItemValue('image_url', res.url, { shouldValidate: true });
-                              toast.success('Image uploaded', { id: toastId });
-                            } else {
-                              toast.error(res.error || 'Upload failed', { id: toastId });
-                            }
-                          } catch (err: any) {
-                            toast.error('Upload failed: ' + err.message, { id: toastId });
-                          } finally {
-                            setIsUploading(false);
+                        setIsUploading(true);
+                        const originalSizeMB = (file.size / 1024 / 1024).toFixed(1);
+                        const toastId = toast.loading(`Compressing ${originalSizeMB}MB image...`);
+                        try {
+                          const compressedFile = await imageCompression(file, IMAGE_COMPRESSION_OPTIONS);
+                          const compressedSizeKB = (compressedFile.size / 1024).toFixed(0);
+                          toast.loading(`Uploading ${compressedSizeKB}KB (was ${originalSizeMB}MB)...`, { id: toastId });
+
+                          const formData = new FormData();
+                          formData.append('file', compressedFile);
+                          const res = await uploadMenuImageAction(formData);
+                          if (res.success) {
+                            setItemValue('image_url', res.url, { shouldValidate: true });
+                            toast.success('Image uploaded!', { id: toastId });
+                          } else {
+                            toast.error(res.error || 'Upload failed', { id: toastId });
                           }
-                        }} 
-                      />
-                    </label>
+                        } catch (err: any) {
+                          toast.error('Upload failed: ' + err.message, { id: toastId });
+                        } finally {
+                          setIsUploading(false);
+                          // Reset so same file can be re-selected
+                          if (fileInputRef.current) fileInputRef.current.value = '';
+                        }
+                      }}
+                    />
                   </div>
                   {itemErrors.image_url && <p className="text-red-500 text-xs mt-1">{itemErrors.image_url.message}</p>}
                 </div>
