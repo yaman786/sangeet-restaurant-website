@@ -6,6 +6,15 @@ import { menuItemSchema, categorySchema } from '@/lib/validations';
 import CustomDropdown from '../../../components/CustomDropdown';
 import { uploadMenuImageAction } from '@/app/actions/menuActions';
 import toast from 'react-hot-toast';
+import imageCompression from 'browser-image-compression';
+
+const IMAGE_COMPRESSION_OPTIONS = {
+  maxSizeMB: 0.5,           // Target max 500KB per image
+  maxWidthOrHeight: 1200,   // Max dimension — plenty for web menu cards
+  useWebWorker: true,       // Non-blocking compression in a Web Worker
+  fileType: 'image/webp' as const,  // WebP = best size-to-quality ratio
+  initialQuality: 0.82,     // 82% quality — visually indistinguishable from 100%
+};
 
 const MenuModals = ({
   showAddModal, setShowAddModal,
@@ -162,10 +171,17 @@ const MenuModals = ({
                           if (!file) return;
                           
                           setIsUploading(true);
-                          const toastId = toast.loading('Uploading image...');
+                          const originalSizeMB = (file.size / 1024 / 1024).toFixed(1);
+                          const toastId = toast.loading(`Compressing ${originalSizeMB}MB image...`);
                           try {
+                            // Step 1: Compress on the client before uploading
+                            const compressedFile = await imageCompression(file, IMAGE_COMPRESSION_OPTIONS);
+                            const compressedSizeKB = (compressedFile.size / 1024).toFixed(0);
+                            toast.loading(`Uploading ${compressedSizeKB}KB (was ${originalSizeMB}MB)...`, { id: toastId });
+
+                            // Step 2: Upload the compressed file
                             const formData = new FormData();
-                            formData.append('file', file);
+                            formData.append('file', compressedFile);
                             const res = await uploadMenuImageAction(formData);
                             if (res.success) {
                               setItemValue('image_url', res.url, { shouldValidate: true });
