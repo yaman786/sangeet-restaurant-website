@@ -51,7 +51,17 @@ const MenuModals = ({
 
   useEffect(() => {
     if (showEditModal && selectedItem) {
-      resetItem(selectedItem);
+      resetItem({
+        name: selectedItem.name || '',
+        price: Number(selectedItem.price) || 0,
+        description: selectedItem.description || '',
+        category: selectedItem.category || selectedItem.category_name || '',
+        image_url: selectedItem.image_url || '',
+        preparation_time: Number(selectedItem.preparation_time) || 15,
+        is_vegetarian: selectedItem.is_vegetarian ?? false,
+        is_spicy: selectedItem.is_spicy ?? false,
+        is_popular: selectedItem.is_popular ?? false,
+      });
     } else if (showAddModal) {
       resetItem({
         name: '', price: 0, description: '', category: '', image_url: '',
