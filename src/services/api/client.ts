@@ -5,9 +5,10 @@ import env from '@/lib/utils/env';
 let baseUrl = '/api';
 
 if (typeof window === 'undefined') {
-  baseUrl = env.NEXT_PUBLIC_FRONTEND_URL 
-    ? `${env.NEXT_PUBLIC_FRONTEND_URL}/api`
-    : 'http://localhost:3000/api';
+  const frontendUrl = env.NEXT_PUBLIC_FRONTEND_URL 
+    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+    || 'http://localhost:3000';
+  baseUrl = `${frontendUrl}/api`;
 }
 
 // API Configuration - Use environment variables with fallbacks
