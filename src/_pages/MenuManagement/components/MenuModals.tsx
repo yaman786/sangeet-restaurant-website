@@ -109,7 +109,14 @@ const MenuModals = ({
             <h2 className="text-2xl font-bold text-sangeet-400 mb-6">
               {showAddModal ? 'Add Menu Item' : 'Edit Menu Item'}
             </h2>
-            <form onSubmit={handleSubmitItem(showAddModal ? handleAddItem : handleEditItem)} className="space-y-4">
+            <form onSubmit={handleSubmitItem(
+              showAddModal ? handleAddItem : handleEditItem,
+              (errors) => {
+                console.error('Form validation errors:', errors);
+                const firstError = Object.values(errors)[0];
+                toast.error(`Validation: ${(firstError as any)?.message || 'Please check all fields'}`);
+              }
+            )} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Name</label>
