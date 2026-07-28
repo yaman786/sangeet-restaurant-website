@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db';
 import { NotFoundError } from '@/lib/errors';
 import type { MenuItemRow, CategoryRow, MenuQueryDTO } from '@/lib/types';
 import type { MenuItemInput, CategoryInput } from '@/lib/validations/menu';
+import { deleteImage } from '@/lib/storage';
 
 class MenuService {
   async getAllMenuItems(query: MenuQueryDTO = {}): Promise<MenuItemRow[]> {
@@ -61,6 +62,24 @@ class MenuService {
     const cat = category ? await prisma.categories.findFirst({ where: { name: category } }) : null;
 
     try {
+      // Fetch existing item to check for image URL changes
+      const existingItem = await prisma.menu_items.findUnique({
+        where: { id: parseInt(id, 10) },
+        select: { image_url: true }
+      });
+
+      // If the image URL is being updated to a new valid URL, and it differs from the existing one,
+      // trigger a background deletion of the old image.
+      if (
+        image_url && 
+        existingItem?.image_url && 
+        existingItem.image_url !== image_url
+      ) {
+        // Fire and forget
+        deleteImage(existingItem.image_url).catch(err => 
+          console.error('Failed to cleanup old image:', err)
+        );
+      }
       const item = await prisma.menu_items.update({
         where: { id: parseInt(id, 10) },
         data: {
@@ -82,7 +101,19 @@ class MenuService {
 
   async deleteMenuItem(id: string): Promise<void> {
     try {
+      const existingItem = await prisma.menu_items.findUnique({
+        where: { id: parseInt(id, 10) },
+        select: { image_url: true }
+      });
+
       await prisma.menu_items.delete({ where: { id: parseInt(id, 10) } });
+
+      // If item had an image, clean it up
+      if (existingItem?.image_url) {
+        deleteImage(existingItem.image_url).catch(err =>
+          console.error('Failed to cleanup deleted item image:', err)
+        );
+      }
     } catch (e: any) {
       if (e.code === 'P2025') throw new NotFoundError('Menu item');
       throw e;

@@ -53,3 +53,49 @@ export async function uploadImage(
 
   return publicUrlData.publicUrl;
 }
+
+/**
+ * Delete an image from Supabase Storage
+ * @param publicUrl The public URL of the image to delete
+ * @param bucket Default is 'menu-images'
+ * @returns Boolean indicating success
+ */
+export async function deleteImage(
+  publicUrl: string,
+  bucket: string = 'menu-images'
+): Promise<boolean> {
+  if (!publicUrl) return false;
+  
+  if (!supabaseUrl || !supabaseKey || !supabase) {
+    if (env.isDev) return true; // Pretend it succeeded in dev if missing keys
+    throw new Error('Supabase credentials not found.');
+  }
+
+  try {
+    // Extract the file path from the public URL
+    // URL format: https://[PROJECT_ID].supabase.co/storage/v1/object/public/[BUCKET]/[PATH]
+    const urlObj = new URL(publicUrl);
+    const pathParts = urlObj.pathname.split(`/public/${bucket}/`);
+    
+    if (pathParts.length < 2) {
+      console.warn(`Could not extract file path from URL: ${publicUrl}`);
+      return false; // Not a valid Supabase Storage URL for this bucket
+    }
+    
+    const filePath = pathParts[1];
+    
+    const { error } = await supabase.storage
+      .from(bucket)
+      .remove([filePath]);
+      
+    if (error) {
+      console.error(`Failed to delete image ${filePath}:`, error);
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Error in deleteImage:', err);
+    return false;
+  }
+}
