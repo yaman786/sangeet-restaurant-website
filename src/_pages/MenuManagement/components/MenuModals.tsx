@@ -7,6 +7,8 @@ import CustomDropdown from '../../../components/CustomDropdown';
 import { uploadMenuImageAction } from '@/app/actions/menuActions';
 import toast from 'react-hot-toast';
 import imageCompression from 'browser-image-compression';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '@/lib/utils/cropImage';
 
 const IMAGE_COMPRESSION_OPTIONS = {
   maxSizeMB: 0.5,           // Target max 500KB per image
@@ -46,6 +48,13 @@ const MenuModals = ({
 
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cropper state
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
 
   const watchCategory = watchItem('category');
 
@@ -194,30 +203,16 @@ const MenuModals = ({
                         const file = e.target.files?.[0];
                         if (!file) return;
 
-                        setIsUploading(true);
-                        const originalSizeMB = (file.size / 1024 / 1024).toFixed(1);
-                        const toastId = toast.loading(`Compressing ${originalSizeMB}MB image...`);
-                        try {
-                          const compressedFile = await imageCompression(file, IMAGE_COMPRESSION_OPTIONS);
-                          const compressedSizeKB = (compressedFile.size / 1024).toFixed(0);
-                          toast.loading(`Uploading ${compressedSizeKB}KB (was ${originalSizeMB}MB)...`, { id: toastId });
+                        // Instead of uploading directly, read the file and open cropper
+                        const reader = new FileReader();
+                        reader.addEventListener('load', () => {
+                          setCropImageSrc(reader.result?.toString() || null);
+                          setIsCropModalOpen(true);
+                        });
+                        reader.readAsDataURL(file);
 
-                          const formData = new FormData();
-                          formData.append('file', compressedFile);
-                          const res = await uploadMenuImageAction(formData);
-                          if (res.success) {
-                            setItemValue('image_url', res.url, { shouldValidate: true });
-                            toast.success('Image uploaded!', { id: toastId });
-                          } else {
-                            toast.error(res.error || 'Upload failed', { id: toastId });
-                          }
-                        } catch (err: any) {
-                          toast.error('Upload failed: ' + err.message, { id: toastId });
-                        } finally {
-                          setIsUploading(false);
-                          // Reset so same file can be re-selected
-                          if (fileInputRef.current) fileInputRef.current.value = '';
-                        }
+                        // Reset so same file can be re-selected
+                        if (fileInputRef.current) fileInputRef.current.value = '';
                       }}
                     />
                   </div>
@@ -364,6 +359,99 @@ const MenuModals = ({
                   className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
                 >
                   Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Cropper Modal */}
+      {isCropModalOpen && cropImageSrc && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsCropModalOpen(false)}></div>
+          <div className="relative bg-sangeet-neutral-900 border border-sangeet-neutral-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col h-[80vh]">
+            <div className="p-4 border-b border-sangeet-neutral-800 flex justify-between items-center bg-sangeet-neutral-900/50 backdrop-blur">
+              <h3 className="text-lg font-semibold text-sangeet-neutral-100">Crop Image (4:3 Ratio)</h3>
+              <button onClick={() => setIsCropModalOpen(false)} className="text-sangeet-neutral-400 hover:text-white transition-colors">
+                ✕
+              </button>
+            </div>
+            
+            <div className="relative flex-grow bg-black">
+              <Cropper
+                image={cropImageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={4 / 3}
+                onCropChange={setCrop}
+                onCropComplete={(_, croppedPixels: any) => setCroppedAreaPixels(croppedPixels)}
+                onZoomChange={setZoom}
+              />
+            </div>
+
+            <div className="p-4 border-t border-sangeet-neutral-800 bg-sangeet-neutral-900/50 flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-sangeet-neutral-400">Zoom</span>
+                <input
+                  type="range"
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  aria-labelledby="Zoom"
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-full accent-sangeet-400"
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCropModalOpen(false)}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-sangeet-neutral-300 hover:bg-sangeet-neutral-800 transition-colors"
+                  disabled={isUploading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isUploading}
+                  className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isUploading ? 'bg-sangeet-neutral-700 text-sangeet-neutral-400 cursor-not-allowed' : 'bg-sangeet-400 text-sangeet-neutral-950 hover:bg-sangeet-300'
+                  }`}
+                  onClick={async () => {
+                    try {
+                      setIsUploading(true);
+                      
+                      const croppedFile = await getCroppedImg(cropImageSrc, croppedAreaPixels as any);
+                      if (!croppedFile) throw new Error('Failed to crop image');
+                      
+                      const originalSizeMB = (croppedFile.size / 1024 / 1024).toFixed(1);
+                      const toastId = toast.loading(`Compressing cropped image...`);
+                      
+                      const compressedFile = await imageCompression(croppedFile, IMAGE_COMPRESSION_OPTIONS);
+                      const compressedSizeKB = (compressedFile.size / 1024).toFixed(0);
+                      toast.loading(`Uploading ${compressedSizeKB}KB...`, { id: toastId });
+
+                      const formData = new FormData();
+                      formData.append('file', compressedFile);
+                      const res = await uploadMenuImageAction(formData);
+                      
+                      if (res.success) {
+                        setItemValue('image_url', res.url, { shouldValidate: true });
+                        toast.success('Image cropped & uploaded!', { id: toastId });
+                        setIsCropModalOpen(false);
+                      } else {
+                        toast.error(res.error || 'Upload failed', { id: toastId });
+                      }
+                    } catch (err: any) {
+                      toast.error('Upload failed: ' + err.message);
+                    } finally {
+                      setIsUploading(false);
+                    }
+                  }}
+                >
+                  {isUploading ? 'Uploading...' : 'Crop & Upload'}
                 </button>
               </div>
             </div>
