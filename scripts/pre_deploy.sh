@@ -28,5 +28,18 @@ npm run lint || echo "⚠️ Lint finished with warnings, but allowing deploy to
 echo "✅ Lint Passed."
 
 echo "----------------------------------------"
+echo "4️⃣  Updating Graphify Knowledge Graph..."
+if command -v graphify &> /dev/null; then
+  graphify . --update --exclude node_modules,.next,.git,playwright-report,test-results 2>&1
+  if [ $? -ne 0 ]; then
+    echo "⚠️  Graphify update failed (non-blocking) — graph may be stale. Deploy continuing."
+  else
+    echo "✅ Knowledge graph updated."
+  fi
+else
+  echo "⚠️  graphify not installed (non-blocking) — skipping graph update."
+fi
+
+echo "----------------------------------------"
 echo "🎉 All pre-deployment checks passed! Safe to push to production."
 exit 0

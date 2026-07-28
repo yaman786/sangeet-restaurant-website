@@ -11,7 +11,7 @@ import { formatRestaurantTime } from '@/lib/utils/timeUtils';
 const ReservationManagementPage = () => {
   const [reservations, setReservations] = useState<any[]>([]);
   const [tables, setTables] = useState<any[]>([]);
-  // eslint-disable-next-line no-unused-vars
+   
   const [stats, setStats] = useState<any>({
     total: 0,
     pending: 0,
@@ -34,7 +34,7 @@ const ReservationManagementPage = () => {
   const [showAssignTableModal, setShowAssignTableModal] = useState(false);
   const [selectedTableId, setSelectedTableId] = useState('');
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
-  // eslint-disable-next-line no-unused-vars
+   
   const [connectionStatus, setConnectionStatus] = useState('connected');
 
   const [isLoading, setIsLoading] = useState(true);
@@ -238,7 +238,7 @@ const ReservationManagementPage = () => {
     return formatRestaurantTime(timeString, 'h:mm A');
   };
 
-  // eslint-disable-next-line no-unused-vars
+   
   const getTableNumber = (tableId: string | number) => {
     const table = tables.find(t => t.id === tableId);
     return table ? table.table_number : 'Not assigned';

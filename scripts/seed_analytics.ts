@@ -98,7 +98,7 @@ async function main() {
   // 5. Generate Orders and Order Items
   console.log('Generating Orders and Order Items...');
   const orderTypes = ['dine-in', 'takeaway', 'delivery'];
-  let orderCount = 1000;
+  const orderCount = 1000;
   
   for (let i = 0; i < 150; i++) { // 150 orders over 30 days
     const orderDate = randomDate(thirtyDaysAgo, now);

@@ -3,7 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticateToken, requireRole } from '@/lib/auth';
 import qrService from '@/lib/services/qrService';
 
-export async function GET(req: NextRequest, { params }: { params: { qrCodeId: string, format: string } }) {
+export async function GET(
+  req: NextRequest,
+  props: { params: Promise<{ qrCodeId: string, format: string }> }
+) {
+  const params = await props.params;
   try {
     const authResult = await authenticateToken(req);
     if (authResult.errorResponse) return authResult.errorResponse;

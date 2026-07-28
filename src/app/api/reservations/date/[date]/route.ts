@@ -4,7 +4,8 @@ import reservationService from '@/lib/services/reservationService';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireAuth } from '@/lib/auth';
 
-export async function GET(req: NextRequest, { params }: { params: { date: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ date: string }> }) {
+  const params = await props.params;
   try {
     const authResult = await authenticateToken(req);
     if (authResult.errorResponse) return authResult.errorResponse;

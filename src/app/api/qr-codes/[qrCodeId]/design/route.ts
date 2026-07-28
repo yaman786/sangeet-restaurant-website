@@ -4,7 +4,8 @@ import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireRole } from '@/lib/auth';
 import qrService from '@/lib/services/qrService';
 
-export async function PUT(req: NextRequest, { params }: { params: { qrCodeId: string } }) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ qrCodeId: string }> }) {
+  const params = await props.params;
   try {
     const authResult = await authenticateToken(req);
     if (authResult.errorResponse) return authResult.errorResponse;

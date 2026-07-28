@@ -66,7 +66,7 @@ export function requireAdmin(user: JwtPayload): NextResponse | null {
  */
 
 export async function getAuthUser(): Promise<JwtPayload | null> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('auth_token')?.value;
 
   if (!token) return null;

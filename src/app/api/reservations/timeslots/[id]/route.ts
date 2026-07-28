@@ -3,7 +3,8 @@ import reservationService from '@/lib/services/reservationService';
 import { AppError } from '@/lib/errors';
 import { authenticateToken } from '@/lib/auth';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const auth = await authenticateToken(req);
     if (auth.errorResponse || !auth.user || auth.user.role !== 'admin') {
@@ -21,7 +22,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const auth = await authenticateToken(req);
     if (auth.errorResponse || !auth.user || auth.user.role !== 'admin') {

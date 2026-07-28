@@ -3,8 +3,9 @@ import orderService from '@/lib/services/orderService';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; itemId: string } }
+  props: { params: Promise<{ id: string; itemId: string }> }
 ) {
+  const params = await props.params;
   try {
     const orderId = params.id;
     const itemId = params.itemId;

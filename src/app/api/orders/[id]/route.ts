@@ -4,7 +4,8 @@ import orderService from '@/lib/services/orderService';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireRole, requireAuth } from '@/lib/auth';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { searchParams } = new URL(req.url);
     const tableNumber = searchParams.get('tableNumber');
@@ -25,7 +26,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const authResult = await authenticateToken(req);
     if (authResult.errorResponse) return authResult.errorResponse;

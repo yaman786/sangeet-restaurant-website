@@ -117,7 +117,7 @@ class OrderService {
     }
     
     orderId = createdOrder.id;
-    let fullOrder = await this.getOrderWithItems(orderId);
+    const fullOrder = await this.getOrderWithItems(orderId);
     
     emitNewOrder({ type: 'new-order', orderId, tableNumber, timestamp: new Date().toISOString() });
     

@@ -4,7 +4,8 @@ import reviewService from '@/lib/services/reviewService';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireAdmin } from '@/lib/auth';
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const authResult = await authenticateToken(req);
     if (authResult.errorResponse) return authResult.errorResponse;
