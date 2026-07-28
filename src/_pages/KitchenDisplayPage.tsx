@@ -1,12 +1,9 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from '@/utils/router-mock';
 import OrderQueue from '../components/OrderQueue';
-import CustomDropdown from '../components/CustomDropdown';
 import { useAuth } from '../contexts/AuthContext';
-import { isNewItem, getTimeSinceAdded, sortItemsByNewness } from '../utils/itemUtils';
 
 import { pusherClient } from '../lib/services/pusherClient';
 
@@ -35,9 +32,10 @@ const KitchenDisplayPage = () => {
       navigate('/login');
       return;
     }
-    
-    setKitchenUser(authUser);
-    setUserType(authUser?.role === 'admin' ? 'admin' : 'kitchen');
+    queueMicrotask(() => {
+      setKitchenUser(authUser);
+      setUserType(authUser?.role === 'admin' ? 'admin' : 'kitchen');
+    });
   }, [isAuthenticated, navigate, authUser]);
 
   useEffect(() => {

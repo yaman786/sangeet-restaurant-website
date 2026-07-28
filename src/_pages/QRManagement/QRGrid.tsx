@@ -1,14 +1,12 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { 
   QrCode, 
   Download, 
   Trash2, 
-  BarChart3, 
   Smartphone,
-  ArrowUpDown,
-  ArrowDown,
   Edit2,
   ArchiveRestore
 } from 'lucide-react';
@@ -116,10 +114,12 @@ const QRGrid = ({
               <div className="flex flex-col h-full group relative">
                 {/* QR Code Poster Area - Perfect 3:4 Aspect Ratio */}
                 <div className="relative w-full overflow-hidden aspect-3/4 bg-sangeet-neutral-950 flex items-center justify-center">
-                  <img
+                  <Image
                     src={qrCode.qr_code_data}
                     alt={`QR Code for Table ${qrCode.table_number}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   
                   {/* Subtle gradient overlay to blend with the bottom bar */}

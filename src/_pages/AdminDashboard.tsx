@@ -136,7 +136,7 @@ const AdminDashboard = () => {
               </div>
               <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">Menu Management</h3>
               <p className="text-sangeet-neutral-400 text-sm mb-4">
-                Add, edit, and organize menu items, categories, and manage your restaurant's offerings
+                Add, edit, and organize menu items, categories, and manage your restaurant&apos;s offerings
               </p>
               <Link href="/admin/menu-management"
                 className="inline-flex items-center text-sangeet-400 hover:text-sangeet-300 font-medium text-sm group-hover:underline"

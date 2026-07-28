@@ -1,9 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from '@/utils/router-mock';
-import { getOrdersByTable, getTableByNumber, getOrderById } from '../../../services/api';
-import { pusherClient as socketService } from '@/lib/services/pusherClient';
-import toast from 'react-hot-toast';
-import { ORDER_STATUSES } from '../constants';
 
 const CANCELLED_ORDER_TIMEOUT = 2 * 60 * 1000;
 

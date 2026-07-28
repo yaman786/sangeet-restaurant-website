@@ -1,5 +1,4 @@
 import { prisma } from '../src/lib/db';
-import fs from 'fs';
 
 const menuData = {
   "restaurant": "Sangeet - Taste of South Asia",

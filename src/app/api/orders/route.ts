@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import orderService from '@/lib/services/orderService';
-import { handleApiError } from '@/lib/errors';
+import { handleApiError, RateLimitError } from '@/lib/errors';
 import { authenticateToken, requireAuth } from '@/lib/auth';
 import { createOrderSchema } from '@/lib/validations';
 import { rateLimit } from '@/lib/rateLimit';
@@ -28,11 +28,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // Rate limit check
-    const ip = req.ip || req.headers.get('x-forwarded-for') || 'unknown';
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown';
     const rateLimitResult = rateLimit(`order_${ip}`, 5, 60000); // 5 orders per minute per IP
     
     if (!rateLimitResult.success) {
-      return NextResponse.json({ error: 'Too many orders. Please slow down.' }, { status: 429 });
+      throw new RateLimitError('Too many orders. Please slow down.');
     }
 
     // Public route (no auth required for table orders)

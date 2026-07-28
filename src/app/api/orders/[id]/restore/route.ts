@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { handleApiError, NotFoundError } from '@/lib/errors';
 
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -18,9 +19,9 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     });
   } catch (error: any) {
     if (error.code === 'P2025') {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      return handleApiError(new NotFoundError('Order'));
     }
     console.error('Restore Order Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error);
   }
 }

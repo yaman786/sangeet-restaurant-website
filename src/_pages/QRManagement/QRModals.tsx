@@ -1,7 +1,6 @@
 "use client";
 import React from 'react';
 import { Download, Trash2, BarChart3 } from 'lucide-react';
-import CustomDropdown from '../../components/CustomDropdown';
 
 const QRModals = ({
   showGenerateModal,

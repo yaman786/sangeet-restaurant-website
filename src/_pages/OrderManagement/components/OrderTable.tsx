@@ -89,7 +89,7 @@ const OrderTable = ({
                   </div>
                   {order.special_instructions && (
                     <div className="text-sm text-sangeet-neutral-500">
-                      "{order.special_instructions}"
+                      &quot;{order.special_instructions}&quot;
                     </div>
                   )}
                 </td>

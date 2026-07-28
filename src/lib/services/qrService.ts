@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db';
 import { NotFoundError, ValidationError } from '@/lib/errors';
 import beautifulQRGenerator from '../utils/beautifulQRGenerator';
-import type { QRCodeRow, QRDesignDTO, BulkQRGenerateDTO } from '@/lib/types';
+import type { QRDesignDTO, BulkQRGenerateDTO } from '@/lib/types';
 
 class QRService {
   async getTableByQRCode(qrCode: string): Promise<any> {

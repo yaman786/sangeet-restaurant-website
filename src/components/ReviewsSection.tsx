@@ -116,7 +116,7 @@ const ReviewsSection = () => {
             What Our Customers Say
           </h2>
           <p className="text-lg text-sangeet-neutral-300 max-w-2xl mx-auto">
-            Don't just take our word for it. Here's what our valued customers have to say about their dining experience at Sangeet.
+            Don&apos;t just take our word for it. Here&apos;s what our valued customers have to say about their dining experience at Sangeet.
           </p>
         </motion.div>
 
@@ -139,7 +139,7 @@ const ReviewsSection = () => {
 
               {/* Review Text */}
               <blockquote className="text-xl md:text-2xl text-sangeet-neutral-100 mb-8 leading-relaxed">
-                "{reviews[currentReview]?.review_text || 'Amazing food and excellent service!'}"
+                &quot;{reviews[currentReview]?.review_text || 'Amazing food and excellent service!'}&quot;
               </blockquote>
 
               {/* Customer Info */}

@@ -55,6 +55,7 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "^15.5.22",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-unused-imports": "^4.4.1",
     "postcss": "^8.5.24",
     "prisma": "^7.9.1",
     "tailwindcss": "^4.3.3",

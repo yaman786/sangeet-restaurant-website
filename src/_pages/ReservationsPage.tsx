@@ -135,7 +135,7 @@ const ReservationsPage = () => {
             transition={{ delay: 0.1 }}
             className="text-base sm:text-lg md:text-xl text-sangeet-neutral-300 max-w-2xl mx-auto px-2"
           >
-            Reserve your table at Sangeet Restaurant. We'll handle the rest and contact you to confirm your table assignment.
+            Reserve your table at Sangeet Restaurant. We&apos;re handle the rest and contact you to confirm your table assignment.
           </motion.p>
         </div>
       </div>
@@ -286,7 +286,7 @@ const ReservationsPage = () => {
 
             {/* Info Message */}
             <div className="text-center text-sm text-sangeet-neutral-400">
-              <p>💡 We'll contact you shortly to confirm your table assignment and reservation details.</p>
+              <p>💡 We&apos;re contact you shortly to confirm your table assignment and reservation details.</p>
             </div>
           </form>
         </motion.div>
@@ -350,10 +350,10 @@ const ReservationsPage = () => {
             <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
               <h3 className="text-base sm:text-lg font-semibold text-blue-400 mb-2 flex items-center">
                 <span className="mr-2">📞</span>
-                What's Next?
+                What&apos;s Next?
               </h3>
               <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-sangeet-neutral-300">
-                <p>• We'll contact you within 2 hours to confirm your reservation</p>
+                <p>• We&apos;re contact you within 2 hours to confirm your reservation</p>
                 <p>• Please arrive 10 minutes before your scheduled time</p>
                 <p>• We look forward to serving you!</p>
               </div>

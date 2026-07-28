@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import analyticsService from '@/lib/services/analyticsService';
-import { handleApiError } from '@/lib/errors';
+import { handleApiError, ValidationError } from '@/lib/errors';
 import { authenticateToken, requireAdmin } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     const type = (searchParams.get("type") as 'orders' | 'reservations') || 'orders';
 
     if (!date) {
-      return NextResponse.json({ error: 'Date parameter is required' }, { status: 400 });
+      throw new ValidationError('Date parameter is required');
     }
 
     const result = await analyticsService.getDrillDownData(date, type);

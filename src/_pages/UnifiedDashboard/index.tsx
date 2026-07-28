@@ -231,10 +231,12 @@ const UnifiedDashboard = () => {
 
   useEffect(() => {
     let cleanup: any = null;
-    loadDashboardData();
-    if (tableNumber) {
-      cleanup = setupRealTimeUpdates();
-    }
+    queueMicrotask(() => {
+      loadDashboardData();
+      if (tableNumber) {
+        cleanup = setupRealTimeUpdates();
+      }
+    });
     return () => {
       if (cleanup) cleanup();
     };
@@ -243,11 +245,13 @@ const UnifiedDashboard = () => {
   useEffect(() => {
     if (forceMenuView) return;
     if (orders.length > 0 && currentView === 'menu' && !manualMenuNavigation) {
-      setCurrentView('tracking');
-      const firstOrder = orders[0];
-      setOrderId(firstOrder.id);
-      setOrderNumber(firstOrder.order_number);
-      setTotalAmount(firstOrder.total_amount);
+      queueMicrotask(() => {
+        setCurrentView('tracking');
+        const firstOrder = orders[0];
+        setOrderId(firstOrder.id);
+        setOrderNumber(firstOrder.order_number);
+        setTotalAmount(firstOrder.total_amount);
+      });
     }
   }, [orders, currentView, manualMenuNavigation, forceMenuView, setOrderId, setOrderNumber, setTotalAmount]);
 

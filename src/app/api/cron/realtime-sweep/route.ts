@@ -2,17 +2,17 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { pusherServer } from '@/lib/services/pusherServer';
 import reservationService from '@/lib/services/reservationService';
+import { handleApiError, UnauthorizedError } from '@/lib/errors';
 
 export async function GET(request: Request) {
   // 1. Authenticate the Cron request
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
   
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+      throw new UnauthorizedError('Unauthorized cron access');
+    }
     const now = new Date();
     
     // --- 1. Sweep Unacknowledged Pending Orders (Older than 30 mins) ---
@@ -65,6 +65,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Realtime Sweep Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error);
   }
 }

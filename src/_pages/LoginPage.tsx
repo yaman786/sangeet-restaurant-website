@@ -8,7 +8,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema } from '@/lib/validations';
 import toast from 'react-hot-toast';
-// @ts-ignore
+import Image from 'next/image';
+
 import logoImage from '../assets/images/logo.png';
 
 const LoginPage = () => {
@@ -63,11 +64,15 @@ const LoginPage = () => {
             transition={{ delay: 0.2 }}
             className="w-32 h-32 mx-auto mb-4 bg-white rounded-full flex items-center justify-center shadow-2xl p-2"
           >
-            <img 
-              src={(logoImage as any).src || logoImage} 
-              alt="Sangeet Restaurant Logo" 
-              className="w-full h-full object-contain rounded-full"
-            />
+            <div className="relative w-full h-full">
+              <Image 
+                src={(logoImage as any).src || logoImage} 
+                alt="Sangeet Restaurant Logo" 
+                fill
+                sizes="128px"
+                className="object-contain rounded-full"
+              />
+            </div>
           </motion.div>
           <motion.h1 
             initial={{ opacity: 0 }}

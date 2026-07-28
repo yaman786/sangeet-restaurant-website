@@ -1,5 +1,4 @@
-import axios, { InternalAxiosRequestConfig, AxiosError } from 'axios';
-import toast from 'react-hot-toast';
+import axios, { InternalAxiosRequestConfig } from 'axios';
 import env from '@/lib/utils/env';
 
 let baseUrl = '/api';

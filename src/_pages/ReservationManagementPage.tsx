@@ -66,7 +66,9 @@ const ReservationManagementPage = () => {
   }, []);
 
   useEffect(() => {
-    loadData(false);
+    queueMicrotask(() => {
+      loadData(false);
+    });
     // Removed 60-second polling to save bandwidth and prevent server crashes
   }, [loadData]);
 
@@ -137,7 +139,9 @@ const ReservationManagementPage = () => {
 
   // Reset to first page when filters change
   useEffect(() => {
-    setCurrentPage(1);
+    queueMicrotask(() => {
+      setCurrentPage(1);
+    });
   }, [filters]);
 
   const handleStatusUpdate = async (reservationId: any, newStatus: string) => {

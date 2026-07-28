@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { handleApiError, NotFoundError } from '@/lib/errors';
+import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireRole } from '@/lib/auth';
 import { menuItemSchema } from '@/lib/validations';
 

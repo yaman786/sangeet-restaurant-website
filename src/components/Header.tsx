@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useLocation } from '@/utils/router-mock';
 import { motion, AnimatePresence } from 'framer-motion';
-// @ts-ignore
+
 import logo from '../assets/images/logo.png';
 
 /**
@@ -33,11 +33,6 @@ const Header = () => {
   const location = useLocation();
 
   const isActive = useCallback((path: any) => location.pathname === path, [location.pathname]);
-
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMenuOpen(false);
-  }, [location.pathname]);
 
   // Scroll effect
   useEffect(() => {

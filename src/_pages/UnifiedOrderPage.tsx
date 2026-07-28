@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { OrderRow } from '@/lib/types';
 import { useLocation } from '@/utils/router-mock';
 import { motion } from 'framer-motion';
 import { getOrderById } from '../services/api';
@@ -65,9 +64,38 @@ const UnifiedOrderPage = () => {
     }
   };
 
+  const fetchOrderDetails = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const orderData = await getOrderById(orderId as string);
+      setOrder(orderData);
+      if (orderData && orderData.status === 'completed') {
+        toast.success('🎉 This order has been completed! Thank you for dining with us!', { duration: 5000, icon: '🏠' });
+        try {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('cart_') || key.startsWith('orderId_') || key.startsWith('orderNumber_') || key.startsWith('customer_') || key.startsWith('customerName_')) {
+              localStorage.removeItem(key);
+            }
+          });
+        } catch (e) {}
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 3000);
+      }
+    } catch (err) {
+      setError('Unable to load order details');
+      console.error('Error fetching order:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (orderId) {
-      fetchOrderDetails();
+      queueMicrotask(() => {
+        fetchOrderDetails();
+      });
       
       // Connect to WebSocket for real-time updates
       socketService.connect();
@@ -178,32 +206,7 @@ const UnifiedOrderPage = () => {
     }
   }, [orderId]);
 
-  const fetchOrderDetails = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const orderData = await getOrderById(orderId as string);
-      setOrder(orderData);
-      if (orderData && orderData.status === 'completed') {
-        toast.success('🎉 This order has been completed! Thank you for dining with us!', { duration: 5000, icon: '🏠' });
-        try {
-          Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('cart_') || key.startsWith('orderId_') || key.startsWith('orderNumber_') || key.startsWith('customer_') || key.startsWith('customerName_')) {
-              localStorage.removeItem(key);
-            }
-          });
-        } catch (e) {}
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 3000);
-      }
-    } catch (err) {
-      setError('Unable to load order details');
-      console.error('Error fetching order:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const getStatusStep = (status: string) => {
     const statusOrder = ['pending', 'preparing', 'ready', 'completed'];
@@ -337,7 +340,7 @@ const UnifiedOrderPage = () => {
                       Order Placed Successfully!
                     </h1>
                     <p className="text-sangeet-neutral-300 text-lg">
-                      Thank you for your order. We're preparing your delicious meal!
+                      Thank you for your order. We&apos;re preparing your delicious meal!
                     </p>
                   </motion.div>
 
@@ -400,12 +403,12 @@ const UnifiedOrderPage = () => {
                   >
                     <h3 className="text-lg font-semibold text-blue-400 mb-3 flex items-center">
                       <span className="mr-2">⏱️</span>
-                      What's Next?
+                      What&apos;s Next?
                     </h3>
                     <div className="space-y-2 text-sangeet-neutral-300">
                       <p>• Your order is being prepared in our kitchen</p>
                       <p>• Estimated preparation time: 15-20 minutes</p>
-                      <p>• We'll notify you when your order is ready</p>
+                      <p>• We&apos;re notify you when your order is ready</p>
                       <p>• Please collect your order from the counter when ready</p>
                     </div>
                   </motion.div>

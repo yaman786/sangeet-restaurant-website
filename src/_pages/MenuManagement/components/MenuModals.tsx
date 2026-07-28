@@ -347,7 +347,7 @@ const MenuModals = ({
                 Delete {deleteType === 'item' ? 'Menu Item' : 'Category'}
               </h3>
               <p className="text-sm text-sangeet-neutral-300 mb-6">
-                Are you sure you want to delete <span className="font-semibold text-sangeet-400">"{deleteName}"</span>? 
+                Are you sure you want to delete <span className="font-semibold text-sangeet-400">&quot;{deleteName}&quot;</span>? 
                 This action cannot be undone.
               </p>
               <div className="flex justify-center space-x-3">

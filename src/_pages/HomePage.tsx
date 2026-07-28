@@ -4,7 +4,7 @@ import { useNavigate } from '@/utils/router-mock';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
-// @ts-ignore
+
 import logo from '../assets/images/logo.png';
 import ReviewsSection from '../components/ReviewsSection';
 

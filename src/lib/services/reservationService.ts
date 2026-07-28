@@ -3,7 +3,6 @@ import { NotFoundError, ConflictError, ValidationError } from '@/lib/errors';
 import { sendReservationCreatedEmail, sendReservationConfirmedEmail, sendReservationCancelledEmail } from '../utils/emailService';
 import { emitNewReservation, emitReservationUpdate } from './pusherServer';
 import { parseRestaurantTime } from '../utils/timeUtils';
-import type { ReservationRow } from '@/lib/types';
 import { CreateReservationDTO, UpdateReservationDTO, ReservationQueryDTO, CreateTimeSlotDTO, UpdateTimeSlotDTO } from '../types/dtos';
 
 function calculateDiningDuration(guests: number): number {

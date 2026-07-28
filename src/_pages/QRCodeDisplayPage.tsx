@@ -2,15 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { fetchTables } from '../services/api';
 import { Printer } from 'lucide-react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 const QRCodeDisplayPage = () => {
   const [qrCodes, setQrCodes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadTables();
-  }, []);
 
   const loadTables = async () => {
     try {
@@ -23,6 +20,14 @@ const QRCodeDisplayPage = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      loadTables();
+    });
+  }, []);
+
+
 
   const handlePrint = (tableNumber: any) => {
     const qrUrl = `https://frontend-six-xi-10.vercel.app/qr/table-${tableNumber}`;
@@ -57,11 +62,12 @@ const QRCodeDisplayPage = () => {
               className="bg-sangeet-neutral-900 rounded-lg p-6 text-center"
             >
               <h2 className="text-xl font-bold text-sangeet-400 mb-4">Table {table.table_number}</h2>
-              <div className="bg-white p-4 rounded-lg inline-block mb-4 relative group">
-                <img 
+              <div className="relative w-48 h-48 mx-auto group">
+                <Image 
                   src={table.qr_code_url ? table.qr_code_url : handlePrint(table.table_number)} 
                   alt={`QR Code for Table ${table.table_number}`}
-                  className="w-48 h-48"
+                  fill
+                  sizes="192px"
                 />
                 <button
                   onClick={() => handlePrint(table.table_number)}
@@ -71,7 +77,7 @@ const QRCodeDisplayPage = () => {
                   Print QR Code
                 </button>
               </div>
-              <p className="text-sangeet-neutral-400 text-sm">
+              <p className="text-sangeet-neutral-400 text-sm mt-4">
                 Scan to view menu and order for Table {table.table_number}
               </p>
               {table.qr_code_url && (

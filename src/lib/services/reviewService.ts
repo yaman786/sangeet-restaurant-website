@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db';
 import { NotFoundError, ValidationError } from '@/lib/errors';
-import type { ReviewRow, CreateReviewDTO } from '@/lib/types';
+import type { CreateReviewDTO } from '@/lib/types';
 
 class ReviewService {
   async getAllReviews(): Promise<any[]> {

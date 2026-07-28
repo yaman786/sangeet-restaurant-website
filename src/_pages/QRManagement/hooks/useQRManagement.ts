@@ -80,7 +80,9 @@ export const useQRManagement = () => {
   }, []);
 
   useEffect(() => {
-    loadQRCodes();
+    queueMicrotask(() => {
+      loadQRCodes();
+    });
   }, [loadQRCodes]);
 
   const sortedAndFilteredQRCodes = useMemo(() => {

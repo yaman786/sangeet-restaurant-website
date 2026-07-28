@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { handleApiError, UnauthorizedError } from '@/lib/errors';
 
 export async function GET(request: Request) {
   // 1. Authenticate the Cron request
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
   
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+      throw new UnauthorizedError('Unauthorized cron access');
+    }
     const rule1Result = await prisma.orders.updateMany({
       where: {
         status: { in: ['completed', 'served', 'cancelled'] },
@@ -89,6 +89,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Cron Archive Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error);
   }
 }

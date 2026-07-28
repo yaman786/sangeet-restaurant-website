@@ -98,7 +98,9 @@ export const useOrderManagement = () => {
   }, [filters, viewMode]);
 
   useEffect(() => {
-    loadDashboardData(false);
+    queueMicrotask(() => {
+      loadDashboardData(false);
+    });
     
     const pollingInterval = setInterval(() => {
       loadDashboardData(true);

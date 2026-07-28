@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { ImageIcon, Building2, PartyPopper, Theater, UtensilsCrossed } from 'lucide-react';
 
 export const AboutGallery = () => {
@@ -104,11 +105,12 @@ export const AboutGallery = () => {
               className="group relative overflow-hidden rounded-2xl shadow-2xl"
             >
               <div className="relative h-80 overflow-hidden">
-                <img
+                <Image
                   src={image.url}
                   alt={image.title}
-                  loading="lazy"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900/80 via-transparent to-transparent"></div>
                 

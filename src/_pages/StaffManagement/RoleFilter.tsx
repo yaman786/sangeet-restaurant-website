@@ -177,7 +177,7 @@ const RoleFilter = ({
               <span className="text-sm text-sangeet-neutral-400">Active filters:</span>
               {searchTerm && (
                 <span className="px-3 py-1 bg-sangeet-400/20 text-sangeet-400 rounded-full text-sm flex items-center gap-1">
-                  🔍 "{searchTerm}"
+                  🔍 &quot;{searchTerm}&quot;
                   <button onClick={() => setSearchTerm('')} className="hover:text-sangeet-300">✕</button>
                 </span>
               )}

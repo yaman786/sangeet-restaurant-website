@@ -1,4 +1,4 @@
-import { UserRole, OrderType } from './index';
+import { UserRole } from './index';
 
 // ── Auth & Users ─────────────────────────────────────────────
 export interface ChangePasswordDTO {

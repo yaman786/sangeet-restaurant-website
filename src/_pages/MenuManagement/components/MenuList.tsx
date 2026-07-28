@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import Image from 'next/image';
 
 const MenuList = ({
   filteredItems,
@@ -43,11 +44,15 @@ const MenuList = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredItems.map((item: any) => (
             <div key={item.id} className="bg-sangeet-neutral-900 rounded-lg border border-sangeet-neutral-700 overflow-hidden">
-              <img
-                src={item.image_url || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop'}
-                alt={item.name}
-                className="w-full h-48 object-cover"
-              />
+              <div className="relative w-full h-48">
+                <Image
+                  src={item.image_url || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop'}
+                  alt={item.name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover"
+                />
+              </div>
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-lg font-semibold text-sangeet-neutral-100">{item.name}</h3>

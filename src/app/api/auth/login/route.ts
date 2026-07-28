@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       { expiresIn: '24h' }
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const { password_hash, ...userWithoutPassword } = user;
 
     const response = NextResponse.json({

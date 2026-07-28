@@ -1,8 +1,7 @@
 import logger from './logger';
 import QRCode from 'qrcode';
 import path from 'path';
-import fs from 'fs';
-import type { ColorTheme, QRGenerationOptions } from '../types';
+import type { QRGenerationOptions } from '../types';
 import { logoBase64 } from './logoBase64';
 
 class BeautifulQRGenerator {

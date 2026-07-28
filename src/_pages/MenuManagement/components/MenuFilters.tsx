@@ -40,7 +40,7 @@ const MenuFilters = ({ filters, handleFilterChange, categories, clearFilters }: 
           <div className="flex flex-wrap gap-2">
             {filters.search && (
               <span className="bg-sangeet-400/20 text-sangeet-400 px-2 py-1 rounded-sm text-xs">
-                Search: "{filters.search}"
+                Search: &quot;{filters.search}&quot;
               </span>
             )}
             {filters.category && (

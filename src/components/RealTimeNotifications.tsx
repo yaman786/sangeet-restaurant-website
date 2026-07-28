@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, Package } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 const RealTimeNotifications = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [lastOrderSeen, setLastOrderSeen] = useState<number | null>(null);
+  const lastOrderSeen = useRef<number | null>(null);
 
   // Poll for latest orders every 10 seconds
   const { data: latestOrders } = useQuery({
@@ -25,13 +25,13 @@ const RealTimeNotifications = () => {
     if (latestOrders && Array.isArray(latestOrders.data) && latestOrders.data.length > 0) {
       const newestOrder = latestOrders.data[0];
       
-      if (lastOrderSeen === null) {
-        setLastOrderSeen(newestOrder.id);
+      if (lastOrderSeen.current === null) {
+        lastOrderSeen.current = newestOrder.id;
         return;
       }
 
-      if (newestOrder.id !== lastOrderSeen) {
-        setLastOrderSeen(newestOrder.id);
+      if (newestOrder.id !== lastOrderSeen.current) {
+        lastOrderSeen.current = newestOrder.id;
         
         const notification = {
           id: Date.now(),
@@ -46,7 +46,7 @@ const RealTimeNotifications = () => {
         toast.success(`New order from Table ${newestOrder.table_number || 'Unknown'}!`);
       }
     }
-  }, [latestOrders, lastOrderSeen]);
+  }, [latestOrders]);
 
   const removeNotification = (id: any) => {
     setNotifications(prev => prev.filter(notif => notif.id !== id));

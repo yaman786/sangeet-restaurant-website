@@ -117,7 +117,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
                 onClick={() => setFilters(prev => ({ ...prev, popular: !prev.popular }))}
                 className={`filter-tab ${filters.popular ? 'filter-tab-active' : 'filter-tab-inactive'}`}
               >
-                <Star className="w-4 h-4" /> Chef's Signature
+                <Star className="w-4 h-4" /> Chef&apos;s Signature
               </motion.button>
             </div>
 
@@ -282,7 +282,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
             </div>
             <h3 className="text-heading-md font-display text-sangeet-neutral-100 mb-3">No culinary selections found</h3>
             <p className="text-sangeet-neutral-400 text-body-lg max-w-md mx-auto">
-              We couldn't find any items matching your precise preferences. Please adjust your filters to explore our full menu.
+              We couldn&apos;t find any items matching your precise preferences. Please adjust your filters to explore our full menu.
             </p>
           </motion.div>
         )}

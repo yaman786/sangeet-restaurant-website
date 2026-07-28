@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db';
 import { NotFoundError, ValidationError } from '@/lib/errors';
-import type { EventRow, CreateEventDTO, UpdateEventDTO } from '@/lib/types';
+import type { CreateEventDTO, UpdateEventDTO } from '@/lib/types';
 
 class EventService {
   async getAllEvents(): Promise<any[]> {

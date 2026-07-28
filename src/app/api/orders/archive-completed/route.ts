@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { handleApiError } from '@/lib/errors';
 
 export async function POST(request: Request) {
   try {
@@ -18,6 +19,6 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Manual Archive Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return handleApiError(error);
   }
 }

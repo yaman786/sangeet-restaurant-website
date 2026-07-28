@@ -210,7 +210,7 @@ const StaffManagement = () => {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-sangeet-400">Edit User</h2>
-                  <p className="text-sm text-sangeet-neutral-400">Update {editingUser.first_name}'s information</p>
+                  <p className="text-sm text-sangeet-neutral-400">Update {editingUser.first_name}&apos;s information</p>
                 </div>
               </div>
               <button

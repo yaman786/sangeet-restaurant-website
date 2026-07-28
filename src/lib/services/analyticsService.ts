@@ -1,6 +1,4 @@
 import { prisma } from '@/lib/db';
-import type { QRCodeRow, QRCodeResult } from '@/lib/types';
-import beautifulQRGenerator from '../utils/beautifulQRGenerator';
 
 class AnalyticsService {
   async getBusinessAnalytics(timeframe: string = 'month', startDate?: string, endDate?: string): Promise<Record<string, any>> {

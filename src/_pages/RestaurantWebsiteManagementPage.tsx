@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@/utils/router-mock';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import Image from 'next/image';
 import AdminHeader from '../components/AdminHeader';
 import {
   getRestaurantSettings,
@@ -209,7 +210,7 @@ const RestaurantWebsiteManagementPage = () => {
             🌐 Restaurant Website Management
           </h1>
           <p className="text-sangeet-neutral-400">
-            Manage your restaurant's website content, settings, and media gallery
+            Manage your restaurant&apos;s website content, settings, and media gallery
           </p>
         </div>
 
@@ -597,7 +598,7 @@ const RestaurantWebsiteManagementPage = () => {
 
                   {/* Chef's Recommendations */}
                   <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                    <h4 className="text-lg font-semibold text-sangeet-neutral-100 mb-4">Chef's Recommendations</h4>
+                    <h4 className="text-lg font-semibold text-sangeet-neutral-100 mb-4">Chef&apos;s Recommendations</h4>
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
@@ -651,11 +652,13 @@ const RestaurantWebsiteManagementPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {media.map((item: any) => (
                     <div key={item.id} className="bg-sangeet-neutral-800 rounded-lg p-4 border border-sangeet-neutral-600">
-                      <div className="aspect-square bg-sangeet-neutral-700 rounded-lg mb-3 overflow-hidden">
-                        <img
+                      <div className="relative aspect-square bg-sangeet-neutral-700 rounded-lg mb-3 overflow-hidden">
+                        <Image
                           src={`${item.file_path}`}
                           alt={item.alt_text || item.file_name}
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                          className="object-cover"
                         />
                       </div>
                       <div className="space-y-2">
@@ -682,7 +685,7 @@ const RestaurantWebsiteManagementPage = () => {
                         No media files yet
                       </h3>
                       <p className="text-sangeet-neutral-400 mb-4">
-                        Upload images to build your restaurant's media gallery
+                        Upload images to build your restaurant&apos;s media gallery
                       </p>
                     </div>
                   )}

@@ -21,7 +21,9 @@ export const useOrderManagement = () => {
 
   useEffect(() => {
     if (user) {
-      setUserRole(user.role);
+      queueMicrotask(() => {
+        setUserRole(user.role);
+      });
     }
   }, [user]);
 

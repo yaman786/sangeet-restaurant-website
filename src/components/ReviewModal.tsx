@@ -109,7 +109,7 @@ const ReviewModal = ({
                 How was your meal?
               </h2>
               <p className="text-sangeet-neutral-300">
-                We'd love to hear about your experience!
+                We&apos;d love to hear about your experience!
               </p>
             </div>
 

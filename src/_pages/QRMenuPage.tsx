@@ -143,20 +143,27 @@ const QRMenuPage = () => {
       try {
         const parsedCart = JSON.parse(savedCart);
         
+      queueMicrotask(() => {
         if (Array.isArray(parsedCart) && parsedCart.length > 0) {
           setCart(parsedCart);
         } else {
           setCart([]);
         }
+      });
       } catch (error) {
         console.error('Error parsing cart data:', error);
-        setCart([]);
+        queueMicrotask(() => {
+          setCart([]);
+        });
       }
     } else {
-      setCart([]);
+      queueMicrotask(() => {
+        setCart([]);
+      });
     }
-    
-    setCartInitialized(true);
+    queueMicrotask(() => {
+      setCartInitialized(true);
+    });
   }, [qrCode]);
 
   // Save cart to localStorage whenever it changes

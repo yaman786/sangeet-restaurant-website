@@ -222,7 +222,7 @@ const AnalyticsReportsPage = () => {
             📊 Analytics & Reports
           </h1>
           <p className="text-sangeet-neutral-400">
-            Comprehensive insights into your restaurant's performance and customer behavior
+            Comprehensive insights into your restaurant&apos;s performance and customer behavior
           </p>
         </div>
 
@@ -503,7 +503,7 @@ const AnalyticsReportsPage = () => {
                             borderRadius: '8px',
                             color: '#F9FAFB'
                           }} 
-                          labelFormatter={(val) => new Date(val).toLocaleDateString()}
+                          labelFormatter={(val) => new Date(String(val)).toLocaleDateString()}
                         />
                         <Area 
                           type="monotone" 
@@ -560,7 +560,7 @@ const AnalyticsReportsPage = () => {
                               borderRadius: '8px',
                               color: '#F9FAFB'
                             }} 
-                            labelFormatter={(val) => new Date(val).toLocaleDateString()}
+                            labelFormatter={(val) => new Date(String(val)).toLocaleDateString()}
                           />
                           <Bar dataKey="totalReservations" fill="#D97706" name="Total Reservations" />
                           <Bar dataKey="cancelled" fill="#DC2626" name="Cancelled" />
@@ -901,7 +901,7 @@ const AnalyticsReportsPage = () => {
                         </p>
                         {res.specialRequests && (
                           <p className="text-xs text-amber-400/90 italic mt-1">
-                            Note: "{res.specialRequests}"
+                            Note: &quot;{res.specialRequests}&quot;
                           </p>
                         )}
                       </div>

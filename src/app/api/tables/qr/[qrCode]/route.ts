@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { handleApiError } from '@/lib/errors';
+import { handleApiError, NotFoundError } from '@/lib/errors';
 
 export async function GET(req: NextRequest, props: { params: Promise<{ qrCode: string }> }) {
   const params = await props.params;
@@ -9,7 +9,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ qrCode: s
     const table = await prisma.tables.findFirst({
       where: { qr_code_url: { contains: params.qrCode }, is_active: true }
     });
-    if (!table) return NextResponse.json({ error: 'Table not found' }, { status: 404 });
+    if (!table) throw new NotFoundError('Table');
     return NextResponse.json(table);
   } catch (error) {
     return handleApiError(error);

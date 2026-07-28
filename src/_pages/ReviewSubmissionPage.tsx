@@ -117,7 +117,7 @@ const ReviewSubmissionPage = () => {
           {/* Helpful Note */}
           <div className="mt-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
             <p className="text-sm text-blue-300">
-              💡 <strong>When to review:</strong> Please share your experience after you've dined with us. 
+              💡 <strong>When to review:</strong> Please share your experience after you&apos;ve dined with us. 
               This helps other customers make informed decisions.
             </p>
           </div>

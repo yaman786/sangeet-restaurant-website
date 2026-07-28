@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import orderService from '@/lib/services/orderService';
+import { handleApiError, ValidationError } from '@/lib/errors';
 
 export async function POST(
   request: NextRequest,
@@ -11,7 +12,7 @@ export async function POST(
     const itemId = params.itemId;
     
     if (!orderId || !itemId) {
-      return NextResponse.json({ error: 'Order ID and Item ID are required' }, { status: 400 });
+      throw new ValidationError('Order ID and Item ID are required');
     }
 
     const order = await orderService.cancelOrderItem(orderId, itemId);
@@ -19,8 +20,6 @@ export async function POST(
     return NextResponse.json(order);
   } catch (error: any) {
     console.error('Failed to cancel order item:', error);
-    const message = error.message || 'Internal server error';
-    const status = error.statusCode || 500;
-    return NextResponse.json({ error: message }, { status });
+    return handleApiError(error);
   }
 }

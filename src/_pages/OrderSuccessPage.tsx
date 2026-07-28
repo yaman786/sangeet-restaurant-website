@@ -129,7 +129,7 @@ const OrderSuccessPage = () => {
         >
           <h3 className="text-lg font-semibold text-blue-400 mb-4 flex items-center">
             <span className="mr-2">⏱️</span>
-            What's Next?
+            What&apos;s Next?
           </h3>
           
           <div className="space-y-3 text-sangeet-neutral-300">
@@ -143,7 +143,7 @@ const OrderSuccessPage = () => {
             </div>
             <div className="flex items-start space-x-3">
               <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-              <p>You'll be notified when your order is ready</p>
+              <p>You&apos;ll be notified when your order is ready</p>
             </div>
           </div>
         </motion.div>

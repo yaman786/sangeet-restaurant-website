@@ -11,7 +11,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, activeFilter = 'all', sortBy = 'priority', searchQuery = '' }: any) => {
   const queryClient = useQueryClient();
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const [itemToCancel, setItemToCancel] = useState<{orderId: string, itemId: string, itemName: string} | null>(null);
 
   useEffect(() => {
@@ -54,8 +54,8 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     return (priorities as any)[status] || 0;
   };
 
-  const sortOrders = useCallback((ordersList: any) => {
-    return ordersList.sort((a: any, b: any) => {
+  const sortOrders = (ordersList: any) => {
+    return [...ordersList].sort((a: any, b: any) => {
       // If filtering by specific status, only sort by time
       if (activeFilter !== 'all') {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -114,7 +114,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
-  }, [activeFilter, sortBy]);
+  };
 
   const { data: allOrders = [], isLoading: loading } = useQuery({
     queryKey: ['orders'],
@@ -338,7 +338,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
 
 
 
-  const calculateStats = useCallback(() => {
+  useEffect(() => {
     const stats = {
       total: orders.length,
       pending: orders.filter((order: any) => order.status === 'pending').length,
@@ -350,11 +350,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     if (onStatsUpdate) {
       onStatsUpdate(stats);
     }
-  }, [orders, completedOrders, onStatsUpdate]);
-
-  useEffect(() => {
-    calculateStats();
-  }, [calculateStats]);
+  }, [orders.length, completedOrders.length]);
 
   if (loading) {
     return (

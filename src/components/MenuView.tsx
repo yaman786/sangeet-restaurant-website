@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { Search, Plus, Leaf } from 'lucide-react';
 
 const MenuView = ({ 
@@ -134,11 +135,12 @@ const MenuView = ({
                     {/* Item Image */}
                     <div className="relative mb-5 overflow-hidden rounded-2xl aspect-4/3">
                       <div className="absolute inset-0 bg-linear-to-t from-[#1C1917]/80 to-transparent z-10"></div>
-                      <img
+                      <Image
                         src={item.image_url || '/placeholder-food.jpg'}
                         alt={item.name}
-                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out-expo"
-                        onError={(e) => { (e.target as any).src = 'https://via.placeholder.com/400x300?text=Sangeet+Cuisine' }}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out-expo"
                       />
                       {item.is_vegetarian && (
                         <div className="absolute top-3 right-3 z-20 bg-green-500/90 backdrop-blur-md text-white p-2 rounded-full shadow-lg">

@@ -2,7 +2,7 @@ import { prisma } from '@/lib/db';
 import { AppError, NotFoundError, ValidationError } from '@/lib/errors';
 // Socket functionality disabled in serverless mode
 import { generateQRCode } from '../utils/qrGenerator';
-import type { OrderRow, OrderItemRow, OrderStatus, OrderType, CreateOrderInput, OrderQueryDTO } from '@/lib/types';
+import type { CreateOrderInput, OrderQueryDTO } from '@/lib/types';
 import { emitNewOrder, emitOrderStatusUpdate } from './pusherServer';
 
 class OrderService {
@@ -51,7 +51,7 @@ class OrderService {
       }
     }
     
-    let orderId: number;
+
     let totalAmount = 0;
     
     const orderItemCreates = [];
@@ -116,7 +116,7 @@ class OrderService {
       throw new AppError('Failed to generate a unique order number after multiple attempts.', 500);
     }
     
-    orderId = createdOrder.id;
+    const orderId = createdOrder.id;
     const fullOrder = await this.getOrderWithItems(orderId);
     
     emitNewOrder({ type: 'new-order', orderId, tableNumber, timestamp: new Date().toISOString() });

@@ -58,7 +58,7 @@ const NotFoundPage = () => {
             Page Not Found
           </h2>
           <p className="text-sangeet-neutral-400 leading-relaxed">
-            The page you're looking for doesn't exist or has been moved.
+            The page you&apos;re looking for doesn&apos;t exist or has been moved.
             {location.pathname.startsWith('/admin') || location.pathname.startsWith('/kitchen') ? 
               ' You may need to log in to access this page.' : ''
             }

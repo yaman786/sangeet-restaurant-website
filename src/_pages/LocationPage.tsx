@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 /**
  * LocationPage Component
@@ -83,10 +84,13 @@ const LocationPage = () => {
             {/* Hero Section */}
             <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-0">
-                    <img
+                    <Image
                         src="https://images.unsplash.com/photo-1606220838315-056192d5e927?w=1920&h=1080&fit=crop"
                         alt="Wanchai Hong Kong Street Scene"
-                        className="w-full h-full object-cover opacity-60"
+                        fill
+                        sizes="100vw"
+                        priority
+                        className="object-cover opacity-60"
                     />
                     <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-950 via-sangeet-neutral-950/50 to-transparent"></div>
                 </div>
@@ -104,7 +108,7 @@ const LocationPage = () => {
                             Where Heritage Meets <span className="text-transparent bg-clip-text bg-linear-to-r from-sangeet-400 to-red-500">Hustle</span>
                         </h1>
                         <p className="text-xl text-sangeet-neutral-300 leading-relaxed">
-                            Dining in the heart of Hong Kong's most vibrant district.
+                            Dining in the heart of Hong Kong&apos;s most vibrant district.
                             A culinary sanctuary amidst the energy of Wanchai.
                         </p>
                     </motion.div>
@@ -210,12 +214,15 @@ const LocationPage = () => {
                                 className="group relative overflow-hidden rounded-xl bg-sangeet-neutral-900 border border-sangeet-neutral-800"
                             >
                                 <div className="h-48 overflow-hidden">
-                                    <img
-                                        src={spot.image}
-                                        alt={spot.title}
-                                        loading="lazy"
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                    />
+                                    <div className="relative w-full h-full">
+                                        <Image
+                                            src={spot.image}
+                                            alt={spot.title}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 33vw"
+                                            className="object-cover group-hover:scale-110 transition-transform duration-700"
+                                        />
+                                    </div>
                                 </div>
                                 <div className="p-6">
                                     <div className="flex justify-between items-start mb-3">

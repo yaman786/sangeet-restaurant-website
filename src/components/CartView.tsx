@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 const CartView = ({ 
   cart, 
@@ -54,12 +55,13 @@ const CartView = ({
                   className="flex items-center space-x-4 p-4 bg-sangeet-neutral-800/50 rounded-lg border border-sangeet-neutral-700"
                 >
                   {/* Item Image */}
-                  <div className="flex-shrink-0">
-                    <img
+                  <div className="relative flex-shrink-0 w-16 h-16">
+                    <Image
                       src={item.image_url || '/placeholder-food.jpg'}
                       alt={item.name}
-                      className="w-16 h-16 rounded-lg object-cover"
-                      onError={(e) => { (e.target as any).src = 'https://via.placeholder.com/150?text=No+Image' }}
+                      fill
+                      sizes="64px"
+                      className="rounded-lg object-cover"
                     />
                   </div>
 
@@ -164,7 +166,7 @@ const CartView = ({
           <div className="space-y-2 text-sangeet-neutral-300 text-sm">
             <p>• Your order will be prepared fresh in our kitchen</p>
             <p>• Estimated preparation time: 15-20 minutes</p>
-            <p>• You'll receive real-time updates on your order status</p>
+            <p>• You&apos;ll receive real-time updates on your order status</p>
             <p>• Please collect your order from the counter when ready</p>
           </div>
         </div>

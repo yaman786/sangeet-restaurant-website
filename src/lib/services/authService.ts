@@ -3,8 +3,8 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/db';
 import config from '@/lib/utils/env';
 import { UnauthorizedError, NotFoundError, ConflictError, AppError, ValidationError } from '@/lib/errors';
-import type { UserRow, UserInfo, UserRole, JwtPayload, PaginationQuery, PaginatedResult, ChangePasswordDTO, UpdateUserDTO } from '@/lib/types';
-import { registerSchema, RegisterInput } from '@/lib/validations/auth';
+import type { UserInfo, UserRole, JwtPayload, PaginationQuery, PaginatedResult, ChangePasswordDTO, UpdateUserDTO } from '@/lib/types';
+import { registerSchema } from '@/lib/validations/auth';
 
 interface LoginInput {
   email?: string;

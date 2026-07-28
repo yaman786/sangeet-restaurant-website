@@ -2,10 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { 
   fetchMenuItems, 
-  fetchMenuCategories,
-  createCategory,
-  updateCategory,
-  deleteCategory
+  fetchMenuCategories
 } from '../../../services/api';
 import { 
   createMenuItemAction, 
@@ -60,7 +57,9 @@ export const useMenuManagement = () => {
   }, []);
 
   useEffect(() => {
-    loadData();
+    queueMicrotask(() => {
+      loadData();
+    });
   }, [loadData]);
 
   const applyFilters = useCallback(() => {
@@ -115,12 +114,14 @@ export const useMenuManagement = () => {
   }, [menuItems, filters]);
 
   useEffect(() => {
-    if (menuItems.length > 0) {
-      applyFilters();
-    } else {
-      setFilteredItems([]);
-    }
-  }, [applyFilters, menuItems]);
+    queueMicrotask(() => {
+      if (menuItems.length > 0) {
+        applyFilters();
+      } else {
+        setFilteredItems([]);
+      }
+    });
+  }, [menuItems, applyFilters]);
 
   const handleFilterChange = (key: string, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));

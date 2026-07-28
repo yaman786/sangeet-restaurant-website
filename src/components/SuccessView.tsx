@@ -58,7 +58,7 @@ const SuccessView = ({
                 Order Placed Successfully!
               </h1>
               <p className="text-sangeet-neutral-300 text-lg">
-                Thank you for your order. We're preparing your delicious meal!
+                Thank you for your order. We&apos;re preparing your delicious meal!
               </p>
             </motion.div>
 
@@ -101,12 +101,12 @@ const SuccessView = ({
             >
               <h3 className="text-lg font-semibold text-blue-400 mb-3 flex items-center">
                 <span className="mr-2">⏱️</span>
-                What's Next?
+                What&apos;s Next?
               </h3>
               <div className="space-y-2 text-sangeet-neutral-300">
                 <p>• Your order is being prepared in our kitchen</p>
                 <p>• Estimated preparation time: 15-20 minutes</p>
-                <p>• We'll notify you when your order is ready</p>
+                <p>• We&apos;re notify you when your order is ready</p>
                 <p>• Please collect your order from the counter when ready</p>
               </div>
             </motion.div>
@@ -282,7 +282,7 @@ const SuccessView = ({
                 15-20 minutes
               </p>
               <p className="text-blue-300 text-sm mt-2">
-                We'll notify you when your order is ready for pickup
+                We&apos;re notify you when your order is ready for pickup
               </p>
             </div>
           </>

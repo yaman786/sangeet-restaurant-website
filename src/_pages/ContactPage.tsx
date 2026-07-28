@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
@@ -154,11 +155,12 @@ const ContactPage = () => {
             <div className="bg-sangeet-neutral-900 p-6 md:p-8 rounded-xl shadow-lg border border-sangeet-neutral-800">
               <h3 className="text-xl md:text-2xl font-bold text-sangeet-400 mb-6">Location</h3>
               <div className="relative h-48 md:h-64 rounded-lg overflow-hidden">
-                <img
+                <Image
                   src="https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=800&h=400&fit=crop"
                   alt="Wanchai, Hong Kong - Sangeet Restaurant Location"
-                  className="w-full h-full object-cover"
-                  loading="lazy"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900/60 to-transparent"></div>
                 <div className="absolute bottom-4 left-4 right-4">

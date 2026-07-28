@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { handleApiError } from '@/lib/errors';
+import { handleApiError, NotFoundError } from '@/lib/errors';
 import { authenticateToken, requireRole } from '@/lib/auth';
 
 export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
@@ -27,7 +27,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
       });
       return NextResponse.json(table);
     } catch (e: any) {
-      if (e.code === 'P2025') return NextResponse.json({ error: 'Table not found' }, { status: 404 });
+      if (e.code === 'P2025') throw new NotFoundError('Table');
       throw e;
     }
   } catch (error) {
@@ -50,7 +50,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
       });
       return NextResponse.json({ message: 'Table deleted successfully' });
     } catch (e: any) {
-      if (e.code === 'P2025') return NextResponse.json({ error: 'Table not found' }, { status: 404 });
+      if (e.code === 'P2025') throw new NotFoundError('Table');
       throw e;
     }
   } catch (error) {

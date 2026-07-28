@@ -1,9 +1,9 @@
 "use client";
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import Link from 'next/link';
+import Image from 'next/image';
 import { useNavigate } from '@/utils/router-mock';
-import { ImageIcon, Building2, UtensilsCrossed, PartyPopper, Theater, History, Star, Users, Award, ChefHat } from 'lucide-react';
+import { Building2, UtensilsCrossed, Theater, History, Star, Users, Award, ChefHat } from 'lucide-react';
 import { AboutGallery } from '@/components/client/AboutGallery';
 
 /**
@@ -92,10 +92,13 @@ const AboutPage = () => {
       <section className="relative min-h-screen bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
         {/* Hero Background Image */}
         <div className="absolute inset-0 z-0">
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1920&h=1080&fit=crop"
             alt="Chef preparing authentic South Asian cuisine"
-            className="w-full h-full object-cover opacity-15"
+            fill
+            sizes="100vw"
+            priority
+            className="object-cover opacity-15"
           />
           <div className="absolute inset-0 bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900/95 to-sangeet-neutral-950"></div>
         </div>
@@ -198,7 +201,7 @@ const AboutPage = () => {
             >
               Welcome to Sangeet, where the soul of South Asia comes alive in the heart of Wanchai.
               <span className="text-sangeet-400 font-semibold"> Rooted in vibrant traditions of music, dance, and culinary artistry</span>,
-              we're more than a dining destination—we're an immersive celebration of culture, community, and connection.
+              we&apos;re more than a dining destination—we&apos;re an immersive celebration of culture, community, and connection.
               Every moment at Sangeet is crafted to create unforgettable memories.
             </motion.p>
 
@@ -211,8 +214,8 @@ const AboutPage = () => {
             >
               <div className="bg-sangeet-neutral-900/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300">
                 <div className="text-3xl md:text-4xl mb-4 text-sangeet-400"><ChefHat /></div>
-                <h3 className="text-sangeet-400 font-bold text-lg md:text-xl mb-3">Chef's Signature</h3>
-                <p className="text-sangeet-neutral-400 text-sm md:text-base">Chef Rajesh Kumar's innovative take on traditional South Asian flavors</p>
+                <h3 className="text-sangeet-400 font-bold text-lg md:text-xl mb-3">Chef&apos;s Signature</h3>
+                <p className="text-sangeet-neutral-400 text-sm md:text-base">Chef Rajesh Kumar&apos;s innovative take on traditional South Asian flavors</p>
               </div>
 
               <div className="bg-sangeet-neutral-900/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300">
@@ -317,7 +320,7 @@ const AboutPage = () => {
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-sangeet-400 mb-4">Follow Our Journey</h2>
             <p className="text-sangeet-neutral-400 text-lg max-w-3xl mx-auto">
-              Nestled in Wanchai's bustling center, Sangeet bridges the timeless and the contemporary. We create bespoke experiences where every dish tells a story, every performance celebrates heritage, and every moment becomes a cherished memory. From intimate dinners to grand celebrations, we're here to make your special occasions extraordinary.
+              Nestled in Wanchai&apos;s bustling center, Sangeet bridges the timeless and the contemporary. We create bespoke experiences where every dish tells a story, every performance celebrates heritage, and every moment becomes a cherished memory. From intimate dinners to grand celebrations, we&apos;re here to make your special occasions extraordinary.
             </p>
           </motion.div>
 
@@ -386,12 +389,15 @@ const AboutPage = () => {
                 <div className="text-center">
                   <div className="relative mb-6">
                     <div className="w-40 h-40 rounded-full mx-auto overflow-hidden border-4 border-sangeet-400/20 group-hover:border-sangeet-400/40 transition-all duration-300">
-                      <img
-                        src={member.image}
-                        alt={member.name}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
+                      <div className="relative w-full h-full">
+                        <Image
+                          src={member.image}
+                          alt={member.name}
+                          fill
+                          sizes="160px"
+                          className="object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      </div>
                     </div>
 
                   </div>
@@ -455,7 +461,7 @@ const AboutPage = () => {
               Your Journey Begins Here
             </h2>
             <p className="text-sangeet-neutral-400 text-xl mb-8 max-w-3xl mx-auto leading-relaxed">
-              Whether it's a romantic dinner, family celebration, or corporate event, we're here to make it extraordinary.
+              Whether it&apos;s a romantic dinner, family celebration, or corporate event, we&apos;re here to make it extraordinary.
               <span className="text-sangeet-400 font-semibold"> Reserve your table</span> and let us create memories that last a lifetime.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">

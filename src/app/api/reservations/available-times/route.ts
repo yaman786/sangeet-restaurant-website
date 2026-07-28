@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import reservationService from '@/lib/services/reservationService';
-import { handleApiError } from '@/lib/errors';
+import { handleApiError, ValidationError } from '@/lib/errors';
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const guestsParam = searchParams.get('guests');
     
     if (!date) {
-      return NextResponse.json({ error: 'Date is required' }, { status: 400 });
+      throw new ValidationError('Date is required');
     }
     
     const guests = guestsParam ? parseInt(guestsParam, 10) : 2;
