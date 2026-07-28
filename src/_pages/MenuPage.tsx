@@ -62,7 +62,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
       {/* Hero Section - Mobile Optimized */}
-      <div className="relative bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950 py-12 md:py-20">
+      <div className="relative bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950 py-12 md:py-20">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -72,7 +72,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
             className="object-cover opacity-20"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-sangeet-neutral-950 via-sangeet-neutral-950/95 to-sangeet-neutral-950"></div>
+          <div className="absolute inset-0 bg-linear-to-b from-sangeet-neutral-950 via-sangeet-neutral-950/95 to-sangeet-neutral-950"></div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -82,7 +82,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
             transition={{ duration: 0.6 }}
             className="text-center mb-8 md:mb-12"
           >
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4">
+            <div className="inline-flex items-center space-x-2 bg-linear-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4">
               <ChefHat className="w-5 h-5 text-sangeet-400" />
               <span className="text-sangeet-400 font-semibold text-sm md:text-base">Culinary Excellence</span>
             </div>
@@ -228,7 +228,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out-expo"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"></div>
                     
                     {/* Price Badge */}
                     <div className="absolute top-3 right-3 bg-sangeet-neutral-950/80 backdrop-blur-md text-sangeet-400 border border-sangeet-400/20 px-3 py-1.5 rounded-full font-semibold text-sm shadow-glass">
@@ -256,7 +256,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
                   </div>
                   
                   {/* Content (Removed fast-food prep time) */}
-                  <div className="p-4 md:p-6 flex-grow flex flex-col">
+                  <div className="p-4 md:p-6 grow flex flex-col">
                     <h3 className="text-lg md:text-xl font-display font-semibold text-sangeet-neutral-100 group-hover:text-sangeet-300 transition-colors mb-2">
                       {item.name}
                     </h3>

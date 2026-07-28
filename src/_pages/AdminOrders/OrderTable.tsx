@@ -102,7 +102,7 @@ const OrderTable = ({
     <>
       {/* Bulk Actions */}
       {selectedOrders.length > 0 && (
-        <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-4 mb-6 border border-sangeet-neutral-700">
+        <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-4 mb-6 border border-sangeet-neutral-700">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sangeet-neutral-400">
@@ -117,7 +117,7 @@ const OrderTable = ({
                 <button
                   key={status}
                   onClick={() => handleBulkStatusUpdate(status)}
-                  className="px-3 py-1 bg-sangeet-400 text-sangeet-neutral-950 rounded text-sm font-medium hover:bg-sangeet-300 transition-colors"
+                  className="px-3 py-1 bg-sangeet-400 text-sangeet-neutral-950 rounded-sm text-sm font-medium hover:bg-sangeet-300 transition-colors"
                 >
                   {bulkActionLabels[status] || `Mark ${status}`}
                 </button>
@@ -128,7 +128,7 @@ const OrderTable = ({
       )}
 
       {/* Orders Table */}
-      <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl border border-sangeet-neutral-700 overflow-hidden">
+      <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl border border-sangeet-neutral-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-sangeet-neutral-800">
@@ -138,7 +138,7 @@ const OrderTable = ({
                     type="checkbox"
                     checked={isAllSelected}
                     onChange={handleSelectAll}
-                    className="rounded border-sangeet-neutral-600 bg-sangeet-neutral-800 text-sangeet-400 focus:ring-sangeet-400"
+                    className="rounded-sm border-sangeet-neutral-600 bg-sangeet-neutral-800 text-sangeet-400 focus:ring-sangeet-400"
                   />
                 </th>
                 <th className="px-6 py-4 text-left text-sangeet-neutral-400 font-medium">Table Tab</th>
@@ -181,7 +181,7 @@ const OrderTable = ({
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-3">
                             <span className="text-sangeet-400 font-bold text-lg">Table {group.table_number}</span>
-                            <span className="bg-sangeet-neutral-700 text-sangeet-neutral-300 px-2 py-0.5 rounded text-xs">
+                            <span className="bg-sangeet-neutral-700 text-sangeet-neutral-300 px-2 py-0.5 rounded-sm text-xs">
                               {group.orders.length} Ticket{group.orders.length > 1 ? 's' : ''}
                             </span>
                           </div>
@@ -208,7 +208,7 @@ const OrderTable = ({
                                     showActiveOrdersModalDetails(targetOrder);
                                   }
                                 }}
-                                className="bg-blue-500/20 text-blue-400 border border-blue-500/50 hover:bg-blue-500/30 px-4 py-1.5 rounded-lg font-bold text-sm transition-all shadow-sm flex items-center space-x-2"
+                                className="bg-blue-500/20 text-blue-400 border border-blue-500/50 hover:bg-blue-500/30 px-4 py-1.5 rounded-lg font-bold text-sm transition-all shadow-xs flex items-center space-x-2"
                               >
                                 <span>Collect Payment</span>
                                 <span>💵</span>

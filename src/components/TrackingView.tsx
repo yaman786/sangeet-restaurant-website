@@ -62,7 +62,7 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
 
       {/* Orders Summary - Mobile Optimized */}
       {orders.length > 0 && (
-        <div className="bg-gradient-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-sangeet-neutral-700 mb-4 sm:mb-6">
+        <div className="bg-linear-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-sangeet-neutral-700 mb-4 sm:mb-6">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="text-base sm:text-lg font-semibold text-sangeet-neutral-200">Orders Summary</h3>
             <div className="flex items-center space-x-2">
@@ -150,7 +150,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
   const statusStep = getStatusStep(order.status);
 
   return (
-    <div className="bg-gradient-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-2xl border border-sangeet-neutral-700/50 backdrop-blur-xl transition-all duration-500">
+    <div className="bg-linear-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-2xl border border-sangeet-neutral-700/50 backdrop-blur-xl transition-all duration-500">
       {/* Order Header - Mobile Optimized */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
         <div className="flex items-center space-x-3 sm:space-x-4">
@@ -178,7 +178,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
           </div>
           {/* Update Indicator */}
           {order.updated_at && order.updated_at !== order.created_at && (
-            <div className="text-xs text-sangeet-neutral-400 bg-sangeet-neutral-800/50 px-2 py-1 rounded">
+            <div className="text-xs text-sangeet-neutral-400 bg-sangeet-neutral-800/50 px-2 py-1 rounded-sm">
               Updated: {formatTime(order.updated_at)}
             </div>
           )}
@@ -225,11 +225,11 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
             {/* Progress Bar */}
             <div className="absolute top-4 sm:top-5 left-0 right-0 h-1.5 sm:h-2 bg-sangeet-neutral-700 rounded-full overflow-hidden">
               <div
-                className="h-1.5 sm:h-2 bg-gradient-to-r from-sangeet-400 to-sangeet-500 rounded-full transition-all duration-1000 ease-out relative shadow-lg"
+                className="h-1.5 sm:h-2 bg-linear-to-r from-sangeet-400 to-sangeet-500 rounded-full transition-all duration-1000 ease-out relative shadow-lg"
                 style={{ width: `${(statusStep / 4) * 100}%` }}
               >
                 {/* Animated shine effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
+                <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
                 {/* Glow effect on status change */}
                 <div className="absolute inset-0 bg-sangeet-400/20 rounded-full animate-ping"></div>
               </div>
@@ -317,7 +317,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
                             {item.name}
                           </p>
                           {item.status === 'cancelled' && (
-                            <span className="bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold uppercase truncate">
+                            <span className="bg-red-500/20 text-red-400 border border-red-500/30 px-1.5 sm:px-2 py-0.5 rounded-sm text-[10px] sm:text-xs font-bold uppercase truncate">
                               Item Cancelled & Refunded
                             </span>
                           )}
@@ -390,7 +390,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mt-4 sm:mt-6 bg-gradient-to-r from-sangeet-400/10 to-sangeet-500/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-sangeet-400/30 backdrop-blur-sm"
+          className="mt-4 sm:mt-6 bg-linear-to-r from-sangeet-400/10 to-sangeet-500/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-sangeet-400/30 backdrop-blur-xs"
         >
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-3">
@@ -404,7 +404,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
             </p>
             <button
               onClick={() => onReviewClick(order)}
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-500 hover:to-sangeet-600 text-sangeet-neutral-950 py-2 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="inline-flex items-center space-x-2 bg-linear-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-500 hover:to-sangeet-600 text-sangeet-neutral-950 py-2 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               <span>📝</span>
               <span>Submit Review</span>

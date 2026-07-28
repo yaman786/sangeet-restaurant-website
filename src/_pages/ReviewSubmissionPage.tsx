@@ -65,7 +65,7 @@ const ReviewSubmissionPage = () => {
             onClick={() => onChange(star)}
             onMouseEnter={() => onHover(star)}
             onMouseLeave={onLeave}
-            className="text-3xl transition-colors duration-200 focus:outline-none"
+            className="text-3xl transition-colors duration-200 focus:outline-hidden"
           >
             {star <= (hoveredRating || rating) ? (
               <span className="text-yellow-400">★</span>
@@ -132,7 +132,7 @@ const ReviewSubmissionPage = () => {
             <input
               {...register('customer_name')}
               type="text"
-              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
+              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
               placeholder="Enter your name"
             />
             {errors.customer_name && (
@@ -176,7 +176,7 @@ const ReviewSubmissionPage = () => {
             <textarea
               {...register('review_text')}
               rows={4}
-              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent resize-none"
+              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent resize-none"
               placeholder="Tell us about your experience..."
             />
             {errors.review_text && (
@@ -192,7 +192,7 @@ const ReviewSubmissionPage = () => {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-sangeet-400 text-sangeet-neutral-950 py-3 px-4 rounded-lg font-semibold hover:bg-sangeet-300 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-950 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-sangeet-400 text-sangeet-neutral-950 py-3 px-4 rounded-lg font-semibold hover:bg-sangeet-300 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-950 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSubmitting ? (
               <div className="flex items-center justify-center">

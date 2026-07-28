@@ -283,12 +283,12 @@ const QRMenuPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#131210] text-sangeet-neutral-100 selection:bg-sangeet-400 selection:text-[#131210]">
+    <div className="min-h-screen bg-sangeet-neutral-900 text-sangeet-neutral-100 selection:bg-sangeet-400 selection:text-sangeet-neutral-900">
       {/* Liquid Glass Hero Header */}
       <div className="relative h-[40vh] min-h-[300px] w-full overflow-hidden flex items-center justify-center">
         {/* Parallax Background */}
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#131210] via-[#131210]/60 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900 via-sangeet-neutral-900/60 to-transparent"></div>
         
         {/* Hero Content */}
         <motion.div 
@@ -343,7 +343,7 @@ const QRMenuPage = () => {
                 className="w-full bg-[#1C1917]/90 backdrop-blur-xl border border-white/10 text-white p-4 rounded-2xl shadow-glass-lg hover:shadow-gold-glow-lg transition-all duration-300 flex items-center justify-between group overflow-hidden relative"
               >
                 {/* Shine effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                 
                 <div className="flex items-center space-x-4 relative z-10">
                   <div className="w-12 h-12 bg-sangeet-400 rounded-xl flex items-center justify-center shadow-lg">

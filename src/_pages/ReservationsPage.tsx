@@ -112,12 +112,12 @@ const ReservationsPage = () => {
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
       {/* Header */}
-      <div className="bg-gradient-to-b from-sangeet-neutral-900 to-sangeet-neutral-950 py-8 sm:py-12 md:py-16">
+      <div className="bg-linear-to-b from-sangeet-neutral-900 to-sangeet-neutral-950 py-8 sm:py-12 md:py-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center space-x-2 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4"
+            className="inline-flex items-center space-x-2 bg-linear-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4"
           >
             <span className="text-xl md:text-2xl">📅</span>
             <span className="text-sangeet-400 font-semibold text-sm md:text-base">Reservations</span>
@@ -159,7 +159,7 @@ const ReservationsPage = () => {
                 <input
                   type="text"
                   {...register('customer_name')}
-                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
                   placeholder="Enter your full name"
                 />
                 {errors.customer_name && <p className="text-red-500 text-xs mt-1">{errors.customer_name.message}</p>}
@@ -172,7 +172,7 @@ const ReservationsPage = () => {
                 <input
                   type="email"
                   {...register('email')}
-                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
                   placeholder="Enter your email"
                 />
                 {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
@@ -187,7 +187,7 @@ const ReservationsPage = () => {
                 <input
                   type="tel"
                   {...register('phone')}
-                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
                   placeholder="Enter your phone number"
                 />
                 {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
@@ -199,7 +199,7 @@ const ReservationsPage = () => {
                 </label>
                 <select
                   {...register('guests')}
-                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
                     <option key={num} value={num}>
@@ -222,7 +222,7 @@ const ReservationsPage = () => {
                   {...register('date')}
                   min={today}
                   max={maxDateStr}
-                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                 />
                 {errors.date && <p className="text-red-500 text-xs mt-1">{errors.date.message}</p>}
               </div>
@@ -234,7 +234,7 @@ const ReservationsPage = () => {
                 <select
                   {...register('time')}
                   disabled={!selectedDate || isLoadingSlots}
-                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">
                     {isLoadingSlots ? 'Loading available times...' : (!selectedDate ? 'Select a date first' : (timeOptions.length === 0 ? 'No slots available' : 'Select a time'))}
@@ -258,7 +258,7 @@ const ReservationsPage = () => {
                 {...register('special_requests')}
                 rows={4}
                 maxLength={500}
-                className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:ring-2 focus:ring-sangeet-400 focus:border-transparent resize-none"
+                className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent resize-none"
                 placeholder="Any special requests or dietary requirements..."
               />
               <div className="text-right mt-1">
@@ -321,11 +321,11 @@ const ReservationsPage = () => {
                 <div className="space-y-2 text-xs sm:text-sm">
                   <div className="flex justify-between items-start">
                     <span className="text-sangeet-neutral-400 flex-shrink-0 mr-2">Name:</span>
-                    <span className="text-sangeet-neutral-200 text-right break-words">{reservationDetails.customer_name}</span>
+                    <span className="text-sangeet-neutral-200 text-right wrap-break-word">{reservationDetails.customer_name}</span>
                   </div>
                   <div className="flex justify-between items-start">
                     <span className="text-sangeet-neutral-400 flex-shrink-0 mr-2">Date:</span>
-                    <span className="text-sangeet-neutral-200 text-right break-words">
+                    <span className="text-sangeet-neutral-200 text-right wrap-break-word">
                       {new Date(reservationDetails.date).toLocaleDateString('en-US', {
                         weekday: 'short',
                         year: 'numeric',

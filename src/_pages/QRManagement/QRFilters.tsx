@@ -22,14 +22,14 @@ const QRFilters = ({
       <div className="flex justify-end space-x-3 mb-6">
         <button
           onClick={() => setShowBulkModal(true)}
-          className="inline-flex items-center px-4 py-2 border border-sangeet-neutral-600 rounded-md shadow-sm text-sm font-medium text-sangeet-neutral-300 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 transition-colors"
+          className="inline-flex items-center px-4 py-2 border border-sangeet-neutral-600 rounded-md shadow-xs text-sm font-medium text-sangeet-neutral-300 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 transition-colors"
         >
           <Plus className="h-4 w-4 mr-2" />
           Bulk Generate
         </button>
         <button
           onClick={() => setShowGenerateModal(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-sangeet-neutral-950 bg-sangeet-400 hover:bg-sangeet-500 transition-colors"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-sangeet-neutral-950 bg-sangeet-400 hover:bg-sangeet-500 transition-colors"
         >
           <Plus className="h-4 w-4 mr-2" />
           Generate QR Code
@@ -52,7 +52,7 @@ const QRFilters = ({
               placeholder="Search by table number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:border-sangeet-400 transition-colors"
+              className="w-full pl-10 pr-4 py-2 bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:border-sangeet-400 transition-colors"
             />
           </div>
           <div className="w-64">

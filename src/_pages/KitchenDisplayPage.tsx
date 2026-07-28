@@ -183,7 +183,7 @@ const KitchenDisplayPage = () => {
                 placeholder="Search by table, customer, or order #..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 pl-10 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-300 focus:outline-none focus:border-sangeet-400 placeholder-sangeet-neutral-500"
+                className="w-full px-4 py-2 pl-10 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-300 focus:outline-hidden focus:border-sangeet-400 placeholder-sangeet-neutral-500"
               />
               <span className="absolute left-3 top-2.5 text-sangeet-neutral-500">
                 🔍

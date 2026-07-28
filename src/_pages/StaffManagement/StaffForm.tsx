@@ -18,7 +18,7 @@ const StaffForm = ({ formData, setFormData, isEditing, handleSubmit, onCancel }:
               type="text"
               value={formData.first_name}
               onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200"
+              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200"
               placeholder="Enter first name"
               required
             />
@@ -31,7 +31,7 @@ const StaffForm = ({ formData, setFormData, isEditing, handleSubmit, onCancel }:
               type="text"
               value={formData.last_name}
               onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200"
+              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200"
               placeholder="Enter last name"
               required
             />
@@ -45,7 +45,7 @@ const StaffForm = ({ formData, setFormData, isEditing, handleSubmit, onCancel }:
             type="tel"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200"
+            className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200"
             placeholder="Enter phone number (optional)"
           />
         </div>
@@ -65,7 +65,7 @@ const StaffForm = ({ formData, setFormData, isEditing, handleSubmit, onCancel }:
               type="text"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200"
+              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200"
               placeholder="Enter username"
               required
             />
@@ -78,7 +78,7 @@ const StaffForm = ({ formData, setFormData, isEditing, handleSubmit, onCancel }:
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200"
+              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200"
               placeholder="Enter email address"
               required
             />
@@ -94,7 +94,7 @@ const StaffForm = ({ formData, setFormData, isEditing, handleSubmit, onCancel }:
               type="password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200"
+              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200"
               placeholder={isEditing ? 'Enter new password' : 'Enter secure password'}
               required={!isEditing}
             />
@@ -107,7 +107,7 @@ const StaffForm = ({ formData, setFormData, isEditing, handleSubmit, onCancel }:
               <select
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200 appearance-none cursor-pointer"
+                className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200 appearance-none cursor-pointer"
                 required
               >
                 <option value="waiter">🍽️ Waiter</option>
@@ -131,7 +131,7 @@ const StaffForm = ({ formData, setFormData, isEditing, handleSubmit, onCancel }:
               <select
                 value={formData.is_active}
                 onChange={(e) => setFormData({ ...formData, is_active: e.target.value === 'true' })}
-                className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200 appearance-none cursor-pointer"
+                className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200 appearance-none cursor-pointer"
                 required
               >
                 <option value="true">✅ Active</option>
@@ -156,7 +156,7 @@ const StaffForm = ({ formData, setFormData, isEditing, handleSubmit, onCancel }:
         </button>
         <button
           type="submit"
-          className="flex-1 px-6 py-3 bg-gradient-to-r from-sangeet-400 to-sangeet-300 text-sangeet-neutral-950 font-semibold rounded-lg hover:from-sangeet-300 hover:to-sangeet-200 transform hover:scale-105 transition-all duration-200 shadow-lg"
+          className="flex-1 px-6 py-3 bg-linear-to-r from-sangeet-400 to-sangeet-300 text-sangeet-neutral-950 font-semibold rounded-lg hover:from-sangeet-300 hover:to-sangeet-200 transform hover:scale-105 transition-all duration-200 shadow-lg"
         >
           {isEditing ? 'Update User' : 'Create User'}
         </button>

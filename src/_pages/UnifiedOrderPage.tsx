@@ -257,9 +257,9 @@ const UnifiedOrderPage = () => {
   const statusStep = order ? getStatusStep(order.status) : 1;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
+    <div className="min-h-screen bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
       {/* Header */}
-      <div className="bg-gradient-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 backdrop-blur-xl border-b border-sangeet-neutral-700/50 sticky top-0 z-40">
+      <div className="bg-linear-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 backdrop-blur-xl border-b border-sangeet-neutral-700/50 sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -311,7 +311,7 @@ const UnifiedOrderPage = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="bg-gradient-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 rounded-3xl p-8 shadow-2xl border border-sangeet-neutral-700/50 backdrop-blur-xl"
+              className="bg-linear-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 rounded-3xl p-8 shadow-2xl border border-sangeet-neutral-700/50 backdrop-blur-xl"
             >
               {showSuccess ? (
                 // Success State (First 5 seconds)
@@ -439,7 +439,7 @@ const UnifiedOrderPage = () => {
                       {/* Progress Bar */}
                       <div className="absolute top-5 left-0 right-0 h-2 bg-sangeet-neutral-700 rounded-full">
                         <div
-                          className="h-2 bg-gradient-to-r from-sangeet-400 to-sangeet-500 rounded-full transition-all duration-1000"
+                          className="h-2 bg-linear-to-r from-sangeet-400 to-sangeet-500 rounded-full transition-all duration-1000"
                           style={{ width: `${(statusStep / 4) * 100}%` }}
                         ></div>
                       </div>
@@ -493,7 +493,7 @@ const UnifiedOrderPage = () => {
                 className="grid grid-cols-1 lg:grid-cols-2 gap-8"
               >
                 {/* Order Information */}
-                <div className="bg-gradient-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 rounded-2xl p-6 shadow-2xl border border-sangeet-neutral-700/50 backdrop-blur-xl">
+                <div className="bg-linear-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 rounded-2xl p-6 shadow-2xl border border-sangeet-neutral-700/50 backdrop-blur-xl">
                   <h3 className="text-xl font-bold text-sangeet-400 mb-6 flex items-center">
                     <span className="mr-3 text-2xl">📋</span>
                     Order Information
@@ -538,7 +538,7 @@ const UnifiedOrderPage = () => {
                 </div>
 
                 {/* Order Items */}
-                <div className="bg-gradient-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 rounded-2xl p-6 shadow-2xl border border-sangeet-neutral-700/50 backdrop-blur-xl">
+                <div className="bg-linear-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 rounded-2xl p-6 shadow-2xl border border-sangeet-neutral-700/50 backdrop-blur-xl">
                   <h3 className="text-xl font-bold text-sangeet-400 mb-6 flex items-center">
                     <span className="mr-3 text-2xl">🍽️</span>
                     Order Items
@@ -580,7 +580,7 @@ const UnifiedOrderPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
-                className="bg-gradient-to-r from-sangeet-400/10 to-sangeet-500/10 rounded-2xl p-8 border border-sangeet-400/30 backdrop-blur-xl"
+                className="bg-linear-to-r from-sangeet-400/10 to-sangeet-500/10 rounded-2xl p-8 border border-sangeet-400/30 backdrop-blur-xl"
               >
                 <div className="text-center">
                   <div className="text-4xl mb-4">⭐</div>
@@ -594,7 +594,7 @@ const UnifiedOrderPage = () => {
                     onClick={() => {
                       setReviewModal({ isOpen: true, order: order });
                     }}
-                    className="bg-gradient-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-500 hover:to-sangeet-600 text-sangeet-neutral-950 py-4 px-8 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl text-lg"
+                    className="bg-linear-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-500 hover:to-sangeet-600 text-sangeet-neutral-950 py-4 px-8 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl text-lg"
                   >
                     📝 Submit Review
                   </button>

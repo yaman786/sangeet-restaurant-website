@@ -246,7 +246,7 @@ const AnalyticsReportsPage = () => {
                         setTimeframe(val);
                       }
                     }}
-                    className="w-full appearance-none bg-sangeet-neutral-800/90 text-sangeet-neutral-100 border border-sangeet-neutral-700 hover:border-sangeet-400/50 rounded-xl px-4 py-2.5 pr-10 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sangeet-400/40 focus:border-sangeet-400 transition-all cursor-pointer shadow-sm"
+                    className="w-full appearance-none bg-sangeet-neutral-800/90 text-sangeet-neutral-100 border border-sangeet-neutral-700 hover:border-sangeet-400/50 rounded-xl px-4 py-2.5 pr-10 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-sangeet-400/40 focus:border-sangeet-400 transition-all cursor-pointer shadow-xs"
                   >
                     <option value="7" className="bg-sangeet-neutral-900 py-2">Last 7 Days</option>
                     <option value="30" className="bg-sangeet-neutral-900 py-2">Last 30 Days</option>
@@ -273,7 +273,7 @@ const AnalyticsReportsPage = () => {
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="appearance-none bg-sangeet-neutral-800/90 text-sangeet-neutral-100 border border-sangeet-neutral-700 hover:border-sangeet-400/50 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sangeet-400/40 focus:border-sangeet-400 transition-all cursor-pointer [color-scheme:dark] shadow-sm"
+                        className="appearance-none bg-sangeet-neutral-800/90 text-sangeet-neutral-100 border border-sangeet-neutral-700 hover:border-sangeet-400/50 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-sangeet-400/40 focus:border-sangeet-400 transition-all cursor-pointer scheme-dark shadow-xs"
                       />
                     </div>
                   </div>
@@ -286,7 +286,7 @@ const AnalyticsReportsPage = () => {
                         type="date"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="appearance-none bg-sangeet-neutral-800/90 text-sangeet-neutral-100 border border-sangeet-neutral-700 hover:border-sangeet-400/50 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sangeet-400/40 focus:border-sangeet-400 transition-all cursor-pointer [color-scheme:dark] shadow-sm"
+                        className="appearance-none bg-sangeet-neutral-800/90 text-sangeet-neutral-100 border border-sangeet-neutral-700 hover:border-sangeet-400/50 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-sangeet-400/40 focus:border-sangeet-400 transition-all cursor-pointer scheme-dark shadow-xs"
                       />
                     </div>
                   </div>
@@ -349,7 +349,7 @@ const AnalyticsReportsPage = () => {
               >
                 {/* Key Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-gradient-to-br from-sangeet-400/10 to-sangeet-400/5 rounded-lg p-6 border border-sangeet-400/20 shadow-lg shadow-sangeet-400/5 transition-all">
+                  <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-linear-to-br from-sangeet-400/10 to-sangeet-400/5 rounded-lg p-6 border border-sangeet-400/20 shadow-lg shadow-sangeet-400/5 transition-all">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-sangeet-400/20 rounded-lg flex items-center justify-center">
                         <span className="text-2xl">📅</span>
@@ -364,7 +364,7 @@ const AnalyticsReportsPage = () => {
                     </p>
                   </motion.div>
 
-                  <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-gradient-to-br from-green-400/10 to-green-400/5 rounded-lg p-6 border border-green-400/20 shadow-lg shadow-green-400/5 transition-all">
+                  <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-linear-to-br from-green-400/10 to-green-400/5 rounded-lg p-6 border border-green-400/20 shadow-lg shadow-green-400/5 transition-all">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center">
                         <span className="text-2xl">⭐</span>
@@ -379,7 +379,7 @@ const AnalyticsReportsPage = () => {
                     </p>
                   </motion.div>
 
-                  <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-gradient-to-br from-blue-400/10 to-blue-400/5 rounded-lg p-6 border border-blue-400/20 shadow-lg shadow-blue-400/5 transition-all">
+                  <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-linear-to-br from-blue-400/10 to-blue-400/5 rounded-lg p-6 border border-blue-400/20 shadow-lg shadow-blue-400/5 transition-all">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-blue-400/20 rounded-lg flex items-center justify-center">
                         <span className="text-2xl">🍽️</span>
@@ -394,7 +394,7 @@ const AnalyticsReportsPage = () => {
                     </p>
                   </motion.div>
 
-                  <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-gradient-to-br from-purple-400/10 to-purple-400/5 rounded-lg p-6 border border-purple-400/20 shadow-lg shadow-purple-400/5 transition-all">
+                  <motion.div whileHover={{ y: -5, scale: 1.02 }} className="bg-linear-to-br from-purple-400/10 to-purple-400/5 rounded-lg p-6 border border-purple-400/20 shadow-lg shadow-purple-400/5 transition-all">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-purple-400/20 rounded-lg flex items-center justify-center">
                         <span className="text-2xl">💰</span>
@@ -765,40 +765,40 @@ const AnalyticsReportsPage = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <motion.div whileHover={{ y: -4 }} className="bg-gradient-to-br from-sangeet-400/10 to-sangeet-400/5 rounded-xl p-5 border border-sangeet-400/20">
+                    <motion.div whileHover={{ y: -4 }} className="bg-linear-to-br from-sangeet-400/10 to-sangeet-400/5 rounded-xl p-5 border border-sangeet-400/20">
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-2xl">🔄</span>
-                        <span className="text-xs text-sangeet-400 font-semibold bg-sangeet-400/20 px-2 py-0.5 rounded">Turns / Day</span>
+                        <span className="text-xs text-sangeet-400 font-semibold bg-sangeet-400/20 px-2 py-0.5 rounded-sm">Turns / Day</span>
                       </div>
                       <h4 className="text-xs font-semibold text-sangeet-neutral-400 uppercase tracking-wider mb-1">Table Turnover Rate</h4>
                       <p className="text-3xl font-bold text-white mb-1">{performanceData.tableTurnoverRate || '2.4'}</p>
                       <p className="text-xs text-sangeet-neutral-400">Turns per active table</p>
                     </motion.div>
 
-                    <motion.div whileHover={{ y: -4 }} className="bg-gradient-to-br from-emerald-400/10 to-emerald-400/5 rounded-xl p-5 border border-emerald-400/20">
+                    <motion.div whileHover={{ y: -4 }} className="bg-linear-to-br from-emerald-400/10 to-emerald-400/5 rounded-xl p-5 border border-emerald-400/20">
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-2xl">📊</span>
-                        <span className="text-xs text-emerald-400 font-semibold bg-emerald-400/20 px-2 py-0.5 rounded">High Capacity</span>
+                        <span className="text-xs text-emerald-400 font-semibold bg-emerald-400/20 px-2 py-0.5 rounded-sm">High Capacity</span>
                       </div>
                       <h4 className="text-xs font-semibold text-sangeet-neutral-400 uppercase tracking-wider mb-1">Peak Capacity Utilization</h4>
                       <p className="text-3xl font-bold text-emerald-400 mb-1">{performanceData.capacityUtilizationPct || 85}%</p>
                       <p className="text-xs text-sangeet-neutral-400">Peak dining room occupancy</p>
                     </motion.div>
 
-                    <motion.div whileHover={{ y: -4 }} className="bg-gradient-to-br from-blue-400/10 to-blue-400/5 rounded-xl p-5 border border-blue-400/20">
+                    <motion.div whileHover={{ y: -4 }} className="bg-linear-to-br from-blue-400/10 to-blue-400/5 rounded-xl p-5 border border-blue-400/20">
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-2xl">⏱️</span>
-                        <span className="text-xs text-blue-400 font-semibold bg-blue-400/20 px-2 py-0.5 rounded">Dwell Time</span>
+                        <span className="text-xs text-blue-400 font-semibold bg-blue-400/20 px-2 py-0.5 rounded-sm">Dwell Time</span>
                       </div>
                       <h4 className="text-xs font-semibold text-sangeet-neutral-400 uppercase tracking-wider mb-1">Avg Session Duration</h4>
                       <p className="text-3xl font-bold text-blue-400 mb-1">{performanceData.averageDiningDuration || '42.5'} <span className="text-sm font-normal text-sangeet-neutral-400">min</span></p>
                       <p className="text-xs text-sangeet-neutral-400">From order to table completion</p>
                     </motion.div>
 
-                    <motion.div whileHover={{ y: -4 }} className="bg-gradient-to-br from-purple-400/10 to-purple-400/5 rounded-xl p-5 border border-purple-400/20">
+                    <motion.div whileHover={{ y: -4 }} className="bg-linear-to-br from-purple-400/10 to-purple-400/5 rounded-xl p-5 border border-purple-400/20">
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-2xl">👥</span>
-                        <span className="text-xs text-purple-400 font-semibold bg-purple-400/20 px-2 py-0.5 rounded">Party Size</span>
+                        <span className="text-xs text-purple-400 font-semibold bg-purple-400/20 px-2 py-0.5 rounded-sm">Party Size</span>
                       </div>
                       <h4 className="text-xs font-semibold text-sangeet-neutral-400 uppercase tracking-wider mb-1">Average Party Size</h4>
                       <p className="text-3xl font-bold text-purple-400 mb-1">{performanceData.averagePartySize || '3.4'} <span className="text-sm font-normal text-sangeet-neutral-400">guests</span></p>
@@ -814,7 +814,7 @@ const AnalyticsReportsPage = () => {
 
       {/* Drill-Down Detail Modal */}
       {drillDownModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -857,7 +857,7 @@ const AnalyticsReportsPage = () => {
                           <span className="font-bold text-sangeet-400">#{order.orderNumber}</span>
                           <span className="text-sm text-sangeet-neutral-200">{order.customerName}</span>
                           {order.tableNumber && (
-                            <span className="text-xs bg-sangeet-neutral-700 px-2 py-0.5 rounded text-sangeet-neutral-300">
+                            <span className="text-xs bg-sangeet-neutral-700 px-2 py-0.5 rounded-sm text-sangeet-neutral-300">
                               Table {order.tableNumber}
                             </span>
                           )}
@@ -892,7 +892,7 @@ const AnalyticsReportsPage = () => {
                       <div>
                         <div className="flex items-center gap-3">
                           <span className="font-bold text-sangeet-neutral-100">{res.customerName}</span>
-                          <span className="text-xs bg-sangeet-400/20 text-sangeet-400 px-2 py-0.5 rounded">
+                          <span className="text-xs bg-sangeet-400/20 text-sangeet-400 px-2 py-0.5 rounded-sm">
                             {res.guests} Guests
                           </span>
                         </div>

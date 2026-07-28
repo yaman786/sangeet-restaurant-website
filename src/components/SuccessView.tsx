@@ -32,7 +32,7 @@ const SuccessView = ({
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="bg-gradient-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 rounded-3xl p-8 shadow-2xl border border-sangeet-neutral-700/50 backdrop-blur-xl"
+        className="bg-linear-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 rounded-3xl p-8 shadow-2xl border border-sangeet-neutral-700/50 backdrop-blur-xl"
       >
         {showSuccess ? (
           // Success State (First 5 seconds)
@@ -241,7 +241,7 @@ const SuccessView = ({
                 {/* Progress Bar */}
                 <div className="absolute top-5 left-0 right-0 h-2 bg-sangeet-neutral-700 rounded-full">
                   <div
-                    className="h-2 bg-gradient-to-r from-sangeet-400 to-sangeet-500 rounded-full transition-all duration-1000"
+                    className="h-2 bg-linear-to-r from-sangeet-400 to-sangeet-500 rounded-full transition-all duration-1000"
                     style={{ width: `${(statusStep / 4) * 100}%` }}
                   ></div>
                 </div>

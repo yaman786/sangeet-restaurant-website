@@ -260,7 +260,7 @@ const UnifiedDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#131210] selection:bg-sangeet-400 selection:text-[#131210]">
+    <div className="min-h-screen bg-sangeet-neutral-900 selection:bg-sangeet-400 selection:text-sangeet-neutral-900">
       {/* Liquid Glass Header */}
       <div className="bg-[#1C1917]/80 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50 shadow-glass">
         <div className="max-w-6xl mx-auto px-4 py-4 md:py-6">
@@ -289,7 +289,7 @@ const UnifiedDashboard = () => {
                     setManualMenuNavigation(true);
                     setCurrentView('menu');
                   }}
-                  className="px-5 py-2.5 font-semibold rounded-xl bg-sangeet-400 text-[#131210] hover:bg-sangeet-300 transition-all duration-300 shadow-gold-glow flex items-center whitespace-nowrap"
+                  className="px-5 py-2.5 font-semibold rounded-xl bg-sangeet-400 text-sangeet-neutral-900 hover:bg-sangeet-300 transition-all duration-300 shadow-gold-glow flex items-center whitespace-nowrap"
                 >
                   <ChevronLeft className="w-4 h-4 mr-2" />
                   Continue Ordering
@@ -356,7 +356,7 @@ const UnifiedDashboard = () => {
                   <div className="relative h-[40vh] min-h-[300px] w-full overflow-hidden flex items-center justify-center rounded-3xl mb-8">
                     {/* Parallax Background */}
                     <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#131210] via-[#131210]/60 to-transparent"></div>
+                    <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900 via-sangeet-neutral-900/60 to-transparent"></div>
                     
                     {/* Hero Content */}
                     <motion.div 
@@ -407,7 +407,7 @@ const UnifiedDashboard = () => {
                             onClick={() => setCurrentView('cart')}
                             className="w-full bg-[#1C1917]/90 backdrop-blur-xl border border-white/10 text-white p-4 rounded-2xl shadow-[0_0_30px_rgba(212,175,55,0.15)] hover:shadow-[0_0_40px_rgba(212,175,55,0.25)] transition-all duration-300 flex items-center justify-between group overflow-hidden relative cursor-pointer"
                           >
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                             
                             <div className="flex items-center space-x-4 relative z-10">
                               <div className="w-12 h-12 bg-sangeet-400 rounded-xl flex items-center justify-center shadow-lg">

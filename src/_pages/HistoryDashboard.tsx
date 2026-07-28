@@ -77,7 +77,7 @@ const HistoryDashboard = () => {
         </motion.div>
 
         {/* Controls */}
-        <div className="bg-sangeet-neutral-800 rounded-2xl shadow-xl border border-sangeet-neutral-700/50 p-6 mb-8 backdrop-blur-sm">
+        <div className="bg-sangeet-neutral-800 rounded-2xl shadow-xl border border-sangeet-neutral-700/50 p-6 mb-8 backdrop-blur-xs">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             
             {/* Tabs */}
@@ -113,7 +113,7 @@ const HistoryDashboard = () => {
                   name="startDate"
                   value={filters.startDate}
                   onChange={handleFilterChange}
-                  className="px-4 py-2 bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-sangeet-500 transition-all text-sm"
+                  className="px-4 py-2 bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-xl text-white focus:outline-hidden focus:ring-2 focus:ring-sangeet-500 transition-all text-sm"
                 />
               </div>
               <div className="flex flex-col">
@@ -123,7 +123,7 @@ const HistoryDashboard = () => {
                   name="endDate"
                   value={filters.endDate}
                   onChange={handleFilterChange}
-                  className="px-4 py-2 bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-sangeet-500 transition-all text-sm"
+                  className="px-4 py-2 bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-xl text-white focus:outline-hidden focus:ring-2 focus:ring-sangeet-500 transition-all text-sm"
                 />
               </div>
             </div>
@@ -262,7 +262,7 @@ const HistoryDashboard = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedOrder(null)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -328,7 +328,7 @@ const HistoryDashboard = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedReservation(null)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}

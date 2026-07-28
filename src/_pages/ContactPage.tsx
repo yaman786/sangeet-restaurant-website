@@ -46,7 +46,7 @@ const ContactPage = () => {
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950 py-12 md:py-20">
+      <div className="relative bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950 py-12 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -54,7 +54,7 @@ const ContactPage = () => {
             transition={{ duration: 0.6 }}
             className="text-center mb-8 md:mb-12"
           >
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4">
+            <div className="inline-flex items-center space-x-2 bg-linear-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4">
               <span className="text-xl md:text-2xl">📞</span>
               <span className="text-sangeet-400 font-semibold text-sm md:text-base">Contact Us</span>
             </div>
@@ -160,7 +160,7 @@ const ContactPage = () => {
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-sangeet-neutral-900/60 to-transparent"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900/60 to-transparent"></div>
                 <div className="absolute bottom-4 left-4 right-4">
                   <div className="bg-sangeet-neutral-900/90 backdrop-blur-md rounded-lg p-4 border border-sangeet-neutral-700">
                     <h4 className="text-sangeet-400 font-bold text-base md:text-lg mb-1">📍 Sangeet Restaurant</h4>
@@ -197,7 +197,7 @@ const ContactPage = () => {
                       type="text"
                       id="firstName"
                       {...register('firstName', { required: 'First name is required' })}
-                      className="w-full px-4 py-3 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-none focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 text-sm md:text-base"
+                      className="w-full px-4 py-3 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-hidden focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 text-sm md:text-base"
                       placeholder="Your first name"
                     />
                     {errors.firstName && (
@@ -212,7 +212,7 @@ const ContactPage = () => {
                       type="text"
                       id="lastName"
                       {...register('lastName', { required: 'Last name is required' })}
-                      className="w-full px-4 py-3 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-none focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 text-sm md:text-base"
+                      className="w-full px-4 py-3 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-hidden focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 text-sm md:text-base"
                       placeholder="Your last name"
                     />
                     {errors.lastName && (
@@ -235,7 +235,7 @@ const ContactPage = () => {
                         message: 'Invalid email address'
                       }
                     })}
-                    className="w-full px-4 py-3 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-none focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 text-sm md:text-base"
+                    className="w-full px-4 py-3 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-hidden focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 text-sm md:text-base"
                     placeholder="your.email@example.com"
                   />
                   {errors.email && (
@@ -251,7 +251,7 @@ const ContactPage = () => {
                     type="tel"
                     id="phone"
                     {...register('phone')}
-                    className="w-full px-4 py-3 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-none focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 text-sm md:text-base"
+                    className="w-full px-4 py-3 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-hidden focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 text-sm md:text-base"
                     placeholder="+852 2345 6789"
                   />
                 </div>
@@ -263,7 +263,7 @@ const ContactPage = () => {
                   <select
                     id="subject"
                     {...register('subject', { required: 'Subject is required' })}
-                    className="w-full px-4 py-3 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 text-sangeet-neutral-100 focus:outline-none focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 text-sm md:text-base"
+                    className="w-full px-4 py-3 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 text-sangeet-neutral-100 focus:outline-hidden focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 text-sm md:text-base"
                   >
                     <option value="">Select a subject</option>
                     <option value="reservation">Reservation Request</option>
@@ -285,7 +285,7 @@ const ContactPage = () => {
                     id="message"
                     rows={4}
                     {...register('message', { required: 'Message is required' })}
-                    className="w-full px-4 py-3 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-none focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 text-sm md:text-base resize-none"
+                    className="w-full px-4 py-3 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-hidden focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 text-sm md:text-base resize-none"
                     placeholder="Tell us how we can help you..."
                   />
                   {errors.message && (
@@ -298,7 +298,7 @@ const ContactPage = () => {
                   disabled={isSubmitting}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full bg-gradient-to-r from-sangeet-400 to-sangeet-500 text-sangeet-neutral-950 px-6 py-3 rounded-lg font-semibold hover:from-sangeet-300 hover:to-sangeet-400 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-sangeet-300 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation text-sm md:text-base"
+                  className="w-full bg-linear-to-r from-sangeet-400 to-sangeet-500 text-sangeet-neutral-950 px-6 py-3 rounded-lg font-semibold hover:from-sangeet-300 hover:to-sangeet-400 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 focus:outline-hidden focus:ring-2 focus:ring-sangeet-300 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation text-sm md:text-base"
                 >
                   {isSubmitting ? 'Sending...' : 'Send Message'}
                 </motion.button>

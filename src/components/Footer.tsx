@@ -16,7 +16,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950 border-t border-sangeet-neutral-800">
+    <footer className="bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950 border-t border-sangeet-neutral-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
           {/* Restaurant Info */}
@@ -30,7 +30,7 @@ const Footer = () => {
                 <div className="relative mb-4 sm:mb-0 sm:mr-6">
                   {/* Logo with enhanced visibility */}
                   <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 rounded-full blur-xl"></div>
+                    <div className="absolute inset-0 bg-linear-to-r from-sangeet-400/20 to-sangeet-red-500/20 rounded-full blur-xl"></div>
                     <Image src={logo} alt="Sangeet Logo" className="relative h-12 md:h-16 w-auto filter brightness-110 contrast-110" />
                   </div>
                 </div>
@@ -53,7 +53,7 @@ const Footer = () => {
                   href="#"
                   whileHover={{ scale: 1.1, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-gradient-to-r from-sangeet-400/10 to-sangeet-red-500/10 p-2.5 md:p-3 rounded-full border border-sangeet-400/20 text-sangeet-400 hover:text-sangeet-300 hover:border-sangeet-400/40 transition-all duration-300 touch-manipulation"
+                  className="bg-linear-to-r from-sangeet-400/10 to-sangeet-red-500/10 p-2.5 md:p-3 rounded-full border border-sangeet-400/20 text-sangeet-400 hover:text-sangeet-300 hover:border-sangeet-400/40 transition-all duration-300 touch-manipulation"
                   aria-label="Facebook"
                 >
                   <svg className="h-4 w-4 md:h-5 md:w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -64,7 +64,7 @@ const Footer = () => {
                   href="#"
                   whileHover={{ scale: 1.1, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-gradient-to-r from-sangeet-400/10 to-sangeet-red-500/10 p-2.5 md:p-3 rounded-full border border-sangeet-400/20 text-sangeet-400 hover:text-sangeet-300 hover:border-sangeet-400/40 transition-all duration-300 touch-manipulation"
+                  className="bg-linear-to-r from-sangeet-400/10 to-sangeet-red-500/10 p-2.5 md:p-3 rounded-full border border-sangeet-400/20 text-sangeet-400 hover:text-sangeet-300 hover:border-sangeet-400/40 transition-all duration-300 touch-manipulation"
                   aria-label="Instagram"
                 >
                   <svg className="h-4 w-4 md:h-5 md:w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -75,7 +75,7 @@ const Footer = () => {
                   href="#"
                   whileHover={{ scale: 1.1, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-gradient-to-r from-sangeet-400/10 to-sangeet-red-500/10 p-2.5 md:p-3 rounded-full border border-sangeet-400/20 text-sangeet-400 hover:text-sangeet-300 hover:border-sangeet-400/40 transition-all duration-300 touch-manipulation"
+                  className="bg-linear-to-r from-sangeet-400/10 to-sangeet-red-500/10 p-2.5 md:p-3 rounded-full border border-sangeet-400/20 text-sangeet-400 hover:text-sangeet-300 hover:border-sangeet-400/40 transition-all duration-300 touch-manipulation"
                   aria-label="Twitter"
                 >
                   <svg className="h-4 w-4 md:h-5 md:w-5" fill="currentColor" viewBox="0 0 24 24">

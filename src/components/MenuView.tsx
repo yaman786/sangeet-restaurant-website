@@ -65,7 +65,7 @@ const MenuView = ({
               placeholder="Search our culinary offerings..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3.5 pl-12 bg-white/5 border border-white/10 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-none focus:border-sangeet-400 focus:bg-white/10 transition-all duration-300"
+              className="w-full px-4 py-3.5 pl-12 bg-white/5 border border-white/10 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:border-sangeet-400 focus:bg-white/10 transition-all duration-300"
             />
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-sangeet-neutral-500 group-focus-within:text-sangeet-400 transition-colors duration-300 w-5 h-5" />
           </div>
@@ -132,8 +132,8 @@ const MenuView = ({
                     className="group bg-white/5 backdrop-blur-xl rounded-3xl p-4 border border-white/10 hover:border-sangeet-400/30 transition-all duration-400 shadow-glass overflow-hidden relative"
                   >
                     {/* Item Image */}
-                    <div className="relative mb-5 overflow-hidden rounded-2xl aspect-[4/3]">
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#1C1917]/80 to-transparent z-10"></div>
+                    <div className="relative mb-5 overflow-hidden rounded-2xl aspect-4/3">
+                      <div className="absolute inset-0 bg-linear-to-t from-[#1C1917]/80 to-transparent z-10"></div>
                       <img
                         src={item.image_url || '/placeholder-food.jpg'}
                         alt={item.name}
@@ -165,7 +165,7 @@ const MenuView = ({
                       <motion.button
                         whileTap={{ scale: 0.95 }}
                         onClick={() => onAddToCart(item)}
-                        className="w-full bg-white/5 border border-white/10 text-sangeet-400 py-3.5 px-4 rounded-xl font-semibold hover:bg-sangeet-400 hover:text-sangeet-neutral-950 transition-all duration-300 flex items-center justify-center space-x-2 shadow-sm"
+                        className="w-full bg-white/5 border border-white/10 text-sangeet-400 py-3.5 px-4 rounded-xl font-semibold hover:bg-sangeet-400 hover:text-sangeet-neutral-950 transition-all duration-300 flex items-center justify-center space-x-2 shadow-xs"
                       >
                         <Plus className="w-5 h-5" />
                         <span>Add to Order</span>

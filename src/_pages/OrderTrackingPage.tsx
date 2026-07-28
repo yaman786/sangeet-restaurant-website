@@ -285,7 +285,7 @@ const OrderTrackingPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-gradient-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-6 md:p-8 shadow-2xl border border-sangeet-neutral-700 mb-8"
+          className="bg-linear-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-6 md:p-8 shadow-2xl border border-sangeet-neutral-700 mb-8"
         >
           {/* Current Status */}
           <div className="text-center mb-8">
@@ -357,7 +357,7 @@ const OrderTrackingPage = () => {
                 {/* Progress Bar */}
                 <div className="absolute top-4 left-0 right-0 h-1 bg-sangeet-neutral-700 rounded-full">
                   <div 
-                    className="h-1 bg-gradient-to-r from-sangeet-400 to-sangeet-500 rounded-full transition-all duration-1000"
+                    className="h-1 bg-linear-to-r from-sangeet-400 to-sangeet-500 rounded-full transition-all duration-1000"
                     style={{ width: `${(statusStep / 4) * 100}%` }}
                   ></div>
                 </div>
@@ -407,7 +407,7 @@ const OrderTrackingPage = () => {
           className="grid grid-cols-1 lg:grid-cols-2 gap-8"
         >
           {/* Order Information */}
-          <div className="bg-gradient-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-6 shadow-2xl border border-sangeet-neutral-700">
+          <div className="bg-linear-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-6 shadow-2xl border border-sangeet-neutral-700">
             <h3 className="text-xl font-bold text-sangeet-400 mb-4 flex items-center">
               <span className="mr-2">📋</span>
               Order Information
@@ -452,7 +452,7 @@ const OrderTrackingPage = () => {
           </div>
 
           {/* Order Items */}
-          <div className="bg-gradient-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-6 shadow-2xl border border-sangeet-neutral-700">
+          <div className="bg-linear-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-6 shadow-2xl border border-sangeet-neutral-700">
             <h3 className="text-xl font-bold text-sangeet-400 mb-4 flex items-center">
               <span className="mr-2">🍽️</span>
               Order Items
@@ -515,7 +515,7 @@ const OrderTrackingPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="mt-8 bg-gradient-to-r from-sangeet-400/10 to-sangeet-500/10 rounded-2xl p-6 border border-sangeet-400/30"
+            className="mt-8 bg-linear-to-r from-sangeet-400/10 to-sangeet-500/10 rounded-2xl p-6 border border-sangeet-400/30"
           >
             <div className="text-center">
               <div className="text-3xl mb-3">⭐</div>
@@ -529,7 +529,7 @@ const OrderTrackingPage = () => {
                 onClick={() => {
                   setReviewModal({ isOpen: true, order: order });
                 }}
-                className="bg-gradient-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-500 hover:to-sangeet-600 text-sangeet-neutral-950 py-3 px-6 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+                className="bg-linear-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-500 hover:to-sangeet-600 text-sangeet-neutral-950 py-3 px-6 rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
               >
                 📝 Submit Review
               </button>

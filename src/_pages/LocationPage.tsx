@@ -88,7 +88,7 @@ const LocationPage = () => {
                         alt="Wanchai Hong Kong Street Scene"
                         className="w-full h-full object-cover opacity-60"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-sangeet-neutral-950 via-sangeet-neutral-950/50 to-transparent"></div>
+                    <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-950 via-sangeet-neutral-950/50 to-transparent"></div>
                 </div>
 
                 <div className="relative z-10 text-center px-4 max-w-4xl mx-auto mt-16">
@@ -101,7 +101,7 @@ const LocationPage = () => {
                             📍 Wanchai, Hong Kong
                         </div>
                         <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-                            Where Heritage Meets <span className="text-transparent bg-clip-text bg-gradient-to-r from-sangeet-400 to-red-500">Hustle</span>
+                            Where Heritage Meets <span className="text-transparent bg-clip-text bg-linear-to-r from-sangeet-400 to-red-500">Hustle</span>
                         </h1>
                         <p className="text-xl text-sangeet-neutral-300 leading-relaxed">
                             Dining in the heart of Hong Kong's most vibrant district.
@@ -174,7 +174,7 @@ const LocationPage = () => {
                             >
                                 <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{transit.icon}</div>
                                 <h3 className="text-xl font-bold text-white mb-2">{transit.mode}</h3>
-                                <div className="bg-sangeet-neutral-800 inline-block px-3 py-1 rounded text-sangeet-400 text-sm font-semibold mb-4">
+                                <div className="bg-sangeet-neutral-800 inline-block px-3 py-1 rounded-sm text-sangeet-400 text-sm font-semibold mb-4">
                                     {transit.highlight}
                                 </div>
                                 <h4 className="text-lg font-semibold text-sangeet-300 mb-1">{transit.title}</h4>
@@ -223,7 +223,7 @@ const LocationPage = () => {
                                             <h3 className="text-lg font-bold text-white mb-1 group-hover:text-sangeet-400 transition-colors">{spot.title}</h3>
                                             <span className="text-xs font-semibold text-sangeet-neutral-500 uppercase tracking-wider">{spot.category}</span>
                                         </div>
-                                        <span className="bg-sangeet-400/10 text-sangeet-400 text-xs font-bold px-2 py-1 rounded">
+                                        <span className="bg-sangeet-400/10 text-sangeet-400 text-xs font-bold px-2 py-1 rounded-sm">
                                             {spot.distance}
                                         </span>
                                     </div>

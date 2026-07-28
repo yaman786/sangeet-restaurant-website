@@ -15,7 +15,7 @@ const RoleFilter = ({
     <>
       {/* Enhanced Stats Cards with Better Labels */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-        <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-sangeet-400/30 transition-all duration-300 group">
+        <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-sangeet-400/30 transition-all duration-300 group">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-sangeet-400/20 rounded-lg flex items-center justify-center group-hover:bg-sangeet-400/30 transition-colors">
               <span className="text-lg">👥</span>
@@ -29,7 +29,7 @@ const RoleFilter = ({
           <div className="text-xs text-sangeet-neutral-400 mt-1">Everyone in your restaurant</div>
         </div>
 
-        <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-green-400/30 transition-all duration-300 group">
+        <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-green-400/30 transition-all duration-300 group">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center group-hover:bg-green-400/30 transition-colors">
               <span className="text-lg">✅</span>
@@ -43,7 +43,7 @@ const RoleFilter = ({
           <div className="text-xs text-sangeet-neutral-400 mt-1">Can access the system</div>
         </div>
 
-        <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-red-400/30 transition-all duration-300 group">
+        <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-red-400/30 transition-all duration-300 group">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-red-400/20 rounded-lg flex items-center justify-center group-hover:bg-red-400/30 transition-colors">
               <span className="text-lg">🚫</span>
@@ -57,7 +57,7 @@ const RoleFilter = ({
           <div className="text-xs text-sangeet-neutral-400 mt-1">Account disabled</div>
         </div>
 
-        <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-purple-400/30 transition-all duration-300 group">
+        <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-purple-400/30 transition-all duration-300 group">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-purple-400/20 rounded-lg flex items-center justify-center group-hover:bg-purple-400/30 transition-colors">
               <span className="text-lg">👑</span>
@@ -71,7 +71,7 @@ const RoleFilter = ({
           <div className="text-xs text-sangeet-neutral-400 mt-1">Full system access</div>
         </div>
 
-        <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-blue-400/30 transition-all duration-300 group">
+        <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-blue-400/30 transition-all duration-300 group">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-blue-400/20 rounded-lg flex items-center justify-center group-hover:bg-blue-400/30 transition-colors">
               <span className="text-lg">👤</span>
@@ -85,7 +85,7 @@ const RoleFilter = ({
           <div className="text-xs text-sangeet-neutral-400 mt-1">Kitchen & service access</div>
         </div>
 
-        <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-orange-400/30 transition-all duration-300 group">
+        <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-orange-400/30 transition-all duration-300 group">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-orange-400/20 rounded-lg flex items-center justify-center group-hover:bg-orange-400/30 transition-colors">
               <span className="text-lg">🆕</span>
@@ -114,7 +114,7 @@ const RoleFilter = ({
                 placeholder="Search by name, username, or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200"
+                className="w-full pl-10 pr-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200"
               />
               {searchTerm && (
                 <button
@@ -133,7 +133,7 @@ const RoleFilter = ({
               <select
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                className="appearance-none px-4 py-3 pr-8 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200 cursor-pointer"
+                className="appearance-none px-4 py-3 pr-8 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200 cursor-pointer"
               >
                 <option value="all">👥 All Roles</option>
                 <option value="admin">👑 Admin</option>
@@ -148,7 +148,7 @@ const RoleFilter = ({
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="appearance-none px-4 py-3 pr-8 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-none transition-all duration-200 cursor-pointer"
+                className="appearance-none px-4 py-3 pr-8 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200 cursor-pointer"
               >
                 <option value="all">📊 All Status</option>
                 <option value="active">✅ Active</option>
@@ -163,7 +163,7 @@ const RoleFilter = ({
           {/* Add User Button */}
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-gradient-to-r from-sangeet-400 to-sangeet-300 text-sangeet-neutral-950 font-semibold rounded-lg hover:from-sangeet-300 hover:to-sangeet-200 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-sangeet-400/25 flex items-center gap-2 whitespace-nowrap"
+            className="px-6 py-3 bg-linear-to-r from-sangeet-400 to-sangeet-300 text-sangeet-neutral-950 font-semibold rounded-lg hover:from-sangeet-300 hover:to-sangeet-200 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-sangeet-400/25 flex items-center gap-2 whitespace-nowrap"
           >
             <span className="text-lg">➕</span>
             Add New User

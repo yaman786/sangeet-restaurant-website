@@ -66,12 +66,12 @@ const AdminHeader = ({ title = 'Admin Dashboard', subtitle, showBackButton = tru
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 border-b border-sangeet-neutral-700 shadow-lg">
+    <header className="sticky top-0 z-50 bg-linear-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 border-b border-sangeet-neutral-700 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Title */}
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-sangeet-400 to-sangeet-500 rounded-full flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-linear-to-br from-sangeet-400 to-sangeet-500 rounded-full flex items-center justify-center shadow-lg">
               <span className="text-2xl">🍽️</span>
             </div>
             <div>
@@ -101,7 +101,7 @@ const AdminHeader = ({ title = 'Admin Dashboard', subtitle, showBackButton = tru
             {/* User Menu */}
             <div className="relative group">
               <button className="flex items-center space-x-2 text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors">
-                <div className="w-8 h-8 bg-gradient-to-br from-sangeet-400 to-sangeet-500 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-linear-to-br from-sangeet-400 to-sangeet-500 rounded-full flex items-center justify-center">
                   <span className="text-sm font-bold text-sangeet-neutral-950">A</span>
                 </div>
                 <span className="hidden md:block">Admin</span>

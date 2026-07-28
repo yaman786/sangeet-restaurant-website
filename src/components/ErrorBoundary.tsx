@@ -38,7 +38,7 @@ class ErrorBoundary extends React.Component<Props, State> {
                   <summary className="cursor-pointer text-sangeet-400">
                     Error Details
                   </summary>
-                  <pre className="mt-2 text-sm bg-sangeet-neutral-800 p-4 rounded overflow-auto">
+                  <pre className="mt-2 text-sm bg-sangeet-neutral-800 p-4 rounded-sm overflow-auto">
                     {this.state.error.toString()}
                     {this.state.errorInfo && this.state.errorInfo.componentStack}
                   </pre>
@@ -47,7 +47,7 @@ class ErrorBoundary extends React.Component<Props, State> {
             </div>
             <button
               onClick={() => window.location.reload()}
-              className="bg-sangeet-400 text-sangeet-neutral-950 px-4 py-2 rounded hover:bg-sangeet-300"
+              className="bg-sangeet-400 text-sangeet-neutral-950 px-4 py-2 rounded-sm hover:bg-sangeet-300"
             >
               Reload Page
             </button>

@@ -186,7 +186,7 @@ const OrderControls = ({
                     type="date"
                     value={filters.date}
                     onChange={(e) => setFilters({ ...filters, date: e.target.value })}
-                    className="px-4 py-2 rounded-lg text-sm font-medium border border-sangeet-neutral-300 focus:outline-none focus:ring-2 focus:ring-sangeet-400 bg-white hover:bg-sangeet-neutral-50 transition-all duration-200"
+                    className="px-4 py-2 rounded-lg text-sm font-medium border border-sangeet-neutral-300 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 bg-white hover:bg-sangeet-neutral-50 transition-all duration-200"
                     placeholder="Select Date"
                   />
                 </div>

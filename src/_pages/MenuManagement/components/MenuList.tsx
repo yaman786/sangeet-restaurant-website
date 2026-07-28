@@ -56,13 +56,13 @@ const MenuList = ({
                 <p className="text-sangeet-neutral-400 text-sm mb-3">{item.description}</p>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {item.is_vegetarian && (
-                    <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs">Vegetarian</span>
+                    <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded-sm text-xs">Vegetarian</span>
                   )}
                   {item.is_spicy && (
-                    <span className="bg-red-500/20 text-red-400 px-2 py-1 rounded text-xs">Spicy</span>
+                    <span className="bg-red-500/20 text-red-400 px-2 py-1 rounded-sm text-xs">Spicy</span>
                   )}
                   {item.is_popular && (
-                    <span className="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded text-xs">Popular</span>
+                    <span className="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-sm text-xs">Popular</span>
                   )}
                 </div>
                 <div className="flex justify-between items-center">

@@ -272,7 +272,7 @@ const QRCartPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#131210] text-sangeet-neutral-100 selection:bg-sangeet-400 selection:text-[#131210] pb-24">
+    <div className="min-h-screen bg-sangeet-neutral-900 text-sangeet-neutral-100 selection:bg-sangeet-400 selection:text-sangeet-neutral-900 pb-24">
       {/* Liquid Glass Header */}
       <div className="bg-[#1C1917]/80 backdrop-blur-xl border-b border-white/10 p-4 sticky top-0 z-50 shadow-glass">
         <div className="max-w-4xl mx-auto">
@@ -335,7 +335,7 @@ const QRCartPage = () => {
                     type="text"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full px-5 py-4 bg-[#131210]/50 border border-white/10 rounded-xl text-white focus:outline-none focus:border-sangeet-400 focus:bg-[#131210] transition-all duration-300 shadow-inner"
+                    className="w-full px-5 py-4 bg-sangeet-neutral-900/50 border border-white/10 rounded-xl text-white focus:outline-hidden focus:border-sangeet-400 focus:bg-sangeet-neutral-900 transition-all duration-300 shadow-inner"
                     placeholder="E.g., Jane Doe"
                   />
                 </div>
@@ -346,7 +346,7 @@ const QRCartPage = () => {
                       type="text"
                       value={specialInstructions}
                       onChange={(e) => setSpecialInstructions(e.target.value)}
-                      className="w-full px-5 py-4 bg-[#131210]/50 border border-white/10 rounded-xl text-white focus:outline-none focus:border-sangeet-400 focus:bg-[#131210] transition-all duration-300 shadow-inner pl-12"
+                      className="w-full px-5 py-4 bg-sangeet-neutral-900/50 border border-white/10 rounded-xl text-white focus:outline-hidden focus:border-sangeet-400 focus:bg-sangeet-neutral-900 transition-all duration-300 shadow-inner pl-12"
                       placeholder="Allergies, preferences..."
                     />
                     <MessageSquare className="w-5 h-5 text-sangeet-neutral-500 absolute left-4 top-1/2 transform -translate-y-1/2" />
@@ -367,7 +367,7 @@ const QRCartPage = () => {
                 {cart.map((item: any) => (
                   <div
                     key={item.menu_item_id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between bg-[#131210]/30 rounded-2xl p-4 border border-white/5"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between bg-sangeet-neutral-900/30 rounded-2xl p-4 border border-white/5"
                   >
                     <div className="flex-1 mb-4 sm:mb-0">
                       <h3 className="font-display text-xl text-white mb-1">{item.name}</h3>
@@ -387,7 +387,7 @@ const QRCartPage = () => {
                         <motion.button
                           whileTap={{ scale: 0.9 }}
                           onClick={() => updateQuantity(item.menu_item_id, item.quantity + 1)}
-                          className="w-8 h-8 bg-sangeet-400 text-[#131210] rounded-full flex items-center justify-center hover:bg-sangeet-300 transition-colors"
+                          className="w-8 h-8 bg-sangeet-400 text-sangeet-neutral-900 rounded-full flex items-center justify-center hover:bg-sangeet-300 transition-colors"
                         >
                           <Plus className="w-4 h-4" />
                         </motion.button>
@@ -447,7 +447,7 @@ const QRCartPage = () => {
                   className="flex-1 bg-sangeet-400 text-sangeet-neutral-950 px-8 py-4 rounded-xl font-bold hover:bg-sangeet-300 transition-all duration-300 disabled:opacity-50 shadow-gold-glow text-lg relative overflow-hidden group"
                 >
                   {/* Shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                  <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                   <span className="relative z-10">{isSubmitting ? 'Confirming...' : 'Place Order'}</span>
                 </button>
               </div>

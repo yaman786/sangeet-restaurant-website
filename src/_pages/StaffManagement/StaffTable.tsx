@@ -12,7 +12,7 @@ const StaffTable = ({
   return (
     <div className="bg-sangeet-neutral-900 rounded-xl border border-sangeet-neutral-700 overflow-hidden shadow-xl">
       {/* Table Header */}
-      <div className="bg-gradient-to-r from-sangeet-neutral-800 to-sangeet-neutral-750 px-6 py-4 border-b border-sangeet-neutral-700">
+      <div className="bg-linear-to-r from-sangeet-neutral-800 to-sangeet-neutral-750 px-6 py-4 border-b border-sangeet-neutral-700">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-sangeet-neutral-100 flex items-center gap-2">
             <span>👥</span>
@@ -55,7 +55,7 @@ const StaffTable = ({
                 <td className="px-6 py-5">
                   <div className="flex items-center space-x-4">
                     <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-gradient-to-br from-sangeet-400/20 to-sangeet-400/10 rounded-full flex items-center justify-center border border-sangeet-400/20">
+                      <div className="w-12 h-12 bg-linear-to-br from-sangeet-400/20 to-sangeet-400/10 rounded-full flex items-center justify-center border border-sangeet-400/20">
                         <span className="text-lg font-semibold text-sangeet-400">
                           {user.first_name[0]}{user.last_name[0]}
                         </span>

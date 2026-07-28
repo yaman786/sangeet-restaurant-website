@@ -28,7 +28,7 @@ const CartView = ({
       </div>
 
       {/* Cart Items */}
-      <div className="bg-gradient-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-6 border border-sangeet-neutral-700">
+      <div className="bg-linear-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-6 border border-sangeet-neutral-700">
         {cart.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🛒</div>
@@ -81,7 +81,7 @@ const CartView = ({
                     >
                       -
                     </button>
-                    <span className="text-lg font-semibold text-sangeet-neutral-200 min-w-[2rem] text-center">
+                    <span className="text-lg font-semibold text-sangeet-neutral-200 min-w-8 text-center">
                       {item.quantity}
                     </span>
                     <button
@@ -135,7 +135,7 @@ const CartView = ({
               <button
                 onClick={onPlaceOrder}
                 disabled={loading}
-                className="flex-1 bg-gradient-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-300 hover:to-sangeet-400 text-sangeet-neutral-950 py-4 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-linear-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-300 hover:to-sangeet-400 text-sangeet-neutral-950 py-4 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>

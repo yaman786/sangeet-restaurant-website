@@ -28,7 +28,7 @@ const NotFoundPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-800 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -42,7 +42,7 @@ const NotFoundPage = () => {
           className="mb-8"
         >
           <h1 className="text-8xl font-bold text-sangeet-400 mb-4">404</h1>
-          <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-sangeet-400/20 to-sangeet-500/20 rounded-full flex items-center justify-center border border-sangeet-400/30">
+          <div className="w-32 h-32 mx-auto mb-6 bg-linear-to-br from-sangeet-400/20 to-sangeet-500/20 rounded-full flex items-center justify-center border border-sangeet-400/30">
             <span className="text-6xl">🍽️</span>
           </div>
         </motion.div>
@@ -74,7 +74,7 @@ const NotFoundPage = () => {
         >
           <button
             onClick={handleGoHome}
-            className="w-full bg-gradient-to-r from-sangeet-400 to-sangeet-500 text-sangeet-neutral-950 font-bold py-3 px-6 rounded-lg hover:from-sangeet-300 hover:to-sangeet-400 transition-all duration-200 shadow-lg hover:shadow-xl"
+            className="w-full bg-linear-to-r from-sangeet-400 to-sangeet-500 text-sangeet-neutral-950 font-bold py-3 px-6 rounded-lg hover:from-sangeet-300 hover:to-sangeet-400 transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             🏠 Go to Homepage
           </button>

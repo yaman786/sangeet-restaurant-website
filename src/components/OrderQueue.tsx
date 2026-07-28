@@ -33,7 +33,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     
     if (elapsedMin >= 20) return 'border-red-500 bg-red-500/10 shadow-md shadow-red-500/10';
     if (elapsedMin >= 10) return 'border-yellow-500 bg-yellow-500/10 shadow-md shadow-yellow-500/10';
-    return 'border-green-500 bg-green-500/5 shadow-sm shadow-green-500/5';
+    return 'border-green-500 bg-green-500/5 shadow-xs shadow-green-500/5';
   };
 
   const statusOptions = [
@@ -416,7 +416,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
               <div className="mb-3">
                 <p className="text-sm text-sangeet-neutral-100 font-medium">{order.customer_name}</p>
                 {order.special_instructions && (
-                  <div className="mt-1 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-xs">
+                  <div className="mt-1 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-sm text-xs">
                     <p className="text-yellow-400">
                       <strong>Note:</strong> {order.special_instructions}
                     </p>
@@ -425,21 +425,21 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
               </div>
 
               {/* Order Items - Compact */}
-              <div className="mb-3 flex-grow">
+              <div className="mb-3 grow">
                 <h4 className="text-xs font-medium text-sangeet-neutral-400 mb-1">Items:</h4>
                 
                 <div className="space-y-1">
                   {order.items && order.items.map((item: any) => (
                     <div key={item.id} className="flex justify-between items-center text-xs py-1 group">
-                      <div className="flex items-center space-x-2 flex-grow">
+                      <div className="flex items-center space-x-2 grow">
                         <span className={`transition-all ${item.status === 'cancelled' ? 'text-red-500/70 line-through' : 'text-sangeet-neutral-300'}`}>
                           {item.quantity}x {item.menu_item_name || item.name}
                         </span>
                         {item.status === 'cancelled' && (
-                          <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded uppercase font-bold">Cancelled</span>
+                          <span className="text-[10px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-sm uppercase font-bold">Cancelled</span>
                         )}
                         {item.special_instructions && item.status !== 'cancelled' && (
-                          <span className="text-orange-400 text-[11px] bg-orange-400/10 px-1 rounded truncate max-w-[120px]">
+                          <span className="text-orange-400 text-[11px] bg-orange-400/10 px-1 rounded-sm truncate max-w-[120px]">
                             {item.special_instructions}
                           </span>
                         )}
@@ -449,7 +449,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
                       {kitchenMode && item.status !== 'cancelled' && order.status !== 'completed' && order.status !== 'cancelled' && (
                         <button 
                           onClick={() => handleItemCancel(order.id, item.id, item.menu_item_name || item.name)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 text-sangeet-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 text-sangeet-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-sm"
                           title="Cancel this item"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -556,7 +556,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}

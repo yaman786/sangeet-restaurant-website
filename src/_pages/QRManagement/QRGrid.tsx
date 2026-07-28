@@ -115,7 +115,7 @@ const QRGrid = ({
             >
               <div className="flex flex-col h-full group relative">
                 {/* QR Code Poster Area - Perfect 3:4 Aspect Ratio */}
-                <div className="relative w-full overflow-hidden aspect-[3/4] bg-sangeet-neutral-950 flex items-center justify-center">
+                <div className="relative w-full overflow-hidden aspect-3/4 bg-sangeet-neutral-950 flex items-center justify-center">
                   <img
                     src={qrCode.qr_code_data}
                     alt={`QR Code for Table ${qrCode.table_number}`}
@@ -123,21 +123,21 @@ const QRGrid = ({
                   />
                   
                   {/* Subtle gradient overlay to blend with the bottom bar */}
-                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-sangeet-neutral-900 to-transparent opacity-80"></div>
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-sangeet-neutral-900 to-transparent opacity-80"></div>
                   
                   {!qrCode.is_active ? (
-                    <div className="absolute top-3 left-3 px-3 py-1.5 text-xs font-bold bg-sangeet-neutral-800/90 backdrop-blur-sm text-sangeet-neutral-300 rounded-full shadow-lg border border-sangeet-neutral-600/50">
+                    <div className="absolute top-3 left-3 px-3 py-1.5 text-xs font-bold bg-sangeet-neutral-800/90 backdrop-blur-xs text-sangeet-neutral-300 rounded-full shadow-lg border border-sangeet-neutral-600/50">
                       Archived
                     </div>
                   ) : (qrCode.active_orders || 0) > 0 && (
-                    <div className="absolute top-3 right-3 px-3 py-1.5 text-xs font-bold bg-orange-500/90 backdrop-blur-sm text-white rounded-full shadow-lg border border-orange-400/50">
+                    <div className="absolute top-3 right-3 px-3 py-1.5 text-xs font-bold bg-orange-500/90 backdrop-blur-xs text-white rounded-full shadow-lg border border-orange-400/50">
                       {qrCode.active_orders} active
                     </div>
                   )}
                 </div>
 
                 {/* Details & Actions Area */}
-                <div className="p-5 flex flex-col justify-between flex-grow bg-sangeet-neutral-900 relative z-10">
+                <div className="p-5 flex flex-col justify-between grow bg-sangeet-neutral-900 relative z-10">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="p-2.5 bg-sangeet-neutral-950 rounded-xl shadow-inner border border-sangeet-neutral-800">

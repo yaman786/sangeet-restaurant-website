@@ -131,7 +131,7 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
         </motion.div>
 
         {/* Cinematic Overlay — deep vignette */}
-        <div className="absolute inset-0 bg-gradient-to-b from-sangeet-neutral-950/70 via-sangeet-neutral-950/40 to-sangeet-neutral-950/90 z-10" />
+        <div className="absolute inset-0 bg-linear-to-b from-sangeet-neutral-950/70 via-sangeet-neutral-950/40 to-sangeet-neutral-950/90 z-10" />
 
         {/* Hero Content */}
         <motion.div
@@ -314,7 +314,7 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
               fill
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-sangeet-neutral-950/30 hidden lg:block" />
+            <div className="absolute inset-0 bg-linear-to-r from-transparent to-sangeet-neutral-950/30 hidden lg:block" />
           </motion.div>
 
           {/* Content Side */}
@@ -391,7 +391,7 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
                           sizes="(max-width: 768px) 100vw, 50vw"
                           className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out-expo"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-sangeet-neutral-950/95 via-sangeet-neutral-950/30 to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-950/95 via-sangeet-neutral-950/30 to-transparent" />
 
                         {/* Content Overlay */}
                         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10">
@@ -467,7 +467,7 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
                 >
                   <div className="relative h-44">
                     <Image src={event.image_url} alt={event.title} fill sizes="280px" className="object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-sangeet-neutral-900 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900 to-transparent" />
                     <div className="absolute top-3 left-3">
                       <span className="px-2.5 py-1 rounded-full bg-sangeet-400/20 text-sangeet-400 text-caption font-semibold border border-sangeet-400/20">
                         {event.category}

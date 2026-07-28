@@ -102,7 +102,7 @@ const OrderTable = ({
                   </td>
                 )}
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full shadow-sm transition-all duration-200 ${
+                  <span className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full shadow-xs transition-all duration-200 ${
                     order.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' :
                     order.status === 'confirmed' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
                     order.status === 'preparing' ? 'bg-orange-100 text-orange-800 border border-orange-300' :

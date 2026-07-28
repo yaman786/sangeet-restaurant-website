@@ -98,14 +98,14 @@ const StaffManagement = () => {
                   <button
                     onClick={() => setPage(Math.max(1, page - 1))}
                     disabled={page === 1}
-                    className="px-4 py-2 bg-sangeet-neutral-800 text-sangeet-neutral-300 rounded hover:bg-sangeet-neutral-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-sangeet-neutral-800 text-sangeet-neutral-300 rounded-sm hover:bg-sangeet-neutral-700 disabled:opacity-50"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => setPage(Math.min(metadata.totalPages, page + 1))}
                     disabled={page === metadata.totalPages}
-                    className="px-4 py-2 bg-sangeet-neutral-800 text-sangeet-neutral-300 rounded hover:bg-sangeet-neutral-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-sangeet-neutral-800 text-sangeet-neutral-300 rounded-sm hover:bg-sangeet-neutral-700 disabled:opacity-50"
                   >
                     Next
                   </button>
@@ -135,7 +135,7 @@ const StaffManagement = () => {
                 <div className="space-y-4">
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="px-8 py-3 bg-gradient-to-r from-sangeet-400 to-sangeet-300 text-sangeet-neutral-950 font-semibold rounded-lg hover:from-sangeet-300 hover:to-sangeet-200 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center gap-2 mx-auto"
+                    className="px-8 py-3 bg-linear-to-r from-sangeet-400 to-sangeet-300 text-sangeet-neutral-950 font-semibold rounded-lg hover:from-sangeet-300 hover:to-sangeet-200 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center gap-2 mx-auto"
                   >
                     <span>➕</span>
                     Add Your First Team Member
@@ -164,8 +164,8 @@ const StaffManagement = () => {
 
       {/* Enhanced Create User Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl border border-sangeet-neutral-600 w-full max-w-lg mx-4 shadow-2xl transform transition-all duration-300 max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl border border-sangeet-neutral-600 w-full max-w-lg mx-4 shadow-2xl transform transition-all duration-300 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-sangeet-neutral-700">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-sangeet-400/20 rounded-lg flex items-center justify-center">
@@ -199,11 +199,11 @@ const StaffManagement = () => {
 
       {/* Enhanced Edit User Modal */}
       {showEditModal && editingUser && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl border border-sangeet-neutral-600 w-full max-w-2xl mx-4 shadow-2xl transform transition-all duration-300 max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl border border-sangeet-neutral-600 w-full max-w-2xl mx-4 shadow-2xl transform transition-all duration-300 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between p-6 border-b border-sangeet-neutral-700">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-sangeet-400/20 to-sangeet-400/10 rounded-full flex items-center justify-center border border-sangeet-400/20">
+                <div className="w-12 h-12 bg-linear-to-br from-sangeet-400/20 to-sangeet-400/10 rounded-full flex items-center justify-center border border-sangeet-400/20">
                   <span className="text-lg font-semibold text-sangeet-400">
                     {editingUser.first_name[0]}{editingUser.last_name[0]}
                   </span>
@@ -236,11 +236,11 @@ const StaffManagement = () => {
 
       {/* Professional Confirmation Modal */}
       {showConfirmModal && confirmAction && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl border border-sangeet-neutral-600 w-full max-w-md mx-4 shadow-2xl transform transition-all duration-300">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl border border-sangeet-neutral-600 w-full max-w-md mx-4 shadow-2xl transform transition-all duration-300">
             <div className="flex items-center gap-4 p-6 border-b border-sangeet-neutral-700">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-sangeet-400/20 to-sangeet-400/10 rounded-full flex items-center justify-center border border-sangeet-400/20">
+                <div className="w-12 h-12 bg-linear-to-br from-sangeet-400/20 to-sangeet-400/10 rounded-full flex items-center justify-center border border-sangeet-400/20">
                   <span className="text-lg font-semibold text-sangeet-400">
                     {confirmAction.user?.first_name[0]}{confirmAction.user?.last_name[0]}
                   </span>

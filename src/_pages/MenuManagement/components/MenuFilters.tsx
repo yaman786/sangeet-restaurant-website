@@ -39,17 +39,17 @@ const MenuFilters = ({ filters, handleFilterChange, categories, clearFilters }: 
           </div>
           <div className="flex flex-wrap gap-2">
             {filters.search && (
-              <span className="bg-sangeet-400/20 text-sangeet-400 px-2 py-1 rounded text-xs">
+              <span className="bg-sangeet-400/20 text-sangeet-400 px-2 py-1 rounded-sm text-xs">
                 Search: "{filters.search}"
               </span>
             )}
             {filters.category && (
-              <span className="bg-sangeet-400/20 text-sangeet-400 px-2 py-1 rounded text-xs">
+              <span className="bg-sangeet-400/20 text-sangeet-400 px-2 py-1 rounded-sm text-xs">
                 Category: {filters.category}
               </span>
             )}
             {filters.priceRange && (
-              <span className="bg-sangeet-400/20 text-sangeet-400 px-2 py-1 rounded text-xs">
+              <span className="bg-sangeet-400/20 text-sangeet-400 px-2 py-1 rounded-sm text-xs">
                 Price: {filters.priceRange === '0-10' ? 'Under $10' : 
                        filters.priceRange === '10-20' ? '$10 - $20' :
                        filters.priceRange === '20-30' ? '$20 - $30' :
@@ -57,7 +57,7 @@ const MenuFilters = ({ filters, handleFilterChange, categories, clearFilters }: 
               </span>
             )}
             {filters.tags.map((tag: any) => (
-              <span key={tag} className="bg-sangeet-400/20 text-sangeet-400 px-2 py-1 rounded text-xs">
+              <span key={tag} className="bg-sangeet-400/20 text-sangeet-400 px-2 py-1 rounded-sm text-xs">
                 {tag === 'vegetarian' ? '🥬 Vegetarian' :
                  tag === 'spicy' ? '🌶️ Spicy' :
                  tag === 'popular' ? '⭐ Popular' : tag}

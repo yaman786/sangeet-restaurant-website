@@ -42,7 +42,7 @@ const OrderSuccessPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center space-x-2 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4"
+            className="inline-flex items-center space-x-2 bg-linear-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4"
           >
             <span className="text-xl md:text-2xl">✅</span>
             <span className="text-sangeet-400 font-semibold text-sm md:text-base">Order Success</span>
@@ -52,7 +52,7 @@ const OrderSuccessPage = () => {
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="mx-auto h-24 w-24 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mb-6 shadow-2xl"
+            className="mx-auto h-24 w-24 bg-linear-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mb-6 shadow-2xl"
           >
             <span className="text-4xl">✅</span>
           </motion.div>
@@ -82,7 +82,7 @@ const OrderSuccessPage = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="bg-gradient-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 shadow-2xl border border-sangeet-neutral-700"
+          className="bg-linear-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 shadow-2xl border border-sangeet-neutral-700"
         >
           <h2 className="text-2xl font-bold text-sangeet-400 mb-6 flex items-center">
             <span className="mr-3">📋</span>
@@ -125,7 +125,7 @@ const OrderSuccessPage = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-2xl p-6 border border-blue-500/30"
+          className="bg-linear-to-r from-blue-900/20 to-purple-900/20 rounded-2xl p-6 border border-blue-500/30"
         >
           <h3 className="text-lg font-semibold text-blue-400 mb-4 flex items-center">
             <span className="mr-2">⏱️</span>
@@ -165,7 +165,7 @@ const OrderSuccessPage = () => {
           
                            <button
                    onClick={() => window.open(`/track?orderId=${orderId}`, '_blank')}
-                   className="flex-1 bg-gradient-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-300 hover:to-sangeet-400 text-sangeet-neutral-950 py-4 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
+                   className="flex-1 bg-linear-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-300 hover:to-sangeet-400 text-sangeet-neutral-950 py-4 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
                  >
                    <span>📱</span>
                    <span>Track Your Order</span>

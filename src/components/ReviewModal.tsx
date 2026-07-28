@@ -74,7 +74,7 @@ const ReviewModal = ({
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 border border-sangeet-400 max-w-md w-full text-center"
+            className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 border border-sangeet-400 max-w-md w-full text-center"
           >
             <div className="text-6xl mb-4">🎉</div>
                           <h2 className="text-2xl font-bold text-sangeet-400 mb-4">
@@ -99,7 +99,7 @@ const ReviewModal = ({
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 border border-sangeet-neutral-700 max-w-md w-full"
+            className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 border border-sangeet-neutral-700 max-w-md w-full"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -131,7 +131,7 @@ const ReviewModal = ({
                             onClick={() => field.onChange(star)}
                             onMouseEnter={() => setHoverRating(star)}
                             onMouseLeave={() => setHoverRating(0)}
-                            className="text-4xl focus:outline-none"
+                            className="text-4xl focus:outline-hidden"
                           >
                             <span className={star <= (hoverRating || (field.value as number)) ? "text-yellow-400" : "text-gray-500"}>
                               ★
@@ -153,7 +153,7 @@ const ReviewModal = ({
                 <textarea
                   {...register('review_text')}
                   placeholder="Tell us what you loved (or how we can improve)..."
-                  className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-xl p-4 text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:ring-2 focus:ring-sangeet-400 focus:border-transparent outline-none transition-all resize-none h-32"
+                  className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-xl p-4 text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:ring-2 focus:ring-sangeet-400 focus:border-transparent outline-hidden transition-all resize-none h-32"
                 />
                 {errors.review_text && (
                   <p className="mt-1 text-sm text-red-400 text-left">

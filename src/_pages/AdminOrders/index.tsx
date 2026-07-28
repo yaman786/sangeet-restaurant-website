@@ -108,7 +108,7 @@ const AdminOrders = () => {
 
         {/* Active Orders Modal */}
         {activeOrdersModal.isOpen && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -123,7 +123,7 @@ const AdminOrders = () => {
                 >
                   <X size={20} />
                 </button>
-                <div className="w-12 h-12 bg-[#D4AF37]/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#D4AF37]/30">
+                <div className="w-12 h-12 bg-sangeet-400/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-sangeet-400/30">
                   <Receipt className="text-[#D4AF37]" size={24} />
                 </div>
                 <h2 className="text-white text-lg font-medium opacity-80 mb-1">Total Due</h2>
@@ -164,7 +164,7 @@ const AdminOrders = () => {
               <div className="p-6 bg-white/5 border-t border-white/10">
                 <button
                   onClick={handleCompleteAllCustomerOrders}
-                  className="w-full bg-[#D4AF37] hover:bg-[#B8972E] text-black font-semibold text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                  className="w-full bg-sangeet-400 hover:bg-[#B8972E] text-black font-semibold text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all flex items-center justify-center space-x-2 cursor-pointer"
                 >
                   <CheckCircle size={20} />
                   <span>Charge ${activeOrdersModal.activeOrders.reduce((sum: any, order: any) => sum + Number(order.total_amount || 0), 0).toFixed(2)}</span>
@@ -187,7 +187,7 @@ const AdminOrders = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 border border-sangeet-neutral-700 max-w-md w-full"
+              className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 border border-sangeet-neutral-700 max-w-md w-full"
             >
               {/* Header */}
               <div className="text-center mb-6">
@@ -238,7 +238,7 @@ const AdminOrders = () => {
                 </button>
                 <button
                   onClick={confirmDeleteOrder}
-                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-3 px-4 rounded-xl transition-all duration-200"
+                  className="flex-1 bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-3 px-4 rounded-xl transition-all duration-200"
                 >
                   Delete Order
                 </button>
@@ -262,7 +262,7 @@ const AdminOrders = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 border border-sangeet-neutral-700 max-w-md w-full"
+              className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 border border-sangeet-neutral-700 max-w-md w-full"
             >
               {/* Header */}
               <div className="text-center mb-6">

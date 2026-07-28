@@ -89,7 +89,7 @@ const AboutPage = () => {
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
       {/* Unique AboutPage Hero - Story-Focused Design */}
-      <section className="relative min-h-screen bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
+      <section className="relative min-h-screen bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
         {/* Hero Background Image */}
         <div className="absolute inset-0 z-0">
           <img
@@ -97,7 +97,7 @@ const AboutPage = () => {
             alt="Chef preparing authentic South Asian cuisine"
             className="w-full h-full object-cover opacity-15"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900/95 to-sangeet-neutral-950"></div>
+          <div className="absolute inset-0 bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900/95 to-sangeet-neutral-950"></div>
         </div>
 
         {/* Background Pattern */}
@@ -166,7 +166,7 @@ const AboutPage = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="mb-12"
             >
-              <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-8 py-4">
+              <div className="inline-flex items-center space-x-3 bg-linear-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-8 py-4">
                 <span className="text-2xl"><History className="text-sangeet-400" /></span>
                 <span className="text-sangeet-400 font-semibold text-lg">Our Story</span>
                 <span className="text-2xl"><Star className="text-sangeet-400" /></span>
@@ -182,7 +182,7 @@ const AboutPage = () => {
             >
               <span className="text-white">From Family</span>
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-sangeet-400 to-sangeet-red-500">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-sangeet-400 to-sangeet-red-500">
                 Traditions
               </span>
               <br />
@@ -239,7 +239,7 @@ const AboutPage = () => {
               <motion.button
                 whileHover={{ scale: 1.05, y: -3 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-sangeet-400 to-sangeet-500 text-sangeet-neutral-950 px-8 md:px-10 py-4 rounded-2xl font-bold text-lg md:text-xl hover:from-sangeet-300 hover:to-sangeet-400 transition-all duration-300 shadow-2xl hover:shadow-sangeet-400/30 flex items-center space-x-3"
+                className="bg-linear-to-r from-sangeet-400 to-sangeet-500 text-sangeet-neutral-950 px-8 md:px-10 py-4 rounded-2xl font-bold text-lg md:text-xl hover:from-sangeet-300 hover:to-sangeet-400 transition-all duration-300 shadow-2xl hover:shadow-sangeet-400/30 flex items-center space-x-3"
               >
                 <span className="text-xl md:text-2xl"><History /></span>
                 <span>Read Our Story</span>
@@ -303,7 +303,7 @@ const AboutPage = () => {
       </section>
 
       {/* Enhanced Our Story Section */}
-      <section className="py-20 bg-gradient-to-br from-sangeet-neutral-900 via-sangeet-neutral-800 to-sangeet-neutral-900">
+      <section className="py-20 bg-linear-to-br from-sangeet-neutral-900 via-sangeet-neutral-800 to-sangeet-neutral-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -311,7 +311,7 @@ const AboutPage = () => {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-6 py-2 mb-4">
+            <div className="inline-flex items-center space-x-2 bg-linear-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-6 py-2 mb-4">
               <span className="text-2xl text-sangeet-400"><Star /></span>
               <span className="text-sangeet-400 font-semibold">Our Story</span>
             </div>
@@ -381,7 +381,7 @@ const AboutPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 whileHover={{ y: -8, scale: 1.02 }}
-                className="group bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 shadow-2xl hover:shadow-sangeet-400/20 transition-all duration-500 border border-sangeet-neutral-700 hover:border-sangeet-400"
+                className="group bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 shadow-2xl hover:shadow-sangeet-400/20 transition-all duration-500 border border-sangeet-neutral-700 hover:border-sangeet-400"
               >
                 <div className="text-center">
                   <div className="relative mb-6">
@@ -406,7 +406,7 @@ const AboutPage = () => {
       </section>
 
       {/* Awards Section */}
-      <section className="py-20 bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
+      <section className="py-20 bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -426,7 +426,7 @@ const AboutPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 whileHover={{ y: -8, scale: 1.02 }}
-                className="group bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 shadow-2xl hover:shadow-sangeet-400/20 transition-all duration-500 border border-sangeet-neutral-700 hover:border-sangeet-400 text-center"
+                className="group bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 shadow-2xl hover:shadow-sangeet-400/20 transition-all duration-500 border border-sangeet-neutral-700 hover:border-sangeet-400 text-center"
               >
                 <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
                   <award.icon />
@@ -464,7 +464,7 @@ const AboutPage = () => {
                 onClick={() => navigate('/reservations')}
                 whileHover={{ scale: 1.05, y: -3 }}
                 whileTap={{ scale: 0.95 }}
-                className="inline-flex items-center space-x-3 bg-gradient-to-r from-sangeet-400 to-sangeet-500 text-sangeet-neutral-950 px-10 py-4 rounded-2xl font-bold text-xl hover:from-sangeet-300 hover:to-sangeet-400 transition-all duration-300 shadow-2xl hover:shadow-sangeet-400/30"
+                className="inline-flex items-center space-x-3 bg-linear-to-r from-sangeet-400 to-sangeet-500 text-sangeet-neutral-950 px-10 py-4 rounded-2xl font-bold text-xl hover:from-sangeet-300 hover:to-sangeet-400 transition-all duration-300 shadow-2xl hover:shadow-sangeet-400/30"
               >
                 <span className="text-2xl">📅</span>
                 <span>Book Your Table</span>

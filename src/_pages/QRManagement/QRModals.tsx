@@ -100,7 +100,7 @@ const QRModals = ({
                     type="text"
                     value={formData.tableNumber}
                     onChange={(e) => setFormData({...formData, tableNumber: e.target.value})}
-                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
+                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
                     placeholder="e.g., 1, 2, 3"
                   />
                 </div>
@@ -114,7 +114,7 @@ const QRModals = ({
                     max="20"
                     value={formData.capacity}
                     onChange={(e) => setFormData({...formData, capacity: parseInt(e.target.value) || 4})}
-                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
+                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
                     placeholder="e.g., 4"
                   />
                 </div>
@@ -126,7 +126,7 @@ const QRModals = ({
                     type="url"
                     value={formData.customUrl}
                     onChange={(e) => setFormData({...formData, customUrl: e.target.value})}
-                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
+                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
                     placeholder="https://your-restaurant.com/qr/table-1"
                   />
                   <p className="text-xs text-sangeet-neutral-500 mt-1">
@@ -172,7 +172,7 @@ const QRModals = ({
                     type="text"
                     value={bulkFormData.tableNumbers}
                     onChange={(e) => setBulkFormData({...bulkFormData, tableNumbers: e.target.value})}
-                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
+                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
                     placeholder="e.g., 1,2,3,4,5 or 1-10"
                   />
                   <p className="text-xs text-sangeet-neutral-500 mt-1">
@@ -189,7 +189,7 @@ const QRModals = ({
                     max="20"
                     value={bulkFormData.capacity}
                     onChange={(e) => setBulkFormData({...bulkFormData, capacity: parseInt(e.target.value) || 4})}
-                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
+                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
                     placeholder="e.g., 4"
                   />
                 </div>
@@ -201,7 +201,7 @@ const QRModals = ({
                     type="url"
                     value={bulkFormData.baseUrl}
                     onChange={(e) => setBulkFormData({...bulkFormData, baseUrl: e.target.value})}
-                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
+                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
                     placeholder="https://your-restaurant.com"
                   />
                   <p className="text-xs text-sangeet-neutral-500 mt-1">

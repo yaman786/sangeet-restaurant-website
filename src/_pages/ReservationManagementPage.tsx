@@ -212,11 +212,11 @@ const ReservationManagementPage = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-gradient-to-r from-yellow-500 to-orange-500';
-      case 'confirmed': return 'bg-gradient-to-r from-blue-500 to-indigo-500';
-      case 'completed': return 'bg-gradient-to-r from-green-500 to-emerald-500';
-      case 'cancelled': return 'bg-gradient-to-r from-red-500 to-pink-500';
-      default: return 'bg-gradient-to-r from-gray-500 to-gray-600';
+      case 'pending': return 'bg-linear-to-r from-yellow-500 to-orange-500';
+      case 'confirmed': return 'bg-linear-to-r from-blue-500 to-indigo-500';
+      case 'completed': return 'bg-linear-to-r from-green-500 to-emerald-500';
+      case 'cancelled': return 'bg-linear-to-r from-red-500 to-pink-500';
+      default: return 'bg-linear-to-r from-gray-500 to-gray-600';
     }
   };
 
@@ -317,7 +317,7 @@ const ReservationManagementPage = () => {
   const totalPages = Math.ceil(activeReservations.length / itemsPerPage);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
+    <div className="min-h-screen bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
       <AdminHeader title="Reservations" subtitle="Manage reservations" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -501,7 +501,7 @@ const ReservationManagementPage = () => {
                       placeholder="Search name, email, or phone..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="block w-full pl-10 pr-3 py-2 border border-sangeet-neutral-700 rounded-lg leading-5 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-none focus:ring-1 focus:ring-sangeet-400 focus:border-sangeet-400 sm:text-sm transition duration-150 ease-in-out"
+                      className="block w-full pl-10 pr-3 py-2 border border-sangeet-neutral-700 rounded-lg leading-5 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-hidden focus:ring-1 focus:ring-sangeet-400 focus:border-sangeet-400 sm:text-sm transition duration-150 ease-in-out"
                     />
                   </div>
               </div>
@@ -594,7 +594,7 @@ const ReservationManagementPage = () => {
                                   <select
                                     value={reservation.status}
                                     onChange={(e) => handleStatusUpdate(reservation.id, e.target.value)}
-                                    className="px-3 py-1 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded text-sangeet-neutral-100 text-sm"
+                                    className="px-3 py-1 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-sm text-sangeet-neutral-100 text-sm"
                                   >
                                     {reservation.status === 'pending' && (
                                       <>
@@ -618,7 +618,7 @@ const ReservationManagementPage = () => {
                                     setSelectedReservation(reservation);
                                     setShowDeleteModal(true);
                                   }}
-                                  className="px-3 py-1 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded text-sm font-medium"
+                                  className="px-3 py-1 bg-linear-to-r from-red-500 to-pink-500 text-white rounded-sm text-sm font-medium"
                                 >
                                   Delete
                                 </button>
@@ -655,7 +655,7 @@ const ReservationManagementPage = () => {
                       onClick={() => setCurrentPage(page)}
                       className={`px-4 py-2 rounded-lg transition-all duration-300 ${
                         currentPage === page
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                          ? 'bg-linear-to-r from-blue-500 to-purple-600 text-white shadow-lg'
                           : 'bg-white/10 text-white/80 hover:bg-white/20'
                       }`}
                     >
@@ -686,7 +686,7 @@ const ReservationManagementPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -695,7 +695,7 @@ const ReservationManagementPage = () => {
               className="bg-sangeet-neutral-900 rounded-2xl border border-sangeet-neutral-700 shadow-2xl max-w-lg w-full p-6"
             >
               <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-linear-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">🗑️</span>
                 </div>
                 <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">Delete Reservation</h3>
@@ -773,7 +773,7 @@ const ReservationManagementPage = () => {
                 </button>
                 <button
                   onClick={() => handleDelete(selectedReservation.id)}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 font-medium"
+                  className="flex-1 px-4 py-3 bg-linear-to-r from-red-500 to-pink-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 font-medium"
                 >
                   Delete Reservation
                 </button>
@@ -790,7 +790,7 @@ const ReservationManagementPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -799,7 +799,7 @@ const ReservationManagementPage = () => {
               className="bg-sangeet-neutral-900 rounded-2xl border border-sangeet-neutral-700 shadow-2xl max-w-lg w-full p-6"
             >
               <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-linear-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">🪑</span>
                 </div>
                 <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">Assign Table</h3>
@@ -814,7 +814,7 @@ const ReservationManagementPage = () => {
                 <select
                   value={selectedTableId}
                   onChange={(e) => setSelectedTableId(e.target.value)}
-                  className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-600 text-sangeet-neutral-100 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sangeet-500"
+                  className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-600 text-sangeet-neutral-100 rounded-lg px-4 py-3 focus:outline-hidden focus:ring-2 focus:ring-sangeet-500"
                 >
                   <option value="">-- Choose a table --</option>
                   {tables
@@ -844,7 +844,7 @@ const ReservationManagementPage = () => {
                 </button>
                 <button
                   onClick={handleAssignTable}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-sangeet-500 to-sangeet-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 font-medium"
+                  className="flex-1 px-4 py-3 bg-linear-to-r from-sangeet-500 to-sangeet-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 font-medium"
                 >
                   Assign & Confirm
                 </button>

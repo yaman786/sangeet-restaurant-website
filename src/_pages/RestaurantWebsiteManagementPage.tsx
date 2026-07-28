@@ -242,7 +242,7 @@ const RestaurantWebsiteManagementPage = () => {
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Stats Cards */}
-                  <div className="bg-gradient-to-br from-sangeet-400/10 to-sangeet-400/5 rounded-lg p-6 border border-sangeet-400/20">
+                  <div className="bg-linear-to-br from-sangeet-400/10 to-sangeet-400/5 rounded-lg p-6 border border-sangeet-400/20">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-sangeet-400/20 rounded-lg flex items-center justify-center">
                         <span className="text-2xl">⚙️</span>
@@ -253,7 +253,7 @@ const RestaurantWebsiteManagementPage = () => {
                     <p className="text-sangeet-neutral-400 text-sm">Restaurant information and preferences</p>
                   </div>
 
-                  <div className="bg-gradient-to-br from-blue-400/10 to-blue-400/5 rounded-lg p-6 border border-blue-400/20">
+                  <div className="bg-linear-to-br from-blue-400/10 to-blue-400/5 rounded-lg p-6 border border-blue-400/20">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-blue-400/20 rounded-lg flex items-center justify-center">
                         <span className="text-2xl">📝</span>
@@ -264,7 +264,7 @@ const RestaurantWebsiteManagementPage = () => {
                     <p className="text-sangeet-neutral-400 text-sm">Website content and descriptions</p>
                   </div>
 
-                  <div className="bg-gradient-to-br from-green-400/10 to-green-400/5 rounded-lg p-6 border border-green-400/20">
+                  <div className="bg-linear-to-br from-green-400/10 to-green-400/5 rounded-lg p-6 border border-green-400/20">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center">
                         <span className="text-2xl">🖼️</span>
@@ -359,7 +359,7 @@ const RestaurantWebsiteManagementPage = () => {
                           type="text"
                           value={settings.restaurant_name?.value || ''}
                           onChange={(e) => updateSetting('restaurant_name', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
 
@@ -371,7 +371,7 @@ const RestaurantWebsiteManagementPage = () => {
                           type="text"
                           value={settings.restaurant_tagline?.value || ''}
                           onChange={(e) => updateSetting('restaurant_tagline', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
 
@@ -383,7 +383,7 @@ const RestaurantWebsiteManagementPage = () => {
                           type="tel"
                           value={settings.phone_number?.value || ''}
                           onChange={(e) => updateSetting('phone_number', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
 
@@ -395,7 +395,7 @@ const RestaurantWebsiteManagementPage = () => {
                           type="email"
                           value={settings.email?.value || ''}
                           onChange={(e) => updateSetting('email', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
 
@@ -407,7 +407,7 @@ const RestaurantWebsiteManagementPage = () => {
                           value={settings.address?.value || ''}
                           onChange={(e) => updateSetting('address', e.target.value)}
                           rows={3}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
                     </div>
@@ -425,7 +425,7 @@ const RestaurantWebsiteManagementPage = () => {
                           type="url"
                           value={settings.social_facebook?.value || ''}
                           onChange={(e) => updateSetting('social_facebook', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
 
@@ -437,7 +437,7 @@ const RestaurantWebsiteManagementPage = () => {
                           type="url"
                           value={settings.social_instagram?.value || ''}
                           onChange={(e) => updateSetting('social_instagram', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
 
@@ -449,7 +449,7 @@ const RestaurantWebsiteManagementPage = () => {
                           type="url"
                           value={settings.social_twitter?.value || ''}
                           onChange={(e) => updateSetting('social_twitter', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
 
@@ -460,7 +460,7 @@ const RestaurantWebsiteManagementPage = () => {
                             id="reservation_enabled"
                             checked={settings.reservation_enabled?.value || false}
                             onChange={(e) => updateSetting('reservation_enabled', e.target.checked)}
-                            className="w-4 h-4 text-sangeet-400 bg-sangeet-neutral-700 border-sangeet-neutral-600 rounded focus:ring-sangeet-400"
+                            className="w-4 h-4 text-sangeet-400 bg-sangeet-neutral-700 border-sangeet-neutral-600 rounded-sm focus:ring-sangeet-400"
                           />
                           <label htmlFor="reservation_enabled" className="text-sm text-sangeet-neutral-300">
                             Enable Online Reservations
@@ -473,7 +473,7 @@ const RestaurantWebsiteManagementPage = () => {
                             id="delivery_enabled"
                             checked={settings.delivery_enabled?.value || false}
                             onChange={(e) => updateSetting('delivery_enabled', e.target.checked)}
-                            className="w-4 h-4 text-sangeet-400 bg-sangeet-neutral-700 border-sangeet-neutral-600 rounded focus:ring-sangeet-400"
+                            className="w-4 h-4 text-sangeet-400 bg-sangeet-neutral-700 border-sangeet-neutral-600 rounded-sm focus:ring-sangeet-400"
                           />
                           <label htmlFor="delivery_enabled" className="text-sm text-sangeet-neutral-300">
                             Enable Delivery/Takeout Orders
@@ -489,7 +489,7 @@ const RestaurantWebsiteManagementPage = () => {
                           type="color"
                           value={settings.website_theme_color?.value || '#D97706'}
                           onChange={(e) => updateSetting('website_theme_color', e.target.value)}
-                          className="w-full h-12 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full h-12 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
                     </div>
@@ -529,7 +529,7 @@ const RestaurantWebsiteManagementPage = () => {
                           type="text"
                           value={content.hero_title?.content || ''}
                           onChange={(e) => updateContent('hero_title', 'content', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
 
@@ -541,7 +541,7 @@ const RestaurantWebsiteManagementPage = () => {
                           value={content.hero_subtitle?.content || ''}
                           onChange={(e) => updateContent('hero_subtitle', 'content', e.target.value)}
                           rows={3}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
                     </div>
@@ -559,7 +559,7 @@ const RestaurantWebsiteManagementPage = () => {
                           type="text"
                           value={content.about_title?.content || ''}
                           onChange={(e) => updateContent('about_title', 'content', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
 
@@ -571,7 +571,7 @@ const RestaurantWebsiteManagementPage = () => {
                           value={content.about_content?.content || ''}
                           onChange={(e) => updateContent('about_content', 'content', e.target.value)}
                           rows={6}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
                     </div>
@@ -589,7 +589,7 @@ const RestaurantWebsiteManagementPage = () => {
                           value={content.special_announcement?.content || ''}
                           onChange={(e) => updateContent('special_announcement', 'content', e.target.value)}
                           rows={4}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
                     </div>
@@ -607,7 +607,7 @@ const RestaurantWebsiteManagementPage = () => {
                           type="text"
                           value={content.chef_special_title?.content || ''}
                           onChange={(e) => updateContent('chef_special_title', 'content', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
 
@@ -619,7 +619,7 @@ const RestaurantWebsiteManagementPage = () => {
                           value={content.chef_special_description?.content || ''}
                           onChange={(e) => updateContent('chef_special_description', 'content', e.target.value)}
                           rows={3}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:ring-2 focus:ring-sangeet-400"
+                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
                         />
                       </div>
                     </div>
@@ -667,7 +667,7 @@ const RestaurantWebsiteManagementPage = () => {
                         </p>
                         <button
                           onClick={() => handleDeleteMedia(item.id)}
-                          className="w-full bg-red-500/20 text-red-400 px-3 py-1 rounded text-sm hover:bg-red-500/30 transition-colors"
+                          className="w-full bg-red-500/20 text-red-400 px-3 py-1 rounded-sm text-sm hover:bg-red-500/30 transition-colors"
                         >
                           Delete
                         </button>

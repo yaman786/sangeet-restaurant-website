@@ -82,7 +82,7 @@ const Header = () => {
                 <Link key={item.path}
                   href={item.path}
                   className={`relative px-3.5 py-2 rounded-lg text-body-sm font-medium transition-colors duration-200
-                    focus:outline-none focus:ring-2 focus:ring-sangeet-400/30 focus:ring-offset-2 focus:ring-offset-transparent
+                    focus:outline-hidden focus:ring-2 focus:ring-sangeet-400/30 focus:ring-offset-2 focus:ring-offset-transparent
                     ${isActive(item.path)
                       ? 'text-sangeet-400'
                       : 'text-sangeet-neutral-400 hover:text-sangeet-neutral-100'
@@ -126,7 +126,7 @@ const Header = () => {
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="md:hidden relative w-10 h-10 flex items-center justify-center rounded-lg
-                         hover:bg-sangeet-neutral-800/50 transition-colors duration-200 z-[60]"
+                         hover:bg-sangeet-neutral-800/50 transition-colors duration-200 z-60"
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMenuOpen}
             >
@@ -165,7 +165,7 @@ const Header = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="fixed inset-0 bg-sangeet-neutral-950/80 backdrop-blur-sm z-40"
+              className="fixed inset-0 bg-sangeet-neutral-950/80 backdrop-blur-xs z-40"
               onClick={() => setIsMenuOpen(false)}
             />
 

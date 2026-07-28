@@ -28,7 +28,7 @@ const OrderDetailModal = ({ selectedOrderDetails, setShowOrderModal }: any) => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-6 border border-sangeet-neutral-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-6 border border-sangeet-neutral-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between mb-6">

@@ -41,7 +41,7 @@ export const AboutGallery = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-6 py-2 mb-4">
+          <div className="inline-flex items-center space-x-2 bg-linear-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-6 py-2 mb-4">
             <span className="text-2xl">📸</span>
             <span className="text-sangeet-400 font-semibold">Gallery</span>
           </div>
@@ -110,7 +110,7 @@ export const AboutGallery = () => {
                   loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-sangeet-neutral-900/80 via-transparent to-transparent"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900/80 via-transparent to-transparent"></div>
                 
                 <div className="absolute top-4 left-4">
                   <div className="bg-sangeet-400/90 backdrop-blur-md text-sangeet-neutral-950 px-3 py-1 rounded-full text-xs font-semibold">

@@ -36,7 +36,7 @@ const OrderFilters = ({
       </div>
 
       {/* Filters and Controls */}
-      <div className="bg-gradient-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-6 mb-6 border border-sangeet-neutral-700">
+      <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-6 mb-6 border border-sangeet-neutral-700">
         {/* Status Filter Buttons Row */}
         <div className="flex flex-wrap gap-2 mb-4">
           {['all', 'pending', 'preparing', 'ready', 'completed'].map((mode) => {
@@ -85,7 +85,7 @@ const OrderFilters = ({
               placeholder="Search by customer name or order number..."
               value={localQuery}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLocalQuery(e.target.value)}
-              className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-300 focus:outline-none focus:border-sangeet-400"
+              className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-300 focus:outline-hidden focus:border-sangeet-400"
             />
           </div>
 
