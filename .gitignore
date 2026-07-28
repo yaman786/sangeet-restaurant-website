@@ -50,3 +50,4 @@ tables.json
 *.log
 test-pg.js
 regenerate_qrs.ts
+graphify-out/
