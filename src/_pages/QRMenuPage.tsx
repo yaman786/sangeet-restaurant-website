@@ -220,36 +220,36 @@ const QRMenuPage = () => {
 
   return (
     <div className="min-h-screen bg-sangeet-neutral-900 text-sangeet-neutral-100 selection:bg-sangeet-400 selection:text-sangeet-neutral-900">
-      {/* Premium Compact Hero Header */}
-      <div className="relative h-[22vh] min-h-[200px] w-full overflow-hidden flex items-center justify-center">
+      {/* Premium Spacious Hero Header */}
+      <div className="relative min-h-[280px] md:min-h-[320px] w-full flex items-center justify-center pt-8 pb-12">
         {/* Parallax Background */}
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
-        <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900 via-sangeet-neutral-900/60 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900 via-sangeet-neutral-900/70 to-sangeet-neutral-950/80"></div>
         
         {/* Hero Content */}
         <motion.div 
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="relative z-10 text-center px-4"
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="relative z-10 text-center px-4 py-4"
         >
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/5 backdrop-blur-md border border-white/10 mb-6 shadow-glass">
-            <ChefHat className="w-8 h-8 text-sangeet-400" />
+          <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/5 backdrop-blur-md border border-white/10 mb-4 shadow-glass">
+            <ChefHat className="w-7 h-7 md:w-8 md:h-8 text-sangeet-400" />
           </div>
-          <h1 className="font-display text-4xl md:text-6xl text-white font-bold mb-4 tracking-tight drop-shadow-2xl">
+          <h1 className="font-display text-3xl sm:text-4xl md:text-6xl text-white font-bold mb-4 tracking-tight drop-shadow-2xl">
             Sangeet <span className="text-sangeet-400 italic font-light">Fine Dining</span>
           </h1>
-          <div className="inline-flex items-center space-x-2 bg-sangeet-400/10 backdrop-blur-md border border-sangeet-400/20 px-6 py-2 rounded-full">
-            <Sparkles className="w-4 h-4 text-sangeet-400" />
-            <p className="text-sangeet-400 font-medium tracking-wide">
-              Table {tableInfo?.table_number}
+          <div className="inline-flex items-center space-x-2 bg-sangeet-neutral-950/80 backdrop-blur-xl border border-sangeet-400/40 px-6 py-2.5 rounded-full shadow-lg shadow-sangeet-400/10">
+            <Sparkles className="w-4 h-4 text-sangeet-400 animate-pulse" />
+            <p className="text-sangeet-300 font-semibold tracking-wide text-sm md:text-base">
+              Table {tableInfo?.table_number || ''}
             </p>
           </div>
         </motion.div>
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-5xl mx-auto px-4 md:px-8 -mt-6 relative z-20">
+      <div className="max-w-5xl mx-auto px-4 md:px-8 -mt-2 relative z-20">
         <MenuView 
           menuItems={menuItems}
           categories={categories}
