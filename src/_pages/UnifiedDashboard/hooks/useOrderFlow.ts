@@ -82,9 +82,18 @@ export const useOrderFlow = (tableSession: any) => {
       // Ensure tableId is an integer for the backend schema
       tableId = typeof tableId === 'string' ? parseInt(tableId, 10) : tableId;
       
+      // Ensure customer_name is locked to the table session across secondary rounds
+      let resolvedCustomerName = customerName;
+      if ((!resolvedCustomerName || resolvedCustomerName === 'Guest') && tableNumber) {
+        try {
+          const stored = localStorage.getItem(`customer_${tableNumber}`);
+          if (stored && stored !== 'Guest') resolvedCustomerName = stored;
+        } catch (e) {}
+      }
+      
       const orderData = {
         table_id: tableId,
-        customer_name: customerName || 'Guest',
+        customer_name: resolvedCustomerName || 'Guest',
         items: cart.map(item => ({
           menu_item_id: item.id,
           quantity: item.quantity,

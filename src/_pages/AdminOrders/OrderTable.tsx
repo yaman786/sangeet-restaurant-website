@@ -55,18 +55,16 @@ const OrderTable = ({
     'cancelled': 'Cancel Orders'
   };
 
-  // Group orders by table and customer
+  // Group orders by table
   const groupedOrders = currentOrders.reduce((acc: any, order: any) => {
-    // Normalize to handle potential whitespace/case mismatches from different sessions
-    const normalizedTable = String(order.table_number || '').trim();
-    const normalizedCustomer = String(order.customer_name || 'Guest').trim().toLowerCase();
-    const key = `${normalizedTable}_${normalizedCustomer}`;
+    // Group strictly by physical table number to keep all rounds for a sitting together
+    const key = String(order.table_number || 'Unknown').trim();
     
     if (!acc[key]) {
       acc[key] = {
         key,
         table_number: order.table_number,
-        customer_name: order.customer_name || 'Guest',
+        customer_name: order.customer_name && order.customer_name !== 'Guest' ? order.customer_name : 'Guest',
         orders: [],
         total_amount: 0,
         hasReady: false,
@@ -77,9 +75,14 @@ const OrderTable = ({
     }
     acc[key].orders.push(order);
     acc[key].total_amount += Number(order.total_amount || 0);
+
+    // Ensure named customer takes precedence over 'Guest' for the table title
+    if (order.customer_name && order.customer_name !== 'Guest' && acc[key].customer_name === 'Guest') {
+      acc[key].customer_name = order.customer_name;
+    }
     
     if (order.status === 'ready') acc[key].hasReady = true;
-    if (order.status === 'preparing') acc[key].hasPreparing = true;
+    if (order.status === 'preparing' || order.status === 'accepted') acc[key].hasPreparing = true;
     if (order.status === 'pending') acc[key].hasPending = true;
     if (order.status !== 'completed' && order.status !== 'cancelled') acc[key].allCompleted = false;
 

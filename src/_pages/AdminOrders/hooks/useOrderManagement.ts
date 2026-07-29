@@ -216,7 +216,7 @@ export const useOrderManagement = () => {
   const getOtherActiveOrders = (order: any) => {
     return orders.filter(o =>
       o.id !== order.id &&
-      o.customer_name === order.customer_name &&
+      (String(o.table_number) === String(order.table_number) || String(o.table_id) === String(order.table_id)) &&
       o.status !== 'completed' &&
       o.status !== 'cancelled'
     );
