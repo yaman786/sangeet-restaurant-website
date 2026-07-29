@@ -89,10 +89,15 @@ const OrderTable = ({
     return acc;
   }, {});
 
-  // Compute table level payment readiness: strictly require that NO ticket is cooking/pending, and at least 1 ticket is ready/served
+  // Compute table level payment readiness and annotate true round numbers
   Object.values(groupedOrders).forEach((group: any) => {
     group.orders.sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     
+    // Annotate true original round number for each ticket
+    group.orders.forEach((order: any, idx: number) => {
+      order.roundNumber = idx + 1;
+    });
+
     const activeTickets = group.orders.filter((o: any) => o.status !== 'completed' && o.status !== 'cancelled');
     const hasUncooked = activeTickets.some((o: any) => o.status === 'pending' || o.status === 'accepted' || o.status === 'preparing');
     const hasReadyOrServed = activeTickets.some((o: any) => o.status === 'ready' || o.status === 'served');
@@ -102,14 +107,28 @@ const OrderTable = ({
 
   const allGroups = Object.values(groupedOrders) as any[];
 
-  // Filter groups according to tab viewMode without fragmenting individual table tickets
-  const groups = allGroups.filter((group: any) => {
+  // Filter groups and their visible sub-tickets according to current viewMode tab
+  const groups = allGroups.map((group: any) => {
+    let visibleTickets = group.orders;
+    
+    if (viewMode === 'preparing') {
+      // "In Kitchen" tab shows ONLY tickets that are pending, accepted, or preparing
+      visibleTickets = group.orders.filter((o: any) => o.status === 'pending' || o.status === 'accepted' || o.status === 'preparing');
+    } else if (viewMode === 'ready') {
+      // "Ready / Served" tab shows ONLY tickets that are ready or served
+      visibleTickets = group.orders.filter((o: any) => o.status === 'ready' || o.status === 'served');
+    } else if (viewMode === 'completed') {
+      visibleTickets = group.orders.filter((o: any) => o.status === 'completed' || o.status === 'cancelled');
+    }
+
+    return {
+      ...group,
+      visibleTickets
+    };
+  }).filter((group: any) => {
+    // Only include table card on the tab if it has visible tickets for that tab view Mode
     if (viewMode === 'all') return true;
-    if (viewMode === 'pending') return group.hasPending;
-    if (viewMode === 'preparing') return group.hasPreparing || group.hasPending; // "In Kitchen" shows tables with active cooking tickets
-    if (viewMode === 'ready') return group.canCollectPayment; // "Ready / Served" shows tables where ALL tickets are ready for payment
-    if (viewMode === 'completed') return group.allCompleted;
-    return true;
+    return group.visibleTickets.length > 0;
   });
 
   const toggleGroup = (key: string) => {
@@ -198,7 +217,7 @@ const OrderTable = ({
                           <div className="flex items-center space-x-3">
                             <span className="text-sangeet-400 font-bold text-lg">Table {group.table_number}</span>
                             <span className="bg-sangeet-neutral-700 text-sangeet-neutral-300 px-2 py-0.5 rounded-sm text-xs">
-                              {group.orders.length} Ticket{group.orders.length > 1 ? 's' : ''}
+                              {group.visibleTickets.length} Ticket{group.visibleTickets.length > 1 ? 's' : ''}
                             </span>
                           </div>
                         </td>
@@ -237,9 +256,9 @@ const OrderTable = ({
                         </td>
                       </motion.tr>
 
-                      {/* Sub-Rows (Individual Tickets) */}
+                      {/* Sub-Rows (Individual Tickets for current Tab) */}
                       <AnimatePresence>
-                        {isExpanded && group.orders.map((order: any, index: number) => (
+                        {isExpanded && group.visibleTickets.map((order: any) => (
                           <motion.tr
                             key={order.id}
                             initial={{ opacity: 0, height: 0 }}
@@ -261,7 +280,7 @@ const OrderTable = ({
                             </td>
                             <td className="px-6 py-3" colSpan={2}>
                               <div className="flex items-center space-x-3 ml-4">
-                                <span className="text-sangeet-neutral-400 text-sm">Round {index + 1}</span>
+                                <span className="text-sangeet-neutral-400 text-sm font-semibold">Round {order.roundNumber || 1}</span>
                                 <span className="text-sangeet-neutral-500 text-xs">#{order.order_number}</span>
                               </div>
                             </td>
