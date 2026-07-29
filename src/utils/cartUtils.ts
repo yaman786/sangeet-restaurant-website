@@ -10,27 +10,12 @@ const devLog = (...args: any[]) => {
  * @param {string} qrCode - The QR code identifier
  * @param {string} tableNumber - The table number (optional, for additional clearing)
  */
+import { clearTableSession } from '@/lib/utils/tableSession';
+
 export const clearCartData = (qrCode: string, tableNumber: string | null = null): boolean => {
   try {
     devLog('🧹 Clearing cart data for QR code:', qrCode);
-    
-    // Clear all possible cart-related localStorage keys
-    localStorage.removeItem(`cart_${qrCode}`);
-    localStorage.removeItem(`customer_${qrCode}`);
-    localStorage.removeItem(`instructions_${qrCode}`);
-    
-    // Also clear any table-based keys that might exist
-    if (tableNumber) {
-      localStorage.removeItem(`cart_${tableNumber}`);
-      localStorage.removeItem(`customer_${tableNumber}`);
-      localStorage.removeItem(`instructions_${tableNumber}`);
-      
-      // Clear any other potential variations
-      localStorage.removeItem(`cart_table_${tableNumber}`);
-      localStorage.removeItem(`customer_table_${tableNumber}`);
-      localStorage.removeItem(`instructions_table_${tableNumber}`);
-    }
-    
+    clearTableSession();
     devLog('✅ Cart data cleared successfully');
     return true;
   } catch (error) {

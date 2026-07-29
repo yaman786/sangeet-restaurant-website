@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from '@/utils/router-mock';
+import { getTableSession, clearTableSession as clearConsolidatedTableSession } from '@/lib/utils/tableSession';
 
 const CANCELLED_ORDER_TIMEOUT = 2 * 60 * 1000;
 
@@ -17,19 +18,8 @@ export const useTableSession = () => {
   const [customerName, setCustomerName] = useState<string | null>(() => {
     if (initialCustomerName) return initialCustomerName;
     try {
-      if (typeof window !== 'undefined' && tableNumber) {
-        const stored = localStorage.getItem(`customer_${tableNumber}`);
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            if (parsed && parsed.name) return parsed.name;
-            if (typeof parsed === 'string' && parsed.length > 0) return parsed;
-          } catch (parseError) {
-            // If it's not JSON, it might just be the raw string (saved by QRCartPage)
-            if (typeof stored === 'string' && stored.length > 0) return stored;
-          }
-        }
-      }
+      const session = getTableSession();
+      if (session?.customerName) return session.customerName;
     } catch (e) {}
     return null;
   });
@@ -45,25 +35,12 @@ export const useTableSession = () => {
   }, [orders]);
 
   const updateSessionTimestamp = useCallback(() => {
-    if (!tableNumber) return;
-    try {
-      localStorage.setItem(`session_timestamp_${tableNumber}`, new Date().toISOString());
-    } catch (error) {
-      console.error('Error updating session timestamp:', error);
-    }
-  }, [tableNumber]);
+    // Session timestamp is automatically handled in saveTableSession
+  }, []);
 
   const clearSession = useCallback(() => {
-    if (!tableNumber) return;
-    localStorage.removeItem(`cart_${tableNumber}`);
-    localStorage.removeItem(`orderId_${tableNumber}`);
-    localStorage.removeItem(`orderNumber_${tableNumber}`);
-    localStorage.removeItem(`customerName_${tableNumber}`);
-    localStorage.removeItem(`session_timestamp_${tableNumber}`);
-    localStorage.removeItem(`customer_${tableNumber}`);
-    localStorage.removeItem(`instructions_${tableNumber}`);
-    localStorage.removeItem(`cancelledOrder_${tableNumber}`);
-  }, [tableNumber]);
+    clearConsolidatedTableSession();
+  }, []);
 
   return {
     tableNumber,

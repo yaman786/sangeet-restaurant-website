@@ -19,6 +19,8 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | null>(null);
 
+import { getTableSession, saveTableSession, clearTableSession } from '@/lib/utils/tableSession';
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [session, setSession] = useState<OrderSession | null>(null);
@@ -28,35 +30,28 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
-        const savedSession = localStorage.getItem('orderSession');
+        const savedSession = getTableSession();
         if (savedSession) {
-          const parsedSession = JSON.parse(savedSession);
-          setSession(parsedSession);
-          
-          if (parsedSession.tableNumber) {
-            const savedCart = localStorage.getItem(`cart_${parsedSession.tableNumber}`);
-            if (savedCart) {
-              setCart(JSON.parse(savedCart));
-            }
+          setSession(savedSession as any);
+          if (savedSession.cart && Array.isArray(savedSession.cart)) {
+            setCart(savedSession.cart);
           }
         }
       } catch (e) {
-        console.error('Failed to parse cart data from localStorage', e);
+        console.error('Failed to parse table session from localStorage', e);
       }
       setIsInitialized(true);
     }
   }, []);
 
-  // Save to localStorage when session/cart changes
+  // Save to consolidated tableSession when session or cart changes
   useEffect(() => {
     if (isInitialized && typeof window !== 'undefined') {
       if (session) {
-        localStorage.setItem('orderSession', JSON.stringify(session));
-        if (session.tableNumber) {
-          localStorage.setItem(`cart_${session.tableNumber}`, JSON.stringify(cart));
-        }
-      } else {
-        localStorage.removeItem('orderSession');
+        saveTableSession({
+          ...session,
+          cart
+        });
       }
     }
   }, [cart, session, isInitialized]);

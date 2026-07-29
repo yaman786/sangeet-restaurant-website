@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { createOrder, getTableByNumber, getTableByQRCode } from '../../../services/api';
 import toast from 'react-hot-toast';
 import { useCart } from '@/contexts/CartContext';
+import { saveTableSession } from '@/lib/utils/tableSession';
 
 export const useOrderFlow = (tableSession: any) => {
   const {
@@ -113,25 +114,18 @@ export const useOrderFlow = (tableSession: any) => {
       
       setOrders((prevOrders: any[]) => [...prevOrders, newOrder]);
       
-      // Save orderSession to localStorage for device security & persistence upon reload/rescan
+      // Save consolidated tableSession for device security & persistence upon reload/rescan
       try {
-        const sessionObj = {
+        saveTableSession({
           tableId: tableId,
           tableNumber: tableNumber,
-          customerName: customerName || 'Guest',
+          customerName: resolvedCustomerName || 'Guest',
           orderId: newOrder.id,
-          orderNumber: newOrder.order_number
-        };
-        localStorage.setItem('orderSession', JSON.stringify(sessionObj));
-        if (tableNumber) {
-          localStorage.setItem(`orderId_${tableNumber}`, String(newOrder.id));
-          localStorage.setItem(`orderNumber_${tableNumber}`, String(newOrder.order_number));
-          if (customerName) {
-            localStorage.setItem(`customer_${tableNumber}`, customerName);
-          }
-        }
+          orderNumber: newOrder.order_number,
+          cart: []
+        });
       } catch (e) {
-        console.error('Error saving orderSession to localStorage:', e);
+        console.error('Error saving table session:', e);
       }
       
       // Abort any pending cancellation kickouts since they are ordering again!
