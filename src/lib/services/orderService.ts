@@ -189,7 +189,7 @@ class OrderService {
   }
 
   async updateOrderStatus(id: string, status: string) {
-    const validStatuses = ['pending', 'preparing', 'ready', 'served', 'completed', 'cancelled'];
+    const validStatuses = ['pending', 'accepted', 'preparing', 'ready', 'served', 'completed', 'cancelled'];
     if (!validStatuses.includes(status)) throw new ValidationError('Invalid status');
     
     try {

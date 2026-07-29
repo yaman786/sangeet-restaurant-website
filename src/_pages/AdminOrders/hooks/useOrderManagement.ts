@@ -203,7 +203,8 @@ export const useOrderManagement = () => {
 
   const isValidStatusTransition = (currentStatus: any, newStatus: any) => {
     const statusFlow = {
-      'pending': ['preparing', 'cancelled'],
+      'pending': ['accepted', 'cancelled'],
+      'accepted': ['preparing', 'cancelled'],
       'preparing': ['ready', 'cancelled'],
       'ready': ['completed', 'cancelled'],
       'completed': [],

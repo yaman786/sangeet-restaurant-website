@@ -16,6 +16,7 @@ export const createOrderSchema = z.object({
 
 export const orderStatusSchema = z.enum([
   'pending', 
+  'accepted',
   'preparing', 
   'ready', 
   'served',
