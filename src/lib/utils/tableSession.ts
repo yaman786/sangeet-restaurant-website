@@ -13,29 +13,43 @@ export interface ConsolidatedTableSession {
 const SESSION_KEY = 'sangeet_table_session';
 
 /**
- * Get the consolidated table session from localStorage
+ * Get the consolidated table session from localStorage.
+ * Optionally pass expectedTableNumber to verify session belongs to the scanned table.
  */
-export const getTableSession = (): ConsolidatedTableSession | null => {
+export const getTableSession = (expectedTableNumber?: string | number | null): ConsolidatedTableSession | null => {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(SESSION_KEY);
-    if (raw) {
-      return JSON.parse(raw);
-    }
+    let session: ConsolidatedTableSession | null = null;
     
-    // Backward compatibility fallback for legacy separate keys
-    const legacySession = localStorage.getItem('orderSession');
-    if (legacySession) {
-      const parsed = JSON.parse(legacySession);
-      return {
-        tableId: parsed.tableId || null,
-        tableNumber: parsed.tableNumber || null,
-        customerName: parsed.customerName || null,
-        orderId: parsed.orderId || null,
-        orderNumber: parsed.orderNumber || null,
-        cart: []
-      };
+    if (raw) {
+      session = JSON.parse(raw);
+    } else {
+      // Backward compatibility fallback for legacy separate keys
+      const legacySession = localStorage.getItem('orderSession');
+      if (legacySession) {
+        const parsed = JSON.parse(legacySession);
+        session = {
+          tableId: parsed.tableId || null,
+          tableNumber: parsed.tableNumber || null,
+          customerName: parsed.customerName || null,
+          orderId: parsed.orderId || null,
+          orderNumber: parsed.orderNumber || null,
+          cart: []
+        };
+      }
     }
+
+    if (session && expectedTableNumber !== undefined && expectedTableNumber !== null) {
+      const expStr = String(expectedTableNumber).trim();
+      const sessStr = String(session.tableNumber || '').trim();
+      if (sessStr && expStr && sessStr !== expStr) {
+        // Stored session belongs to a different table! Return null so new table starts clean.
+        return null;
+      }
+    }
+
+    return session;
   } catch (e) {
     console.error('Error reading table session:', e);
   }

@@ -11,6 +11,7 @@ import MenuView from '../components/MenuView';
 import { ShoppingBag, ChefHat, Sparkles, ChevronRight } from 'lucide-react';
 
 import { useCart } from '@/contexts/CartContext';
+import { getTableSession, saveTableSession, clearTableSession } from '@/lib/utils/tableSession';
 const QRMenuPage = () => {
   const params = useParams(); const qrCode = typeof params?.qrCode === "string" ? params.qrCode : (params?.qrCode ? params.qrCode[0] : "");
   const navigate = useNavigate();
@@ -44,11 +45,17 @@ const QRMenuPage = () => {
         }
         setTableInfo(tableData);
         
-        // Initialize Cart Session
+        // Ensure table session isolation: if existing session is for a DIFFERENT table, clear it!
+        const existingSession = getTableSession(tableData.table_number);
+        if (!existingSession) {
+          clearTableSession();
+        }
+
+        // Initialize Cart Session for this table
         initializeSession({
           tableId: tableData.id,
           tableNumber: tableData.table_number,
-          customerName: null
+          customerName: existingSession?.customerName || null
         });
 
         // Check for active orders for this table
@@ -64,46 +71,35 @@ const QRMenuPage = () => {
           );
           
           if (activeOrders.length > 0) {
+            // Check if this specific device placed an order for THIS table
+            const currentSession = getTableSession(tableData.table_number);
+            let deviceOrderId = currentSession?.orderId;
             
-            // STRICT INDIVIDUAL SECURITY CHECK:
-            // Check if this specific device placed the order.
-            let deviceOrderId: any = null;
-            try {
-              const localSession = localStorage.getItem('orderSession');
-              if (localSession) {
-                const parsed = JSON.parse(localSession);
-                deviceOrderId = parsed.orderId;
-              }
-              if (!deviceOrderId && tableData.table_number) {
+            if (!deviceOrderId && tableData.table_number) {
+              try {
                 deviceOrderId = localStorage.getItem(`orderId_${tableData.table_number}`);
-              }
-            } catch (e) {}
+              } catch (e) {}
+            }
 
             // Find the specific order that belongs to this device
             let myActiveOrder = activeOrders.find((o: any) => String(o.id) === String(deviceOrderId));
 
-            // Fallback: If deviceOrderId was not set, match active order by stored customer name for this table
-            if (!myActiveOrder && tableData.table_number) {
-              try {
-                const savedCustomer = localStorage.getItem(`customer_${tableData.table_number}`);
-                if (savedCustomer && savedCustomer !== 'Guest') {
-                  myActiveOrder = activeOrders.find((o: any) => o.customer_name?.trim().toLowerCase() === savedCustomer.trim().toLowerCase());
-                }
-              } catch (e) {}
+            // Fallback: If deviceOrderId was not set, match active order by stored customer name for THIS table
+            if (!myActiveOrder && currentSession?.customerName) {
+              myActiveOrder = activeOrders.find((o: any) => 
+                o.customer_name?.trim().toLowerCase() === currentSession.customerName?.trim().toLowerCase()
+              );
             }
             
             if (myActiveOrder) {
-              // Ensure orderSession is refreshed in localStorage
-              try {
-                localStorage.setItem('orderSession', JSON.stringify({
-                  tableId: tableData.id,
-                  tableNumber: tableData.table_number,
-                  customerName: myActiveOrder.customer_name,
-                  orderId: myActiveOrder.id,
-                  orderNumber: myActiveOrder.order_number
-                }));
-                localStorage.setItem(`orderId_${tableData.table_number}`, String(myActiveOrder.id));
-              } catch (e) {}
+              // Ensure consolidated session is refreshed in localStorage for THIS table
+              saveTableSession({
+                tableId: tableData.id,
+                tableNumber: tableData.table_number,
+                customerName: myActiveOrder.customer_name,
+                orderId: myActiveOrder.id,
+                orderNumber: myActiveOrder.order_number
+              });
 
               // Set redirecting state to prevent menu rendering
               setIsRedirecting(true);
