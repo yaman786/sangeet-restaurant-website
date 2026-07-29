@@ -111,9 +111,12 @@ const OrderTable = ({
   const groups = allGroups.map((group: any) => {
     let visibleTickets = group.orders;
     
-    if (viewMode === 'preparing') {
-      // "In Kitchen" tab shows ONLY tickets that are pending, accepted, or preparing
-      visibleTickets = group.orders.filter((o: any) => o.status === 'pending' || o.status === 'accepted' || o.status === 'preparing');
+    if (viewMode === 'pending') {
+      // "New Orders" tab shows ONLY tickets with status 'pending'
+      visibleTickets = group.orders.filter((o: any) => o.status === 'pending');
+    } else if (viewMode === 'preparing') {
+      // "In Kitchen" tab shows ONLY tickets that are accepted or preparing
+      visibleTickets = group.orders.filter((o: any) => o.status === 'accepted' || o.status === 'preparing');
     } else if (viewMode === 'ready') {
       // "Ready / Served" tab shows ONLY tickets that are ready or served
       visibleTickets = group.orders.filter((o: any) => o.status === 'ready' || o.status === 'served');
