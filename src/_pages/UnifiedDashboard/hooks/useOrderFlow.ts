@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { createOrder, getTableByNumber } from '../../../services/api';
+import { createOrder, getTableByNumber, getTableByQRCode } from '../../../services/api';
 import toast from 'react-hot-toast';
 
 export const useOrderFlow = (tableSession: any) => {
@@ -75,7 +75,13 @@ export const useOrderFlow = (tableSession: any) => {
         }
         
         try {
-          const tableData = await getTableByNumber(tableNumber as string);
+          let tableData: any = null;
+          try {
+            tableData = await getTableByNumber(tableNumber as string);
+          } catch {
+            tableData = await getTableByQRCode(tableNumber as string);
+          }
+
           if (tableData && tableData.id) {
             tableId = tableData.id;
           } else {

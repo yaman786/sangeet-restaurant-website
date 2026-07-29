@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { fetchMenuItems, fetchMenuCategories, getOrdersByTable, getTableByNumber } from '../../services/api';
+import { fetchMenuItems, fetchMenuCategories, getOrdersByTable, getTableByNumber, getTableByQRCode } from '../../services/api';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import toast from 'react-hot-toast';
 
@@ -93,9 +93,17 @@ const UnifiedDashboard = () => {
 
       if (tableNumber) {
         try {
+          const fetchTable = async () => {
+            try {
+              return await getTableByNumber(tableNumber as string);
+            } catch {
+              return await getTableByQRCode(tableNumber as string);
+            }
+          };
+
           const [activeOrders, tableData] = await Promise.all([
             getOrdersByTable(tableNumber as string),
-            getTableByNumber(tableNumber as string).catch(e => {
+            fetchTable().catch(e => {
               console.error("Failed to fetch table info:", e);
               return null;
             })

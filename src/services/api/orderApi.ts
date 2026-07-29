@@ -117,12 +117,15 @@ export const getTableByQRCode = async (qrCode: string): Promise<TableRow> => {
 
 export const getTableByNumber = async (tableNumber: string | number): Promise<TableRow> => {
   return apiCallWrapper(async () => {
-    const allTables = await api.get<any, TableRow[]>('/tables');
-    const table = allTables.find(t => t.table_number === String(tableNumber));
-    if (!table) {
-      throw new Error('Table not found');
+    try {
+      return await api.get(`/tables/number/${encodeURIComponent(tableNumber)}`);
+    } catch (err) {
+      try {
+        return await api.get(`/tables/qr/${encodeURIComponent(tableNumber)}`);
+      } catch {
+        throw err;
+      }
     }
-    return table;
   }, 'getTableByNumber');
 };
 
