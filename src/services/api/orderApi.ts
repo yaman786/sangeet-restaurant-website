@@ -115,7 +115,13 @@ export const getTableByQRCode = async (qrCode: string): Promise<TableRow> => {
   }, 'getTableByQRCode');
 };
 
-export const getTableByNumber = async (tableNumber: string | number): Promise<TableRow> => {
+export const getTableById = async (tableId: number): Promise<TableRow> => {
+  return apiCallWrapper(async () => {
+    return await api.get(`/tables/${tableId}`);
+  }, 'getTableById');
+};
+
+export const getTableByNumber = async (tableNumber: string): Promise<TableRow> => {
   return apiCallWrapper(async () => {
     try {
       return await api.get(`/tables/number/${encodeURIComponent(tableNumber)}`);

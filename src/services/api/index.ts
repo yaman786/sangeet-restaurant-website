@@ -24,7 +24,7 @@ export {
   updateOrderStatus, deleteOrder, bulkUpdateOrderStatus,
   searchOrders, fetchOrderStats, fetchTables,
   cancelOrderItemApi,
-  getTableByQRCode, getTableByNumber, archiveCompletedOrders,
+  getTableByQRCode, getTableById, getTableByNumber, archiveCompletedOrders,
   restoreOrder
 } from './orderApi';
 
