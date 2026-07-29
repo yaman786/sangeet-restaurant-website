@@ -82,6 +82,27 @@ const OrderTrackingPage = () => {
         return;
       }
 
+      // STRICT INDIVIDUAL SECURITY CHECK:
+      // Verify that this orderId matches the session on this device
+      let deviceOrderId: any = null;
+      try {
+        const localSession = localStorage.getItem('orderSession');
+        if (localSession) {
+          const parsed = JSON.parse(localSession);
+          deviceOrderId = parsed.orderId;
+        }
+      } catch (e) {}
+
+      if (!deviceOrderId || String(deviceOrderId) !== String(orderId)) {
+        toast.error('Access Denied: This tracking link belongs to a different device.', { duration: 5000 });
+        setError('Access Denied: This tracking link belongs to a different device.');
+        setLoading(false);
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+        return;
+      }
+
       try {
         setLoading(true);
         const orderData = await getOrderById(orderId);

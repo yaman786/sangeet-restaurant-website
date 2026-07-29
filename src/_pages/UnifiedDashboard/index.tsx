@@ -75,13 +75,14 @@ const UnifiedDashboard = () => {
         }
       } catch (e) {}
       
-      if (deviceOrderId && String(deviceOrderId) !== String(orderId)) {
+      if (!deviceOrderId || String(deviceOrderId) !== String(orderId)) {
         toast.error('Access Denied. This tracking link belongs to a different device.', { duration: 5000 });
-        setOrderId(null);
-        setCurrentView('menu');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
       }
     }
-  }, [orderId, tableNumber, setOrderId]);
+  }, [orderId, tableNumber]);
 
   const checkCancelledOrderTimeout = useCallback(() => {
     try {
