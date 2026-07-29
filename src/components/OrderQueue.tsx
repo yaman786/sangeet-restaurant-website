@@ -198,7 +198,8 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     
     // Validate status transitions
     const statusFlow = {
-      'pending': ['preparing', 'cancelled'],
+      'pending': ['accepted', 'preparing', 'cancelled'],
+      'accepted': ['preparing', 'cancelled'],
       'preparing': ['ready', 'cancelled'],
       'ready': ['completed', 'cancelled'],
       'completed': [],
@@ -287,13 +288,12 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     };
   }, [setupSocketListeners, queryClient]);
 
-
-
   const getStatusColor = (status: any) => {
     switch (status) {
       case 'pending':
         return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
-
+      case 'accepted':
+        return 'text-orange-400 bg-orange-400/10 border-orange-400/20';
       case 'preparing':
         return 'text-orange-500 bg-orange-500/10 border-orange-500/20';
       case 'ready':
@@ -309,7 +309,8 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     switch (status) {
       case 'pending':
         return <Clock className="h-5 w-5" />;
-
+      case 'accepted':
+        return <Timer className="h-5 w-5" />;
       case 'preparing':
         return <Timer className="h-5 w-5" />;
       case 'ready':
@@ -325,7 +326,9 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     ? [...orders] 
     : activeFilter === 'completed' 
       ? [...completedOrders]
-      : orders.filter((order: any) => order.status === activeFilter);
+      : activeFilter === 'preparing'
+        ? orders.filter((order: any) => order.status === 'accepted' || order.status === 'preparing')
+        : orders.filter((order: any) => order.status === activeFilter);
       
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
@@ -338,13 +341,12 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
 
   const filteredOrders = sortOrders(baseOrders);
 
-
-
   useEffect(() => {
     const stats = {
       total: orders.length,
       pending: orders.filter((order: any) => order.status === 'pending').length,
-      preparing: orders.filter((order: any) => order.status === 'preparing').length,
+      accepted: orders.filter((order: any) => order.status === 'accepted').length,
+      preparing: orders.filter((order: any) => order.status === 'accepted' || order.status === 'preparing').length,
       ready: orders.filter((order: any) => order.status === 'ready').length,
       completed: completedOrders.length
     };
@@ -465,7 +467,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
                     // Kitchen Mode: Smart touch-friendly buttons with logical flow
                     <>
                       {/* Forward Progress Buttons */}
-                      {order.status === 'pending' && (
+                      {(order.status === 'pending' || order.status === 'accepted') && (
                         <button
                           onClick={() => handleStatusUpdate(order.id, 'preparing')}
                           className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-md font-medium hover:bg-orange-700 transition-colors text-sm"
