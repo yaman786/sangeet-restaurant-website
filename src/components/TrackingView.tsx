@@ -2,7 +2,18 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import ReviewModal from './ReviewModal';
-import { Smartphone, ClipboardList, RefreshCw, XCircle, MessageCircle, PlusCircle, Star, PenLine } from 'lucide-react';
+import { Smartphone, ClipboardList, RefreshCw, XCircle, MessageCircle, PlusCircle, Star, PenLine, ChefHat, CheckCircle2, PartyPopper, Check } from 'lucide-react';
+
+const StatusIcon = ({ status, className }: { status: string, className?: string }) => {
+  switch(status) {
+    case 'pending': return <ClipboardList className={className} />;
+    case 'preparing': return <ChefHat className={className} />;
+    case 'ready': return <CheckCircle2 className={className} />;
+    case 'completed': return <PartyPopper className={className} />;
+    case 'cancelled': return <XCircle className={className} />;
+    default: return <ClipboardList className={className} />;
+  }
+};
 import { groupItemsBySession, getSessionTitle, hasMultipleSessions } from '../utils/itemUtils';
 
 // Helper function to check if item is new (added within last 5 minutes)
@@ -158,7 +169,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
         <div className="flex items-center space-x-3 sm:space-x-4">
           <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${currentStatus.bgColor} ${currentStatus.borderColor} border-2`}>
-            <span className="text-lg sm:text-2xl">{currentStatus.icon}</span>
+            <StatusIcon status={order.status} className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
             <h3 className="text-lg sm:text-xl font-bold text-sangeet-neutral-200">
@@ -253,7 +264,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
                         ? 'bg-sangeet-500 text-sangeet-neutral-950 animate-pulse ring-2 ring-sangeet-400 ring-opacity-50'
                         : 'bg-sangeet-neutral-700 text-sangeet-neutral-400'
                     }`}>
-                      {isCompleted ? '✓' : config.icon}
+                      {isCompleted ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : <StatusIcon status={status} className="w-4 h-4 sm:w-5 sm:h-5" />}
                     </div>
                     <div className="mt-2 sm:mt-3 text-center">
                       <p className={`text-xs sm:text-sm font-medium ${isCurrent ? currentStatus.color : 'text-sangeet-neutral-400'}`}>
@@ -271,7 +282,9 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
       {/* Current Status - Mobile Optimized */}
       <div className="bg-sangeet-neutral-800/50 rounded-xl sm:rounded-2xl p-3 sm:p-4 mb-4 sm:mb-6 border-l-4 border-sangeet-400">
         <div className="flex items-center space-x-2 sm:space-x-3">
-          <span className="text-xl sm:text-2xl animate-bounce">{currentStatus.icon}</span>
+          <div className="animate-bounce">
+            <StatusIcon status={order.status} className="w-6 h-6 sm:w-8 sm:h-8" />
+          </div>
           <div>
             <h4 className={`text-base sm:text-lg font-semibold ${currentStatus.color} transition-colors duration-500`}>
               {currentStatus.label}
