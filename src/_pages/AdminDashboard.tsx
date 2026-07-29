@@ -69,7 +69,7 @@ const AdminDashboard = () => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-sangeet-400 mb-2">
-            Welcome back, {user?.first_name}! 👋
+            Welcome back, {user?.full_name?.split(' ')[0] || user?.username || 'Admin'}! 👋
           </h2>
           <p className="text-sangeet-neutral-400">
             Manage your restaurant operations from this central dashboard.

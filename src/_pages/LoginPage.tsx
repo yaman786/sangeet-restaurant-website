@@ -33,7 +33,8 @@ const LoginPage = () => {
       const { user } = response as any;
 
       login(user);
-      toast.success(`Welcome back, ${user.first_name}!`);
+      const nameToDisplay = user.full_name?.split(' ')[0] || user.username || 'Admin';
+      toast.success(`Welcome back, ${nameToDisplay}!`);
 
       if (user.role === 'admin') {
         navigate('/admin/dashboard');
