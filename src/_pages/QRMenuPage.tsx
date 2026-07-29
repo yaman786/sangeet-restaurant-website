@@ -53,7 +53,7 @@ const QRMenuPage = () => {
 
         // Check for active orders for this table
         try {
-          const ordersResponse = await getOrdersByTable(tableData.table_number || '');
+          const ordersResponse = await getOrdersByTable(tableData.id || tableData.table_number || '');
           const orders = Array.isArray(ordersResponse) 
             ? ordersResponse 
             : ((ordersResponse as any)?.data || []);
@@ -80,9 +80,31 @@ const QRMenuPage = () => {
             } catch (e) {}
 
             // Find the specific order that belongs to this device
-            const myActiveOrder = activeOrders.find((o: any) => String(o.id) === String(deviceOrderId));
+            let myActiveOrder = activeOrders.find((o: any) => String(o.id) === String(deviceOrderId));
+
+            // Fallback: If deviceOrderId was not set, match active order by stored customer name for this table
+            if (!myActiveOrder && tableData.table_number) {
+              try {
+                const savedCustomer = localStorage.getItem(`customer_${tableData.table_number}`);
+                if (savedCustomer && savedCustomer !== 'Guest') {
+                  myActiveOrder = activeOrders.find((o: any) => o.customer_name?.trim().toLowerCase() === savedCustomer.trim().toLowerCase());
+                }
+              } catch (e) {}
+            }
             
             if (myActiveOrder) {
+              // Ensure orderSession is refreshed in localStorage
+              try {
+                localStorage.setItem('orderSession', JSON.stringify({
+                  tableId: tableData.id,
+                  tableNumber: tableData.table_number,
+                  customerName: myActiveOrder.customer_name,
+                  orderId: myActiveOrder.id,
+                  orderNumber: myActiveOrder.order_number
+                }));
+                localStorage.setItem(`orderId_${tableData.table_number}`, String(myActiveOrder.id));
+              } catch (e) {}
+
               // Set redirecting state to prevent menu rendering
               setIsRedirecting(true);
               hasRedirected.current = true;
@@ -98,13 +120,9 @@ const QRMenuPage = () => {
               navigate(redirectUrl, { replace: true });
               return; // Exit early
             }
-            
-            // If they don't have a matching session, we DO NOT redirect them.
-            // We let them view the menu to place their own independent order!
           }
         } catch (error) {
           console.error('Error checking orders:', error);
-          // Continue to menu page if there's an error checking orders
         }
 
         // Only load menu data if no active orders found

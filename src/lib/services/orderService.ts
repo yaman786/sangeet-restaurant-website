@@ -163,13 +163,36 @@ class OrderService {
     return order;
   }
 
-  async getOrdersByTable(tableId: string) {
-    const orders = await prisma.orders.findMany({
-      where: {
-        table_id: parseInt(tableId, 10),
+  async getOrdersByTable(tableIdOrNumber: string | number) {
+    const rawInput = String(tableIdOrNumber || '').trim();
+    const parsedId = parseInt(rawInput, 10);
+    
+    let whereClause: any;
+    if (!isNaN(parsedId) && String(parsedId) === rawInput) {
+      // Input is a pure number string, check both table_id and table_number
+      whereClause = {
+        OR: [
+          { table_id: parsedId },
+          { tables: { table_number: rawInput } }
+        ],
         is_archived: false,
         status: { notIn: ['completed', 'cancelled'] }
-      },
+      };
+    } else {
+      // Input is a string (e.g. "Table 1" or "table-1"), search via tables relationship or table_number
+      const cleanedNumber = rawInput.replace(/^table-/i, '').replace(/^tb-/i, '').trim();
+      whereClause = {
+        OR: [
+          { tables: { table_number: rawInput } },
+          { tables: { table_number: cleanedNumber } }
+        ],
+        is_archived: false,
+        status: { notIn: ['completed', 'cancelled'] }
+      };
+    }
+
+    const orders = await prisma.orders.findMany({
+      where: whereClause,
       include: {
         tables: true,
         order_items: { include: { menu_items: true } }

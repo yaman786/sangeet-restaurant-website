@@ -153,11 +153,25 @@ const QRCartPage = () => {
       }
       
       // Update session with new order info
-      updateSession({
+      const sessionData = {
+        tableId: (tableInfo as any)?.id,
+        tableNumber: (tableInfo as any)?.table_number,
         customerName: customerName.trim(),
         orderId: orderId,
         orderNumber: orderNumber
-      });
+      };
+      
+      updateSession(sessionData);
+      
+      try {
+        localStorage.setItem('orderSession', JSON.stringify(sessionData));
+        if ((tableInfo as any)?.table_number) {
+          localStorage.setItem(`orderId_${(tableInfo as any).table_number}`, String(orderId));
+          localStorage.setItem(`customer_${(tableInfo as any).table_number}`, customerName.trim());
+        }
+      } catch (e) {
+        console.error('Failed to write orderSession to localStorage in QRCartPage:', e);
+      }
       
       // Clear cart
       clearCart();
