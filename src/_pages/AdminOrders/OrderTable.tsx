@@ -100,7 +100,17 @@ const OrderTable = ({
     group.canCollectPayment = activeTickets.length > 0 && !hasUncooked && hasReadyOrServed;
   });
 
-  const groups = Object.values(groupedOrders) as any[];
+  const allGroups = Object.values(groupedOrders) as any[];
+
+  // Filter groups according to tab viewMode without fragmenting individual table tickets
+  const groups = allGroups.filter((group: any) => {
+    if (viewMode === 'all') return true;
+    if (viewMode === 'pending') return group.hasPending;
+    if (viewMode === 'preparing') return group.hasPreparing || group.hasPending; // "In Kitchen" shows tables with active cooking tickets
+    if (viewMode === 'ready') return group.canCollectPayment; // "Ready / Served" shows tables where ALL tickets are ready for payment
+    if (viewMode === 'completed') return group.allCompleted;
+    return true;
+  });
 
   const toggleGroup = (key: string) => {
     setExpandedGroups(prev => ({ ...prev, [key]: !prev[key] }));

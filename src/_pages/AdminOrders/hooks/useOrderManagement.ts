@@ -57,16 +57,9 @@ export const useOrderManagement = () => {
     try {
       if (!isBackgroundPoll && orders.length === 0 && completedOrders.length === 0) setLoading(true);
       
+      // Fetch all orders without pre-filtering by status to preserve full table sitting history and totals
       const searchParams = { ...filters };
-      if (viewMode !== 'all') {
-        if (viewMode === 'completed') {
-          searchParams.status = 'completed,cancelled';
-        } else if (viewMode === 'preparing') {
-          searchParams.status = 'accepted,preparing';
-        } else {
-          searchParams.status = viewMode;
-        }
-      }
+      delete (searchParams as any).status;
 
       const [ordersData, tablesData] = await Promise.all([
         fetchAllOrders(searchParams),
