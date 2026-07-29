@@ -8,6 +8,7 @@ import { createOrder, getTableByQRCode } from '../services/api';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import { clearCartData } from '../utils/cartUtils';
 import { ChevronLeft, User, MessageSquare, Utensils, Minus, Plus, X, Receipt, ShoppingBag } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
 const QRCartPage = () => {
   const { qrCode } = useParams();
@@ -272,7 +273,7 @@ const QRCartPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-sangeet-neutral-900 text-sangeet-neutral-100 selection:bg-sangeet-400 selection:text-sangeet-neutral-900 pb-24">
+    <div className="min-h-screen bg-sangeet-neutral-900 text-sangeet-neutral-100 selection:bg-sangeet-400 selection:text-sangeet-neutral-900 pb-36">
       {/* Liquid Glass Header */}
       <div className="bg-[#1C1917]/80 backdrop-blur-xl border-b border-white/10 p-4 sticky top-0 z-50 shadow-glass">
         <div className="max-w-4xl mx-auto">
@@ -433,7 +434,22 @@ const QRCartPage = () => {
                   </span>
                 </div>
               </div>
+            </motion.div>
 
+          </motion.div>
+        )}
+      </div>
+
+      {/* Sticky Bottom Checkout Actions */}
+      <AnimatePresence>
+        {cart.length > 0 && (
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-[#1C1917]/95 backdrop-blur-xl border-t border-white/10 z-50 shadow-[0_-16px_48px_rgba(0,0,0,0.5)]"
+          >
+            <div className="max-w-4xl mx-auto">
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={handleContinueOrdering}
@@ -451,11 +467,10 @@ const QRCartPage = () => {
                   <span className="relative z-10">{isSubmitting ? 'Confirming...' : 'Place Order'}</span>
                 </button>
               </div>
-            </motion.div>
-
+            </div>
           </motion.div>
         )}
-      </div>
+      </AnimatePresence>
     </div>
   );
 };

@@ -358,7 +358,7 @@
   body {
     margin: 0;
     padding: 0;
-    font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Karla', var(--font-karla), 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     background: #0a0908;
     color: #edece8;
     line-height: 1.7;

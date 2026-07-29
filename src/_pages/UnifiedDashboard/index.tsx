@@ -12,7 +12,7 @@ import { useOrderFlow } from './hooks/useOrderFlow';
 import CartView from '../../components/CartView';
 import TrackingView from '../../components/TrackingView';
 import MenuView from '../../components/MenuView';
-import { ChefHat, ShoppingBag, ListOrdered, ChevronLeft, Sparkles } from 'lucide-react';
+import { ChefHat, ShoppingBag, ListOrdered, ChevronLeft, Sparkles, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const UnifiedDashboard = () => {
@@ -356,8 +356,8 @@ const UnifiedDashboard = () => {
                 </div>
               ) : (
                 <div className="w-full">
-                  {/* Liquid Glass Hero Header for Menu */}
-                  <div className="relative h-[40vh] min-h-[300px] w-full overflow-hidden flex items-center justify-center rounded-3xl mb-8">
+                  {/* Premium Compact Hero Header for Menu */}
+                  <div className="relative h-[22vh] min-h-[200px] w-full overflow-hidden flex items-center justify-center rounded-3xl mb-8">
                     {/* Parallax Background */}
                     <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
                     <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900 via-sangeet-neutral-900/60 to-transparent"></div>
@@ -423,11 +423,16 @@ const UnifiedDashboard = () => {
                               </div>
                             </div>
                             
-                            <div className="text-right relative z-10">
-                              <p className="text-xs text-sangeet-neutral-400 uppercase tracking-wider mb-0.5">Total Estimate</p>
-                              <p className="font-display text-2xl font-bold text-sangeet-400">
-                                ${getCartTotal().toFixed(2)}
-                              </p>
+                            <div className="text-right relative z-10 flex items-center gap-3">
+                              <div>
+                                <p className="text-xs text-sangeet-neutral-400 uppercase tracking-wider mb-0.5">Total Estimate</p>
+                                <p className="font-display text-2xl font-bold text-sangeet-400">
+                                  ${getCartTotal().toFixed(2)}
+                                </p>
+                              </div>
+                              <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center border border-white/20">
+                                <ChevronRight className="w-5 h-5 text-sangeet-400" />
+                              </div>
                             </div>
                           </button>
                         </div>

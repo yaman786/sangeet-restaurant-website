@@ -18,7 +18,7 @@ const CartView = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5 }}
-      className="space-y-6"
+      className="space-y-6 pb-36"
     >
       {/* Header */}
       <div className="text-center mb-8">
@@ -124,36 +124,39 @@ const CartView = ({
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-6">
-              <button
-                onClick={onContinueOrdering}
-                className="flex-1 bg-sangeet-neutral-700 hover:bg-sangeet-neutral-600 text-sangeet-neutral-200 py-4 px-6 rounded-xl font-semibold transition-colors duration-300 flex items-center justify-center space-x-2"
-              >
-                <span>🍽️</span>
-                <span>Continue Ordering</span>
-              </button>
-              
-              <button
-                onClick={onPlaceOrder}
-                disabled={loading}
-                className="flex-1 bg-linear-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-300 hover:to-sangeet-400 text-sangeet-neutral-950 py-4 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-sangeet-neutral-950"></div>
-                    <span>Placing Order...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>✅</span>
-                    <span>Place Order</span>
-                  </>
-                )}
-              </button>
-            </div>
           </div>
         )}
+      </div>
+
+      {/* Sticky Bottom Checkout Actions */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-[#1C1917]/95 backdrop-blur-xl border-t border-white/10 z-50 shadow-[0_-16px_48px_rgba(0,0,0,0.5)]">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row gap-4">
+          <button
+            onClick={onContinueOrdering}
+            className="flex-1 bg-transparent border border-white/20 text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/5 transition-all duration-300 text-lg"
+          >
+            Add More Items
+          </button>
+          
+          <button
+            onClick={onPlaceOrder}
+            disabled={loading}
+            className="flex-1 bg-sangeet-400 text-sangeet-neutral-950 px-8 py-4 rounded-xl font-bold hover:bg-sangeet-300 transition-all duration-300 disabled:opacity-50 shadow-gold-glow text-lg relative overflow-hidden group"
+          >
+            {/* Shine effect */}
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+            <span className="relative z-10 flex items-center justify-center space-x-2">
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-sangeet-neutral-950"></div>
+                  <span>Placing Order...</span>
+                </>
+              ) : (
+                <span>Place Order</span>
+              )}
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Order Info */}

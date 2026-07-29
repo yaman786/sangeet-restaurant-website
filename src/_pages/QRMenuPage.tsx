@@ -8,7 +8,7 @@ import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import toast from 'react-hot-toast';
 import { clearCartData } from '../utils/cartUtils';
 import MenuView from '../components/MenuView';
-import { ShoppingBag, ChefHat, Sparkles } from 'lucide-react';
+import { ShoppingBag, ChefHat, Sparkles, ChevronRight } from 'lucide-react';
 
 const QRMenuPage = () => {
   const params = useParams(); const qrCode = typeof params?.qrCode === "string" ? params.qrCode : (params?.qrCode ? params.qrCode[0] : "");
@@ -291,8 +291,8 @@ const QRMenuPage = () => {
 
   return (
     <div className="min-h-screen bg-sangeet-neutral-900 text-sangeet-neutral-100 selection:bg-sangeet-400 selection:text-sangeet-neutral-900">
-      {/* Liquid Glass Hero Header */}
-      <div className="relative h-[40vh] min-h-[300px] w-full overflow-hidden flex items-center justify-center">
+      {/* Premium Compact Hero Header */}
+      <div className="relative h-[22vh] min-h-[200px] w-full overflow-hidden flex items-center justify-center">
         {/* Parallax Background */}
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
         <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900 via-sangeet-neutral-900/60 to-transparent"></div>
@@ -320,7 +320,7 @@ const QRMenuPage = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-5xl mx-auto px-4 md:px-8 -mt-12 relative z-20">
+      <div className="max-w-5xl mx-auto px-4 md:px-8 -mt-6 relative z-20">
         <MenuView 
           menuItems={menuItems}
           categories={categories}
@@ -362,11 +362,16 @@ const QRMenuPage = () => {
                   </div>
                 </div>
                 
-                <div className="text-right relative z-10">
-                  <p className="text-xs text-sangeet-neutral-400 uppercase tracking-wider mb-0.5">Total Estimate</p>
-                  <p className="font-display text-2xl font-bold text-sangeet-400">
-                    ${cart.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0).toFixed(2)}
-                  </p>
+                <div className="text-right relative z-10 flex items-center gap-3">
+                  <div>
+                    <p className="text-xs text-sangeet-neutral-400 uppercase tracking-wider mb-0.5">Total Estimate</p>
+                    <p className="font-display text-2xl font-bold text-sangeet-400">
+                      ${cart.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0).toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center border border-white/20">
+                    <ChevronRight className="w-5 h-5 text-sangeet-400" />
+                  </div>
                 </div>
               </button>
             </div>
