@@ -141,34 +141,57 @@ const AdminOrders = () => {
               <div className="p-6 overflow-y-auto flex-1">
                 <h3 className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-4">Itemized Tickets</h3>
                 <div className="space-y-4">
-                  {activeOrdersModal.activeOrders.map((order: any, idx: number) => (
-                    <div key={order.id} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 text-xs font-medium">
-                          {idx + 1}
+                  {activeOrdersModal.activeOrders.map((order: any, idx: number) => {
+                    const isCooking = order.status === 'pending' || order.status === 'accepted' || order.status === 'preparing';
+                    return (
+                      <div key={order.id} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 text-xs font-medium">
+                            {idx + 1}
+                          </div>
+                          <div>
+                            <div className="text-white/90 text-sm font-medium flex items-center space-x-2">
+                              <span>Order #{order.order_number}</span>
+                              {isCooking && (
+                                <span className="text-[10px] bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded-sm font-semibold">Cooking</span>
+                              )}
+                            </div>
+                            <div className="text-white/40 text-xs">{formatDate(order.created_at)}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="text-white/90 text-sm font-medium">Order #{order.order_number}</div>
-                          <div className="text-white/40 text-xs">{formatDate(order.created_at)}</div>
+                        <div className="text-white font-medium">
+                          ${Number(order.total_amount || 0).toFixed(2)}
                         </div>
                       </div>
-                      <div className="text-white font-medium">
-                        ${Number(order.total_amount || 0).toFixed(2)}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Sticky Footer */}
               <div className="p-6 bg-white/5 border-t border-white/10">
-                <button
-                  onClick={handleCompleteAllCustomerOrders}
-                  className="w-full bg-sangeet-400 hover:bg-[#B8972E] text-black font-semibold text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all flex items-center justify-center space-x-2 cursor-pointer"
-                >
-                  <CheckCircle size={20} />
-                  <span>Charge ${activeOrdersModal.activeOrders.reduce((sum: any, order: any) => sum + Number(order.total_amount || 0), 0).toFixed(2)}</span>
-                </button>
+                {activeOrdersModal.activeOrders.some((o: any) => o.status === 'pending' || o.status === 'accepted' || o.status === 'preparing') ? (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl text-xs text-orange-400 text-center font-medium">
+                      ⚠️ Kitchen is still preparing items for this table. Wait for kitchen to mark ready/served before collecting payment.
+                    </div>
+                    <button
+                      disabled
+                      className="w-full bg-sangeet-neutral-800 text-sangeet-neutral-500 font-semibold text-lg py-4 rounded-xl cursor-not-allowed border border-sangeet-neutral-700 flex items-center justify-center space-x-2"
+                    >
+                      <CheckCircle size={20} />
+                      <span>Cannot Charge (Cooking in Progress)</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleCompleteAllCustomerOrders}
+                    className="w-full bg-sangeet-400 hover:bg-[#B8972E] text-black font-semibold text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                  >
+                    <CheckCircle size={20} />
+                    <span>Charge ${activeOrdersModal.activeOrders.reduce((sum: any, order: any) => sum + Number(order.total_amount || 0), 0).toFixed(2)}</span>
+                  </button>
+                )}
                 <button
                   onClick={closeActiveOrdersModal}
                   className="w-full mt-4 text-white/50 hover:text-white transition-colors text-sm font-medium cursor-pointer"

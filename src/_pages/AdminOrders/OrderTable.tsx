@@ -81,7 +81,7 @@ const OrderTable = ({
       acc[key].customer_name = order.customer_name;
     }
     
-    if (order.status === 'ready') acc[key].hasReady = true;
+    if (order.status === 'ready' || order.status === 'served') acc[key].hasReady = true;
     if (order.status === 'preparing' || order.status === 'accepted') acc[key].hasPreparing = true;
     if (order.status === 'pending') acc[key].hasPending = true;
     if (order.status !== 'completed' && order.status !== 'cancelled') acc[key].allCompleted = false;
@@ -89,9 +89,15 @@ const OrderTable = ({
     return acc;
   }, {});
 
-  // Sort sub-orders by created_at ascending
+  // Compute table level payment readiness: strictly require that NO ticket is cooking/pending, and at least 1 ticket is ready/served
   Object.values(groupedOrders).forEach((group: any) => {
     group.orders.sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    
+    const activeTickets = group.orders.filter((o: any) => o.status !== 'completed' && o.status !== 'cancelled');
+    const hasUncooked = activeTickets.some((o: any) => o.status === 'pending' || o.status === 'accepted' || o.status === 'preparing');
+    const hasReadyOrServed = activeTickets.some((o: any) => o.status === 'ready' || o.status === 'served');
+    
+    group.canCollectPayment = activeTickets.length > 0 && !hasUncooked && hasReadyOrServed;
   });
 
   const groups = Object.values(groupedOrders) as any[];
@@ -114,8 +120,8 @@ const OrderTable = ({
                 💡 Completed and cancelled orders cannot be modified
               </p>
             </div>
-            <div className="flex space-x-2">
-              {['accepted', 'preparing', 'ready', 'completed', 'cancelled'].map((status) => (
+            <div className="flex items-center space-x-2">
+              {['preparing', 'ready', 'completed', 'cancelled'].map(status => (
                 <button
                   key={status}
                   onClick={() => handleBulkStatusUpdate(status)}
@@ -157,12 +163,10 @@ const OrderTable = ({
                   
                   // Determine aggregated status display
                   let groupStatusUI;
-                  if (group.hasReady) {
-                    groupStatusUI = <span className="bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1 rounded-full text-xs font-bold">Food Ready</span>;
-                  } else if (group.hasPreparing) {
-                    groupStatusUI = <span className="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-2"><span>Cooking</span><span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span></span>;
-                  } else if (group.hasPending) {
-                    groupStatusUI = <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-3 py-1 rounded-full text-xs font-bold">New Orders</span>;
+                  if (group.hasPreparing || group.hasPending) {
+                    groupStatusUI = <span className="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-2"><span>Cooking in Kitchen</span><span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span></span>;
+                  } else if (group.hasReady) {
+                    groupStatusUI = <span className="bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1 rounded-full text-xs font-bold">Food Ready / Served</span>;
                   } else {
                     groupStatusUI = <span className="bg-sangeet-neutral-700/50 text-sangeet-neutral-400 border border-sangeet-neutral-600 px-3 py-1 rounded-full text-xs font-bold">Completed</span>;
                   }
@@ -199,8 +203,8 @@ const OrderTable = ({
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end items-center space-x-4">
-                            {/* Master Checkout Button */}
-                            {group.hasReady && !group.hasPending && !group.hasPreparing && !group.allCompleted && (
+                            {/* Master Checkout Button - STRICTLY requires ALL tickets to be ready/served with 0 cooking tickets */}
+                            {group.canCollectPayment && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -210,7 +214,7 @@ const OrderTable = ({
                                     showActiveOrdersModalDetails(targetOrder);
                                   }
                                 }}
-                                className="bg-blue-500/20 text-blue-400 border border-blue-500/50 hover:bg-blue-500/30 px-4 py-1.5 rounded-lg font-bold text-sm transition-all shadow-xs flex items-center space-x-2"
+                                className="bg-blue-500/20 text-blue-400 border border-blue-500/50 hover:bg-blue-500/30 px-4 py-1.5 rounded-lg font-bold text-sm transition-all shadow-xs flex items-center space-x-2 cursor-pointer"
                               >
                                 <span>Collect Payment</span>
                                 <span>💵</span>
