@@ -68,16 +68,16 @@ class OrderService {
       });
     }
     
-    // Check if the table already has an active, verified order
+    // Check if the table already has an active, verified order (accepted by waiter or cooking/serving)
     const verifiedSession = await prisma.orders.findFirst({
       where: {
         table_id,
-        status: { in: ['preparing', 'ready', 'served'] }
+        status: { in: ['accepted', 'preparing', 'ready', 'served'] }
       }
     });
     
-    // If they are verified, auto-approve the new order directly to the kitchen
-    const initialStatus = verifiedSession ? 'preparing' : 'pending';
+    // If the table is already verified by a waiter, auto-approve subsequent orders to 'accepted' (directly in kitchen)
+    const initialStatus = verifiedSession ? 'accepted' : 'pending';
     
     // Create new order
     const dateStr = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 8);
