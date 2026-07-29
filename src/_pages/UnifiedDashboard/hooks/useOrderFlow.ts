@@ -104,6 +104,27 @@ export const useOrderFlow = (tableSession: any) => {
       
       setOrders((prevOrders: any[]) => [...prevOrders, newOrder]);
       
+      // Save orderSession to localStorage for device security & persistence upon reload/rescan
+      try {
+        const sessionObj = {
+          tableId: tableId,
+          tableNumber: tableNumber,
+          customerName: customerName || 'Guest',
+          orderId: newOrder.id,
+          orderNumber: newOrder.order_number
+        };
+        localStorage.setItem('orderSession', JSON.stringify(sessionObj));
+        if (tableNumber) {
+          localStorage.setItem(`orderId_${tableNumber}`, String(newOrder.id));
+          localStorage.setItem(`orderNumber_${tableNumber}`, String(newOrder.order_number));
+          if (customerName) {
+            localStorage.setItem(`customer_${tableNumber}`, customerName);
+          }
+        }
+      } catch (e) {
+        console.error('Error saving orderSession to localStorage:', e);
+      }
+      
       // Abort any pending cancellation kickouts since they are ordering again!
       if (tableId) {
         localStorage.removeItem(`cancelledOrder_${tableId}`);

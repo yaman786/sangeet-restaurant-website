@@ -63,21 +63,25 @@ const UnifiedDashboard = () => {
   // STRICT INDIVIDUAL SECURITY CHECK
   useEffect(() => {
     if (orderId) {
-      let deviceOrderId = null;
+      let deviceOrderId: any = null;
       try {
         const localSession = localStorage.getItem('orderSession');
         if (localSession) {
           const parsed = JSON.parse(localSession);
           deviceOrderId = parsed.orderId;
         }
+        if (!deviceOrderId && tableNumber) {
+          deviceOrderId = localStorage.getItem(`orderId_${tableNumber}`);
+        }
       } catch (e) {}
       
-      if (String(deviceOrderId) !== String(orderId)) {
+      if (deviceOrderId && String(deviceOrderId) !== String(orderId)) {
         toast.error('Access Denied. This tracking link belongs to a different device.', { duration: 5000 });
-        window.location.href = `/qr/${tableNumber}`;
+        setOrderId(null);
+        setCurrentView('menu');
       }
     }
-  }, [orderId, tableNumber]);
+  }, [orderId, tableNumber, setOrderId]);
 
   const checkCancelledOrderTimeout = useCallback(() => {
     try {

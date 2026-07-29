@@ -24,35 +24,6 @@ const QRMenuPage = () => {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const hasRedirected = useRef(false);
 
-  // Check for active orders automatically
-  useEffect(() => {
-    const checkForActiveOrders = async () => {
-      try {
-        const tableData = await getTableByQRCode(qrCode as string);
-        if (tableData) {
-          const ordersResponse = await getOrdersByTable(tableData.table_number || '');
-          const orders = ordersResponse || [];
-          const activeOrders = orders.filter((order: any) => 
-            order.status !== 'completed' && order.status !== 'cancelled'
-          );
-          
-          if (activeOrders.length > 0) {
-            const firstActiveOrder = activeOrders[0];
-            const redirectUrl = `/dashboard?table=${tableData.table_number}&orderId=${firstActiveOrder.id}&orderNumber=${firstActiveOrder.order_number}`;
-            toast.success(`Welcome back! Redirecting to your active order...`);
-            navigate(redirectUrl, { replace: true });
-          }
-        }
-      } catch (error) {
-        console.error('Error in automatic redirect check:', error);
-      }
-    };
-    
-    // Small delay to ensure component is fully loaded
-    const timer = setTimeout(checkForActiveOrders, 500);
-    return () => clearTimeout(timer);
-  }, [qrCode, navigate]);
-
   useEffect(() => {
     // Prevent multiple redirects
     if (hasRedirected.current) {
@@ -83,7 +54,9 @@ const QRMenuPage = () => {
         // Check for active orders for this table
         try {
           const ordersResponse = await getOrdersByTable(tableData.table_number || '');
-          const orders = (ordersResponse as any)?.data || [];
+          const orders = Array.isArray(ordersResponse) 
+            ? ordersResponse 
+            : ((ordersResponse as any)?.data || []);
           
           // Filter for active orders (not completed or cancelled)
           const activeOrders = orders.filter((order: any) => 
@@ -94,17 +67,20 @@ const QRMenuPage = () => {
             
             // STRICT INDIVIDUAL SECURITY CHECK:
             // Check if this specific device placed the order.
-            let deviceOrderId = null;
+            let deviceOrderId: any = null;
             try {
               const localSession = localStorage.getItem('orderSession');
               if (localSession) {
                 const parsed = JSON.parse(localSession);
                 deviceOrderId = parsed.orderId;
               }
+              if (!deviceOrderId && tableData.table_number) {
+                deviceOrderId = localStorage.getItem(`orderId_${tableData.table_number}`);
+              }
             } catch (e) {}
 
             // Find the specific order that belongs to this device
-            const myActiveOrder = activeOrders.find((o: any) => o.id === deviceOrderId);
+            const myActiveOrder = activeOrders.find((o: any) => String(o.id) === String(deviceOrderId));
             
             if (myActiveOrder) {
               // Set redirecting state to prevent menu rendering
@@ -118,7 +94,7 @@ const QRMenuPage = () => {
               const redirectUrl = `/dashboard?table=${tableData.table_number}&customerName=${encodeURIComponent(myActiveOrder.customer_name)}&orderId=${myActiveOrder.id}&orderNumber=${myActiveOrder.order_number}`;
               
               // Show toast and redirect immediately
-              toast.success('You have an active order! Redirecting to tracking page...');
+              toast.success('Welcome back! Redirecting to your active order...');
               navigate(redirectUrl, { replace: true });
               return; // Exit early
             }
