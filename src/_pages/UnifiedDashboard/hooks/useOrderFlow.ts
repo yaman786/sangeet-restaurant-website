@@ -100,11 +100,11 @@ export const useOrderFlow = (tableSession: any) => {
       
       const orderData = {
         table_id: tableId,
-        customer_name: customerName,
+        customer_name: customerName || 'Guest',
         items: cart.map(item => ({
-          menu_item_id: item.id,
+          menu_item_id: item.id || item.menu_item_id,
           quantity: item.quantity,
-          special_requests: item.specialRequests || ''
+          special_requests: item.specialRequests || item.special_requests || ''
         }))
       };
       
@@ -141,9 +141,10 @@ export const useOrderFlow = (tableSession: any) => {
         });
       }, 2000);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error placing order:', error);
-      toast.error('Failed to place order. Please try again.');
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to place order. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
