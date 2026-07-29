@@ -29,18 +29,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     if (typeof window === 'undefined') return null;
     const existingUser = localStorage.getItem(USER_KEY);
-    
     if (existingUser) {
       try {
         return JSON.parse(existingUser) as User;
       } catch (e) {
-        console.error('Failed to parse user from local storage:', e);
         return null;
       }
     }
-    
     return null;
   });
+
+  // Verify HttpOnly cookie authentication on mount
+  React.useEffect(() => {
+    const verifyAuth = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            setUser(data.user);
+            localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+          }
+        } else {
+          // Cookie is invalid or expired
+          setUser(null);
+          localStorage.removeItem(USER_KEY);
+          localStorage.removeItem(TOKEN_KEY);
+        }
+      } catch (e) {
+        console.error('Failed to verify auth cookie:', e);
+      }
+    };
+    verifyAuth();
+  }, []);
 
   const login = (userData: User) => {
     localStorage.setItem(USER_KEY, JSON.stringify(userData));
