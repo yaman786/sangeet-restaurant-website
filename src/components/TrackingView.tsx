@@ -27,6 +27,11 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
     isOpen: false,
     order: null
   });
+  const [cancelModal, setCancelModal] = useState({
+    isOpen: false,
+    order: null
+  });
+  const [isCancelling, setIsCancelling] = useState(false);
   const [reviewedOrders, setReviewedOrders] = useState(new Set());
 
   const handleReviewClick = (order: any) => {
@@ -131,6 +136,7 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
               onReviewClick={handleReviewClick}
               reviewedOrders={reviewedArray}
               showReviewOption={shouldShowReview}
+              onCancelClick={(order: any) => setCancelModal({ isOpen: true, order })}
             />
           )})}
         </div>
@@ -155,11 +161,62 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
         tableNumber={tableNumber}
         onReviewSubmitted={handleReviewSubmitted}
       />
+
+      {/* Cancel Confirmation Modal */}
+      {cancelModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl relative overflow-hidden"
+          >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-red-500 to-orange-500" />
+            <div className="flex flex-col items-center text-center mb-6 mt-2">
+              <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
+                <XCircle className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Cancel Order?</h3>
+              <p className="text-sangeet-neutral-400 text-sm">
+                Are you sure you want to cancel this order? This action cannot be undone and will notify the kitchen.
+              </p>
+            </div>
+            <div className="flex flex-col space-y-3">
+              <button
+                onClick={() => setCancelModal({ isOpen: false, order: null })}
+                disabled={isCancelling}
+                className="w-full py-3 bg-sangeet-400 hover:bg-sangeet-500 text-sangeet-neutral-950 font-bold rounded-xl transition-colors disabled:opacity-50"
+              >
+                No, Keep My Order
+              </button>
+              <button
+                onClick={async () => {
+                  setIsCancelling(true);
+                  try {
+                    // Update status to cancelled via the same API/socket used elsewhere
+                    const orderId = (cancelModal.order as any).id;
+                    const { updateOrderStatus } = await import('../services/api');
+                    await updateOrderStatus(orderId, 'cancelled');
+                    setCancelModal({ isOpen: false, order: null });
+                  } catch (e) {
+                    console.error(e);
+                  } finally {
+                    setIsCancelling(false);
+                  }
+                }}
+                disabled={isCancelling}
+                className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold rounded-xl transition-colors flex items-center justify-center border border-red-500/20 disabled:opacity-50"
+              >
+                {isCancelling ? 'Cancelling...' : 'Yes, Cancel Order'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
 
-const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate, tableNumber, onReviewClick, reviewedOrders, showReviewOption = false }: any) => {
+const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate, tableNumber, onReviewClick, reviewedOrders, showReviewOption = false, onCancelClick }: any) => {
   const currentStatus = orderStatuses[order.status] || orderStatuses.pending;
   const statusStep = getStatusStep(order.status);
 
@@ -207,7 +264,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
         <div className="flex items-center justify-between mb-3 sm:mb-4">
           <h4 className="text-base sm:text-lg font-semibold text-sangeet-neutral-200">Order Progress</h4>
           <span className="text-xs sm:text-sm text-sangeet-neutral-400 bg-sangeet-neutral-800 px-2 sm:px-3 py-1 rounded-full">
-            {order.status === 'cancelled' ? 'Order Cancelled' : `Step ${statusStep} of 4`}
+            {order.status === 'cancelled' ? 'Order Cancelled' : `Step ${statusStep} of 5`}
           </span>
         </div>
 
@@ -240,7 +297,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
             <div className="absolute top-4 sm:top-5 left-0 right-0 h-1.5 sm:h-2 bg-sangeet-neutral-700 rounded-full overflow-hidden">
               <div
                 className="h-1.5 sm:h-2 bg-linear-to-r from-sangeet-400 to-sangeet-500 rounded-full transition-all duration-1000 ease-out relative shadow-lg"
-                style={{ width: `${(statusStep / 4) * 100}%` }}
+                style={{ width: `${(statusStep / 5) * 100}%` }}
               >
                 {/* Animated shine effect */}
                 <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
@@ -392,12 +449,22 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
         </div>
       </div>
 
-      {/* Estimated Time - Mobile Optimized */}
+      {/* Estimated Time & Actions - Mobile Optimized */}
       <div className="bg-blue-900/20 border border-blue-500/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center">
         <p className="text-blue-300 text-xs sm:text-sm mb-1">Estimated Completion</p>
-        <p className="text-base sm:text-lg font-semibold text-blue-400">
+        <p className="text-base sm:text-lg font-semibold text-blue-400 mb-3">
           {order.status === 'completed' ? 'Order Completed' : '15-20 minutes'}
         </p>
+        
+        {/* Cancel Button - Only visible in pending or accepted state */}
+        {(order.status === 'pending' || order.status === 'accepted') && (
+          <button
+            onClick={() => onCancelClick(order)}
+            className="w-full mt-2 py-2 px-4 rounded-lg text-sm font-semibold border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            Cancel Order
+          </button>
+        )}
       </div>
 
       {/* Professional Review Link - Strategic Placement */}

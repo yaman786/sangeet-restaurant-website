@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { createOrder, getTableByNumber, getTableByQRCode } from '../../../services/api';
 import toast from 'react-hot-toast';
+import { useCart } from '@/contexts/CartContext';
 
 export const useOrderFlow = (tableSession: any) => {
   const {
@@ -15,47 +16,30 @@ export const useOrderFlow = (tableSession: any) => {
     updateSessionTimestamp
   } = tableSession;
 
-  const [cart, setCart] = useState<any[]>([]);
+  const { cart, addToCart: ctxAddToCart, removeFromCart: ctxRemoveFromCart, updateQuantity: ctxUpdateQuantity, clearCart, getCartTotal, session } = useCart();
   const [loading, setLoading] = useState(false);
 
   const addToCart = useCallback((item: any) => {
-    setCart((prevCart: any[]) => {
-      const existingItem = prevCart.find((cartItem: any) => cartItem.id === item.id);
-      if (existingItem) {
-        return prevCart.map((cartItem: any) =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        );
-      } else {
-        return [...prevCart, { ...item, quantity: 1 }];
-      }
+    ctxAddToCart({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: 1,
+      image_url: item.image_url,
+      is_vegetarian: item.is_vegetarian
     });
     updateSessionTimestamp();
-    toast.success(`${item.name} added to cart!`);
-  }, [updateSessionTimestamp]);
+  }, [ctxAddToCart, updateSessionTimestamp]);
 
   const removeFromCart = useCallback((itemId: string | number) => {
-    setCart((prevCart: any[]) => prevCart.filter((item: any) => item.id !== itemId));
+    ctxRemoveFromCart(Number(itemId));
     updateSessionTimestamp();
-  }, [updateSessionTimestamp]);
+  }, [ctxRemoveFromCart, updateSessionTimestamp]);
 
   const updateQuantity = useCallback((itemId: string | number, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(itemId);
-    } else {
-      setCart((prevCart: any[]) =>
-        prevCart.map((item: any) =>
-          item.id === itemId ? { ...item, quantity } : item
-        )
-      );
-      updateSessionTimestamp();
-    }
-  }, [removeFromCart, updateSessionTimestamp]);
-
-  const getCartTotal = useCallback(() => {
-    return cart.reduce((total: number, item: any) => total + (item.price * item.quantity), 0);
-  }, [cart]);
+    ctxUpdateQuantity(Number(itemId), quantity);
+    updateSessionTimestamp();
+  }, [ctxUpdateQuantity, updateSessionTimestamp]);
 
   const handlePlaceOrder = useCallback(async (setCurrentView: (view: string) => void) => {
     if (cart.length === 0) {
@@ -102,9 +86,9 @@ export const useOrderFlow = (tableSession: any) => {
         table_id: tableId,
         customer_name: customerName || 'Guest',
         items: cart.map(item => ({
-          menu_item_id: item.id || item.menu_item_id,
+          menu_item_id: item.id,
           quantity: item.quantity,
-          special_requests: item.specialRequests || item.special_requests || ''
+          special_requests: item.specialRequests || ''
         }))
       };
       
@@ -126,7 +110,7 @@ export const useOrderFlow = (tableSession: any) => {
         localStorage.removeItem(`cancelledOrder_${tableNumber}`);
       }
       
-      setCart([]);
+      clearCart();
       setCurrentView('tracking');
       
       toast.success('Order placed successfully! 🎉', {
@@ -152,7 +136,6 @@ export const useOrderFlow = (tableSession: any) => {
 
   return {
     cart,
-    setCart,
     addToCart,
     removeFromCart,
     updateQuantity,

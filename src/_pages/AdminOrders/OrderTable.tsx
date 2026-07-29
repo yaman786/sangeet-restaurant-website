@@ -112,7 +112,7 @@ const OrderTable = ({
               </p>
             </div>
             <div className="flex space-x-2">
-              {['preparing', 'ready', 'completed', 'cancelled'].map((status) => (
+              {['accepted', 'preparing', 'ready', 'completed', 'cancelled'].map((status) => (
                 <button
                   key={status}
                   onClick={() => handleBulkStatusUpdate(status)}
@@ -255,7 +255,8 @@ const OrderTable = ({
                               <div className="flex items-center space-x-3">
                                 <span className={`whitespace-nowrap px-2 py-0.5 rounded-full text-xs font-semibold ${
                                   order.status === 'pending' ? 'text-yellow-400' :
-                                  order.status === 'preparing' ? 'text-orange-400' :
+                                  order.status === 'accepted' ? 'text-orange-400' :
+                                  order.status === 'preparing' ? 'text-blue-400' :
                                   order.status === 'ready' ? 'text-green-400' :
                                   order.status === 'completed' ? 'text-sangeet-neutral-500' :
                                   'text-red-400'
@@ -264,7 +265,7 @@ const OrderTable = ({
                                 </span>
                                 {order.status === 'pending' && (
                                   <button
-                                    onClick={() => handleStatusUpdate(order.id, 'preparing')}
+                                    onClick={() => handleStatusUpdate(order.id, 'accepted')}
                                     className="text-xs text-green-400 hover:text-green-300 font-medium underline"
                                   >
                                     Accept →

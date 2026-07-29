@@ -32,6 +32,14 @@ const OrderTrackingPage = () => {
       bgColor: 'bg-blue-400/10',
       borderColor: 'border-blue-400/30'
     },
+    'accepted': {
+      label: 'Order Accepted',
+      description: 'The kitchen has received your ticket',
+      icon: '🔥',
+      color: 'text-orange-400',
+      bgColor: 'bg-orange-400/10',
+      borderColor: 'border-orange-400/30'
+    },
     'preparing': {
       label: 'In the Kitchen',
       description: 'Our chefs are cooking your delicious meal',
@@ -200,7 +208,7 @@ const OrderTrackingPage = () => {
   }, [orderId]);
 
   const getStatusStep = (status: any) => {
-    const statusOrder = ['pending', 'preparing', 'ready', 'completed'];
+    const statusOrder = ['pending', 'accepted', 'preparing', 'ready', 'completed'];
     if (status === 'cancelled') {
       return 0; // Special case for cancelled orders
     }

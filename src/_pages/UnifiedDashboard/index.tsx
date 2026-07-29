@@ -60,6 +60,25 @@ const UnifiedDashboard = () => {
   const [manualMenuNavigation, setManualMenuNavigation] = useState(false);
   const [forceMenuView, setForceMenuView] = useState(false);
 
+  // STRICT INDIVIDUAL SECURITY CHECK
+  useEffect(() => {
+    if (orderId) {
+      let deviceOrderId = null;
+      try {
+        const localSession = localStorage.getItem('orderSession');
+        if (localSession) {
+          const parsed = JSON.parse(localSession);
+          deviceOrderId = parsed.orderId;
+        }
+      } catch (e) {}
+      
+      if (String(deviceOrderId) !== String(orderId)) {
+        toast.error('Access Denied. This tracking link belongs to a different device.', { duration: 5000 });
+        window.location.href = `/qr/${tableNumber}`;
+      }
+    }
+  }, [orderId, tableNumber]);
+
   const checkCancelledOrderTimeout = useCallback(() => {
     try {
       const cancelledOrderData = localStorage.getItem(`cancelledOrder_${tableNumber}`);
@@ -266,7 +285,7 @@ const UnifiedDashboard = () => {
   const formatTime = (dateString: string | Date | undefined) => dateString ? new Date(dateString).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '';
   const formatDate = (dateString: string | Date | undefined) => dateString ? new Date(dateString).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
   const getStatusStep = (status: string) => {
-    const statusOrder = ['pending', 'preparing', 'ready', 'completed'];
+    const statusOrder = ['pending', 'accepted', 'preparing', 'ready', 'completed'];
     if (status === 'cancelled') return 0;
     return statusOrder.indexOf(status) + 1;
   };

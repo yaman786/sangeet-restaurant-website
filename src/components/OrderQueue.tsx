@@ -38,6 +38,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
 
   const statusOptions = [
     { value: 'pending', label: 'Pending' },
+    { value: 'accepted', label: 'Accepted' },
     { value: 'preparing', label: 'Preparing' },
     { value: 'ready', label: 'Ready' },
     { value: 'completed', label: 'Completed' },
@@ -47,9 +48,10 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
   const getStatusPriority = (status: any) => {
     const priorities = {
       'pending': 1,
-      'preparing': 2,
-      'ready': 3,
-      'completed': 4
+      'accepted': 2,
+      'preparing': 3,
+      'ready': 4,
+      'completed': 5
     };
     return (priorities as any)[status] || 0;
   };

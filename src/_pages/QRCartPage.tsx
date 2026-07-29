@@ -9,17 +9,17 @@ import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import { clearCartData } from '../utils/cartUtils';
 import { ChevronLeft, User, MessageSquare, Utensils, Minus, Plus, X, Receipt, ShoppingBag } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
+import { useCart } from '@/contexts/CartContext';
 
 const QRCartPage = () => {
   const { qrCode } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [cart, setCart] = useState<any[]>([]);
+  const { cart, updateQuantity, removeFromCart, getCartTotal, clearCart, session, updateSession } = useCart();
   const [tableInfo, setTableInfo] = useState<any>(null);
-  const [customerName, setCustomerName] = useState('');
+  const [customerName, setCustomerName] = useState(session?.customerName || '');
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [cartInitialized, setCartInitialized] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -38,44 +38,16 @@ const QRCartPage = () => {
         // Add a small delay to ensure component is ready
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Load cart from localStorage
-        
-        
-        const savedCart = localStorage.getItem(`cart_${qrCode}`);
-
-        
-        if (savedCart) {
-          try {
-            const parsedCart = JSON.parse(savedCart);
-            // Validate cart data structure
-            if (Array.isArray(parsedCart) && parsedCart.length > 0) {
-              setCart(parsedCart);
-            } else {
-              setCart([]);
-            }
-          } catch (error) {
-            console.error('❌ Error parsing cart data:', error);
-            setCart([]);
-          }
-        } else {
-          setCart([]);
-        }
-
-        setCartInitialized(true);
-
-        // Cart loading is complete
-
-        // Load customer info from localStorage
+        // Cart is managed by CartContext now!
         const savedCustomer = localStorage.getItem(`customer_${qrCode as string}`);
-        if (savedCustomer) setCustomerName(savedCustomer);
+        if (savedCustomer && !customerName) setCustomerName(savedCustomer);
         const savedInstructions = localStorage.getItem(`instructions_${qrCode as string}`);
         if (savedInstructions) {
           setSpecialInstructions(savedInstructions);
         }
-
       } catch (error) {
         console.error('Error loading data:', error);
-        toast.error('Failed to load cart. Please try again.');
+        toast.error('Failed to load table info. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -83,25 +55,6 @@ const QRCartPage = () => {
 
     loadData();
   }, [qrCode, navigate]);
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    // Only run after cart has been initialized
-    if (!cartInitialized) {
-      return;
-    }
-    
-    // Only save/remove if cart has been loaded (not initial empty state)
-    if (cart.length > 0) {
-      localStorage.setItem(`cart_${qrCode as string}`, JSON.stringify(cart));
-    } else {
-      // Only remove if there was previously saved cart data
-      const savedCart = localStorage.getItem(`cart_${qrCode || ''}`);
-      if (savedCart) {
-        localStorage.removeItem(`cart_${qrCode as string}`);
-      }
-    }
-  }, [cart, qrCode, cartInitialized]);
 
   // Save customer info to localStorage
   useEffect(() => {
@@ -134,7 +87,7 @@ const QRCartPage = () => {
         
         
         // Clear cart state
-        setCart([]);
+        clearCart();
         
         // Use the cart utility function for comprehensive clearing
         const success = clearCartData(qrCode as string, tableInfo.table_number);
@@ -159,26 +112,8 @@ const QRCartPage = () => {
     };
   }, [tableInfo, qrCode, navigate]);
 
-  const updateQuantity = (itemId: any, quantity: any) => {
-    if (quantity <= 0) {
-      setCart((prevCart: any[]) => prevCart.filter((item: any) => item.menu_item_id !== itemId));
-      return;
-    }
-    setCart((prevCart: any[]) =>
-      prevCart.map((item: any) =>
-        item.menu_item_id === itemId
-          ? { ...item, quantity }
-          : item
-      )
-    );
-  };
-
-  const removeFromCart = (itemId: any) => {
-    setCart((prevCart: any[]) => prevCart.filter((item: any) => item.menu_item_id !== itemId));
-  };
-
   const getTotalAmount = () => {
-    return cart.reduce((total, item: any) => total + (parseFloat(item.price) * item.quantity), 0);
+    return getCartTotal();
   };
 
   const handleSubmitOrder = async () => {
@@ -200,9 +135,9 @@ const QRCartPage = () => {
         customer_name: customerName.trim(),
         special_instructions: specialInstructions.trim(),
         items: cart.map((item: any) => ({
-          menu_item_id: item.menu_item_id,
+          menu_item_id: item.id || item.menu_item_id,
           quantity: item.quantity,
-          special_requests: item.special_requests || ''
+          special_requests: item.specialRequests || item.special_requests || ''
         }))
       };
 
@@ -217,15 +152,21 @@ const QRCartPage = () => {
         throw new Error('Order ID not found in response');
       }
       
-      // Clear cart but KEEP customer info for future orders in the same session
-      setCart([]);
-      localStorage.removeItem(`cart_${qrCode}`);
+      // Update session with new order info
+      updateSession({
+        customerName: customerName.trim(),
+        orderId: orderId,
+        orderNumber: orderNumber
+      });
+      
+      // Clear cart
+      clearCart();
       localStorage.removeItem(`instructions_${qrCode}`);
       
       toast.success('Order placed successfully!');
       
-      // Navigate to unified dashboard page using React Router instead of window.location.href
-      const dashboardUrl = `/dashboard?orderId=${orderId}&table=${(tableInfo as any)?.table_number}&customerName=${encodeURIComponent(customerName)}&orderNumber=${orderNumber || ''}&totalAmount=${getTotalAmount().toFixed(2)}`;
+      // Navigate to unified dashboard page
+      const dashboardUrl = `/dashboard?orderId=${orderId}&table=${(tableInfo as any)?.table_number}&customerName=${encodeURIComponent(customerName)}&orderNumber=${orderNumber || ''}`;
       navigate(dashboardUrl, { replace: true });
       
     } catch (error: any) {
@@ -364,7 +305,7 @@ const QRCartPage = () => {
               <div className="space-y-4">
                 {cart.map((item: any) => (
                   <div
-                    key={item.menu_item_id}
+                    key={item.id}
                     className="flex flex-col sm:flex-row sm:items-center justify-between bg-sangeet-neutral-900/30 rounded-2xl p-4 border border-white/5"
                   >
                     <div className="flex-1 mb-4 sm:mb-0">
@@ -376,7 +317,7 @@ const QRCartPage = () => {
                       <div className="flex items-center gap-4 bg-[#1C1917] rounded-full p-1 border border-white/10 shadow-inner">
                         <motion.button
                           whileTap={{ scale: 0.9 }}
-                          onClick={() => updateQuantity(item.menu_item_id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
                           className="w-8 h-8 bg-white/5 text-sangeet-400 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
                         >
                           <Minus className="w-4 h-4" />
@@ -384,7 +325,7 @@ const QRCartPage = () => {
                         <span className="text-white font-medium w-4 text-center">{item.quantity}</span>
                         <motion.button
                           whileTap={{ scale: 0.9 }}
-                          onClick={() => updateQuantity(item.menu_item_id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           className="w-8 h-8 bg-sangeet-400 text-sangeet-neutral-900 rounded-full flex items-center justify-center hover:bg-sangeet-300 transition-colors"
                         >
                           <Plus className="w-4 h-4" />
@@ -399,7 +340,7 @@ const QRCartPage = () => {
                       
                       <motion.button
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => removeFromCart(item.menu_item_id)}
+                        onClick={() => removeFromCart(item.id)}
                         className="w-10 h-10 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-all duration-300 ml-2"
                       >
                         <X className="w-4 h-4" />

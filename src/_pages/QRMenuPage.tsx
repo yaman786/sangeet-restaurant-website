@@ -10,6 +10,7 @@ import { clearCartData } from '../utils/cartUtils';
 import MenuView from '../components/MenuView';
 import { ShoppingBag, ChefHat, Sparkles, ChevronRight } from 'lucide-react';
 
+import { useCart } from '@/contexts/CartContext';
 const QRMenuPage = () => {
   const params = useParams(); const qrCode = typeof params?.qrCode === "string" ? params.qrCode : (params?.qrCode ? params.qrCode[0] : "");
   const navigate = useNavigate();
@@ -19,8 +20,7 @@ const QRMenuPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [tableInfo, setTableInfo] = useState<any>(null);
-  const [cart, setCart] = useState<any[]>([]);
-  const [cartInitialized, setCartInitialized] = useState(false);
+  const { cart, addToCart, clearCart, getCartTotal, initializeSession, isInitialized: cartInitialized } = useCart();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const hasRedirected = useRef(false);
 
@@ -72,6 +72,13 @@ const QRMenuPage = () => {
           return;
         }
         setTableInfo(tableData);
+        
+        // Initialize Cart Session
+        initializeSession({
+          tableId: tableData.id,
+          tableNumber: tableData.table_number,
+          customerName: null
+        });
 
         // Check for active orders for this table
         try {
@@ -84,33 +91,40 @@ const QRMenuPage = () => {
           );
           
           if (activeOrders.length > 0) {
-            // Set redirecting state to prevent menu rendering
-            setIsRedirecting(true);
-            hasRedirected.current = true;
             
-            // Get the first active order for customer details
-            const firstActiveOrder = activeOrders[0];
+            // STRICT INDIVIDUAL SECURITY CHECK:
+            // Check if this specific device placed the order.
+            let deviceOrderId = null;
+            try {
+              const localSession = localStorage.getItem('orderSession');
+              if (localSession) {
+                const parsed = JSON.parse(localSession);
+                deviceOrderId = parsed.orderId;
+              }
+            } catch (e) {}
+
+            // Find the specific order that belongs to this device
+            const myActiveOrder = activeOrders.find((o: any) => o.id === deviceOrderId);
             
-            // Store table info for tracking page
-            localStorage.setItem('currentTable', JSON.stringify(tableData));
+            if (myActiveOrder) {
+              // Set redirecting state to prevent menu rendering
+              setIsRedirecting(true);
+              hasRedirected.current = true;
+              
+              // Store table info for tracking page
+              localStorage.setItem('currentTable', JSON.stringify(tableData));
+              
+              // Build redirect URL
+              const redirectUrl = `/dashboard?table=${tableData.table_number}&customerName=${encodeURIComponent(myActiveOrder.customer_name)}&orderId=${myActiveOrder.id}&orderNumber=${myActiveOrder.order_number}`;
+              
+              // Show toast and redirect immediately
+              toast.success('You have an active order! Redirecting to tracking page...');
+              navigate(redirectUrl, { replace: true });
+              return; // Exit early
+            }
             
-            // Store customer information from the active order
-            localStorage.setItem(`customer_${tableData.table_number}`, JSON.stringify({
-              name: firstActiveOrder.customer_name,
-              orderId: firstActiveOrder.id,
-              orderNumber: firstActiveOrder.order_number
-            }));
-            
-            // Build redirect URL
-            const redirectUrl = `/dashboard?table=${tableData.table_number}&customerName=${encodeURIComponent(firstActiveOrder.customer_name)}&orderId=${firstActiveOrder.id}&orderNumber=${firstActiveOrder.order_number}`;
-            
-            // Show toast and redirect immediately
-            toast.success('You have an active order! Redirecting to tracking page...');
-            
-            // Redirect immediately
-            navigate(redirectUrl, { replace: true });
-            
-            return; // Exit early - don't load menu data
+            // If they don't have a matching session, we DO NOT redirect them.
+            // We let them view the menu to place their own independent order!
           }
         } catch (error) {
           console.error('Error checking orders:', error);
@@ -135,61 +149,7 @@ const QRMenuPage = () => {
     loadData();
   }, []); // Temporarily remove dependencies to test
 
-  // Load cart from localStorage on component mount
-  useEffect(() => {
-    const savedCart = localStorage.getItem(`cart_${qrCode}`);
-
-    if (savedCart) {
-      try {
-        const parsedCart = JSON.parse(savedCart);
-        
-      queueMicrotask(() => {
-        if (Array.isArray(parsedCart) && parsedCart.length > 0) {
-          setCart(parsedCart);
-        } else {
-          setCart([]);
-        }
-      });
-      } catch (error) {
-        console.error('Error parsing cart data:', error);
-        queueMicrotask(() => {
-          setCart([]);
-        });
-      }
-    } else {
-      queueMicrotask(() => {
-        setCart([]);
-      });
-    }
-    queueMicrotask(() => {
-      setCartInitialized(true);
-    });
-  }, [qrCode]);
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    if (!cartInitialized) {
-      return;
-    }
-
-    if (cart.length > 0) {
-      try {
-        const cartData = JSON.stringify(cart);
-        localStorage.setItem(`cart_${qrCode}`, cartData);
-      } catch (error) {
-        console.error('Error saving cart to localStorage:', error);
-      }
-    } else {
-      const existingCart = localStorage.getItem(`cart_${qrCode}`);
-      if (existingCart) {
-        try {
-          localStorage.removeItem(`cart_${qrCode}`);
-        } catch (error) {
-          console.error('Error removing cart from localStorage:', error);
-        }
-      }
-    }
-  }, [cart, qrCode, cartInitialized]);
+  // The cart is automatically loaded from context now!
 
   // Socket connection and order deletion listener
   useEffect(() => {
@@ -210,7 +170,7 @@ const QRMenuPage = () => {
           data.tableNumber.toString() === tableInfo.table_number.toString()) {
         
         // Clear cart state
-        setCart([]);
+        clearCart();
         
         // Use the cart utility function for comprehensive clearing
         const success = clearCartData(qrCode || '', tableInfo.table_number);
@@ -232,36 +192,15 @@ const QRMenuPage = () => {
   }, [tableInfo, qrCode, cart.length]);
 
   const handleAddToCart = (item: any) => {
-    setCart((prevCart: any[]) => {
-      const existingItem = prevCart.find(cartItem => cartItem.menu_item_id === item.id);
-      
-      let newCart;
-      if (existingItem) {
-        newCart = prevCart.map(cartItem =>
-          cartItem.menu_item_id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        );
-      } else {
-        newCart = [...prevCart, { 
-          menu_item_id: item.id, 
-          quantity: 1, 
-          name: item.name,
-          price: item.price,
-          special_requests: ''
-        }];
-      }
-      
-      // Immediately save to localStorage
-      try {
-        const cartData = JSON.stringify(newCart);
-        localStorage.setItem(`cart_${qrCode}`, cartData);
-      } catch (error) {
-        console.error('Error saving cart immediately:', error);
-      }
-      
-      return newCart;
+    addToCart({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: 1,
+      image_url: item.image_url,
+      is_vegetarian: item.is_vegetarian
     });
+    
     toast.success(`${item.name} added to cart!`);
   };
 
@@ -366,7 +305,7 @@ const QRMenuPage = () => {
                   <div>
                     <p className="text-xs text-sangeet-neutral-400 uppercase tracking-wider mb-0.5">Total Estimate</p>
                     <p className="font-display text-2xl font-bold text-sangeet-400">
-                      ${cart.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0).toFixed(2)}
+                      ${getCartTotal().toFixed(2)}
                     </p>
                   </div>
                   <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center border border-white/20">

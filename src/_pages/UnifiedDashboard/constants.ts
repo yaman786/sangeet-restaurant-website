@@ -7,6 +7,14 @@ export const ORDER_STATUSES = {
     bgColor: 'bg-blue-400/10',
     borderColor: 'border-blue-400/30'
   },
+  'accepted': {
+    label: 'Order Accepted',
+    description: 'The kitchen has received your ticket',
+    icon: '🔥',
+    color: 'text-orange-400',
+    bgColor: 'bg-orange-400/10',
+    borderColor: 'border-orange-400/30'
+  },
   'preparing': {
     label: 'Preparing',
     description: 'Our kitchen is preparing your delicious meal',
