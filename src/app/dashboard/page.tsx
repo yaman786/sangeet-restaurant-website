@@ -3,8 +3,8 @@ import Layout from '@/layouts/StandaloneLayout';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Waiter Dashboard | Sangeet Restaurant',
-  description: 'Sangeet Restaurant unified waiter dashboard',
+  title: 'My Order | Sangeet Fine Dining',
+  description: 'Sangeet Restaurant unified dashboard',
 };
 
 export default function Page() {

@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-
+import { ShoppingCart, UtensilsCrossed, Trash2, Info } from 'lucide-react';
 const CartView = ({ 
   cart, 
   onUpdateQuantity, 
@@ -32,14 +32,14 @@ const CartView = ({
       <div className="bg-linear-to-r from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-6 border border-sangeet-neutral-700">
         {cart.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">🛒</div>
+            <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-sangeet-400 opacity-50" />
             <h3 className="text-xl font-semibold text-sangeet-400 mb-2">Your cart is empty</h3>
             <p className="text-sangeet-neutral-400 mb-6">Add some delicious items to get started!</p>
             <button
               onClick={onContinueOrdering}
               className="bg-sangeet-400 text-sangeet-neutral-950 px-6 py-3 rounded-lg font-semibold hover:bg-sangeet-300 transition-colors"
             >
-              🍽️ Browse Menu
+              <span className="flex items-center justify-center gap-2"><UtensilsCrossed className="w-5 h-5" /> Browse Menu</span>
             </button>
           </div>
         ) : (
@@ -106,7 +106,7 @@ const CartView = ({
                     onClick={() => onRemoveFromCart(item.id)}
                     className="text-red-400 hover:text-red-300 transition-colors p-2"
                   >
-                    🗑️
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 </motion.div>
               ))}
@@ -163,7 +163,7 @@ const CartView = ({
       {cart.length > 0 && (
         <div className="bg-blue-900/20 border border-blue-500/30 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-blue-400 mb-3 flex items-center">
-            <span className="mr-2">ℹ️</span>
+            <Info className="w-5 h-5 mr-2" />
             Order Information
           </h3>
           <div className="space-y-2 text-sangeet-neutral-300 text-sm">

@@ -217,12 +217,9 @@ const QRCartPage = () => {
         throw new Error('Order ID not found in response');
       }
       
-      // Clear cart and customer info after successful order
+      // Clear cart but KEEP customer info for future orders in the same session
       setCart([]);
-      setCustomerName('');
-      setSpecialInstructions('');
       localStorage.removeItem(`cart_${qrCode}`);
-      localStorage.removeItem(`customer_${qrCode}`);
       localStorage.removeItem(`instructions_${qrCode}`);
       
       toast.success('Order placed successfully!');

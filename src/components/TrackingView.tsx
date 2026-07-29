@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import ReviewModal from './ReviewModal';
+import { Smartphone, ClipboardList, RefreshCw, XCircle, MessageCircle, PlusCircle, Star, PenLine } from 'lucide-react';
 import { groupItemsBySession, getSessionTitle, hasMultipleSessions } from '../utils/itemUtils';
 
 // Helper function to check if item is new (added within last 5 minutes)
@@ -46,7 +47,9 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
     <div className="space-y-4 sm:space-y-6">
       {/* Header - Mobile Optimized */}
       <div className="text-center mb-4 sm:mb-6">
-        <h2 className="text-xl sm:text-2xl font-bold text-sangeet-400 mb-2">📱 Order Tracking</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-sangeet-400 mb-2 flex items-center justify-center gap-2">
+          <Smartphone className="w-6 h-6" /> Order Tracking
+        </h2>
         <p className="text-sangeet-neutral-300 text-sm sm:text-lg">
           Real-time updates on all your orders
         </p>
@@ -94,7 +97,7 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
       {/* Orders List */}
       {orders.length === 0 ? (
         <div className="text-center py-8 sm:py-12">
-          <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">📋</div>
+          <ClipboardList className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-sangeet-400 opacity-50" />
           <h3 className="text-lg sm:text-xl font-semibold text-sangeet-400 mb-2">No active orders</h3>
           <p className="text-sangeet-neutral-400 text-sm sm:text-base">Start ordering to see your orders here!</p>
         </div>
@@ -126,8 +129,8 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
       <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
         <div className="flex items-center justify-center space-x-2">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          <p className="text-blue-300 text-xs sm:text-sm">
-            🔄 Orders update automatically in real-time
+          <p className="text-blue-300 text-xs sm:text-sm flex items-center gap-1">
+            <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" /> Orders update automatically in real-time
           </p>
         </div>
       </div>
@@ -182,8 +185,8 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
               Updated: {formatTime(order.updated_at)}
             </div>
           )}
-          <div className="text-sangeet-neutral-400 text-base sm:text-lg">
-            📱
+          <div className="text-sangeet-neutral-400">
+            <Smartphone className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
       </div>
@@ -201,15 +204,15 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
           /* Cancelled Order Display */
           <div className="text-center py-6 sm:py-8">
             <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-500/20 border-2 border-red-500/30 flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl sm:text-3xl">❌</span>
+              <XCircle className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
             </div>
             <h4 className="text-lg sm:text-xl font-bold text-red-400 mb-2">Order Cancelled</h4>
             <p className="text-sangeet-neutral-300 mb-4 text-sm sm:text-base">
               Your order has been cancelled by the restaurant
             </p>
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 sm:p-4">
-              <p className="text-red-300 text-xs sm:text-sm mb-2">
-                💬 Please contact restaurant staff for refund assistance
+              <p className="text-red-300 text-xs sm:text-sm mb-2 flex items-center justify-center gap-1">
+                <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" /> Please contact restaurant staff for refund assistance
               </p>
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-400 rounded-full animate-pulse"></div>
@@ -289,7 +292,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
           {hasMultipleSessions(order.items) && (
             <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
               <div className="flex items-center space-x-2">
-                <span className="text-blue-400">➕</span>
+                <PlusCircle className="w-4 h-4 text-blue-400" />
                 <span className="text-blue-300 text-xs sm:text-sm font-medium">
                   Items have been added to your order
                 </span>
@@ -302,14 +305,14 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
             {groupItemsBySession(order.items).map((session, sessionIndex) => (
               <div key={session.id} className="border border-sangeet-neutral-700/50 rounded-lg p-3 sm:p-4">
                 <h5 className="text-xs sm:text-sm font-semibold text-sangeet-neutral-300 mb-2 sm:mb-3 flex items-center space-x-2">
-                  <span>{sessionIndex === 0 ? '📋' : '➕'}</span>
+                  {sessionIndex === 0 ? <ClipboardList className="w-4 h-4" /> : <PlusCircle className="w-4 h-4" />}
                   <span>{getSessionTitle(session, sessionIndex === 0)}</span>
                 </h5>
                 <div className="space-y-2">
                   {session.items.map((item: any, index: number) => (
                     <div key={index} className={`flex items-center space-x-2 sm:space-x-3 py-2 border-b border-sangeet-neutral-700/30 last:border-b-0 ${item.status === 'cancelled' ? 'opacity-70 grayscale' : ''}`}>
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shadow-inner ${item.status === 'cancelled' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-sangeet-neutral-700/80 text-sangeet-neutral-200 border border-sangeet-neutral-600'}`}>
-                        {item.status === 'cancelled' ? '❌' : item.quantity}
+                        {item.status === 'cancelled' ? <XCircle className="w-3 h-3" /> : item.quantity}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 flex-wrap gap-y-1">
@@ -394,7 +397,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
         >
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-3">
-              <span className="text-2xl sm:text-3xl">⭐</span>
+              <Star className="w-6 h-6 sm:w-8 sm:h-8 text-sangeet-400 fill-sangeet-400" />
               <h4 className="text-base sm:text-lg font-semibold text-sangeet-400">
                 Rate Your Dining Experience
               </h4>
@@ -406,7 +409,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
               onClick={() => onReviewClick(order)}
               className="inline-flex items-center space-x-2 bg-linear-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-500 hover:to-sangeet-600 text-sangeet-neutral-950 py-2 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
-              <span>📝</span>
+              <PenLine className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Submit Review</span>
             </button>
           </div>

@@ -372,11 +372,12 @@ const UnifiedDashboard = () => {
                       <h1 className="font-display text-4xl md:text-6xl text-white font-bold mb-4 tracking-tight drop-shadow-2xl">
                         Sangeet <span className="text-sangeet-400 italic font-light">Menu</span>
                       </h1>
-                      <div className="inline-flex items-center space-x-2 bg-sangeet-400/10 backdrop-blur-md border border-sangeet-400/20 px-6 py-2 rounded-full">
-                        <Sparkles className="w-4 h-4 text-sangeet-400" />
-                        <p className="text-sangeet-400 font-medium tracking-wide">
+                      <div className="inline-flex items-center space-x-3 opacity-90">
+                        <Sparkles className="w-3 h-3 text-sangeet-400" />
+                        <p className="text-sangeet-300 font-light italic tracking-widest text-sm uppercase">
                           Continue your culinary journey
                         </p>
+                        <Sparkles className="w-3 h-3 text-sangeet-400" />
                       </div>
                     </motion.div>
                   </div>
