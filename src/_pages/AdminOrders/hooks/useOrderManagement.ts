@@ -61,6 +61,8 @@ export const useOrderManagement = () => {
       if (viewMode !== 'all') {
         if (viewMode === 'completed') {
           searchParams.status = 'completed,cancelled';
+        } else if (viewMode === 'preparing') {
+          searchParams.status = 'accepted,preparing';
         } else {
           searchParams.status = viewMode;
         }
