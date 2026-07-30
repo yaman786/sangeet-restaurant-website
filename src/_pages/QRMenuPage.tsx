@@ -55,7 +55,9 @@ const QRMenuPage = () => {
         initializeSession({
           tableId: tableData.id,
           tableNumber: tableData.table_number,
-          customerName: existingSession?.customerName || null
+          customerName: existingSession?.customerName || null,
+          orderId: existingSession?.orderId as number | undefined,
+          orderNumber: existingSession?.orderNumber as string | undefined
         });
 
         // Check for active orders for this table
