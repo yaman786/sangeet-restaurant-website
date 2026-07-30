@@ -152,6 +152,40 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
         </div>
       </div>
 
+      {/* Strategic Bottom Review Section - Positioned below all order cards & progress feed */}
+      {(() => {
+        const reviewedArray = Array.from(reviewedOrders);
+        const eligibleOrder = orders.find((o: any) => (o.status === 'ready' || o.status === 'completed') && !reviewedArray.includes(o.id));
+        
+        if (!eligibleOrder) return null;
+        
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-6 bg-linear-to-r from-sangeet-400/10 to-sangeet-500/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-sangeet-400/30 backdrop-blur-xs text-center"
+          >
+            <div className="flex items-center justify-center space-x-2 mb-3">
+              <Star className="w-6 h-6 sm:w-8 sm:h-8 text-sangeet-400 fill-sangeet-400" />
+              <h4 className="text-base sm:text-lg font-semibold text-sangeet-400">
+                Rate Your Dining Experience
+              </h4>
+            </div>
+            <p className="text-sangeet-neutral-300 text-sm sm:text-base mb-4">
+              Your feedback is invaluable to us. Help us improve our service and share your thoughts about your meal.
+            </p>
+            <button
+              onClick={() => handleReviewClick(eligibleOrder)}
+              className="inline-flex items-center space-x-2 bg-linear-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-500 hover:to-sangeet-600 text-sangeet-neutral-950 py-2 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
+            >
+              <PenLine className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span>Submit Review</span>
+            </button>
+          </motion.div>
+        );
+      })()}
+
       {/* Review Modal */}
       <ReviewModal
         isOpen={reviewModal.isOpen}
@@ -466,35 +500,6 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
           </button>
         )}
       </div>
-
-      {/* Professional Review Link - Strategic Placement */}
-      {showReviewOption && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-4 sm:mt-6 bg-linear-to-r from-sangeet-400/10 to-sangeet-500/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-sangeet-400/30 backdrop-blur-xs"
-        >
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-3">
-              <Star className="w-6 h-6 sm:w-8 sm:h-8 text-sangeet-400 fill-sangeet-400" />
-              <h4 className="text-base sm:text-lg font-semibold text-sangeet-400">
-                Rate Your Dining Experience
-              </h4>
-            </div>
-            <p className="text-sangeet-neutral-300 text-sm sm:text-base mb-4">
-              Your feedback is invaluable to us. Help us improve our service and share your thoughts about your meal.
-            </p>
-            <button
-              onClick={() => onReviewClick(order)}
-              className="inline-flex items-center space-x-2 bg-linear-to-r from-sangeet-400 to-sangeet-500 hover:from-sangeet-500 hover:to-sangeet-600 text-sangeet-neutral-950 py-2 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              <PenLine className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>Submit Review</span>
-            </button>
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 };
