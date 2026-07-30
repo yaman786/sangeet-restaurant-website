@@ -141,8 +141,7 @@ const OrderTrackingPage = () => {
       socketService.joinCustomer(orderId);
     }
 
-    // Listen for order status updates
-    const handleStatusUpdate = (data: any) => {
+    const unsubscribeStatus = socketService.onOrderStatusUpdate((data: any) => {
       // Check if this update affects our order
       if (data.orderId && orderId && 
           data.orderId.toString() === orderId.toString()) {
@@ -202,10 +201,9 @@ const OrderTrackingPage = () => {
           }
         }
       }
-    };
+    });
 
-    // Listen for order deletion events
-    const handleOrderDeleted = (data: any) => {
+    const unsubscribeDeleted = socketService.onOrderDeleted((data: any) => {
       // Check if this deletion affects our order
       if (data.orderId && orderId && 
           data.orderId.toString() === orderId.toString()) {
@@ -216,15 +214,12 @@ const OrderTrackingPage = () => {
         
         toast.error('This order has been cancelled by the restaurant.');
       }
-    };
-
-    socketService.onOrderStatusUpdate(handleStatusUpdate);
-    socketService.onOrderDeleted(handleOrderDeleted);
+    });
 
     // Cleanup function
     return () => {
-      socketService.removeListener('order-status-update');
-      socketService.removeListener('order-deleted');
+      unsubscribeStatus();
+      unsubscribeDeleted();
     };
   }, [orderId]);
 

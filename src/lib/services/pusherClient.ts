@@ -95,41 +95,52 @@ class PusherClientService {
   onNewOrder(callback: (data: any) => void) {
     if (this.channels['admin-channel']) this.channels['admin-channel'].bind('new-order', callback);
     if (this.channels['kitchen-channel']) this.channels['kitchen-channel'].bind('new-order', callback);
+    return () => {
+      if (this.channels['admin-channel']) this.channels['admin-channel'].unbind('new-order', callback);
+      if (this.channels['kitchen-channel']) this.channels['kitchen-channel'].unbind('new-order', callback);
+    };
   }
 
   onOrderStatusUpdate(callback: (data: any) => void) {
-    Object.values(this.channels).forEach(channel => {
-      channel.bind('order-status-update', callback);
-    });
+    Object.values(this.channels).forEach(channel => channel.bind('order-status-update', callback));
+    return () => {
+      Object.values(this.channels).forEach(channel => channel.unbind('order-status-update', callback));
+    };
   }
 
   onOrderDeleted(callback: (data: any) => void) {
-    Object.values(this.channels).forEach(channel => {
-      channel.bind('order-deleted', callback);
-    });
+    Object.values(this.channels).forEach(channel => channel.bind('order-deleted', callback));
+    return () => {
+      Object.values(this.channels).forEach(channel => channel.unbind('order-deleted', callback));
+    };
   }
 
   onItemCancelled(callback: (data: any) => void) {
-    Object.values(this.channels).forEach(channel => {
-      channel.bind('item-cancelled', callback);
-    });
+    Object.values(this.channels).forEach(channel => channel.bind('item-cancelled', callback));
+    return () => {
+      Object.values(this.channels).forEach(channel => channel.unbind('item-cancelled', callback));
+    };
   }
 
   onNewItemsAdded(callback: (data: any) => void) {
     if (this.channels['admin-channel']) this.channels['admin-channel'].bind('new-items-added', callback);
     if (this.channels['kitchen-channel']) this.channels['kitchen-channel'].bind('new-items-added', callback);
+    return () => {
+      if (this.channels['admin-channel']) this.channels['admin-channel'].unbind('new-items-added', callback);
+      if (this.channels['kitchen-channel']) this.channels['kitchen-channel'].unbind('new-items-added', callback);
+    };
   }
 
   onOrderCompleted(callback: (data: any) => void) {
-    // Maps to status update 'completed'
-    this.onOrderStatusUpdate((data) => {
+    const wrappedCallback = (data: any) => {
       if (data.status === 'completed') callback(data);
-    });
+    };
+    return this.onOrderStatusUpdate(wrappedCallback);
   }
 
-  removeListener(eventName: string) {
+  removeListener(eventName: string, callback?: (data: any) => void) {
     Object.values(this.channels).forEach(channel => {
-      channel.unbind(eventName);
+      channel.unbind(eventName, callback);
     });
   }
 

@@ -166,7 +166,7 @@ const UnifiedDashboard = () => {
     socketService.removeListener('new-order');
     socketService.removeListener('order-deleted');
 
-    socketService.onOrderStatusUpdate((updateData: any) => {
+    const unsubscribeStatus = socketService.onOrderStatusUpdate((updateData: any) => {
       setOrders(prevOrders => {
         const updatedOrders = prevOrders.map(order => {
           if (String(order.id) === String(updateData.orderId)) {
@@ -174,23 +174,26 @@ const UnifiedDashboard = () => {
           }
           return order;
         });
-        
+
+        // Safe to check active orders here, but we trigger side-effects asynchronously
         if (updateData.status === 'completed') {
           const hasActiveOrders = updatedOrders.some(order => 
             order.status !== 'completed' && order.status !== 'cancelled'
           );
           
           if (!hasActiveOrders) {
-            clearSession();
-            setCurrentView('menu');
-            toast.success('🎉 All orders completed! Thank you for dining with us! Redirecting to home page...', { duration: 5000, icon: '🏠' });
-            setTimeout(() => { window.location.href = '/'; }, 2500);
+            setTimeout(() => {
+              clearSession();
+              setCurrentView('menu');
+              toast.success('🎉 All orders completed! Thank you for dining with us! Redirecting to home page...', { duration: 5000, icon: '🏠' });
+              setTimeout(() => { window.location.href = '/'; }, 2500);
+            }, 0);
           } else {
-            toast.success(`🎉 Order #${updateData.orderId} completed!`, { duration: 4000 });
+            setTimeout(() => toast.success(`🎉 Order #${updateData.orderId} completed!`, { duration: 4000 }), 0);
           }
           try { socketService.playNotificationSound('completion'); } catch (e) {}
         }
-        
+
         if (updateData.status === 'cancelled') {
           const cancelledOrderData = {
             orderId: updateData.orderId,
@@ -198,9 +201,8 @@ const UnifiedDashboard = () => {
             tableNumber: tableNumber
           };
           localStorage.setItem(`cancelledOrder_${tableNumber}`, JSON.stringify(cancelledOrderData));
-          toast.error('Order cancelled. Auto-redirecting to home in 2 minutes.', { duration: 6000, icon: '❌' });
+          setTimeout(() => toast.error('Order cancelled. Auto-redirecting to home in 2 minutes.', { duration: 6000, icon: '❌' }), 0);
           setTimeout(() => {
-            // Check if they placed a new order (which clears this flag) before kicking them out
             const stillCancelled = localStorage.getItem(`cancelledOrder_${tableNumber}`);
             if (stillCancelled) {
               clearSession();
@@ -220,7 +222,7 @@ const UnifiedDashboard = () => {
       }
     });
 
-    socketService.onNewOrder((orderData: any) => {
+    const unsubscribeNew = socketService.onNewOrder((orderData: any) => {
       if (orderData.table_number === tableNumber) {
         setOrders(prevOrders => {
           const orderExists = prevOrders.some(order => order.id === orderData.id);
@@ -231,7 +233,7 @@ const UnifiedDashboard = () => {
       }
     });
 
-    socketService.onOrderDeleted((data: any) => {
+    const unsubscribeDeleted = socketService.onOrderDeleted((data: any) => {
       if (data.tableNumber && tableNumber && data.tableNumber.toString() === tableNumber.toString()) {
         setOrders(prevOrders => prevOrders.filter(order => order.id !== data.orderId));
         if (data.orderId && orderId && data.orderId.toString() === orderId.toString()) {
@@ -243,7 +245,8 @@ const UnifiedDashboard = () => {
         }
       }
     });
-    socketService.onItemCancelled((data: any) => {
+    
+    const unsubscribeItem = socketService.onItemCancelled((data: any) => {
       if (data.tableNumber && tableNumber && data.tableNumber.toString() === tableNumber.toString()) {
         setOrders(prevOrders => prevOrders.map(order => {
           if (order.id !== data.orderId) return order;
@@ -260,10 +263,10 @@ const UnifiedDashboard = () => {
     });
     
     return () => {
-      socketService.removeListener('order-status-update');
-      socketService.removeListener('new-order');
-      socketService.removeListener('order-deleted');
-      socketService.removeListener('item-cancelled');
+      unsubscribeStatus();
+      unsubscribeNew();
+      unsubscribeDeleted();
+      unsubscribeItem();
     };
   }, [tableNumber, orderId, setOrders, clearSession, CANCELLED_ORDER_TIMEOUT]);
 
