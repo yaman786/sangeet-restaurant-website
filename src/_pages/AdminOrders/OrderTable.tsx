@@ -161,27 +161,72 @@ const OrderTable = ({
     <>
       {/* Bulk Actions */}
       {selectedOrders.length > 0 && (
-        <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-4 mb-6 border border-sangeet-neutral-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sangeet-neutral-400">
-                {selectedOrders.length} order(s) selected
-              </p>
-              <p className="text-xs text-sangeet-neutral-500 mt-1">
-                💡 Completed and cancelled orders cannot be modified
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <div className="bg-sangeet-neutral-900/90 backdrop-blur-xl rounded-full px-6 py-3 border border-sangeet-neutral-700/50 shadow-2xl flex items-center space-x-6">
+            <div className="flex items-center space-x-2 border-r border-sangeet-neutral-700 pr-6">
+              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold">
+                {selectedOrders.length}
+              </span>
+              <p className="text-sm font-medium text-sangeet-neutral-200">
+                ticket(s) selected
               </p>
             </div>
-            <div className="flex items-center space-x-2">
-              {['preparing', 'ready', 'completed', 'cancelled'].map(status => (
-                <button
-                  key={status}
-                  onClick={() => handleBulkStatusUpdate(status)}
-                  className="px-3 py-1 bg-sangeet-400 text-sangeet-neutral-950 rounded-sm text-sm font-medium hover:bg-sangeet-300 transition-colors"
-                >
-                  {bulkActionLabels[status] || `Mark ${status}`}
-                </button>
-              ))}
+            
+            <div className="flex items-center space-x-3">
+              {(() => {
+                const selectedOrderObjs = currentOrders.filter((o: any) => selectedOrders.includes(o.id));
+                const allPending = selectedOrderObjs.every((o: any) => o.status === 'pending');
+                const allAccepted = selectedOrderObjs.every((o: any) => o.status === 'accepted' || o.status === 'preparing');
+                const allReady = selectedOrderObjs.every((o: any) => o.status === 'ready' || o.status === 'served');
+                
+                return (
+                  <>
+                    {allPending && (
+                      <button
+                        onClick={() => handleBulkStatusUpdate('preparing')}
+                        className="px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white rounded-full text-sm font-medium transition-all duration-300 shadow-[0_0_15px_rgba(249,115,22,0.3)] flex items-center space-x-2"
+                      >
+                        <span>Accept to Kitchen</span>
+                      </button>
+                    )}
+                    
+                    {allAccepted && (
+                      <button
+                        onClick={() => handleBulkStatusUpdate('ready')}
+                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-full text-sm font-medium transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center space-x-2"
+                      >
+                        <span>Mark Ready</span>
+                      </button>
+                    )}
+
+                    {allReady && (
+                      <button
+                        onClick={() => handleBulkStatusUpdate('completed')}
+                        className="px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white rounded-full text-sm font-medium transition-all duration-300 shadow-[0_0_15px_rgba(59,130,246,0.3)] flex items-center space-x-2"
+                      >
+                        <span>Complete & Paid</span>
+                      </button>
+                    )}
+
+                    {(allPending || allAccepted || allReady) && (
+                      <button
+                        onClick={() => handleBulkStatusUpdate('cancelled')}
+                        className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-full text-sm font-medium transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </>
+                );
+              })()}
             </div>
+            
+            <button 
+              onClick={() => setSelectedOrders([])}
+              className="ml-4 text-sangeet-neutral-500 hover:text-sangeet-neutral-300 transition-colors flex items-center"
+            >
+              ✕
+            </button>
           </div>
         </div>
       )}
@@ -214,8 +259,10 @@ const OrderTable = ({
                   
                   // Determine aggregated status display
                   let groupStatusUI;
-                  if (group.hasPreparing || group.hasPending) {
+                  if (group.hasPreparing) {
                     groupStatusUI = <span className="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-2"><span>Cooking in Kitchen</span><span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span></span>;
+                  } else if (group.hasPending) {
+                    groupStatusUI = <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-2"><span>New Orders</span><span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse"></span></span>;
                   } else if (group.hasReady) {
                     groupStatusUI = <span className="bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1 rounded-full text-xs font-bold">Food Ready / Served</span>;
                   } else {
