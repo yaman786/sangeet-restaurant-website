@@ -354,7 +354,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     if (onStatsUpdate) {
       onStatsUpdate(stats);
     }
-  }, [orders.length, completedOrders.length]);
+  }, [orders, completedOrders]);
 
   if (loading) {
     return (
