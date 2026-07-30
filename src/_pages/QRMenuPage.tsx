@@ -190,8 +190,6 @@ const QRMenuPage = () => {
       image_url: item.image_url,
       is_vegetarian: item.is_vegetarian
     });
-    
-    toast.success(`${item.name} added to cart!`);
   };
 
   const handleViewCart = () => {
