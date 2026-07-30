@@ -132,10 +132,16 @@ const UnifiedDashboard = () => {
               return null;
             })
           ]);
-          if (activeOrders) {
+          if (activeOrders && activeOrders.length > 0) {
             setOrders(activeOrders);
           } else {
             setOrders([]);
+            // Auto-redirect if they loaded the app with a stale session/URL
+            if (orderId || orderNumber) {
+              clearSession();
+              toast.success('All orders completed! Redirecting to home...', { duration: 4000, icon: '🏠' });
+              setTimeout(() => { window.location.href = '/'; }, 2000);
+            }
           }
           if (tableData) {
             setTableInfo(tableData);
