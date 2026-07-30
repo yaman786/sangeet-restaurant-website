@@ -12,6 +12,7 @@ export const createOrderSchema = z.object({
   ).min(1, 'At least one item required').max(50),
   special_instructions: z.string().max(1000).nullable().optional(),
   order_type: z.enum(['dine-in', 'takeaway', 'delivery']).optional().default('dine-in'),
+  status: z.enum(['pending', 'accepted', 'preparing', 'ready', 'served', 'completed', 'cancelled']).optional()
 });
 
 export const orderStatusSchema = z.enum([

@@ -22,7 +22,7 @@ class OrderService {
   }
 
   async createOrder(data: CreateOrderInput) {
-    const { table_id, customer_name, items, special_instructions, order_type = 'dine-in' } = data;
+    const { table_id, customer_name, items, special_instructions, order_type = 'dine-in', status } = data;
     
     // Validate table
     const table = await prisma.tables.findFirst({
@@ -77,7 +77,8 @@ class OrderService {
     });
     
     // If the table is already verified by a waiter, auto-approve subsequent orders to 'accepted' (directly in kitchen)
-    const initialStatus = verifiedSession ? 'accepted' : 'pending';
+    // If an explicit status was provided (e.g. from the admin dashboard), use that instead.
+    const initialStatus = status ? status : (verifiedSession ? 'accepted' : 'pending');
     
     // Create new order
     const dateStr = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 8);

@@ -90,6 +90,7 @@ export interface CreateOrderInput {
   items: { menu_item_id: number; quantity: number; special_requests?: string | null }[];
   special_instructions?: string | null;
   order_type?: OrderType;
+  status?: string;
 }
 
 // ── Reservations ────────────────────────────────────────────

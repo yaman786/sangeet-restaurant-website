@@ -6,6 +6,7 @@ import AdminHeader from '../../components/AdminHeader';
 import OrderFilters from './OrderFilters';
 import OrderTable from './OrderTable';
 import OrderDetailModal from './OrderDetailModal';
+import AdminAddOrderModal from './AdminAddOrderModal';
 import { useOrderManagement } from './hooks/useOrderManagement';
 
 const AdminOrders = () => {
@@ -43,6 +44,8 @@ const AdminOrders = () => {
     closeActiveOrdersModal,
     handleCompleteAllCustomerOrders
   } = useOrderManagement();
+
+  const [showAddOrderModal, setShowAddOrderModal] = React.useState(false);
 
   const getStatusColor = (status: any) => {
     const colors = {
@@ -83,6 +86,7 @@ const AdminOrders = () => {
           filters={filters}
           setFilters={setFilters}
           tables={tables}
+          setShowAddOrderModal={setShowAddOrderModal}
         />
 
         <OrderTable 
@@ -320,6 +324,12 @@ const AdminOrders = () => {
             </motion.div>
           </div>
         )}
+
+        <AdminAddOrderModal 
+          isOpen={showAddOrderModal}
+          onClose={() => setShowAddOrderModal(false)}
+          tables={tables}
+        />
       </div>
     </div>
   );

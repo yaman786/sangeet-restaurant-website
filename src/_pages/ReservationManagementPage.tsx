@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { ArrowUpDown, ArrowUp, ArrowDown, Search } from 'lucide-react';
 import AdminHeader from '../components/AdminHeader';
-import { fetchAllReservations, updateReservationStatus, deleteReservation, fetchReservationStats, fetchTables, updateReservation } from '../services/api';
+import { fetchAllReservations, updateReservationStatus, deleteReservation, fetchReservationStats, fetchTables, updateReservation, createReservation } from '../services/api';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import { formatRestaurantTime } from '@/lib/utils/timeUtils';
 
@@ -35,6 +35,18 @@ const ReservationManagementPage = () => {
   const [selectedTableId, setSelectedTableId] = useState('');
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
    
+  const [showAddReservationModal, setShowAddReservationModal] = useState(false);
+  const [newReservationData, setNewReservationData] = useState<any>({
+    customer_name: '',
+    email: '',
+    phone: '',
+    date: new Date().toISOString().split('T')[0],
+    time: '19:00',
+    guests: 2,
+    special_requests: '',
+    status: 'confirmed'
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('connected');
 
   const [isLoading, setIsLoading] = useState(true);
@@ -143,6 +155,41 @@ const ReservationManagementPage = () => {
       setCurrentPage(1);
     });
   }, [filters]);
+
+  const handleAddReservationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newReservationData.customer_name || !newReservationData.phone || !newReservationData.date || !newReservationData.time) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      const createdRes = await createReservation(newReservationData);
+      
+      // Update local state directly
+      setReservations(prev => [createdRes, ...prev]);
+      
+      // Reset form & close modal
+      setNewReservationData({
+        customer_name: '',
+        email: '',
+        phone: '',
+        date: new Date().toISOString().split('T')[0],
+        time: '19:00',
+        guests: 2,
+        special_requests: '',
+        status: 'confirmed'
+      });
+      setShowAddReservationModal(false);
+      toast.success('Reservation successfully added');
+    } catch (error: any) {
+      console.error('Error adding reservation:', error);
+      toast.error(error.response?.data?.error || 'Failed to add reservation');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleStatusUpdate = async (reservationId: any, newStatus: string) => {
     try {
@@ -496,17 +543,26 @@ const ReservationManagementPage = () => {
                     </span>
                   </div>
                   
-                  <div className="relative w-full lg:w-72">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Search className="h-5 w-5 text-sangeet-neutral-400" />
+                  <div className="flex flex-col lg:flex-row items-center space-y-4 lg:space-y-0 lg:space-x-4 w-full lg:w-auto">
+                    <button
+                      onClick={() => setShowAddReservationModal(true)}
+                      className="w-full lg:w-auto px-4 py-2 bg-sangeet-400 hover:bg-[#B8972E] text-black font-semibold rounded-lg shadow-[0_0_15px_rgba(212,175,55,0.2)] transition-all flex items-center justify-center space-x-2"
+                    >
+                      <span className="text-xl leading-none">+</span>
+                      <span>Add Reservation</span>
+                    </button>
+                    <div className="relative w-full lg:w-72">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Search className="h-5 w-5 text-sangeet-neutral-400" />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Search name, email, or phone..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="block w-full pl-10 pr-3 py-2 border border-sangeet-neutral-700 rounded-lg leading-5 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-none focus:ring-1 focus:ring-sangeet-400 focus:border-sangeet-400 sm:text-sm transition duration-150 ease-in-out"
+                      />
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Search name, email, or phone..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="block w-full pl-10 pr-3 py-2 border border-sangeet-neutral-700 rounded-lg leading-5 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-hidden focus:ring-1 focus:ring-sangeet-400 focus:border-sangeet-400 sm:text-sm transition duration-150 ease-in-out"
-                    />
                   </div>
               </div>
 
@@ -682,6 +738,162 @@ const ReservationManagementPage = () => {
 
         </div>
       </div>
+
+      {/* Add Reservation Modal */}
+      <AnimatePresence>
+        {showAddReservationModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-sangeet-neutral-900 rounded-2xl border border-sangeet-neutral-700 shadow-2xl max-w-2xl w-full my-8 overflow-hidden"
+            >
+              <div className="px-6 py-4 border-b border-sangeet-neutral-700 flex justify-between items-center bg-sangeet-neutral-900/50">
+                <h3 className="text-xl font-bold text-sangeet-neutral-100 flex items-center gap-2">
+                  <span className="text-sangeet-400">📅</span> Manual Reservation Entry
+                </h3>
+                <button
+                  onClick={() => setShowAddReservationModal(false)}
+                  className="text-sangeet-neutral-400 hover:text-white transition-colors p-1"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="p-6">
+                <form onSubmit={handleAddReservationSubmit} className="space-y-6">
+                  {/* Customer Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                        Customer Name <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newReservationData.customer_name}
+                        onChange={(e) => setNewReservationData({ ...newReservationData, customer_name: e.target.value })}
+                        className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:border-sangeet-400 focus:ring-1 focus:ring-sangeet-400"
+                        placeholder="e.g. John Doe"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                        Phone Number <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={newReservationData.phone}
+                        onChange={(e) => setNewReservationData({ ...newReservationData, phone: e.target.value })}
+                        className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:border-sangeet-400 focus:ring-1 focus:ring-sangeet-400"
+                        placeholder="e.g. 555-0123"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                        Email (Optional)
+                      </label>
+                      <input
+                        type="email"
+                        value={newReservationData.email}
+                        onChange={(e) => setNewReservationData({ ...newReservationData, email: e.target.value })}
+                        className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:border-sangeet-400 focus:ring-1 focus:ring-sangeet-400"
+                        placeholder="e.g. john@example.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border-t border-sangeet-neutral-800 my-4"></div>
+
+                  {/* Booking Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                        Date <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        required
+                        min={new Date().toISOString().split('T')[0]}
+                        value={newReservationData.date}
+                        onChange={(e) => setNewReservationData({ ...newReservationData, date: e.target.value })}
+                        className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:border-sangeet-400 focus:ring-1 focus:ring-sangeet-400 [color-scheme:dark]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                        Time <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="time"
+                        required
+                        value={newReservationData.time}
+                        onChange={(e) => setNewReservationData({ ...newReservationData, time: e.target.value })}
+                        className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:border-sangeet-400 focus:ring-1 focus:ring-sangeet-400 [color-scheme:dark]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                        Guests <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        required
+                        value={newReservationData.guests}
+                        onChange={(e) => setNewReservationData({ ...newReservationData, guests: parseInt(e.target.value) || 1 })}
+                        className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:border-sangeet-400 focus:ring-1 focus:ring-sangeet-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                      Special Requests (Optional)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={newReservationData.special_requests}
+                      onChange={(e) => setNewReservationData({ ...newReservationData, special_requests: e.target.value })}
+                      className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:border-sangeet-400 focus:ring-1 focus:ring-sangeet-400 resize-none"
+                      placeholder="e.g. Anniversary dinner, window seat preferred..."
+                    ></textarea>
+                  </div>
+
+                  <div className="flex items-center space-x-3 pt-6 border-t border-sangeet-neutral-800">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddReservationModal(false)}
+                      className="flex-1 px-4 py-3 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 text-sangeet-neutral-300 font-medium rounded-lg transition-colors border border-sangeet-neutral-700"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="flex-1 px-4 py-3 bg-sangeet-400 hover:bg-[#B8972E] text-black font-semibold rounded-lg transition-colors shadow-[0_0_15px_rgba(212,175,55,0.2)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    >
+                      {isSubmitting ? (
+                        <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <span>Create Reservation</span>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Informative Delete Modal */}
       <AnimatePresence>

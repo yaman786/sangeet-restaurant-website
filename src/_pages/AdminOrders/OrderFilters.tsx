@@ -10,7 +10,8 @@ const OrderFilters = ({
   handleClearCompletedOrders,
   filters,
   setFilters,
-  tables
+  tables,
+  setShowAddOrderModal
 }: any) => {
   const [localQuery, setLocalQuery] = React.useState(filters.query || '');
 
@@ -38,7 +39,15 @@ const OrderFilters = ({
       {/* Filters and Controls */}
       <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-6 mb-6 border border-sangeet-neutral-700">
         {/* Status Filter Buttons Row */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <button
+            onClick={() => setShowAddOrderModal(true)}
+            className="px-4 py-2 flex items-center gap-2 bg-sangeet-400 hover:bg-[#B8972E] text-black rounded-lg text-sm font-bold shadow-[0_0_15px_rgba(212,175,55,0.2)] transition-all duration-200 mr-2"
+          >
+            <span className="text-lg leading-none">+</span>
+            <span>Add Order</span>
+          </button>
+          
           {['all', 'pending', 'preparing', 'ready', 'completed'].map((mode) => {
             const filterLabels: Record<string, string> = {
               'all': 'All',
