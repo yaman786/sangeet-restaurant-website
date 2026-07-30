@@ -121,7 +121,8 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
         <div className="space-y-4 sm:space-y-6">
           {orders.map((order: any) => {
             const reviewedArray = Array.from(reviewedOrders);
-            const firstEligibleOrder = orders.find((o: any) => (o.status === 'ready' || o.status === 'completed') && !reviewedArray.includes(o.id));
+            const hasCookingOrders = orders.some((o: any) => o.status === 'pending' || o.status === 'accepted' || o.status === 'preparing');
+            const firstEligibleOrder = !hasCookingOrders ? orders.find((o: any) => (o.status === 'ready' || o.status === 'completed') && !reviewedArray.includes(o.id)) : null;
             const shouldShowReview = firstEligibleOrder?.id === order.id;
             
             return (
@@ -155,7 +156,8 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
       {/* Strategic Bottom Review Section - Positioned below all order cards & progress feed */}
       {(() => {
         const reviewedArray = Array.from(reviewedOrders);
-        const eligibleOrder = orders.find((o: any) => (o.status === 'ready' || o.status === 'completed') && !reviewedArray.includes(o.id));
+        const hasCookingOrders = orders.some((o: any) => o.status === 'pending' || o.status === 'accepted' || o.status === 'preparing');
+        const eligibleOrder = !hasCookingOrders ? orders.find((o: any) => (o.status === 'ready' || o.status === 'completed') && !reviewedArray.includes(o.id)) : null;
         
         if (!eligibleOrder) return null;
         

@@ -342,9 +342,9 @@ const OrderTable = ({
           </table>
         </div>
 
-        {currentOrders.length === 0 && (
+        {groups.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-sangeet-neutral-400">No active tables found</p>
+            <p className="text-sangeet-neutral-400">No active tables found in this tab</p>
           </div>
         )}
       </div>
