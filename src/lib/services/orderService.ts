@@ -3,7 +3,7 @@ import { AppError, NotFoundError, ValidationError } from '@/lib/errors';
 // Socket functionality disabled in serverless mode
 import { generateQRCode } from '../utils/qrGenerator';
 import type { CreateOrderInput, OrderQueryDTO } from '@/lib/types';
-import { emitNewOrder, emitOrderStatusUpdate } from './pusherServer';
+import { emitNewOrder, emitOrderStatusUpdate, emitOrderDeleted } from './pusherServer';
 
 class OrderService {
   async getAllTables() {
@@ -397,6 +397,14 @@ class OrderService {
       prisma.order_items.deleteMany({ where: { order_id: orderId } }),
       prisma.orders.delete({ where: { id: orderId } })
     ]);
+    
+    // Notify clients that the order has been deleted
+    emitOrderDeleted({
+      type: 'order-deleted',
+      orderId: orderId,
+      tableNumber: order.tables?.table_number || null,
+      timestamp: new Date().toISOString()
+    });
     
     return { order, tableNumber: order.tables?.table_number || null };
   }
