@@ -55,42 +55,54 @@ const OrderTable = ({
     'cancelled': 'Cancel Orders'
   };
 
-  // Group orders by table
-  const groupedOrders = currentOrders.reduce((acc: any, order: any) => {
-    // Group strictly by physical table number to keep all rounds for a sitting together
-    const key = String(order.table_number || 'Unknown').trim();
-    
-    if (!acc[key]) {
-      acc[key] = {
-        key,
-        table_number: order.table_number,
-        customer_name: order.customer_name && order.customer_name !== 'Guest' ? order.customer_name : 'Guest',
-        orders: [],
-        total_amount: 0,
-        hasReady: false,
-        hasPreparing: false,
-        hasPending: false,
-        allCompleted: true,
-      };
-    }
-    acc[key].orders.push(order);
-    acc[key].total_amount += Number(order.total_amount || 0);
+  // Group orders by table and distinct sitting (4 hour gap)
+  const groupedOrders = [...currentOrders]
+    .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    .reduce((acc: any[], order: any) => {
+      const tableNumberStr = String(order.table_number || 'Unknown').trim();
+      const orderTime = new Date(order.created_at).getTime();
+      
+      // Find if this table already has an active sitting that this order belongs to
+      let sittingGroup = acc.find(group => {
+        if (group.table_number !== tableNumberStr) return false;
+        // Check if the last order in this group was within 4 hours
+        const lastOrderTime = new Date(group.orders[group.orders.length - 1].created_at).getTime();
+        return (orderTime - lastOrderTime) < (4 * 60 * 60 * 1000);
+      });
+      
+      if (!sittingGroup) {
+        sittingGroup = {
+          key: `${tableNumberStr}_${orderTime}`,
+          table_number: tableNumberStr,
+          customer_name: order.customer_name && order.customer_name !== 'Guest' ? order.customer_name : 'Guest',
+          orders: [],
+          total_amount: 0,
+          hasReady: false,
+          hasPreparing: false,
+          hasPending: false,
+          allCompleted: true,
+        };
+        acc.push(sittingGroup);
+      }
+      
+      sittingGroup.orders.push(order);
+      sittingGroup.total_amount += Number(order.total_amount || 0);
 
-    // Ensure named customer takes precedence over 'Guest' for the table title
-    if (order.customer_name && order.customer_name !== 'Guest' && acc[key].customer_name === 'Guest') {
-      acc[key].customer_name = order.customer_name;
-    }
-    
-    if (order.status === 'ready' || order.status === 'served') acc[key].hasReady = true;
-    if (order.status === 'preparing' || order.status === 'accepted') acc[key].hasPreparing = true;
-    if (order.status === 'pending') acc[key].hasPending = true;
-    if (order.status !== 'completed' && order.status !== 'cancelled') acc[key].allCompleted = false;
+      // Ensure named customer takes precedence over 'Guest' for the table title
+      if (order.customer_name && order.customer_name !== 'Guest' && sittingGroup.customer_name === 'Guest') {
+        sittingGroup.customer_name = order.customer_name;
+      }
+      
+      if (order.status === 'ready' || order.status === 'served') sittingGroup.hasReady = true;
+      if (order.status === 'preparing' || order.status === 'accepted') sittingGroup.hasPreparing = true;
+      if (order.status === 'pending') sittingGroup.hasPending = true;
+      if (order.status !== 'completed' && order.status !== 'cancelled') sittingGroup.allCompleted = false;
 
-    return acc;
-  }, {});
+      return acc;
+    }, []);
 
   // Compute table level payment readiness and annotate true round numbers
-  Object.values(groupedOrders).forEach((group: any) => {
+  groupedOrders.forEach((group: any) => {
     group.orders.sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     
     // Annotate true original round number for each ticket
@@ -105,10 +117,8 @@ const OrderTable = ({
     group.canCollectPayment = activeTickets.length > 0 && !hasUncooked && hasReadyOrServed;
   });
 
-  const allGroups = Object.values(groupedOrders) as any[];
-
   // Filter groups and their visible sub-tickets according to current viewMode tab
-  const groups = allGroups.map((group: any) => {
+  const groups = groupedOrders.map((group: any) => {
     let visibleTickets = group.orders;
     
     if (viewMode === 'pending') {

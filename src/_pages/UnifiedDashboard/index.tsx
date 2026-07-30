@@ -125,13 +125,21 @@ const UnifiedDashboard = () => {
             }
           };
 
-          const [activeOrders, tableData] = await Promise.all([
+          const [fetchedOrders, tableData] = await Promise.all([
             getOrdersByTable(tableNumber as string),
             fetchTable().catch(e => {
               console.error("Failed to fetch table info:", e);
               return null;
             })
           ]);
+
+          let activeOrders = Array.isArray(fetchedOrders) ? fetchedOrders : ((fetchedOrders as any)?.data || []);
+          // Filter out any abandoned orders older than 12 hours to prevent them from blocking redirects
+          activeOrders = activeOrders.filter((o: any) => {
+            const hoursSince = (Date.now() - new Date(o.created_at).getTime()) / (1000 * 60 * 60);
+            return hoursSince < 12;
+          });
+
           if (activeOrders && activeOrders.length > 0) {
             setOrders(activeOrders);
           } else {
