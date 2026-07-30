@@ -62,7 +62,7 @@ const QRMenuPage = () => {
 
         // Check for active orders for this table
         try {
-          const ordersResponse = await getOrdersByTable(tableData.id || tableData.table_number || '');
+          const ordersResponse = await getOrdersByTable(tableData.table_number || tableData.id || '');
           const orders = Array.isArray(ordersResponse) 
             ? ordersResponse 
             : ((ordersResponse as any)?.data || []);
