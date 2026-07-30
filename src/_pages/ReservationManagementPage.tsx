@@ -7,6 +7,7 @@ import AdminHeader from '../components/AdminHeader';
 import { fetchAllReservations, updateReservationStatus, deleteReservation, fetchReservationStats, fetchTables, updateReservation, createReservation } from '../services/api';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import { formatRestaurantTime } from '@/lib/utils/timeUtils';
+import ShiftManagerModal from './ShiftManagerModal';
 
 const ReservationManagementPage = () => {
   const [reservations, setReservations] = useState<any[]>([]);
@@ -36,6 +37,7 @@ const ReservationManagementPage = () => {
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
    
   const [showAddReservationModal, setShowAddReservationModal] = useState(false);
+  const [showShiftManager, setShowShiftManager] = useState(false);
   const [newReservationData, setNewReservationData] = useState<any>({
     customer_name: '',
     email: '',
@@ -544,13 +546,23 @@ const ReservationManagementPage = () => {
                   </div>
                   
                   <div className="flex flex-col lg:flex-row items-center space-y-4 lg:space-y-0 lg:space-x-4 w-full lg:w-auto">
-                    <button
-                      onClick={() => setShowAddReservationModal(true)}
-                      className="w-full lg:w-auto px-4 py-2 bg-sangeet-400 hover:bg-[#B8972E] text-black font-semibold rounded-lg shadow-[0_0_15px_rgba(212,175,55,0.2)] transition-all flex items-center justify-center space-x-2"
-                    >
-                      <span className="text-xl leading-none">+</span>
-                      <span>Add Reservation</span>
-                    </button>
+                    <div className="flex gap-4">
+                      <button
+                        onClick={() => setShowShiftManager(true)}
+                        className={`px-4 py-2 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 text-sangeet-neutral-100 rounded-lg shadow transition-colors flex items-center justify-center border border-sangeet-neutral-700 font-medium`}
+                      >
+                        <span className="mr-2">⚙️</span>
+                        Shift & Pacing Settings
+                      </button>
+                      
+                      <button
+                        onClick={() => setShowAddReservationModal(true)}
+                        className="w-full lg:w-auto px-4 py-2 bg-sangeet-400 hover:bg-[#B8972E] text-black font-semibold rounded-lg shadow-[0_0_15px_rgba(212,175,55,0.2)] transition-all flex items-center justify-center space-x-2"
+                      >
+                        <span className="text-xl leading-none">+</span>
+                        <span>Add Reservation</span>
+                      </button>
+                    </div>
                     <div className="relative w-full lg:w-72">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Search className="h-5 w-5 text-sangeet-neutral-400" />
@@ -1069,6 +1081,11 @@ const ReservationManagementPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ShiftManagerModal 
+        isOpen={showShiftManager}
+        onClose={() => setShowShiftManager(false)}
+      />
     </div>
   );
 };

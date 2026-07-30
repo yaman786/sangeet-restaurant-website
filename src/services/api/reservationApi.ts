@@ -104,6 +104,12 @@ export const updateTimeSlot = async (id: string | number, data: any) => {
   }, 'updateTimeSlot', false);
 };
 
+export const bulkCreateTimeSlots = async (data: any) => {
+  return apiCallWrapper(async () => {
+    return await api.post('/reservations/timeslots/bulk', data);
+  }, 'bulkCreateTimeSlots', false);
+};
+
 export const deleteTimeSlot = async (id: string | number) => {
   return apiCallWrapper(async () => {
     return await api.delete(`/reservations/timeslots/${encodeURIComponent(id)}`);

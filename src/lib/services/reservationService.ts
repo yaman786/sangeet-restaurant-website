@@ -130,9 +130,25 @@ class ReservationService {
 
   // Admin Timeslot Management Methods
   async getAllTimeSlots(): Promise<any[]> {
-    const slots = await prisma.reservation_time_slots.findMany({
+    let slots = await prisma.reservation_time_slots.findMany({
       orderBy: { time_slot: 'asc' }
     });
+
+    // Auto-seed default values if the database is completely empty
+    if (slots.length === 0) {
+      await this.bulkCreateTimeSlots({
+        startTime: '17:00',
+        endTime: '22:30',
+        intervalMinutes: 30,
+        maxCapacity: 15
+      });
+      
+      // Fetch the newly created slots
+      slots = await prisma.reservation_time_slots.findMany({
+        orderBy: { time_slot: 'asc' }
+      });
+    }
+
     return slots.map(slot => ({
       id: slot.id,
       time_slot: slot.time_slot.toISOString().substring(11, 16),
@@ -153,6 +169,35 @@ class ReservationService {
         max_reservations: max_reservations ?? 10
       }
     });
+  }
+
+  async bulkCreateTimeSlots(data: { startTime: string, endTime: string, intervalMinutes: number, maxCapacity: number }): Promise<any> {
+    const { startTime, endTime, intervalMinutes, maxCapacity } = data;
+    
+    // Wipe all existing slots to keep the system clean
+    await prisma.reservation_time_slots.deleteMany();
+
+    const start = new Date(`1970-01-01T${startTime}:00.000Z`);
+    const end = new Date(`1970-01-01T${endTime}:00.000Z`);
+    const newSlots = [];
+
+    let current = start;
+    while (current <= end) {
+      newSlots.push({
+        time_slot: new Date(current),
+        is_active: true,
+        max_reservations: maxCapacity
+      });
+      current = new Date(current.getTime() + intervalMinutes * 60000);
+    }
+
+    if (newSlots.length > 0) {
+      await prisma.reservation_time_slots.createMany({
+        data: newSlots
+      });
+    }
+
+    return { success: true, count: newSlots.length };
   }
 
   async updateTimeSlot(id: string, data: UpdateTimeSlotDTO): Promise<any> {

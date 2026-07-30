@@ -33,7 +33,7 @@ export {
   createReservation, getAvailableTables, getAvailableTimeSlots,
   fetchAllReservations, fetchReservationById,
   updateReservation,  updateReservationStatus, deleteReservation, checkTableAvailability,
-  fetchReservationStats, getAllTimeSlots, createTimeSlot, updateTimeSlot, deleteTimeSlot
+  fetchReservationStats, getAllTimeSlots, createTimeSlot, updateTimeSlot, bulkCreateTimeSlots, deleteTimeSlot
 } from './reservationApi';
 
 // Auth & Users
