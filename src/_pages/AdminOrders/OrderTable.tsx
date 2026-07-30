@@ -62,13 +62,22 @@ const OrderTable = ({
       const tableNumberStr = String(order.table_number || 'Unknown').trim();
       const orderTime = new Date(order.created_at).getTime();
       
-      // Find if this table already has an active sitting that this order belongs to
-      let sittingGroup = acc.find(group => {
-        if (group.table_number !== tableNumberStr) return false;
-        // Check if the last order in this group was within 4 hours
-        const lastOrderTime = new Date(group.orders[group.orders.length - 1].created_at).getTime();
-        return (orderTime - lastOrderTime) < (4 * 60 * 60 * 1000);
-      });
+      // Check if we should group this order. 
+      // Rule: Completed and cancelled orders are ALWAYS distinct (never grouped).
+      const isHistorical = order.status === 'completed' || order.status === 'cancelled';
+      
+      let sittingGroup;
+      if (!isHistorical) {
+        sittingGroup = acc.find(group => {
+          if (group.table_number !== tableNumberStr) return false;
+          // Don't group with historical standalone groups
+          if (group.orders.some((o: any) => o.status === 'completed' || o.status === 'cancelled')) return false;
+          
+          // Check if the last order in this group was within 12 hours (lenient sitting duration)
+          const lastOrderTime = new Date(group.orders[group.orders.length - 1].created_at).getTime();
+          return (orderTime - lastOrderTime) < (12 * 60 * 60 * 1000);
+        });
+      }
       
       if (!sittingGroup) {
         sittingGroup = {
