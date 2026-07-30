@@ -176,7 +176,6 @@ const OrderTable = ({
               {(() => {
                 const selectedOrderObjs = currentOrders.filter((o: any) => selectedOrders.includes(o.id));
                 const allPending = selectedOrderObjs.every((o: any) => o.status === 'pending');
-                const allAccepted = selectedOrderObjs.every((o: any) => o.status === 'accepted' || o.status === 'preparing');
                 const allReady = selectedOrderObjs.every((o: any) => o.status === 'ready' || o.status === 'served');
                 
                 return (
@@ -189,15 +188,6 @@ const OrderTable = ({
                         <span>Accept to Kitchen</span>
                       </button>
                     )}
-                    
-                    {allAccepted && (
-                      <button
-                        onClick={() => handleBulkStatusUpdate('ready')}
-                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-full text-sm font-medium transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center space-x-2"
-                      >
-                        <span>Mark Ready</span>
-                      </button>
-                    )}
 
                     {allReady && (
                       <button
@@ -208,14 +198,13 @@ const OrderTable = ({
                       </button>
                     )}
 
-                    {(allPending || allAccepted || allReady) && (
-                      <button
-                        onClick={() => handleBulkStatusUpdate('cancelled')}
-                        className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-full text-sm font-medium transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    )}
+                    {/* Always show cancel for any active state */}
+                    <button
+                      onClick={() => handleBulkStatusUpdate('cancelled')}
+                      className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-full text-sm font-medium transition-colors"
+                    >
+                      Cancel
+                    </button>
                   </>
                 );
               })()}
