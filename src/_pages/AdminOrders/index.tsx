@@ -14,6 +14,7 @@ const AdminOrders = () => {
     completedOrders,
     loading,
     selectedOrders,
+    setSelectedOrders,
     filters,
     setFilters,
     tables,
@@ -89,6 +90,7 @@ const AdminOrders = () => {
           completedOrders={completedOrders}
           viewMode={viewMode}
           selectedOrders={selectedOrders}
+          setSelectedOrders={setSelectedOrders}
           handleSelectAll={handleSelectAll}
           handleOrderSelection={handleOrderSelection}
           handleStatusUpdate={handleStatusUpdate}

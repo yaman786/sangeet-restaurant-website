@@ -430,6 +430,7 @@ export const useOrderManagement = () => {
     completedOrders,
     loading,
     selectedOrders,
+    setSelectedOrders,
     filters,
     setFilters,
     tables,

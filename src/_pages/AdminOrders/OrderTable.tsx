@@ -7,6 +7,7 @@ const OrderTable = ({
   completedOrders,
   viewMode,
   selectedOrders,
+  setSelectedOrders,
   handleSelectAll,
   handleOrderSelection,
   handleStatusUpdate,
