@@ -33,7 +33,8 @@ const ReservationManagementPage = () => {
   const [itemsPerPage] = useState(8);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAssignTableModal, setShowAssignTableModal] = useState(false);
-  const [selectedTableId, setSelectedTableId] = useState('');
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedTableId, setSelectedTableId] = useState<string>('');
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
    
   const [showAddReservationModal, setShowAddReservationModal] = useState(false);
@@ -634,6 +635,9 @@ const ReservationManagementPage = () => {
                             </div>
                           </th>
                           <th className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20">
+                            Table
+                          </th>
+                          <th className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20">
                             Status
                           </th>
                           <th className="px-6 py-4 text-left text-amber-400 font-semibold">Actions</th>
@@ -655,6 +659,11 @@ const ReservationManagementPage = () => {
                               </div>
                             </td>
                             <td className="px-6 py-4 text-sangeet-neutral-100 border-r border-amber-500/10">{reservation.guests}</td>
+                            <td className="px-6 py-4 border-r border-amber-500/10">
+                              <span className="text-sangeet-neutral-100 font-medium">
+                                {reservation.table_id ? `Table ${reservation.table_id}` : <span className="text-sangeet-neutral-500">-</span>}
+                              </span>
+                            </td>
                             <td className="px-6 py-4 border-r border-amber-500/10">
                               <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${getStatusColor(reservation.status)}`}>
                                 {getStatusIcon(reservation.status)} {reservation.status}
@@ -685,17 +694,26 @@ const ReservationManagementPage = () => {
                                   </select>
                                 )}
 
-                                <button
-                                  onClick={() => {
-                                    setSelectedReservation(reservation);
-                                    setShowDeleteModal(true);
-                                  }}
-                                  className="px-3 py-1 bg-linear-to-r from-red-500 to-pink-500 text-white rounded-sm text-sm font-medium"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </td>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedReservation(reservation);
+                                      setShowDetailsModal(true);
+                                    }}
+                                    className="px-3 py-1 bg-sangeet-neutral-800 text-sangeet-400 border border-sangeet-400/30 rounded-sm text-sm font-medium hover:bg-sangeet-400 hover:text-black transition-colors"
+                                  >
+                                    View
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedReservation(reservation);
+                                      setShowDeleteModal(true);
+                                    }}
+                                    className="px-3 py-1 bg-linear-to-r from-red-500 to-pink-500 text-white rounded-sm text-sm font-medium"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
                           </tr>
                         ))}
                       </tbody>
@@ -1075,6 +1093,91 @@ const ReservationManagementPage = () => {
                   className="flex-1 px-4 py-3 bg-linear-to-r from-sangeet-500 to-sangeet-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 font-medium"
                 >
                   Assign & Confirm
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Details Modal */}
+      <AnimatePresence>
+        {showDetailsModal && selectedReservation && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-sangeet-neutral-900 rounded-2xl border border-sangeet-neutral-700 shadow-2xl w-full max-w-lg overflow-hidden"
+            >
+              <div className="px-6 py-4 border-b border-sangeet-neutral-700 flex justify-between items-center bg-sangeet-neutral-950">
+                <h3 className="text-xl font-bold text-sangeet-neutral-100 flex items-center gap-2">
+                  <span className="text-sangeet-400">📋</span> Reservation Details
+                </h3>
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="text-sangeet-neutral-400 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-sangeet-neutral-400 text-xs uppercase tracking-wider mb-1">Customer</p>
+                    <p className="text-sangeet-neutral-100 font-medium text-lg">{selectedReservation.customer_name}</p>
+                    <p className="text-sangeet-neutral-300 text-sm">{selectedReservation.email}</p>
+                    <p className="text-sangeet-neutral-300 text-sm">{selectedReservation.phone}</p>
+                  </div>
+                  <div>
+                    <p className="text-sangeet-neutral-400 text-xs uppercase tracking-wider mb-1">Status & Table</p>
+                    <div className="mb-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${getStatusColor(selectedReservation.status)}`}>
+                        {selectedReservation.status.toUpperCase()}
+                      </span>
+                    </div>
+                    {selectedReservation.table_id && (
+                      <div className="inline-block bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-1.5 mt-1">
+                        <p className="text-amber-400 font-bold text-sm">Table {selectedReservation.table_id}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6 p-4 bg-sangeet-neutral-950 rounded-xl border border-sangeet-neutral-800">
+                  <div>
+                    <p className="text-sangeet-neutral-400 text-xs uppercase tracking-wider mb-1">Date & Time</p>
+                    <p className="text-sangeet-neutral-100 font-medium">{formatDate(selectedReservation.date)}</p>
+                    <p className="text-sangeet-400 font-bold">{formatTime(selectedReservation.time)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sangeet-neutral-400 text-xs uppercase tracking-wider mb-1">Party Size</p>
+                    <p className="text-sangeet-neutral-100 font-medium text-xl">{selectedReservation.guests} <span className="text-sm text-sangeet-neutral-400 font-normal">guests</span></p>
+                  </div>
+                </div>
+
+                {selectedReservation.special_requests && (
+                  <div>
+                    <p className="text-sangeet-neutral-400 text-xs uppercase tracking-wider mb-2">Special Requests</p>
+                    <div className="p-4 bg-blue-900/10 border-l-4 border-blue-500 rounded-r-lg">
+                      <p className="text-blue-200 italic text-sm">{selectedReservation.special_requests}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="px-6 py-4 border-t border-sangeet-neutral-800 bg-sangeet-neutral-950 flex justify-end">
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="px-6 py-2 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  Close
                 </button>
               </div>
             </motion.div>

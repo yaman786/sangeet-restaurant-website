@@ -367,7 +367,7 @@ class ReservationService {
     const { customer_name, email, phone, date, time, guests, special_requests, table_id, status } = data;
     
     // Wrap the availability check and update in an atomic transaction to prevent race conditions
-    let oldStatus = '';
+    let oldStatus: string | null = '';
     const reservation = await prisma.$transaction(async (tx) => {
       const existingRes = await tx.reservations.findUnique({ where: { id: parseInt(id) } });
       if (!existingRes) throw new NotFoundError('Reservation');
