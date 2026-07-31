@@ -1,5 +1,6 @@
 import config from '@/lib/utils/env';
 import logger from './logger';
+import { formatRestaurantTime } from './timeUtils';
 import type { EmailContent, EmailTemplate, EmailResult, ReservationRow } from '../types';
 
 // Brevo Email Configuration
@@ -47,7 +48,7 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
               <p><strong>👤 Guest Name:</strong> ${reservation.customer_name}</p>
               <p><strong>👥 Number of Guests:</strong> ${reservation.guests} people</p>
               <p><strong>📅 Date:</strong> ${new Date(reservation.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-              <p><strong>🕐 Time:</strong> ${reservation.time}</p>
+              <p><strong>🕐 Time:</strong> ${formatRestaurantTime(reservation.time)}</p>
             </div>
             <div style="background: #fff3cd; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center;">
               <strong style="color: #856404;">⏳ Status: Awaiting Confirmation</strong>
@@ -90,7 +91,7 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
             <p><strong>👤 Guest Name:</strong> ${reservation.customer_name}</p>
             <p><strong>👥 Guests:</strong> ${reservation.guests} people</p>
             <p><strong>📅 Date:</strong> ${new Date(reservation.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            <p><strong>🕐 Time:</strong> ${reservation.time}</p>
+            <p><strong>🕐 Time:</strong> ${formatRestaurantTime(reservation.time)}</p>
             ${reservation.table_id ? `<p><strong>🪑 Table:</strong> Table ${reservation.table_id}</p>` : ''}
           </div>
           ${reservation.special_requests ? `
@@ -130,7 +131,7 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
             <p><strong>👤 Guest Name:</strong> ${reservation.customer_name}</p>
             <p><strong>👥 Guests:</strong> ${reservation.guests} people</p>
             <p><strong>📅 Date:</strong> ${new Date(reservation.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            <p><strong>🕐 Time:</strong> ${reservation.time}</p>
+            <p><strong>🕐 Time:</strong> ${formatRestaurantTime(reservation.time)}</p>
           </div>
           <div style="text-align: center; padding-top: 30px; border-top: 2px solid #f8f9fa;">
             <p style="color: #6c757d;">We hope to see you soon!</p>
