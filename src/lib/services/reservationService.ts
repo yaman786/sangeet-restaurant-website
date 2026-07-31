@@ -234,10 +234,20 @@ class ReservationService {
     const cutoffTime = new Date(now.getTime() + 30 * 60 * 1000); // 30-minute rolling cutoff buffer
 
     // Fetch active slots from the database
-    const dbSlots = await prisma.reservation_time_slots.findMany({
+    let dbSlots = await prisma.reservation_time_slots.findMany({
       where: { is_active: true },
       orderBy: { time_slot: 'asc' }
     });
+
+    // Auto-seed if empty (so frontend works out of the box)
+    if (dbSlots.length === 0) {
+      await this.getAllTimeSlots(); // Trigger auto-seed
+      dbSlots = await prisma.reservation_time_slots.findMany({
+        where: { is_active: true },
+        orderBy: { time_slot: 'asc' }
+      });
+    }
+
     const allSlots = dbSlots.map(slot => slot.time_slot.toISOString().substring(11, 16));
     const slotCapacities = Object.fromEntries(
       dbSlots.map(slot => [slot.time_slot.toISOString().substring(11, 16), slot.max_reservations || 10])
