@@ -7,7 +7,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 // The absolute anchor timezone for the physical restaurant
-export const RESTAURANT_TIMEZONE = 'Europe/London';
+export const RESTAURANT_TIMEZONE = 'Asia/Hong_Kong';
 
 /**
  * Parses a date string and time string explicitly in the restaurant's timezone
