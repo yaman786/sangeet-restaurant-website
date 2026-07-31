@@ -367,9 +367,11 @@ class ReservationService {
     const { customer_name, email, phone, date, time, guests, special_requests, table_id, status } = data;
     
     // Wrap the availability check and update in an atomic transaction to prevent race conditions
+    let oldStatus = '';
     const reservation = await prisma.$transaction(async (tx) => {
       const existingRes = await tx.reservations.findUnique({ where: { id: parseInt(id) } });
       if (!existingRes) throw new NotFoundError('Reservation');
+      oldStatus = existingRes.status;
 
       const targetDate = date ? new Date(date) : existingRes.date;
       
@@ -418,6 +420,29 @@ class ReservationService {
     });
 
     emitReservationUpdate(reservation).catch(err => console.error('Pusher error:', err));
+
+    if (status && status !== oldStatus && reservation.email) {
+      let emailFailed = false;
+      try {
+        if (status === 'confirmed') await sendReservationConfirmedEmail(reservation as any);
+        else if (status === 'cancelled') await sendReservationCancelledEmail(reservation as any);
+      } catch (err) {
+        console.error(`Error sending ${status} email:`, err);
+        emailFailed = true;
+      }
+      
+      if (emailFailed) {
+        const warning = `[SYSTEM WARNING: ${status === 'confirmed' ? 'Confirmation' : 'Cancellation'} email failed to send. Please call customer.]`;
+        const newRequests = reservation.special_requests 
+          ? `${reservation.special_requests}\n\n${warning}`
+          : warning;
+          
+        await prisma.reservations.update({
+          where: { id: parseInt(id) },
+          data: { special_requests: newRequests }
+        });
+      }
+    }
 
     return reservation;
   }
