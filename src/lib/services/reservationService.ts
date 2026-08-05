@@ -103,7 +103,7 @@ class ReservationService {
     const durationMs = calculateDiningDuration(parsedGuests);
     const requestedTime = parseRestaurantTime(date, time).toDate();
 
-    const validRestaurantTables = await prisma.restaurant_tables.findMany({
+    const validRestaurantTables = await prisma.tables.findMany({
       where: {
         is_active: true,
         capacity: { gte: parsedGuests }
@@ -516,7 +516,7 @@ class ReservationService {
     
     if (table_id) return reservationsCount === 0;
     
-    const tablesCount = await prisma.restaurant_tables.count({
+    const tablesCount = await prisma.tables.count({
       where: { is_active: true }
     });
     return reservationsCount < tablesCount;

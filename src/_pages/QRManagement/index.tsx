@@ -27,13 +27,17 @@ const QRManagement = () => {
     sortConfig, setSortConfig,
     searchTerm, setSearchTerm,
     filterStatus, setFilterStatus,
+    showAddTableModal, setShowAddTableModal,
+    addTableFormData, setAddTableFormData,
     handleSort,
     handleGenerateQR,
     handleBulkGenerate,
     handleViewAnalytics,
     handleDeleteQR,
     confirmDelete,
-    handleDownloadQR
+    handleDownloadQR,
+    handleRestoreQR,
+    handleCreateTable
   } = useQRManagement();
 
   const getSortIcon = (key: any) => {
@@ -46,7 +50,7 @@ const QRManagement = () => {
       <div className="min-h-screen bg-sangeet-neutral-950 flex items-center justify-center">
         <div className="text-center">
           <RefreshCw className="animate-spin h-8 w-8 text-sangeet-400 mx-auto mb-4" />
-          <p className="text-sangeet-neutral-400">Loading QR codes...</p>
+          <p className="text-sangeet-neutral-400">Loading tables...</p>
         </div>
       </div>
     );
@@ -54,7 +58,7 @@ const QRManagement = () => {
 
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
-      <AdminHeader title="QR Management" subtitle="Manage QR codes" />
+      <AdminHeader title="Table Management" subtitle="Manage restaurant tables and QR codes" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <QRFilters 
@@ -62,8 +66,7 @@ const QRManagement = () => {
           setSearchTerm={setSearchTerm}
           filterStatus={filterStatus}
           setFilterStatus={setFilterStatus}
-          setShowBulkModal={setShowBulkModal}
-          setShowGenerateModal={setShowGenerateModal}
+          setShowAddTableModal={setShowAddTableModal}
         />
 
         <QRGrid 
@@ -81,6 +84,7 @@ const QRManagement = () => {
           setFilterStatus={setFilterStatus}
           setFormData={setFormData}
           setShowGenerateModal={setShowGenerateModal}
+          handleRestoreQR={handleRestoreQR}
         />
       </div>
 
@@ -101,6 +105,9 @@ const QRManagement = () => {
         handleBulkGenerate={handleBulkGenerate}
         confirmDelete={confirmDelete}
         handleDownloadQR={handleDownloadQR}
+        showAddTableModal={showAddTableModal} setShowAddTableModal={setShowAddTableModal}
+        addTableFormData={addTableFormData} setAddTableFormData={setAddTableFormData}
+        handleCreateTable={handleCreateTable}
       />
     </div>
   );

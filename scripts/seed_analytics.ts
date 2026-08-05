@@ -58,18 +58,8 @@ async function main() {
     orderTables = await prisma.tables.findMany();
   }
 
-  // 3. Ensure Restaurant Tables exist (for reservations)
-  let resTables = await prisma.restaurant_tables.findMany();
-  if (resTables.length === 0) {
-    console.log('No Reservation tables found. Creating defaults...');
-    await prisma.restaurant_tables.createMany({
-      data: Array.from({ length: 5 }).map((_, i) => ({
-        table_number: `R${i + 1}`,
-        capacity: 4
-      }))
-    });
-    resTables = await prisma.restaurant_tables.findMany();
-  }
+  // 3. Reservation tables are now the same as order tables (unified model)
+  const resTables = orderTables;
 
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);

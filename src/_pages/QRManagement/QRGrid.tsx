@@ -8,8 +8,28 @@ import {
   Trash2, 
   Smartphone,
   Edit2,
-  ArchiveRestore
+  ArchiveRestore,
+  Users,
+  Armchair
 } from 'lucide-react';
+
+const TABLE_TYPE_LABELS: Record<string, string> = {
+  standard: 'Standard',
+  booth: 'Booth',
+  outdoor: 'Outdoor',
+  private: 'Private Room',
+  bar: 'Bar Seating',
+  vip: 'VIP',
+};
+
+const TABLE_TYPE_COLORS: Record<string, string> = {
+  standard: 'bg-sangeet-neutral-700 text-sangeet-neutral-200',
+  booth: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30',
+  outdoor: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
+  private: 'bg-purple-500/20 text-purple-300 border border-purple-500/30',
+  bar: 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
+  vip: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30',
+};
 
 const QRGrid = ({
   sortedAndFilteredQRCodes,
@@ -28,22 +48,6 @@ const QRGrid = ({
   setShowGenerateModal,
   handleRestoreQR
 }: any) => {
-  const formatCurrency = (amount: any) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount || 0);
-  };
-
-  const formatDate = (dateString: any) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   return (
     <>
@@ -74,7 +78,7 @@ const QRGrid = ({
 
       <div className="flex items-center justify-between text-sm text-sangeet-neutral-400 mb-4">
         <span>
-          Showing {sortedAndFilteredQRCodes.length} of {qrCodes.tableQRCodes?.length || 0} QR codes
+          Showing {sortedAndFilteredQRCodes.length} of {qrCodes.tableQRCodes?.length || 0} tables
         </span>
         {(searchTerm || filterStatus !== 'all') && (
           <button
@@ -91,14 +95,14 @@ const QRGrid = ({
 
       {sortedAndFilteredQRCodes.length === 0 ? (
         <div className="text-center py-12">
-          <QrCode className="h-16 w-16 text-sangeet-neutral-600 mx-auto mb-4" />
+          <Armchair className="h-16 w-16 text-sangeet-neutral-600 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-sangeet-neutral-400 mb-2">
-            No QR codes found
+            No tables found
           </h3>
           <p className="text-sangeet-neutral-500">
             {searchTerm || filterStatus !== 'all' 
               ? 'Try adjusting your search or filter criteria'
-              : 'No table QR codes available yet'
+              : 'Click "Add Table" to create your first table'
             }
           </p>
         </div>
@@ -112,19 +116,45 @@ const QRGrid = ({
               className={`bg-sangeet-neutral-900 rounded-xl shadow-lg border border-sangeet-neutral-700 overflow-hidden transition-all duration-300 ${!qrCode.is_active ? 'opacity-60 grayscale' : 'hover:border-sangeet-400/50'}`}
             >
               <div className="flex flex-col h-full group relative">
-                {/* QR Code Poster Area - Perfect 3:4 Aspect Ratio */}
-                <div className="relative w-full overflow-hidden aspect-3/4 bg-sangeet-neutral-950 flex items-center justify-center">
-                  <Image
-                    src={qrCode.qr_code_data}
-                    alt={`QR Code for Table ${qrCode.table_number}`}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+                {/* QR Code / Empty State Area */}
+                <div className="relative w-full overflow-hidden aspect-[3/4] bg-sangeet-neutral-950 flex flex-col items-center justify-center">
+                  {qrCode.qr_code_data ? (
+                    <Image
+                      src={qrCode.qr_code_data}
+                      alt={`QR Code for Table ${qrCode.table_number}`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full w-full">
+                      <div className="p-6 bg-sangeet-neutral-800/50 rounded-2xl border border-dashed border-sangeet-neutral-600 mb-4">
+                        <QrCode className="h-16 w-16 text-sangeet-neutral-500" />
+                      </div>
+                      <p className="text-sangeet-neutral-400 text-sm mb-4">No QR code generated</p>
+                      {qrCode.is_active && (
+                        <button
+                          onClick={() => {
+                            setFormData({
+                              tableNumber: qrCode.table_number,
+                              capacity: qrCode.capacity || 4,
+                              customUrl: ''
+                            });
+                            setShowGenerateModal(true);
+                          }}
+                          className="inline-flex items-center px-4 py-2 text-sm font-medium text-sangeet-neutral-950 bg-sangeet-400 hover:bg-sangeet-500 rounded-lg transition-colors"
+                        >
+                          <QrCode className="h-4 w-4 mr-2" />
+                          Generate QR Code
+                        </button>
+                      )}
+                    </div>
+                  )}
                   
-                  {/* Subtle gradient overlay to blend with the bottom bar */}
+                  {/* Subtle gradient overlay */}
                   <div className="absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-sangeet-neutral-900 to-transparent opacity-80"></div>
                   
+                  {/* Status badges */}
                   {!qrCode.is_active ? (
                     <div className="absolute top-3 left-3 px-3 py-1.5 text-xs font-bold bg-sangeet-neutral-800/90 backdrop-blur-xs text-sangeet-neutral-300 rounded-full shadow-lg border border-sangeet-neutral-600/50">
                       Archived
@@ -147,22 +177,37 @@ const QRGrid = ({
                         <h3 className="text-xl font-bold text-sangeet-neutral-50 tracking-wide">
                           Table {qrCode.table_number}
                         </h3>
-                        <p className="text-[10px] text-sangeet-neutral-500 truncate max-w-[100px] sm:max-w-[120px] uppercase tracking-wider mt-0.5">
-                          {qrCode.qr_code_url ? qrCode.qr_code_url.replace(/^https?:\/\//, '') : 'No URL'}
-                        </p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className="inline-flex items-center text-xs text-sangeet-neutral-400">
+                            <Users className="h-3 w-3 mr-1" />
+                            {qrCode.capacity || 4} seats
+                          </span>
+                          <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full ${TABLE_TYPE_COLORS[qrCode.table_type || 'standard'] || TABLE_TYPE_COLORS.standard}`}>
+                            {TABLE_TYPE_LABELS[qrCode.table_type || 'standard'] || qrCode.table_type || 'Standard'}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     
                     <div className="flex space-x-1 bg-sangeet-neutral-950 p-1.5 rounded-xl border border-sangeet-neutral-800 shadow-inner">
                       {!qrCode.is_active ? (
-                        <button
-                          onClick={() => handleRestoreQR(qrCode.id)}
-                          className="flex items-center px-4 py-2 text-sangeet-400 hover:text-sangeet-300 hover:bg-sangeet-neutral-800 rounded-lg transition-all text-sm font-medium"
-                          title="Restore QR Code"
-                        >
-                          <ArchiveRestore className="h-4 w-4 mr-2" />
-                          Restore
-                        </button>
+                        <>
+                          <button
+                            onClick={() => handleRestoreQR(qrCode.id)}
+                            className="flex items-center px-3 py-1.5 text-sangeet-400 hover:text-sangeet-300 hover:bg-sangeet-neutral-800 rounded-lg transition-all text-xs font-medium"
+                            title="Restore Table"
+                          >
+                            <ArchiveRestore className="h-4 w-4 mr-1.5" />
+                            Restore
+                          </button>
+                          <button
+                            onClick={() => handleDeleteQR(qrCode, true)}
+                            className="p-1.5 text-sangeet-neutral-400 hover:text-red-400 hover:bg-sangeet-neutral-800 rounded-lg transition-all"
+                            title="Permanently Delete Table"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </>
                       ) : (
                         <>
                           <button
@@ -175,20 +220,22 @@ const QRGrid = ({
                               setShowGenerateModal(true);
                             }}
                             className="p-2 text-sangeet-neutral-400 hover:text-sangeet-400 hover:bg-sangeet-neutral-800 rounded-lg transition-all"
-                            title="Edit Configuration"
+                            title={qrCode.qr_code_data ? 'Regenerate QR Code' : 'Generate QR Code'}
                           >
-                            <Edit2 className="h-4 w-4" />
+                            {qrCode.qr_code_data ? <Edit2 className="h-4 w-4" /> : <QrCode className="h-4 w-4" />}
                           </button>
-                          <button
-                            onClick={() => {
-                              setDownloadTarget(qrCode);
-                              setShowDownloadModal(true);
-                            }}
-                            className="p-2 text-sangeet-neutral-400 hover:text-green-400 hover:bg-sangeet-neutral-800 rounded-lg transition-all"
-                            title="Download Poster"
-                          >
-                            <Download className="h-4 w-4" />
-                          </button>
+                          {qrCode.qr_code_data && (
+                            <button
+                              onClick={() => {
+                                setDownloadTarget(qrCode);
+                                setShowDownloadModal(true);
+                              }}
+                              className="p-2 text-sangeet-neutral-400 hover:text-green-400 hover:bg-sangeet-neutral-800 rounded-lg transition-all"
+                              title="Download Poster"
+                            >
+                              <Download className="h-4 w-4" />
+                            </button>
+                          )}
                           <button
                             onClick={() => handleDeleteQR(qrCode)}
                             className={`p-2 rounded-lg transition-all ${
@@ -197,8 +244,8 @@ const QRGrid = ({
                                 : 'text-sangeet-neutral-400 hover:text-red-400 hover:bg-sangeet-neutral-800'
                             }`}
                             title={(qrCode.active_orders || 0) > 0 
-                              ? `Cannot delete: ${qrCode.active_orders} active orders` 
-                              : 'Delete'
+                              ? `Cannot archive: ${qrCode.active_orders} active orders` 
+                              : 'Archive Table'
                             }
                             disabled={(qrCode.active_orders || 0) > 0}
                           >

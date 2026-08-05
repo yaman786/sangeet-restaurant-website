@@ -35,7 +35,7 @@ const AdminHeader = ({ title = 'Admin Dashboard', subtitle, showBackButton = tru
     if (location.pathname.includes('/admin/menu-management')) {
       return 'Menu Management';
     } else if (location.pathname.includes('/admin/qr-management')) {
-      return 'QR Code Management';
+      return 'Table Management';
     } else if (location.pathname.includes('/admin/kitchen')) {
       return 'Kitchen Display';
     } else if (location.pathname.includes('/admin/orders')) {
@@ -53,7 +53,7 @@ const AdminHeader = ({ title = 'Admin Dashboard', subtitle, showBackButton = tru
     if (location.pathname.includes('/admin/menu-management')) {
       return 'Manage menu items and categories';
     } else if (location.pathname.includes('/admin/qr-management')) {
-      return 'Generate and manage QR codes';
+      return 'Manage tables and QR codes';
     } else if (location.pathname.includes('/admin/kitchen')) {
       return 'Real-time kitchen order management';
     } else if (location.pathname.includes('/admin/orders')) {

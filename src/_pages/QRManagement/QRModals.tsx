@@ -1,6 +1,15 @@
 "use client";
 import React from 'react';
-import { Download, Trash2, BarChart3 } from 'lucide-react';
+import { Download, Trash2, BarChart3, TableProperties } from 'lucide-react';
+
+const TABLE_TYPE_OPTIONS = [
+  { value: 'standard', label: 'Standard' },
+  { value: 'booth', label: 'Booth' },
+  { value: 'outdoor', label: 'Outdoor' },
+  { value: 'private', label: 'Private Room' },
+  { value: 'bar', label: 'Bar Seating' },
+  { value: 'vip', label: 'VIP' },
+];
 
 const QRModals = ({
   showGenerateModal,
@@ -28,7 +37,12 @@ const QRModals = ({
   handleGenerateQR,
   handleBulkGenerate,
   confirmDelete,
-  handleDownloadQR
+  handleDownloadQR,
+  showAddTableModal,
+  setShowAddTableModal,
+  addTableFormData,
+  setAddTableFormData,
+  handleCreateTable
 }: any) => {
 
   const formatCurrency = (amount: any) => {
@@ -375,6 +389,93 @@ const QRModals = ({
         </div>
       )}
 
+      {/* Add Table Modal */}
+      {showAddTableModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border border-sangeet-neutral-700 w-96 shadow-xl rounded-xl bg-sangeet-neutral-900">
+            <div className="mt-3">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-sangeet-400/20 rounded-full flex items-center justify-center">
+                  <TableProperties className="h-6 w-6 text-sangeet-400" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-sangeet-neutral-100">
+                    Add New Table
+                  </h3>
+                  <p className="text-sm text-sangeet-neutral-400">
+                    Create a physical table for your restaurant
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                    Table Number *
+                  </label>
+                  <input
+                    type="text"
+                    value={addTableFormData.table_number}
+                    onChange={(e) => setAddTableFormData({...addTableFormData, table_number: e.target.value})}
+                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
+                    placeholder="e.g., 11, 12, VIP-1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                    Seating Capacity *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={addTableFormData.capacity}
+                    onChange={(e) => setAddTableFormData({...addTableFormData, capacity: parseInt(e.target.value) || 4})}
+                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
+                    placeholder="e.g., 4"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                    Table Type
+                  </label>
+                  <select
+                    value={addTableFormData.table_type}
+                    onChange={(e) => setAddTableFormData({...addTableFormData, table_type: e.target.value})}
+                    className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100"
+                  >
+                    {TABLE_TYPE_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="bg-sangeet-neutral-800 rounded-lg p-3 border border-sangeet-neutral-700 mt-4">
+                <p className="text-xs text-sangeet-neutral-400">
+                  💡 You can generate a QR code for this table later from the table card.
+                </p>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowAddTableModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-sangeet-neutral-300 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateTable}
+                  className="px-4 py-2 text-sm font-medium text-sangeet-neutral-950 bg-sangeet-400 hover:bg-sangeet-500 rounded-md transition-colors"
+                >
+                  Create Table
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Confirmation Modal */}
       {showDeleteModal && deleteTarget && (
         <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50">
@@ -388,24 +489,26 @@ const QRModals = ({
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-medium text-sangeet-neutral-100">
-                    Delete QR Code
+                    {deleteTarget.permanent ? 'Permanently Delete Table' : 'Archive Table'}
                   </h3>
                   <p className="text-sm text-sangeet-neutral-400">
-                    This action cannot be undone
+                    {deleteTarget.permanent ? 'Permanent removal' : 'Move to archives'}
                   </p>
                 </div>
               </div>
               
               <div className="mb-6">
                 <p className="text-sangeet-neutral-300 mb-2">
-                  Are you sure you want to delete this table QR code?
+                  {deleteTarget.permanent 
+                    ? 'Are you sure you want to permanently delete this table? It will be completely removed from your database.' 
+                    : 'Are you sure you want to archive this table? You can restore or permanently delete it later.'}
                 </p>
                 <div className="bg-sangeet-neutral-800 rounded-lg p-3 border border-sangeet-neutral-700">
                   <p className="text-sm font-medium text-sangeet-neutral-100">
                     Table {deleteTarget.qrCode.table_number}
                   </p>
                   <p className="text-xs text-sangeet-neutral-500 mt-1">
-                    {deleteTarget.qrCode.qr_code_url}
+                    Capacity: {deleteTarget.qrCode.capacity || 4} seats • Type: {deleteTarget.qrCode.table_type || 'standard'}
                   </p>
                 </div>
               </div>
@@ -424,7 +527,7 @@ const QRModals = ({
                   onClick={confirmDelete}
                   className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-md transition-colors"
                 >
-                  Delete QR Code
+                  {deleteTarget.permanent ? 'Permanently Delete' : 'Archive Table'}
                 </button>
               </div>
             </div>

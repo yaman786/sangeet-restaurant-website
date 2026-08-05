@@ -50,6 +50,9 @@ export {
   downloadPrintableQRCode, restoreQRCode
 } from './qrApi';
 
+// Table Management
+export { createTable, updateTable, deleteTable } from './tableApi';
+
 // Reviews
 export {
   fetchReviews, fetchVerifiedReviews, submitReview, fetchReviewById

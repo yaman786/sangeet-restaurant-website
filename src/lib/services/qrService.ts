@@ -20,13 +20,15 @@ class QRService {
     });
 
     if (!table) {
+      // Auto-create the table if it doesn't exist (unified model)
       table = await prisma.tables.create({
-        data: { table_number: tableNumber, capacity: capacity || 4, is_active: true, qr_code_url: '', qr_code_data: '' }
+        data: { table_number: tableNumber, capacity: capacity || 4, is_active: true }
       });
-    } else {
+    } else if (capacity && capacity !== table.capacity) {
+      // Update capacity if explicitly provided and different
       table = await prisma.tables.update({
         where: { id: table.id },
-        data: { capacity: capacity || table.capacity, is_active: true }
+        data: { capacity, is_active: true }
       });
     }
     
@@ -56,7 +58,10 @@ class QRService {
       table_id: t.id,
       table_number: t.table_number,
       capacity: t.capacity,
+      table_type: t.table_type,
+      status: t.status,
       location: t.table_name,
+      qr_code_url: t.qr_code_url,
       qr_url: t.qr_code_url,
       qr_code_data: t.qr_code_data,
       design: t.design_settings,
@@ -118,7 +123,7 @@ class QRService {
     const table = await prisma.tables.findFirst({
       where: { id: parseInt(qrCodeId, 10), qr_code_url: { not: '' } }
     });
-    if (!table) throw new NotFoundError('QR Code');
+    if (!table || !table.qr_code_url) throw new NotFoundError('QR Code');
     
     const { table_number, qr_code_url } = table;
     const options: any = { format: format === 'jpeg' ? 'jpeg' : 'png', theme };

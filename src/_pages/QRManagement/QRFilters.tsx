@@ -4,9 +4,11 @@ import { Search, Plus } from 'lucide-react';
 import CustomDropdown from '../../components/CustomDropdown';
 
 const filterOptions = [
-  { value: 'all', label: 'All QR Codes' },
+  { value: 'all', label: 'All Tables' },
   { value: 'active', label: 'Active Only' },
-  { value: 'inactive', label: 'Archived' }
+  { value: 'inactive', label: 'Archived' },
+  { value: 'with_qr', label: 'With QR Code' },
+  { value: 'without_qr', label: 'Without QR Code' }
 ];
 
 const QRFilters = ({
@@ -14,33 +16,25 @@ const QRFilters = ({
   setSearchTerm,
   filterStatus,
   setFilterStatus,
-  setShowBulkModal,
-  setShowGenerateModal
+  setShowAddTableModal
 }: any) => {
   return (
     <>
       <div className="flex justify-end space-x-3 mb-6">
         <button
-          onClick={() => setShowBulkModal(true)}
-          className="inline-flex items-center px-4 py-2 border border-sangeet-neutral-600 rounded-md shadow-xs text-sm font-medium text-sangeet-neutral-300 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 transition-colors"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Bulk Generate
-        </button>
-        <button
-          onClick={() => setShowGenerateModal(true)}
+          onClick={() => setShowAddTableModal(true)}
           className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-sangeet-neutral-950 bg-sangeet-400 hover:bg-sangeet-500 transition-colors"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Generate QR Code
+          Add Table
         </button>
       </div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-sangeet-neutral-100 mb-2">
-          Table QR Code Management
+          Table Management
         </h1>
         <p className="text-sangeet-neutral-400">
-          Manage QR codes for table ordering system
+          Manage your restaurant&apos;s physical tables and generate QR codes for ordering
         </p>
       </div>
       <div className="mb-6 space-y-4">

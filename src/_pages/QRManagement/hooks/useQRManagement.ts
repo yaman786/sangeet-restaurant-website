@@ -7,7 +7,9 @@ import {
   getQRCodeAnalytics,
   deleteQRCode,
   downloadPrintableQRCode,
-  restoreQRCode
+  restoreQRCode,
+  createTable,
+  deleteTable
 } from '../../../services/api';
 
 export const useQRManagement = () => {
@@ -24,6 +26,14 @@ export const useQRManagement = () => {
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [downloadTarget, setDownloadTarget] = useState<any>(null);
   
+  // Add Table modal state
+  const [showAddTableModal, setShowAddTableModal] = useState(false);
+  const [addTableFormData, setAddTableFormData] = useState({
+    table_number: '',
+    capacity: 4,
+    table_type: 'standard'
+  });
+
   const [downloadOptions, setDownloadOptions] = useState({
     format: 'png',
     design: 'classic',
@@ -105,6 +115,10 @@ export const useQRManagement = () => {
             return (qrCode.active_orders || 0) > 0;
           case 'without_orders':
             return (qrCode.active_orders || 0) === 0;
+          case 'with_qr':
+            return !!qrCode.qr_code_data;
+          case 'without_qr':
+            return !qrCode.qr_code_data;
           default:
             return true;
         }
@@ -205,27 +219,28 @@ export const useQRManagement = () => {
     }
   };
 
-  const handleDeleteQR = async (qrCode: any) => {
-    setDeleteTarget({ qrCode });
+  const handleDeleteQR = async (qrCode: any, permanent = false) => {
+    setDeleteTarget({ qrCode, permanent });
     setShowDeleteModal(true);
   };
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await deleteQRCode(deleteTarget.qrCode.id);
-      toast.success('QR code deleted successfully!');
+      if (deleteTarget.permanent) {
+        await deleteTable(deleteTarget.qrCode.id, true);
+        toast.success(`Table ${deleteTarget.qrCode.table_number} permanently deleted!`);
+      } else {
+        await deleteTable(deleteTarget.qrCode.id, false);
+        toast.success(`Table ${deleteTarget.qrCode.table_number} archived successfully!`);
+      }
       loadQRCodes();
       setShowDeleteModal(false);
       setDeleteTarget(null);
     } catch (error: any) {
-      console.error('Error deleting QR code:', error);
-      const errorMessage = error.response?.data?.error || 'Failed to delete QR code';
-      if (errorMessage.includes('existing orders')) {
-        toast.error('Cannot delete QR code: Table has existing orders. Please complete or delete the orders first.');
-      } else {
-        toast.error(errorMessage);
-      }
+      console.error('Error deleting table:', error);
+      const errorMessage = error.message || error.response?.data?.error || 'Failed to delete table';
+      toast.error(errorMessage);
     }
   };
 
@@ -249,6 +264,27 @@ export const useQRManagement = () => {
     }
   };
 
+  const handleCreateTable = async () => {
+    try {
+      if (!addTableFormData.table_number) {
+        toast.error('Table number is required');
+        return;
+      }
+      const res: any = await createTable(addTableFormData);
+      if (res?.message) {
+        toast.success(res.message);
+      } else {
+        toast.success(`Table ${addTableFormData.table_number} created successfully!`);
+      }
+      setShowAddTableModal(false);
+      setAddTableFormData({ table_number: '', capacity: 4, table_type: 'standard' });
+      loadQRCodes();
+    } catch (error: any) {
+      console.error('Error creating table:', error);
+      toast.error(error.message || 'Failed to create table');
+    }
+  };
+
   return {
     qrCodes,
     loading,
@@ -268,6 +304,8 @@ export const useQRManagement = () => {
     sortConfig, setSortConfig,
     searchTerm, setSearchTerm,
     filterStatus, setFilterStatus,
+    showAddTableModal, setShowAddTableModal,
+    addTableFormData, setAddTableFormData,
     handleSort,
     handleGenerateQR,
     handleBulkGenerate,
@@ -275,6 +313,7 @@ export const useQRManagement = () => {
     handleDeleteQR,
     confirmDelete,
     handleDownloadQR,
-    handleRestoreQR
+    handleRestoreQR,
+    handleCreateTable
   };
 };

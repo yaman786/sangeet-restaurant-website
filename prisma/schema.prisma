@@ -53,15 +53,7 @@ model customer_reviews {
   created_at    DateTime? @default(now()) @db.Timestamp(6)
 }
 
-model restaurant_tables {
-  id           Int            @id @default(autoincrement())
-  table_number String         @unique @db.VarChar(10)
-  capacity     Int            @default(4)
-  table_type   String?        @default("standard") @db.VarChar(50)
-  is_active    Boolean?       @default(true)
-  created_at   DateTime?      @default(now()) @db.Timestamp(6)
-  reservations reservations[]
-}
+
 
 model reservations {
   id                Int                @id @default(autoincrement())
@@ -78,7 +70,7 @@ model reservations {
   is_archived       Boolean?           @default(false)
   created_at        DateTime?          @default(now()) @db.Timestamp(6)
   updated_at        DateTime?          @default(now()) @db.Timestamp(6)
-  restaurant_tables restaurant_tables? @relation(fields: [table_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tables            tables?            @relation(fields: [table_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([date])
   @@index([status])
@@ -101,20 +93,22 @@ model users {
 }
 
 model tables {
-  id              Int       @id @default(autoincrement())
-  table_number    String    @unique @db.VarChar(10)
-  qr_code_url     String    @unique
-  is_active       Boolean?  @default(true)
-  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  id              Int            @id @default(autoincrement())
+  table_number    String         @unique @db.VarChar(10)
+  qr_code_url     String?        @unique
+  table_type      String?        @default("standard") @db.VarChar(50)
+  is_active       Boolean?       @default(true)
+  created_at      DateTime?      @default(now()) @db.Timestamp(6)
   qr_code_data    String?
-  design_settings Json?     @default("{}")
-  updated_at      DateTime? @default(now()) @db.Timestamp(6)
-  last_scanned_at DateTime? @db.Timestamp(6)
-  scan_count      Int?      @default(0)
-  capacity        Int?      @default(4)
-  status          String?   @default("available") @db.VarChar(50)
-  table_name      String?   @db.VarChar(100)
+  design_settings Json?          @default("{}")
+  updated_at      DateTime?      @default(now()) @db.Timestamp(6)
+  last_scanned_at DateTime?      @db.Timestamp(6)
+  scan_count      Int?           @default(0)
+  capacity        Int?           @default(4)
+  status          String?        @default("available") @db.VarChar(50)
+  table_name      String?        @db.VarChar(100)
   orders          orders[]
+  reservations    reservations[]
 }
 
 model orders {

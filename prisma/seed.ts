@@ -12,10 +12,10 @@ async function main() {
   // 1. Create Admin User
   const adminPassword = await bcrypt.hash('admin123', 10);
   await pool.query(`
-    INSERT INTO users (username, email, password_hash, role, first_name, last_name)
-    VALUES ($1, $2, $3, $4, $5, $6)
+    INSERT INTO users (username, email, password_hash, role, full_name)
+    VALUES ($1, $2, $3, $4, $5)
     ON CONFLICT (email) DO NOTHING
-  `, ['admin', 'admin@sangeet.com', adminPassword, 'admin', 'Admin', 'User']);
+  `, ['admin', 'admin@sangeet.com', adminPassword, 'admin', 'Admin User']);
   console.log('Created admin user: admin@sangeet.com');
 
   // 2. Create Categories
@@ -53,13 +53,27 @@ async function main() {
     console.log('Created menu items');
   }
 
-  // 4. Create Tables
-  await pool.query(`
-    INSERT INTO restaurant_tables (table_number, capacity, table_type)
-    VALUES ($1, $2, $3)
-    ON CONFLICT (table_number) DO NOTHING
-  `, ['T1', 4, 'standard']);
-  console.log('Created restaurant tables');
+  // 4. Create Tables (Unified model — serves both reservations and QR ordering)
+  const tablesToSeed = [
+    { table_number: '1', capacity: 4, table_type: 'standard' },
+    { table_number: '2', capacity: 4, table_type: 'standard' },
+    { table_number: '3', capacity: 6, table_type: 'booth' },
+    { table_number: '4', capacity: 2, table_type: 'standard' },
+    { table_number: '5', capacity: 8, table_type: 'private' },
+    { table_number: '6', capacity: 4, table_type: 'standard' },
+    { table_number: '7', capacity: 6, table_type: 'booth' },
+    { table_number: '8', capacity: 4, table_type: 'outdoor' },
+    { table_number: '9', capacity: 2, table_type: 'standard' },
+    { table_number: '10', capacity: 10, table_type: 'private' }
+  ];
+  for (const t of tablesToSeed) {
+    await pool.query(`
+      INSERT INTO tables (table_number, capacity, table_type)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (table_number) DO NOTHING
+    `, [t.table_number, t.capacity, t.table_type]);
+  }
+  console.log('Created restaurant tables (unified model)');
 
   console.log('✅ Seeding completed successfully!');
 }

@@ -148,22 +148,23 @@ const AdminDashboard = () => {
           )}
 
           {/* QR Code Management */}
+          {/* Table Management */}
           {user?.role === 'admin' && (
             <div className="bg-sangeet-neutral-900 rounded-xl p-6 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300 group">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-sangeet-400/20 rounded-lg flex items-center justify-center group-hover:bg-sangeet-400/30 transition-colors">
                   <span className="text-2xl">📱</span>
                 </div>
-                <span className="text-sangeet-neutral-500 text-sm">QR Codes</span>
+                <span className="text-sangeet-neutral-500 text-sm">Tables</span>
               </div>
-              <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">QR Code Management</h3>
+              <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">Table Management</h3>
               <p className="text-sangeet-neutral-400 text-sm mb-4">
-                Generate and manage QR codes for tables, track usage analytics, and customize QR experiences
+                Manage restaurant tables, generate QR codes, track usage analytics, and customize QR experiences
               </p>
               <Link href="/admin/qr-management"
                 className="inline-flex items-center text-sangeet-400 hover:text-sangeet-300 font-medium text-sm group-hover:underline"
               >
-                Manage QR Codes
+                Manage Tables
                 <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
               </Link>
             </div>
