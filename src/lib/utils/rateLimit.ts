@@ -11,6 +11,7 @@ const isConfigured = Boolean(url && token);
 let redis: Redis | null = null;
 let reservationLimiter: Ratelimit | null = null;
 let loginLimiter: Ratelimit | null = null;
+let contactLimiter: Ratelimit | null = null;
 
 if (isConfigured) {
   redis = new Redis({
@@ -33,6 +34,14 @@ if (isConfigured) {
     analytics: true,
     prefix: 'ratelimit:login',
   });
+
+  // 3 requests per 10 minutes for contact form submissions
+  contactLimiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(3, '10 m'),
+    analytics: true,
+    prefix: 'ratelimit:contact',
+  });
 } else {
   logger.warn('⚠️ Upstash Redis environment variables are missing. Rate limiting operating in BYPASS mode.');
 }
@@ -52,7 +61,7 @@ export function getClientIp(req: NextRequest): string {
   return '127.0.0.1';
 }
 
-export type RateLimitType = 'reservation' | 'login';
+export type RateLimitType = 'reservation' | 'login' | 'contact';
 
 /**
  * Checks rate limit for a request.
@@ -63,7 +72,7 @@ export async function checkRateLimit(req: NextRequest, type: RateLimitType): Pro
     return { success: true };
   }
 
-  const limiter = type === 'reservation' ? reservationLimiter : loginLimiter;
+  const limiter = type === 'reservation' ? reservationLimiter : type === 'login' ? loginLimiter : contactLimiter;
   if (!limiter) {
     return { success: true };
   }

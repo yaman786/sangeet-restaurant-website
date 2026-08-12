@@ -303,6 +303,19 @@ class ReservationService {
     
     // Wrap the availability check and insertion in an atomic transaction to prevent race conditions
     const reservation = await prisma.$transaction(async (tx) => {
+      // Prevent duplicate bookings from the same email for the same date and time
+      const duplicate = await tx.reservations.findFirst({
+        where: {
+          email: email.toLowerCase().trim(),
+          date: new Date(date),
+          time: requestedTime,
+          status: { in: ['pending', 'confirmed'] }
+        }
+      });
+      if (duplicate) {
+        throw new ConflictError('You already have an active reservation for this date and time.');
+      }
+
       if (table_id) {
         const existing = await tx.reservations.findFirst({
           where: {

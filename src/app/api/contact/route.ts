@@ -7,7 +7,7 @@ import config from '@/lib/utils/env';
 
 export async function POST(req: NextRequest) {
   try {
-    const rateLimit = await checkRateLimit(req, 'reservation');
+    const rateLimit = await checkRateLimit(req, 'contact');
     if (!rateLimit.success && rateLimit.response) {
       return rateLimit.response;
     }
