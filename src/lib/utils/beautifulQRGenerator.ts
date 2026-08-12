@@ -87,7 +87,7 @@ class BeautifulQRGenerator {
         <text x="${centerX}" y="685" text-anchor="middle" class="table-text">TABLE ${tableNumber}</text>
         
         <!-- Website -->
-        <text x="${centerX}" y="715" text-anchor="middle" class="website-text">www.sangeetrestaurant.com</text>
+        <text x="${centerX}" y="715" text-anchor="middle" class="website-text">sangeet.hk</text>
       </svg>
     `;
   }

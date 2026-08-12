@@ -4,6 +4,30 @@ import { motion } from 'framer-motion';
 import { useNavigate } from '@/utils/router-mock';
 import { fetchVerifiedReviews } from '../services/api';
 
+const FALLBACK_REVIEWS = [
+  {
+    id: 1,
+    customer_name: "Sarah M.",
+    review_text: "Amazing food and excellent service! The Butter Chicken is absolutely divine. Will definitely come back!",
+    rating: 5,
+    created_at: "2024-08-10T10:00:00Z"
+  },
+  {
+    id: 2,
+    customer_name: "Michael R.",
+    review_text: "Great ambiance and authentic Indian flavors. The staff was very friendly and attentive.",
+    rating: 5,
+    created_at: "2024-08-09T15:30:00Z"
+  },
+  {
+    id: 3,
+    customer_name: "Emma L.",
+    review_text: "Best Indian restaurant in the area! The biryani was perfectly spiced and the naan was fresh.",
+    rating: 5,
+    created_at: "2024-08-08T19:45:00Z"
+  }
+];
+
 const ReviewsSection = () => {
   const navigate = useNavigate();
   const [reviews, setReviews] = useState<any[]>([]);
@@ -11,42 +35,42 @@ const ReviewsSection = () => {
   const [currentReview, setCurrentReview] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
     const loadReviews = async () => {
       try {
-        const reviewsData = await fetchVerifiedReviews();
-        setReviews(reviewsData || []);
-      } catch (error) {
-        console.error('Error loading reviews:', error);
-        // Use fallback reviews if API fails
-        setReviews([
-          {
-            id: 1,
-            customer_name: "Sarah M.",
-            review_text: "Amazing food and excellent service! The Butter Chicken is absolutely divine. Will definitely come back!",
-            rating: 5,
-            created_at: "2024-08-10T10:00:00Z"
-          },
-          {
-            id: 2,
-            customer_name: "Michael R.",
-            review_text: "Great ambiance and authentic Indian flavors. The staff was very friendly and attentive.",
-            rating: 5,
-            created_at: "2024-08-09T15:30:00Z"
-          },
-          {
-            id: 3,
-            customer_name: "Emma L.",
-            review_text: "Best Indian restaurant in the area! The biryani was perfectly spiced and the naan was fresh.",
-            rating: 5,
-            created_at: "2024-08-08T19:45:00Z"
-          }
+        let timeoutId: ReturnType<typeof setTimeout>;
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error('Reviews fetch timeout')), 3000);
+        });
+
+        const reviewsData: any = await Promise.race([
+          fetchVerifiedReviews().finally(() => clearTimeout(timeoutId)),
+          timeoutPromise
         ]);
+
+        if (isMounted) {
+          if (Array.isArray(reviewsData) && reviewsData.length > 0) {
+            setReviews(reviewsData);
+          } else {
+            setReviews(FALLBACK_REVIEWS);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading reviews (using fallback):', error);
+        if (isMounted) {
+          setReviews(FALLBACK_REVIEWS);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     loadReviews();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Auto-rotate reviews

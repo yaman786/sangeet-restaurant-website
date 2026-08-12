@@ -143,7 +143,7 @@ const QRModals = ({
                     placeholder="https://your-restaurant.com/qr/table-1"
                   />
                   <p className="text-xs text-sangeet-neutral-500 mt-1">
-                    Leave empty to use default: https://frontend-six-xi-10.vercel.app/qr/table-[number]
+                    Leave empty to use default: https://sangeet.hk/qr/table-[number]
                   </p>
                 </div>
               </div>

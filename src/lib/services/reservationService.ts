@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db';
 import { NotFoundError, ConflictError, ValidationError } from '@/lib/errors';
-import { sendReservationCreatedEmail, sendReservationConfirmedEmail, sendReservationCancelledEmail } from '../utils/emailService';
+import { sendReservationCreatedEmail, sendReservationConfirmedEmail, sendReservationCancelledEmail, sendAdminReservationNoticeEmail } from '../utils/emailService';
 import { emitNewReservation, emitReservationUpdate } from './pusherServer';
 import { parseRestaurantTime } from '../utils/timeUtils';
 import { CreateReservationDTO, UpdateReservationDTO, ReservationQueryDTO, CreateTimeSlotDTO, UpdateTimeSlotDTO } from '../types/dtos';
@@ -336,11 +336,17 @@ class ReservationService {
     let emailFailed = false;
     if (reservation.email) {
       try {
-        await sendReservationCreatedEmail(reservation as any);
+        await Promise.allSettled([
+          sendReservationCreatedEmail(reservation as any),
+          sendAdminReservationNoticeEmail(reservation as any)
+        ]);
       } catch (err) {
         console.error('Error sending creation email:', err);
         emailFailed = true;
       }
+    } else {
+      // Send admin notice even if customer email was not provided
+      sendAdminReservationNoticeEmail(reservation as any).catch(err => console.error('Error sending admin notice:', err));
     }
     
     if (emailFailed) {

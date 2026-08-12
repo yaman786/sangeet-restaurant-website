@@ -6,7 +6,7 @@ let baseUrl = '/api';
 if (typeof window === 'undefined') {
   const frontendUrl = env.NEXT_PUBLIC_FRONTEND_URL 
     || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
-    || 'http://localhost:3000';
+    || 'https://sangeet.hk';
   baseUrl = `${frontendUrl}/api`;
 }
 

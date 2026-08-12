@@ -3,6 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { sanitizePhoneNumber } from '../utils/sanitizePhone';
 
 import logo from '../assets/images/logo.png';
 
@@ -152,12 +153,17 @@ const Footer = () => {
                     </svg>
                   </div>
                   <div>
-                    <a 
-                      href="tel:+85223456789" 
-                      className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 text-sm md:text-base touch-manipulation"
-                    >
-                      +852 2345 6789
-                    </a>
+                    {(() => {
+                      const phone = sanitizePhoneNumber('+852 2345 6789');
+                      return (
+                        <a 
+                          href={phone.telHref} 
+                          className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 text-sm md:text-base touch-manipulation"
+                        >
+                          {phone.raw}
+                        </a>
+                      );
+                    })()}
                   </div>
                 </div>
                 

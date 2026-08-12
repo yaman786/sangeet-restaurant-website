@@ -247,7 +247,7 @@ export interface EmailContent {
   html: string;
 }
 
-export type EmailTemplate = 'reservationCreated' | 'reservationConfirmed' | 'reservationCancelled';
+export type EmailTemplate = 'reservationCreated' | 'reservationConfirmed' | 'reservationCancelled' | 'adminReservationNotice' | 'contactEnquiry';
 
 export interface EmailResult {
   success: boolean;

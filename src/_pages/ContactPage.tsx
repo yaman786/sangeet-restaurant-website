@@ -18,13 +18,22 @@ const ContactPage = () => {
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to send message');
+      }
+
       toast.success('Message sent successfully! We will get back to you soon.');
       reset();
     } catch (error) {
-      toast.error('Failed to send message. Please try again.');
+      const message = error instanceof Error ? error.message : 'Failed to send message. Please try again.';
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -35,7 +44,7 @@ const ContactPage = () => {
   };
 
   const handleEmail = () => {
-    window.location.href = 'mailto:info@sangeethk.com';
+    window.location.href = 'mailto:info@sangeet.hk';
   };
 
   const handleDirections = () => {
@@ -129,7 +138,7 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h4 className="text-sangeet-400 font-semibold mb-1">Email</h4>
-                    <p className="text-sangeet-neutral-300 text-sm md:text-base">info@sangeethk.com</p>
+                    <p className="text-sangeet-neutral-300 text-sm md:text-base">info@sangeet.hk</p>
                     <p className="text-sangeet-neutral-400 text-xs md:text-sm">Tap to email</p>
                   </div>
                 </motion.div>

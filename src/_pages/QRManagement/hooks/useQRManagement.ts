@@ -60,7 +60,7 @@ export const useQRManagement = () => {
   const [bulkFormData, setBulkFormData] = useState({
     tableNumbers: '',
     capacity: 4,
-    baseUrl: 'https://frontend-six-xi-10.vercel.app',
+    baseUrl: 'https://sangeet.hk',
     design: {
       darkColor: '#1d1b16',
       lightColor: '#ffffff',
@@ -197,7 +197,7 @@ export const useQRManagement = () => {
       }
       setShowBulkModal(false);
       setBulkFormData({
-        tableNumbers: '', capacity: 4, baseUrl: process.env.NEXT_PUBLIC_CLIENT_URL || 'https://frontend-six-xi-10.vercel.app',
+        tableNumbers: '', capacity: 4, baseUrl: process.env.NEXT_PUBLIC_CLIENT_URL || 'https://sangeet.hk',
         design: { darkColor: '#1d1b16', lightColor: '#ffffff', width: 300, margin: 2 }
       });
       loadQRCodes();

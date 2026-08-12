@@ -2,10 +2,14 @@ import config from '@/lib/utils/env';
 import logger from './logger';
 import { formatRestaurantTime } from './timeUtils';
 import type { EmailContent, EmailTemplate, EmailResult, ReservationRow } from '../types';
+// Resend Email Configuration
+import { Resend } from 'resend';
 
-// Brevo Email Configuration
-const getSenderEmail = (): string | undefined => config.EMAIL_USER;
-const getApiKey = (): string => config.BREVO_API_KEY as string;
+const getSenderEmail = (): string => config.EMAIL_SENDER || 'reservations@sangeet.hk';
+const getReplyToEmail = (): string => config.EMAIL_REPLY_TO || 'prithvi@sangeet.hk';
+const getApiKey = (): string | undefined => config.RESEND_API_KEY as string;
+
+const resend = getApiKey() ? new Resend(getApiKey()) : null;
 
 // HTML Escaping Utility for XSS Prevention
 const escapeHtml = (unsafe: unknown): string => {
@@ -18,7 +22,11 @@ const escapeHtml = (unsafe: unknown): string => {
     .replace(/'/g, "&#039;");
 };
 
-type ReservationEmailData = Pick<ReservationRow, 'customer_name' | 'email' | 'date' | 'time' | 'guests' | 'special_requests' | 'table_id'>;
+type ReservationEmailData = Pick<ReservationRow, 'customer_name' | 'email' | 'date' | 'time' | 'guests' | 'special_requests' | 'table_id'> & {
+  phone?: string;
+  subject?: string;
+  message?: string;
+};
 
 // Email templates
 const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => EmailContent> = {
@@ -45,7 +53,7 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
           <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 25px; border-radius: 15px; margin-bottom: 25px;">
             <h3 style="color: #495057; margin: 0 0 20px 0; font-size: 20px; text-align: center;">📋 Your Reservation Request</h3>
             <div>
-              <p><strong>👤 Guest Name:</strong> ${reservation.customer_name}</p>
+              <p><strong>👤 Guest Name:</strong> ${escapeHtml(reservation.customer_name)}</p>
               <p><strong>👥 Number of Guests:</strong> ${reservation.guests} people</p>
               <p><strong>📅 Date:</strong> ${new Date(reservation.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
               <p><strong>🕐 Time:</strong> ${formatRestaurantTime(reservation.time)}</p>
@@ -63,7 +71,7 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
           <div style="text-align: center; padding-top: 30px; border-top: 2px solid #f8f9fa;">
             <p style="color: #6c757d;">We look forward to creating an unforgettable dining experience for you!</p>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
-              <p style="color: #6c757d; font-size: 13px;">📧 info@sangeet-restaurant.com | 📞 +852 1234 5678</p>
+              <p style="color: #6c757d; font-size: 13px;">📍 Wanchai, Hong Kong | 📞 +852 2345 6789 | 📧 info@sangeet.hk</p>
             </div>
           </div>
         </div>
@@ -88,7 +96,7 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
           </div>
           <div style="background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%); padding: 30px; border-radius: 15px; margin-bottom: 25px;">
             <h3 style="color: #155724; margin: 0 0 25px 0; text-align: center;">✅ Confirmed Reservation Details</h3>
-            <p><strong>👤 Guest Name:</strong> ${reservation.customer_name}</p>
+            <p><strong>👤 Guest Name:</strong> ${escapeHtml(reservation.customer_name)}</p>
             <p><strong>👥 Guests:</strong> ${reservation.guests} people</p>
             <p><strong>📅 Date:</strong> ${new Date(reservation.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
             <p><strong>🕐 Time:</strong> ${formatRestaurantTime(reservation.time)}</p>
@@ -103,7 +111,7 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
           <div style="text-align: center; padding-top: 30px; border-top: 2px solid #f8f9fa;">
             <p style="color: #6c757d;">We can't wait to create an unforgettable dining experience for you!</p>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
-              <p style="color: #6c757d; font-size: 13px;">📧 info@sangeet-restaurant.com | 📞 +852 1234 5678</p>
+              <p style="color: #6c757d; font-size: 13px;">📍 Wanchai, Hong Kong | 📞 +852 2345 6789 | 📧 info@sangeet.hk</p>
             </div>
           </div>
         </div>
@@ -128,7 +136,7 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
           </div>
           <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 25px; border-radius: 15px; margin-bottom: 25px;">
             <h3 style="color: #495057; margin: 0 0 20px 0; text-align: center;">📋 Cancelled Reservation Details</h3>
-            <p><strong>👤 Guest Name:</strong> ${reservation.customer_name}</p>
+            <p><strong>👤 Guest Name:</strong> ${escapeHtml(reservation.customer_name)}</p>
             <p><strong>👥 Guests:</strong> ${reservation.guests} people</p>
             <p><strong>📅 Date:</strong> ${new Date(reservation.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
             <p><strong>🕐 Time:</strong> ${formatRestaurantTime(reservation.time)}</p>
@@ -136,8 +144,75 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
           <div style="text-align: center; padding-top: 30px; border-top: 2px solid #f8f9fa;">
             <p style="color: #6c757d;">We hope to see you soon!</p>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
-              <p style="color: #6c757d; font-size: 13px;">📧 info@sangeet-restaurant.com | 📞 +852 1234 5678</p>
+              <p style="color: #6c757d; font-size: 13px;">📍 Wanchai, Hong Kong | 📞 +852 2345 6789 | 📧 info@sangeet.hk</p>
             </div>
+          </div>
+        </div>
+      </div>
+    `
+  }),
+
+  adminReservationNotice: (reservation) => ({
+    subject: `🔔 NEW RESERVATION ALERT: ${reservation.customer_name} (${reservation.guests} Guests)`,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 100%; width: 100%; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #111827 0%, #1f2937 100%);">
+        <div style="background-color: #ffffff; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border: 1px solid #d4af37; max-width: 100%;">
+          <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #f3f4f6;">
+            <div style="background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 26px;">🔔 ADMIN ALERT: New Booking Request</h1>
+            </div>
+            <p style="color: #4b5563; margin: 5px 0 0 0; font-size: 15px;">Sangeet Restaurant Reservation System</p>
+          </div>
+          <div style="background: #fffbeb; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #fef3c7;">
+            <h3 style="color: #92400e; margin: 0 0 15px 0; font-size: 18px; text-align: center;">📋 Booking Details</h3>
+            <p><strong>👤 Guest Name:</strong> ${escapeHtml(reservation.customer_name)}</p>
+            <p><strong>👥 Party Size:</strong> ${reservation.guests} guests</p>
+            <p><strong>📅 Date:</strong> ${new Date(reservation.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <p><strong>🕐 Time:</strong> ${formatRestaurantTime(reservation.time)}</p>
+            <p><strong>📧 Guest Email:</strong> <a href="mailto:${escapeHtml(reservation.email)}">${escapeHtml(reservation.email)}</a></p>
+          </div>
+          ${reservation.special_requests ? `
+          <div style="background: #eff6ff; padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid #3b82f6;">
+            <h4 style="color: #1e40af; margin: 0 0 10px 0;">💬 Special Requests / Notes</h4>
+            <p style="color: #1e3a8a; font-style: italic; margin: 0;">"${escapeHtml(reservation.special_requests)}"</p>
+          </div>
+          ` : ''}
+          <div style="text-align: center; padding-top: 20px; border-top: 2px solid #f3f4f6;">
+            <a href="https://sangeet.hk/admin" style="background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; display: inline-block;">
+              Open Admin Dashboard & Confirm
+            </a>
+          </div>
+        </div>
+      </div>
+    `
+  }),
+
+  contactEnquiry: (data) => ({
+    subject: `📬 New Contact Enquiry: ${(data as any).subject} — from ${data.customer_name}`,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 100%; width: 100%; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #111827 0%, #1f2937 100%);">
+        <div style="background-color: #ffffff; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); border: 1px solid #d4af37; max-width: 100%;">
+          <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #f3f4f6;">
+            <div style="background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 26px;">📬 New Contact Enquiry</h1>
+            </div>
+            <p style="color: #4b5563; margin: 5px 0 0 0; font-size: 15px;">Submitted via sangeet.hk/contact</p>
+          </div>
+          <div style="background: #fffbeb; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #fef3c7;">
+            <h3 style="color: #92400e; margin: 0 0 15px 0; font-size: 18px; text-align: center;">👤 Contact Details</h3>
+            <p><strong>Name:</strong> ${escapeHtml(data.customer_name)}</p>
+            <p><strong>Email:</strong> <a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a></p>
+            <p><strong>Phone:</strong> ${escapeHtml((data as any).phone) || 'Not provided'}</p>
+            <p><strong>Subject:</strong> ${escapeHtml((data as any).subject)}</p>
+          </div>
+          <div style="background: #f0fdf4; padding: 25px; border-radius: 15px; margin-bottom: 25px; border-left: 4px solid #22c55e;">
+            <h3 style="color: #166534; margin: 0 0 15px 0;">💬 Message</h3>
+            <p style="color: #15803d; line-height: 1.8; white-space: pre-wrap;">${escapeHtml((data as any).message)}</p>
+          </div>
+          <div style="text-align: center; padding-top: 20px; border-top: 2px solid #f3f4f6;">
+            <a href="mailto:${escapeHtml(data.email)}" style="background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; display: inline-block;">
+              Reply to ${escapeHtml(data.customer_name)}
+            </a>
           </div>
         </div>
       </div>
@@ -164,75 +239,41 @@ export const sendTestEmail = async (to: string, template: EmailTemplate, data: R
   }
 };
 
-// Send email function using Brevo REST API with Exponential Backoff
+// Send email function using Resend SDK
 export const sendEmail = async (to: string, template: EmailTemplate, data: ReservationEmailData): Promise<EmailResult> => {
   const emailContent = emailTemplates[template](data);
-  const apiKey = getApiKey();
   const senderEmail = getSenderEmail();
+  const replyToEmail = getReplyToEmail();
   
   // Check if we have proper API credentials
-  if (!apiKey) {
-    logger.info('📧 EMAIL LOGGED (not sent - missing BREVO_API_KEY):');
+  if (!resend) {
+    logger.info('📧 EMAIL LOGGED (not sent - missing RESEND_API_KEY):');
     logger.info('📧 To:', to);
     logger.info('📧 Subject:', emailContent.subject);
     return { success: true, messageId: 'logged-' + Date.now() };
   }
   
-  const payload = {
-    sender: {
-      name: 'Sangeet Restaurant',
-      email: senderEmail
-    },
-    to: [
-      { email: to }
-    ],
-    replyTo: {
-      email: senderEmail,
-      name: 'Sangeet Restaurant'
-    },
-    subject: emailContent.subject,
-    htmlContent: emailContent.html
-  };
+  try {
+    const { data: responseData, error } = await resend.emails.send({
+      from: `Sangeet Restaurant <${senderEmail}>`,
+      to: [to],
+      replyTo: replyToEmail,
+      subject: emailContent.subject,
+      html: emailContent.html,
+    });
 
-  let lastError: Error | null = null;
-  const maxRetries = 3;
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'api-key': apiKey
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Brevo API Error: ${JSON.stringify(errorData)}`);
-      }
-
-      const result = await response.json() as { messageId: string };
-      logger.info(`📧 Email sent successfully via Brevo (Attempt ${attempt}):`, result.messageId);
-      return { success: true, messageId: result.messageId };
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-      logger.warn(`⚠️ Email attempt ${attempt} failed: ${lastError.message}`);
-      
-      if (attempt < maxRetries) {
-        // Exponential backoff: 2s, 4s
-        const backoffMs = attempt * 2000;
-        logger.info(`⏳ Waiting ${backoffMs}ms before retrying...`);
-        await new Promise(resolve => setTimeout(resolve, backoffMs));
-      }
+    if (error) {
+      logger.error('❌ Resend API Error:', error.message);
+      return { success: false, error: error.message };
     }
-  }
 
-  // If we reach here, all retries exhausted
-  logger.error('❌ CRITICAL: All email sending attempts failed:', lastError?.message);
-  return { success: false, error: lastError?.message || 'Unknown error occurred after retries' };
+    logger.info(`📧 Email sent successfully via Resend:`, responseData?.id);
+    return { success: true, messageId: responseData?.id || 'unknown' };
+  } catch (error) {
+    const lastError = error instanceof Error ? error : new Error(String(error));
+    logger.error('❌ CRITICAL: Email sending failed:', lastError.message);
+    return { success: false, error: lastError.message };
+  }
 };
 
 // Email notification functions
@@ -248,15 +289,20 @@ export const sendReservationCancelledEmail = async (reservation: ReservationEmai
   return await sendEmail(reservation.email, 'reservationCancelled', reservation);
 };
 
+export const sendAdminReservationNoticeEmail = async (reservation: ReservationEmailData): Promise<EmailResult> => {
+  const adminNotifyEmail = config.ADMIN_NOTIFY_EMAIL || 'prithvi@sangeet.hk';
+  return await sendEmail(adminNotifyEmail, 'adminReservationNotice', reservation);
+};
+
 // Test email configuration
 export const testEmailConfig = async (): Promise<boolean> => {
   try {
     const apiKey = getApiKey();
-    logger.info('📧 Testing Brevo API configuration...');
+    logger.info('📧 Testing Resend API configuration...');
     logger.info('📧 API Key:', apiKey ? '***SET***' : '***NOT SET***');
     
-    if (apiKey) {
-      logger.info('✅ Brevo configuration looks good');
+    if (apiKey && resend) {
+      logger.info('✅ Resend configuration looks good');
       return true;
     } else {
       return false;

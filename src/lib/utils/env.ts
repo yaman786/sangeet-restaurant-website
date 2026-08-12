@@ -4,13 +4,15 @@ const serverSchema = z.object({
   DATABASE_URL: z.string().url().optional(),
   JWT_SECRET: z.string().min(1).optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  EMAIL_USER: z.string().optional(),
-  BREVO_API_KEY: z.string().optional(),
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_SENDER: z.string().optional(),
+  EMAIL_REPLY_TO: z.string().optional(),
+  ADMIN_NOTIFY_EMAIL: z.string().optional(),
 });
 
 const clientSchema = z.object({
-  NEXT_PUBLIC_API_URL: z.string().url().default('http://localhost:3000'),
-  NEXT_PUBLIC_FRONTEND_URL: z.string().url().default('http://localhost:3000'),
+  NEXT_PUBLIC_API_URL: z.string().url().default('https://sangeet.hk/api'),
+  NEXT_PUBLIC_FRONTEND_URL: z.string().url().default('https://sangeet.hk'),
   NEXT_PUBLIC_PUSHER_KEY: z.string().optional(),
   NEXT_PUBLIC_PUSHER_CLUSTER: z.string().optional(),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),

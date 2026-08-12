@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 import type { QRCodeResult } from '../types';
 
 // Generate QR code for a table
-export const generateQRCode = async (tableNumber: number | string, baseUrl = 'http://localhost:3000'): Promise<QRCodeResult> => {
+export const generateQRCode = async (tableNumber: number | string, baseUrl = 'https://sangeet.hk'): Promise<QRCodeResult> => {
   try {
     const qrUrl = `${baseUrl}/qr/table-${tableNumber}`;
     const qrCodeDataURL = await QRCode.toDataURL(qrUrl, {
@@ -27,7 +27,7 @@ export const generateQRCode = async (tableNumber: number | string, baseUrl = 'ht
 };
 
 // Generate QR codes for all tables
-export const generateAllQRCodes = async (baseUrl = 'http://localhost:3000'): Promise<QRCodeResult[]> => {
+export const generateAllQRCodes = async (baseUrl = 'https://sangeet.hk'): Promise<QRCodeResult[]> => {
   try {
     const tables = [1, 2, 3, 4, 5]; // You can make this dynamic
     const qrCodes: QRCodeResult[] = [];

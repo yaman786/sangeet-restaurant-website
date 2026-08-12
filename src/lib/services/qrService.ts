@@ -32,7 +32,7 @@ class QRService {
       });
     }
     
-    const qrUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/qr/table-${tableNumber}`;
+    const qrUrl = `${process.env.FRONTEND_URL || 'https://sangeet.hk'}/qr/table-${tableNumber}`;
     const options = { theme: theme || 'modern', colors, design: design || 'classic' };
     
     const qrCodeBuffer = await beautifulQRGenerator.generateBeautifulQRCode(tableNumber, qrUrl, options);

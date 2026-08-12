@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 
 import logo from '../assets/images/logo.png';
 import ReviewsSection from '../components/ReviewsSection';
+import { sanitizePhoneNumber } from '../utils/sanitizePhone';
 
 /**
  * HomePage Component — Premium Landing Page
@@ -19,23 +20,41 @@ import ReviewsSection from '../components/ReviewsSection';
  * - Subtle, smooth animations (never jarring)
  * - Playfair Display for headings, Outfit for body
  */
+
+const StatusPill = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const isOpen = currentTime.getHours() >= 18 && currentTime.getHours() < 23;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1, delay: 1.2 }}
+      className="mt-10 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sangeet-neutral-900/60 backdrop-blur-md border border-sangeet-neutral-700/30"
+    >
+      <div className={`w-2 h-2 rounded-full ${isOpen ? 'bg-green-400' : 'bg-red-400'}`} />
+      <span className="text-caption text-sangeet-neutral-300">
+        {isOpen ? 'Open Now · Closes at 11 PM' : 'Closed · Opens at 6 PM'}
+      </span>
+      <span className="text-caption text-sangeet-neutral-500">· Wanchai, HK</span>
+    </motion.div>
+  );
+};
+
 const HomePage = ({ menuItems, reviews, events }: any) => {
   const navigate = useNavigate();
   const [currentEventsSlide, setCurrentEventsSlide] = useState(0);
-  const [currentTime, setCurrentTime] = useState(new Date());
 
   // Scroll-driven parallax for hero
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 500], [0, 150]);
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
-
-  const isOpen = currentTime.getHours() >= 18 && currentTime.getHours() < 23;
-
-  // Real-time clock
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-    return () => clearInterval(timer);
-  }, []);
 
   // ── Data ──────────────────────────────────────────────────
   const UPCOMING_EVENTS = [
@@ -197,18 +216,7 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
           </motion.div>
 
           {/* Minimal Status Pill */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1.2 }}
-            className="mt-10 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sangeet-neutral-900/60 backdrop-blur-md border border-sangeet-neutral-700/30"
-          >
-            <div className={`w-2 h-2 rounded-full ${isOpen ? 'bg-green-400' : 'bg-red-400'}`} />
-            <span className="text-caption text-sangeet-neutral-300">
-              {isOpen ? 'Open Now · Closes at 11 PM' : 'Closed · Opens at 6 PM'}
-            </span>
-            <span className="text-caption text-sangeet-neutral-500">· Wanchai, HK</span>
-          </motion.div>
+          <StatusPill />
         </motion.div>
 
         {/* Scroll Indicator */}
@@ -373,119 +381,159 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
             </p>
           </motion.div>
 
-          {/* Desktop Events Carousel */}
-          <div className="hidden md:block">
-            <div className="relative">
-              <div className="overflow-hidden rounded-3xl">
-                <div
-                  className="flex transition-transform duration-700 ease-out-expo"
-                  style={{ transform: `translateX(-${currentEventsSlide * 100}%)` }}
-                >
-                  {UPCOMING_EVENTS.map((event) => (
-                    <div key={event.id} className="w-full flex-shrink-0">
-                      <div className="relative h-[480px] group">
-                        <Image
-                          src={event.image_url}
-                          alt={event.title}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                          className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out-expo"
-                        />
-                        <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-950/95 via-sangeet-neutral-950/30 to-transparent" />
+          {(() => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const activeEvents = UPCOMING_EVENTS.filter((event: any) => {
+              const eventDate = new Date(event.date || event.event_date);
+              return !isNaN(eventDate.getTime()) && eventDate >= today;
+            });
 
-                        {/* Content Overlay */}
-                        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10">
-                          <div className="flex items-center gap-3 mb-4">
-                            <span className="px-3 py-1 rounded-full bg-sangeet-400/20 text-sangeet-400 text-caption font-semibold border border-sangeet-400/20">
-                              {event.category}
-                            </span>
-                            <span className="text-sangeet-neutral-400 text-body-sm">{event.price}</span>
+            if (activeEvents.length === 0) {
+              return (
+                <div className="bg-sangeet-neutral-900 border border-sangeet-neutral-800 rounded-3xl p-8 md:p-12 text-center max-w-4xl mx-auto shadow-2xl relative overflow-hidden">
+                  <div className="absolute inset-0 bg-linear-to-r from-sangeet-400/5 via-transparent to-sangeet-red-500/5" />
+                  <div className="relative z-10">
+                    <span className="inline-block px-4 py-1.5 rounded-full bg-sangeet-400/20 text-sangeet-400 text-xs font-semibold uppercase tracking-wider mb-4 border border-sangeet-400/30">
+                      Private Dining & Events
+                    </span>
+                    <h3 className="font-display text-2xl md:text-3xl text-sangeet-neutral-100 font-bold mb-4">
+                      Host Your Celebration With Us
+                    </h3>
+                    <p className="text-sangeet-neutral-400 text-base md:text-lg max-w-2xl mx-auto mb-8">
+                      Looking for a private venue for birthdays, corporate dinners, or family celebrations? Reserve our dining room with customized South Asian menus and dedicated service.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <Link href="/contact" className="btn-primary px-8 py-3 text-sm">
+                        Inquire for Private Events
+                      </Link>
+                      <Link href="/reservations" className="btn-ghost px-8 py-3 text-sm border border-sangeet-neutral-700">
+                        Reserve a Table
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <>
+                {/* Desktop Events Carousel */}
+                <div className="hidden md:block">
+                  <div className="relative">
+                    <div className="overflow-hidden rounded-3xl">
+                      <div
+                        className="flex transition-transform duration-700 ease-out-expo"
+                        style={{ transform: `translateX(-${currentEventsSlide * 100}%)` }}
+                      >
+                        {activeEvents.map((event) => (
+                          <div key={event.id} className="w-full flex-shrink-0">
+                            <div className="relative h-[480px] group">
+                              <Image
+                                src={event.image_url}
+                                alt={event.title}
+                                fill
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                                className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out-expo"
+                              />
+                              <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-950/95 via-sangeet-neutral-950/30 to-transparent" />
+
+                              {/* Content Overlay */}
+                              <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10">
+                                <div className="flex items-center gap-3 mb-4">
+                                  <span className="px-3 py-1 rounded-full bg-sangeet-400/20 text-sangeet-400 text-caption font-semibold border border-sangeet-400/20">
+                                    {event.category}
+                                  </span>
+                                  <span className="text-sangeet-neutral-400 text-body-sm">{event.price}</span>
+                                </div>
+                                <h3 className="font-display text-display-sm text-white mb-3">{event.title}</h3>
+                                <p className="text-body-md text-sangeet-neutral-300 mb-4 max-w-2xl">{event.description}</p>
+                                <div className="flex items-center gap-4 text-body-sm text-sangeet-neutral-400">
+                                  <span>{new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                                  <span className="w-1 h-1 rounded-full bg-sangeet-neutral-600" />
+                                  <span>{event.time}</span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <h3 className="font-display text-display-sm text-white mb-3">{event.title}</h3>
-                          <p className="text-body-md text-sangeet-neutral-300 mb-4 max-w-2xl">{event.description}</p>
-                          <div className="flex items-center gap-4 text-body-sm text-sangeet-neutral-400">
-                            <span>{new Date(event.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                            <span className="w-1 h-1 rounded-full bg-sangeet-neutral-600" />
-                            <span>{event.time}</span>
-                          </div>
-                        </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
+
+                    {/* Nav Arrows */}
+                    <button
+                      onClick={() => paginateEvents(-1)}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-sangeet-neutral-900/80 backdrop-blur-md border border-sangeet-neutral-700/30 text-sangeet-neutral-300 hover:text-sangeet-400 hover:border-sangeet-400/30 transition-all duration-200 flex items-center justify-center z-10"
+                      aria-label="Previous event"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => paginateEvents(1)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-sangeet-neutral-900/80 backdrop-blur-md border border-sangeet-neutral-700/30 text-sangeet-neutral-300 hover:text-sangeet-400 hover:border-sangeet-400/30 transition-all duration-200 flex items-center justify-center z-10"
+                      aria-label="Next event"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+
+                    {/* Dots */}
+                    <div className="flex justify-center gap-2 mt-6">
+                      {activeEvents.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentEventsSlide(index)}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            index === currentEventsSlide
+                              ? 'w-8 bg-sangeet-400'
+                              : 'w-3 bg-sangeet-neutral-700 hover:bg-sangeet-neutral-600'
+                          }`}
+                          aria-label={`Go to event ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Nav Arrows */}
-              <button
-                onClick={() => paginateEvents(-1)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-sangeet-neutral-900/80 backdrop-blur-md border border-sangeet-neutral-700/30 text-sangeet-neutral-300 hover:text-sangeet-400 hover:border-sangeet-400/30 transition-all duration-200 flex items-center justify-center z-10"
-                aria-label="Previous event"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                onClick={() => paginateEvents(1)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-sangeet-neutral-900/80 backdrop-blur-md border border-sangeet-neutral-700/30 text-sangeet-neutral-300 hover:text-sangeet-400 hover:border-sangeet-400/30 transition-all duration-200 flex items-center justify-center z-10"
-                aria-label="Next event"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-
-              {/* Dots */}
-              <div className="flex justify-center gap-2 mt-6">
-                {UPCOMING_EVENTS.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentEventsSlide(index)}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      index === currentEventsSlide
-                        ? 'w-8 bg-sangeet-400'
-                        : 'w-3 bg-sangeet-neutral-700 hover:bg-sangeet-neutral-600'
-                    }`}
-                    aria-label={`Go to event ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Events — Horizontal scroll */}
-          <div className="md:hidden">
-            <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide -mx-5 px-5">
-              {UPCOMING_EVENTS.map((event, index) => (
-                <motion.div
-                  key={event.id}
-                  initial={{ opacity: 0, x: 40 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="flex-shrink-0 w-[280px] rounded-2xl overflow-hidden bg-sangeet-neutral-900 border border-sangeet-neutral-800/50"
-                >
-                  <div className="relative h-44">
-                    <Image src={event.image_url} alt={event.title} fill sizes="280px" className="object-cover" />
-                    <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900 to-transparent" />
-                    <div className="absolute top-3 left-3">
-                      <span className="px-2.5 py-1 rounded-full bg-sangeet-400/20 text-sangeet-400 text-caption font-semibold border border-sangeet-400/20">
-                        {event.category}
-                      </span>
-                    </div>
+                {/* Mobile Events — Horizontal scroll */}
+                <div className="md:hidden">
+                  <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide -mx-5 px-5">
+                    {activeEvents.map((event, index) => (
+                      <motion.div
+                        key={event.id}
+                        initial={{ opacity: 0, x: 40 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                        className="flex-shrink-0 w-[280px] rounded-2xl overflow-hidden bg-sangeet-neutral-900 border border-sangeet-neutral-800/50"
+                      >
+                        <div className="relative h-44">
+                          <Image src={event.image_url} alt={event.title} fill sizes="280px" className="object-cover" />
+                          <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900 to-transparent" />
+                          <div className="absolute top-3 left-3">
+                            <span className="px-2.5 py-1 rounded-full bg-sangeet-400/20 text-sangeet-400 text-caption font-semibold border border-sangeet-400/20">
+                              {event.category}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-display text-heading-sm text-sangeet-neutral-100 mb-2 line-clamp-1">{event.title}</h3>
+                          <p className="text-caption text-sangeet-neutral-400 mb-3 line-clamp-2">{event.description}</p>
+                          <div className="flex items-center justify-between text-caption text-sangeet-neutral-500">
+                            <span>{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                            <span className="text-sangeet-400 font-semibold">{event.price}</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-display text-heading-sm text-sangeet-neutral-100 mb-2 line-clamp-1">{event.title}</h3>
-                    <p className="text-caption text-sangeet-neutral-400 mb-3 line-clamp-2">{event.description}</p>
-                    <div className="flex items-center justify-between text-caption text-sangeet-neutral-500">
-                      <span>{new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                      <span className="text-sangeet-400 font-semibold">{event.price}</span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+                </div>
+              </>
+            );
+          })()}
         </div>
       </section>
 
@@ -522,12 +570,17 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
               >
                 Reserve Your Table
               </Link>
-              <a
-                href="tel:+85223456789"
-                className="btn-ghost text-sangeet-neutral-300 hover:text-sangeet-400"
-              >
-                Or call us: +852 2345 6789
-              </a>
+              {(() => {
+                const phone = sanitizePhoneNumber('+852 2345 6789');
+                return (
+                  <a
+                    href={phone.telHref}
+                    className="btn-ghost text-sangeet-neutral-300 hover:text-sangeet-400"
+                  >
+                    Or call us: {phone.raw}
+                  </a>
+                );
+              })()}
             </div>
 
             {/* Trust bar */}

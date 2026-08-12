@@ -356,7 +356,7 @@ class OrderService {
     const table = await prisma.tables.findFirst({ where: { table_number: tableNumber } });
     if (!table) throw new NotFoundError(`Table ${tableNumber}`);
     
-    const qrData = await generateQRCode(tableNumber, process.env.FRONTEND_URL || 'http://localhost:3000');
+    const qrData = await generateQRCode(tableNumber, process.env.FRONTEND_URL || 'https://sangeet.hk');
     
     const updatedTable = await prisma.tables.update({
       where: { id: table.id },
