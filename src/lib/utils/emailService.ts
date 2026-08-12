@@ -290,7 +290,8 @@ export const sendReservationCancelledEmail = async (reservation: ReservationEmai
 };
 
 export const sendAdminReservationNoticeEmail = async (reservation: ReservationEmailData): Promise<EmailResult> => {
-  const adminNotifyEmail = config.ADMIN_NOTIFY_EMAIL || 'prithvi@sangeet.hk';
+  const rawEnvEmail = config.ADMIN_NOTIFY_EMAIL;
+  const adminNotifyEmail = (rawEnvEmail && rawEnvEmail.trim() !== '') ? rawEnvEmail.trim() : 'prithvi@sangeet.hk';
   return await sendEmail(adminNotifyEmail, 'adminReservationNotice', reservation);
 };
 
