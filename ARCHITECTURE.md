@@ -18,7 +18,7 @@ C4Context
   
   System_Ext(supabase, "Supabase (PostgreSQL)", "Primary database and file storage.")
   System_Ext(pusher, "Pusher", "Real-time WebSocket event broadcasting.")
-  System_Ext(brevo, "Brevo (Sendinblue)", "Transactional email delivery.")
+  System_Ext(resend, "Resend", "Transactional email delivery.")
   System_Ext(upstash, "Upstash (Redis)", "Rate limiting and caching.")
 
   Rel(customer, sangeet, "Visits public site, scans QR", "HTTPS")
@@ -27,7 +27,7 @@ C4Context
 
   Rel(sangeet, supabase, "Reads/Writes Data", "Prisma ORM")
   Rel(sangeet, pusher, "Triggers real-time events", "HTTPS/WSS")
-  Rel(sangeet, brevo, "Sends confirmation emails", "REST API")
+  Rel(sangeet, resend, "Sends confirmation emails", "REST API")
   Rel(sangeet, upstash, "Enforces rate limits", "REST API")
 ```
 

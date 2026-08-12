@@ -12,7 +12,7 @@ Recently migrated to a **Next.js 15 Monolith**, the platform combines high-perfo
 
 ### Customer Experience
 - **Public Website:** Stunning, responsive landing pages to view menus, events, and reviews.
-- **Reservations:** Book tables online with real-time availability and automated Brevo email confirmations.
+- **Reservations:** Book tables online with real-time availability and automated Resend email confirmations.
 - **QR Table Ordering:** Scan a QR code at the table to view the menu, add items to the cart, and place orders directly to the kitchen.
 
 ### Operations & Staff
@@ -29,8 +29,7 @@ Recently migrated to a **Next.js 15 Monolith**, the platform combines high-perfo
 - **ORM:** [Prisma](https://www.prisma.io/)
 - **Real-Time:** [Pusher](https://pusher.com/)
 - **Rate Limiting:** [Upstash Redis](https://upstash.com/)
-- **Email:** [Brevo](https://www.brevo.com/)
-
+- **Email:** [Resend](https://resend.com/)
 ---
 
 ## 📖 Documentation
@@ -57,7 +56,7 @@ Copy the example environment file and fill in your secure credentials:
 ```bash
 cp .env.example .env
 ```
-Ensure you have the connection strings for Supabase, Pusher, Upstash, and Brevo.
+Ensure you have the connection strings for Supabase, Pusher, Upstash, and Resend.
 
 ### 3. Generate Prisma Client
 ```bash

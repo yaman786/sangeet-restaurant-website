@@ -67,7 +67,7 @@ async function runTest() {
     if (res.ok) {
       const data = await res.json();
       console.log('✅ Reservation created successfully!', data);
-      console.log('📨 The automated email has been triggered via Brevo.');
+      console.log('📨 The automated email has been triggered via Resend.');
     } else {
       const errData = await res.text();
       console.error('❌ Failed to create reservation on live URL:', res.status, errData);

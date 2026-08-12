@@ -16,7 +16,7 @@ First off, thank you for considering contributing to Sangeet Restaurant! This do
    ```
 
 3. **Environment Setup**
-   Copy `.env.example` to `.env` and fill in the required keys (Supabase, Pusher, Brevo, Upstash).
+   Copy `.env.example` to `.env` and fill in the required keys (Supabase, Pusher, Resend, Upstash).
 
 4. **Prisma Client Generation**
    ```bash
