@@ -5,8 +5,21 @@ import type { EmailContent, EmailTemplate, EmailResult, ReservationRow } from '.
 // Resend Email Configuration
 import { Resend } from 'resend';
 
-const getSenderEmail = (): string => config.EMAIL_SENDER || 'reservations@sangeet.hk';
-const getReplyToEmail = (): string => config.EMAIL_REPLY_TO || 'ranaji13@sangeet.hk';
+const getSenderEmail = (): string => {
+  const envSender = config.EMAIL_SENDER;
+  if (envSender && envSender.trim() !== '' && !envSender.toLowerCase().includes('admin@')) {
+    return envSender.trim();
+  }
+  return 'reservations@sangeet.hk';
+};
+
+const getReplyToEmail = (): string => {
+  const envReply = config.EMAIL_REPLY_TO;
+  if (envReply && envReply.trim() !== '' && !envReply.toLowerCase().includes('admin@') && !envReply.toLowerCase().includes('prithvi@')) {
+    return envReply.trim();
+  }
+  return 'ranaji13@sangeet.hk';
+};
 const getApiKey = (): string | undefined => config.RESEND_API_KEY as string;
 
 const resend = getApiKey() ? new Resend(getApiKey()) : null;
@@ -291,8 +304,8 @@ export const sendReservationCancelledEmail = async (reservation: ReservationEmai
 
 export const sendAdminReservationNoticeEmail = async (reservation: ReservationEmailData): Promise<EmailResult> => {
   const rawEnvEmail = config.ADMIN_NOTIFY_EMAIL;
-  const adminNotifyEmail = (rawEnvEmail && rawEnvEmail.trim() !== '' && !rawEnvEmail.includes('prithvi')) ? rawEnvEmail.trim() : 'ranaji13@sangeet.hk';
-  const customerReplyTo = (reservation.email && reservation.email.includes('@')) ? reservation.email : undefined;
+  const adminNotifyEmail = (rawEnvEmail && rawEnvEmail.trim() !== '' && !rawEnvEmail.toLowerCase().includes('prithvi') && !rawEnvEmail.toLowerCase().includes('admin@')) ? rawEnvEmail.trim() : 'ranaji13@sangeet.hk';
+  const customerReplyTo = (reservation.email && reservation.email.includes('@')) ? reservation.email : 'ranaji13@sangeet.hk';
   return await sendEmail(adminNotifyEmail, 'adminReservationNotice', reservation, customerReplyTo);
 };
 
