@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'All required fields must be filled' }, { status: 400 });
     }
 
-    const adminEmail = config.ADMIN_NOTIFY_EMAIL || 'prithvi@sangeet.hk';
+    const adminEmail = config.ADMIN_NOTIFY_EMAIL || 'ranaji13@sangeet.hk';
 
     // Send the enquiry notification to admin (info@sangeet.hk is handled by Prithvi)
     const result = await sendEmail(adminEmail, 'contactEnquiry', {

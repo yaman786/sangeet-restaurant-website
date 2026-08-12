@@ -6,7 +6,7 @@ import type { EmailContent, EmailTemplate, EmailResult, ReservationRow } from '.
 import { Resend } from 'resend';
 
 const getSenderEmail = (): string => config.EMAIL_SENDER || 'reservations@sangeet.hk';
-const getReplyToEmail = (): string => config.EMAIL_REPLY_TO || 'prithvi@sangeet.hk';
+const getReplyToEmail = (): string => config.EMAIL_REPLY_TO || 'ranaji13@sangeet.hk';
 const getApiKey = (): string | undefined => config.RESEND_API_KEY as string;
 
 const resend = getApiKey() ? new Resend(getApiKey()) : null;
@@ -291,7 +291,7 @@ export const sendReservationCancelledEmail = async (reservation: ReservationEmai
 
 export const sendAdminReservationNoticeEmail = async (reservation: ReservationEmailData): Promise<EmailResult> => {
   const rawEnvEmail = config.ADMIN_NOTIFY_EMAIL;
-  const adminNotifyEmail = (rawEnvEmail && rawEnvEmail.trim() !== '') ? rawEnvEmail.trim() : 'prithvi@sangeet.hk';
+  const adminNotifyEmail = (rawEnvEmail && rawEnvEmail.trim() !== '') ? rawEnvEmail.trim() : 'ranaji13@sangeet.hk';
   return await sendEmail(adminNotifyEmail, 'adminReservationNotice', reservation);
 };
 
