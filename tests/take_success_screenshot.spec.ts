@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test('Take success screenshot', async ({ page }) => {
   const BASE_URL = 'https://frontend-six-xi-10.vercel.app';
