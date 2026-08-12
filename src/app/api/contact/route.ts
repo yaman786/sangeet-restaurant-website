@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       phone: phone || 'Not provided',
       subject,
       message,
-    } as any);
+    } as any, email);
 
     if (!result.success) {
       return NextResponse.json({ error: 'Failed to send message. Please try again.' }, { status: 500 });

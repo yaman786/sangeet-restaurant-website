@@ -240,10 +240,10 @@ export const sendTestEmail = async (to: string, template: EmailTemplate, data: R
 };
 
 // Send email function using Resend SDK
-export const sendEmail = async (to: string, template: EmailTemplate, data: ReservationEmailData): Promise<EmailResult> => {
+export const sendEmail = async (to: string, template: EmailTemplate, data: ReservationEmailData, customReplyTo?: string): Promise<EmailResult> => {
   const emailContent = emailTemplates[template](data);
   const senderEmail = getSenderEmail();
-  const replyToEmail = getReplyToEmail();
+  const replyToEmail = customReplyTo || getReplyToEmail();
   
   // Check if we have proper API credentials
   if (!resend) {
@@ -292,7 +292,8 @@ export const sendReservationCancelledEmail = async (reservation: ReservationEmai
 export const sendAdminReservationNoticeEmail = async (reservation: ReservationEmailData): Promise<EmailResult> => {
   const rawEnvEmail = config.ADMIN_NOTIFY_EMAIL;
   const adminNotifyEmail = (rawEnvEmail && rawEnvEmail.trim() !== '' && !rawEnvEmail.includes('prithvi')) ? rawEnvEmail.trim() : 'ranaji13@sangeet.hk';
-  return await sendEmail(adminNotifyEmail, 'adminReservationNotice', reservation);
+  const customerReplyTo = (reservation.email && reservation.email.includes('@')) ? reservation.email : undefined;
+  return await sendEmail(adminNotifyEmail, 'adminReservationNotice', reservation, customerReplyTo);
 };
 
 // Test email configuration
