@@ -149,15 +149,26 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
           Benchmarked: Apple product pages, Airbnb homepage
       ─────────────────────────────────────────────────────── */}
       <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
-        {/* Background Image with Parallax */}
+        {/* Background Image or Video with Parallax */}
         <motion.div className="absolute inset-0" style={{ y: heroY }}>
-          <Image
-            src={heroData.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop"}
-            alt="Sangeet Restaurant dining ambiance"
-            fill
-            priority
-            className="object-cover scale-110"
-          />
+          {heroData.image_url && heroData.image_url.match(/\.(mp4|webm)$/i) ? (
+            <video
+              src={heroData.image_url}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="object-cover scale-110 w-full h-full"
+            />
+          ) : (
+            <Image
+              src={heroData.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop"}
+              alt="Sangeet Restaurant dining ambiance"
+              fill
+              priority
+              className="object-cover scale-110"
+            />
+          )}
         </motion.div>
 
         {/* Cinematic Overlay — deep vignette */}

@@ -35,7 +35,6 @@ import {
   getWebsiteContent,
   updateWebsiteContent,
   getWebsiteMedia,
-  uploadWebsiteMedia,
   deleteWebsiteMedia,
   getWebsiteStats,
   getAllTimeSlots,
@@ -44,6 +43,7 @@ import {
   deleteTimeSlot,
   getPublicWebsiteConfig
 } from '../services/api';
+import { uploadHeroMediaAction } from '@/app/actions/websiteActions';
 
 const DEFAULT_SCHEDULE = {
   monday: { open: "17:30", close: "23:00", closed: false },
@@ -194,20 +194,27 @@ const RestaurantWebsiteManagementPage = () => {
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('image', file);
-    formData.append('media_key', 'hero');
+    formData.append('file', file);
+    if (heroForm.image_url) {
+      formData.append('oldUrl', heroForm.image_url);
+    }
 
     try {
-      const toastId = toast.loading('Uploading image...');
-      const response = await uploadWebsiteMedia(formData);
-      const newMedia = (response as any).media || response;
-      setHeroForm(prev => ({ ...prev, image_url: newMedia.file_path }));
-      toast.dismiss(toastId);
-      toast.success('Hero image uploaded successfully!');
+      const toastId = toast.loading('Uploading media...');
+      const res = await uploadHeroMediaAction(formData);
+      
+      if (res.success) {
+        setHeroForm(prev => ({ ...prev, image_url: res.url }));
+        toast.dismiss(toastId);
+        toast.success('Hero media uploaded successfully!');
+      } else {
+        toast.dismiss(toastId);
+        toast.error(res.error || 'Failed to upload media');
+      }
     } catch (error) {
-      console.error('Error uploading hero image:', error);
+      console.error('Error uploading hero media:', error);
       toast.dismiss();
-      toast.error('Failed to upload hero image');
+      toast.error('Failed to upload hero media');
     }
   };
 
@@ -427,12 +434,16 @@ const RestaurantWebsiteManagementPage = () => {
                       />
                       <label className="shrink-0 flex items-center justify-center bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 border border-sangeet-neutral-700 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors text-sm font-semibold">
                         <Upload className="w-4 h-4 mr-2" /> Upload
-                        <input type="file" className="hidden" accept="image/*" onChange={handleHeroImageUpload} />
+                        <input type="file" className="hidden" accept="image/*,video/mp4,video/webm" onChange={handleHeroImageUpload} />
                       </label>
                     </div>
                     {heroForm.image_url && (
                       <div className="mt-3 relative h-40 w-full rounded-lg overflow-hidden border border-sangeet-neutral-800">
-                        <img src={heroForm.image_url} alt="Hero Preview" className="object-cover w-full h-full" />
+                        {heroForm.image_url.match(/\.(mp4|webm)$/i) ? (
+                          <video src={heroForm.image_url} autoPlay loop muted playsInline className="object-cover w-full h-full" />
+                        ) : (
+                          <img src={heroForm.image_url} alt="Hero Preview" className="object-cover w-full h-full" />
+                        )}
                       </div>
                     )}
                   </div>
