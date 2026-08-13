@@ -302,12 +302,12 @@ class WebsiteService {
   // --- Public Website Dynamic Config Aggregator ---
   async getPublicWebsiteConfig(): Promise<Record<string, any>> {
     const [settings, content, social, seo, footer, banners] = await Promise.all([
-      this.getRestaurantSettings(),
-      this.getWebsiteContent(),
-      this.getSocialLinks(),
-      this.getSeoSettings(),
-      this.getFooterSettings(),
-      this.getActiveBanners()
+      this.getRestaurantSettings().catch(() => ({})),
+      this.getWebsiteContent().catch(() => ({})),
+      this.getSocialLinks().catch(() => ({})),
+      this.getSeoSettings().catch(() => ({})),
+      this.getFooterSettings().catch(() => ({})),
+      this.getActiveBanners().catch(() => ([]))
     ]);
 
     // Parse Hero Banner
