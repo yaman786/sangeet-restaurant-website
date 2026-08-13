@@ -35,12 +35,15 @@ class EventService {
   }
 
   async createEvent(data: CreateEventDTO): Promise<any> {
-    const { title, description, date, image_url, is_featured } = data;
+    const { title, description, date, time, category, price, image_url, is_featured } = data;
     return prisma.events.create({
       data: {
         title,
         description,
         date: new Date(date),
+        time: time || null,
+        category: category || null,
+        price: price || null,
         image_url: image_url || null,
         is_featured: is_featured || false
       }
@@ -48,16 +51,19 @@ class EventService {
   }
 
   async updateEvent(id: string, data: UpdateEventDTO): Promise<any> {
-    const { title, description, date, image_url, is_featured } = data;
+    const { title, description, date, time, category, price, image_url, is_featured } = data;
     try {
       return await prisma.events.update({
         where: { id: parseInt(id, 10) },
         data: {
-          title,
-          description: description || null,
-          date: date ? new Date(date) : undefined,
-          image_url: image_url || null,
-          is_featured: is_featured || false
+          ...(title !== undefined && { title }),
+          ...(description !== undefined && { description }),
+          ...(date !== undefined && { date: new Date(date) }),
+          ...(time !== undefined && { time }),
+          ...(category !== undefined && { category }),
+          ...(price !== undefined && { price }),
+          ...(image_url !== undefined && { image_url }),
+          ...(is_featured !== undefined && { is_featured })
         }
       });
     } catch (e: any) {

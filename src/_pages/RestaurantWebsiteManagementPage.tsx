@@ -28,7 +28,8 @@ import {
   Mail,
   MapPin,
   Share2,
-  Upload
+  Upload,
+  PartyPopper
 } from 'lucide-react';
 import {
   getRestaurantSettings,
@@ -36,6 +37,7 @@ import {
   getWebsiteContent,
   updateWebsiteContent,
   getWebsiteMedia,
+  uploadWebsiteMedia,
   deleteWebsiteMedia,
   updateWebsiteMedia,
   getWebsiteStats,
@@ -43,7 +45,11 @@ import {
   createTimeSlot,
   updateTimeSlot,
   deleteTimeSlot,
-  getPublicWebsiteConfig
+  getPublicWebsiteConfig,
+  fetchEvents,
+  createEvent,
+  updateEvent,
+  deleteEvent
 } from '../services/api';
 import { uploadHeroMediaAction } from '@/app/actions/websiteActions';
 
@@ -64,6 +70,11 @@ const RestaurantWebsiteManagementPage = () => {
   const [saving, setSaving] = useState(false);
   const [showLivePreview, setShowLivePreview] = useState(false);
   const [editingMedia, setEditingMedia] = useState<any>(null);
+  
+  // Events State
+  const [eventsList, setEventsList] = useState<any[]>([]);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
 
   // CMS State Sections
   const [heroForm, setHeroForm] = useState({
@@ -108,10 +119,11 @@ const RestaurantWebsiteManagementPage = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [configData, mediaData, timeSlotsData] = await Promise.all([
+      const [configData, mediaData, timeSlotsData, eventsData] = await Promise.all([
         getPublicWebsiteConfig().catch(() => null),
         getWebsiteMedia().catch(() => []),
-        getAllTimeSlots().catch(() => [])
+        getAllTimeSlots().catch(() => []),
+        fetchEvents().catch(() => [])
       ]);
 
       if (configData) {
@@ -129,6 +141,7 @@ const RestaurantWebsiteManagementPage = () => {
 
       setMediaList((mediaData as any)?.media || mediaData || []);
       setTimeSlots((timeSlotsData as any) || []);
+      setEventsList((eventsData as any) || []);
     } catch (error: any) {
       console.error('Error loading website management data:', error);
       if (error.response?.status === 401) {
@@ -205,7 +218,7 @@ const RestaurantWebsiteManagementPage = () => {
       const res = await uploadHeroMediaAction(formData);
       
       if (res.success) {
-        setHeroForm(prev => ({ ...prev, image_url: res.url }));
+        setHeroForm(prev => ({ ...prev, image_url: res.url || '' }));
         toast.dismiss(toastId);
         toast.success('Hero media uploaded successfully!');
       } else {
@@ -216,6 +229,35 @@ const RestaurantWebsiteManagementPage = () => {
       console.error('Error uploading hero media:', error);
       toast.dismiss();
       toast.error('Failed to upload hero media');
+    }
+  };
+
+  const handleEventImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    if (editingEvent?.image_url) {
+      formData.append('oldUrl', editingEvent.image_url);
+    }
+
+    try {
+      const toastId = toast.loading('Uploading event image...');
+      const res = await uploadHeroMediaAction(formData);
+      
+      if (res.success) {
+        setEditingEvent((prev: any) => ({ ...prev, image_url: res.url || '' }));
+        toast.dismiss(toastId);
+        toast.success('Event image uploaded successfully!');
+      } else {
+        toast.dismiss(toastId);
+        toast.error(res.error || 'Failed to upload image');
+      }
+    } catch (error) {
+      console.error('Error uploading event image:', error);
+      toast.dismiss();
+      toast.error('Failed to upload event image');
     }
   };
 
@@ -306,6 +348,57 @@ const RestaurantWebsiteManagementPage = () => {
     }
   };
 
+  // Event Handlers
+  const handleSaveEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      if (editingEvent.id) {
+        await updateEvent(editingEvent.id, editingEvent);
+        toast.success('Event updated!');
+      } else {
+        await createEvent(editingEvent);
+        toast.success('Event created!');
+      }
+      const newEvents = await fetchEvents();
+      setEventsList((newEvents as any) || []);
+      setIsEventModalOpen(false);
+      setEditingEvent(null);
+    } catch (error) {
+      toast.error('Failed to save event');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteEvent = async (id: number) => {
+    if (!window.confirm('Are you sure you want to delete this event?')) return;
+    try {
+      await deleteEvent(id);
+      setEventsList(eventsList.filter(ev => ev.id !== id));
+      toast.success('Event deleted');
+    } catch (e) {
+      toast.error('Failed to delete event');
+    }
+  };
+
+  const handleEditEvent = (event: any = null) => {
+    if (event) {
+      setEditingEvent(event);
+    } else {
+      setEditingEvent({
+        title: '',
+        date: new Date().toISOString().split('T')[0],
+        time: '',
+        category: '',
+        price: '',
+        description: '',
+        image_url: ''
+      });
+    }
+    setIsEventModalOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-sangeet-neutral-950 flex items-center justify-center">
@@ -323,7 +416,8 @@ const RestaurantWebsiteManagementPage = () => {
     { id: 'contact', name: 'Contact & Social', icon: Globe },
     { id: 'seo', name: 'SEO & Metadata', icon: Search },
     { id: 'media', name: 'Media Gallery', icon: ImageIcon },
-    { id: 'timeslots', name: 'Reservation Slots', icon: Calendar },
+    { id: 'reservations', name: 'Reservations', icon: Calendar },
+    { id: 'events', name: 'Special Events', icon: PartyPopper }
   ];
 
   return (
@@ -787,9 +881,211 @@ const RestaurantWebsiteManagementPage = () => {
               </motion.div>
             )}
 
+            {activeTab === 'events' && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                <div className="flex justify-between items-center bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800">
+                  <div>
+                    <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
+                      <PartyPopper className="w-5 h-5" /> Upcoming Events
+                    </h3>
+                    <p className="text-sm text-sangeet-neutral-400 mt-1">Manage special events displayed on the homepage.</p>
+                  </div>
+                  <button
+                    onClick={() => handleEditEvent()}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold transition-colors"
+                  >
+                    <Plus className="w-4 h-4" /> Add Event
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {eventsList.map((event) => (
+                    <div key={event.id} className="bg-sangeet-neutral-950 rounded-xl overflow-hidden border border-sangeet-neutral-800 group relative flex flex-col">
+                      <div className="relative h-48 w-full bg-sangeet-neutral-900">
+                        {event.image_url ? (
+                          <Image src={event.image_url} alt={event.title} fill className="object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-sangeet-neutral-700">
+                            <ImageIcon className="w-8 h-8" />
+                          </div>
+                        )}
+                        <div className="absolute top-2 right-2 flex gap-2">
+                          <button
+                            onClick={() => handleEditEvent(event)}
+                            className="p-2 bg-black/60 hover:bg-amber-500 hover:text-black text-white rounded-full backdrop-blur-md transition-all shadow-xl"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteEvent(event.id)}
+                            className="p-2 bg-black/60 hover:bg-red-500 hover:text-white text-white rounded-full backdrop-blur-md transition-all shadow-xl"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="p-4 flex-1 flex flex-col">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-bold text-white text-lg leading-tight">{event.title}</h4>
+                          {event.price && <span className="text-amber-400 font-medium text-sm whitespace-nowrap ml-2">{event.price}</span>}
+                        </div>
+                        <div className="space-y-1 mt-auto">
+                          <div className="flex items-center gap-2 text-sm text-sangeet-neutral-400">
+                            <Calendar className="w-3 h-3" />
+                            <span>{new Date(event.date).toLocaleDateString()} {event.time && `• ${event.time}`}</span>
+                          </div>
+                          {event.category && (
+                            <span className="inline-block px-2 py-0.5 bg-sangeet-neutral-800 text-sangeet-neutral-300 rounded text-xs">
+                              {event.category}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {eventsList.length === 0 && (
+                    <div className="col-span-full py-12 text-center text-sangeet-neutral-500 border border-dashed border-sangeet-neutral-800 rounded-xl">
+                      No events found. Click "Add Event" to create one.
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
           </div>
         </div>
       </main>
+
+      {/* EDIT EVENT MODAL */}
+      <AnimatePresence>
+        {isEventModalOpen && editingEvent && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              className="bg-sangeet-neutral-900 border border-sangeet-neutral-800 rounded-xl p-6 max-w-2xl w-full shadow-2xl relative my-8"
+            >
+              <button
+                onClick={() => setIsEventModalOpen(false)}
+                className="absolute top-4 right-4 text-sangeet-neutral-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <h3 className="text-xl font-bold text-amber-400 mb-6">{editingEvent.id ? 'Edit Event' : 'Add New Event'}</h3>
+              
+              <form onSubmit={handleSaveEvent} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Event Title *</label>
+                    <input
+                      type="text"
+                      required
+                      value={editingEvent.title}
+                      onChange={(e) => setEditingEvent({ ...editingEvent, title: e.target.value })}
+                      className="w-full bg-sangeet-neutral-950 border border-sangeet-neutral-800 rounded-lg px-4 py-2.5 text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Date *</label>
+                    <input
+                      type="date"
+                      required
+                      value={editingEvent.date ? new Date(editingEvent.date).toISOString().split('T')[0] : ''}
+                      onChange={(e) => setEditingEvent({ ...editingEvent, date: e.target.value })}
+                      className="w-full bg-sangeet-neutral-950 border border-sangeet-neutral-800 rounded-lg px-4 py-2.5 text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Time (e.g., 6:00 PM – 11:00 PM)</label>
+                    <input
+                      type="text"
+                      value={editingEvent.time || ''}
+                      onChange={(e) => setEditingEvent({ ...editingEvent, time: e.target.value })}
+                      className="w-full bg-sangeet-neutral-950 border border-sangeet-neutral-800 rounded-lg px-4 py-2.5 text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Category (e.g., Cultural Festival)</label>
+                    <input
+                      type="text"
+                      value={editingEvent.category || ''}
+                      onChange={(e) => setEditingEvent({ ...editingEvent, category: e.target.value })}
+                      className="w-full bg-sangeet-neutral-950 border border-sangeet-neutral-800 rounded-lg px-4 py-2.5 text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Price (e.g., From $45)</label>
+                    <input
+                      type="text"
+                      value={editingEvent.price || ''}
+                      onChange={(e) => setEditingEvent({ ...editingEvent, price: e.target.value })}
+                      className="w-full bg-sangeet-neutral-950 border border-sangeet-neutral-800 rounded-lg px-4 py-2.5 text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Description</label>
+                    <textarea
+                      value={editingEvent.description || ''}
+                      onChange={(e) => setEditingEvent({ ...editingEvent, description: e.target.value })}
+                      className="w-full bg-sangeet-neutral-950 border border-sangeet-neutral-800 rounded-lg px-4 py-2.5 text-white focus:border-amber-400 focus:outline-none h-24"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Event Image</label>
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        placeholder="Image URL or upload a file..."
+                        value={editingEvent.image_url || ''}
+                        onChange={(e) => setEditingEvent({ ...editingEvent, image_url: e.target.value })}
+                        className="flex-1 bg-sangeet-neutral-950 border border-sangeet-neutral-800 rounded-lg px-4 py-2.5 text-white focus:border-amber-400 focus:outline-none"
+                      />
+                      <label className="flex items-center gap-2 px-4 py-2.5 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 text-white rounded-lg cursor-pointer transition-colors border border-sangeet-neutral-700 shrink-0">
+                        <Upload className="w-4 h-4" />
+                        <span>Upload File</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleEventImageUpload}
+                        />
+                      </label>
+                    </div>
+                    {editingEvent.image_url && (
+                      <div className="mt-4 relative h-32 w-full rounded-lg overflow-hidden border border-sangeet-neutral-800">
+                        <Image src={editingEvent.image_url} alt="Preview" fill className="object-cover" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 pt-6 border-t border-sangeet-neutral-800 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setIsEventModalOpen(false)}
+                    className="px-6 py-2.5 rounded-lg border border-sangeet-neutral-700 text-white hover:bg-sangeet-neutral-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="px-6 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold transition-colors disabled:opacity-50"
+                  >
+                    {saving ? 'Saving...' : 'Save Event'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* EDIT MEDIA MODAL */}
       <AnimatePresence>

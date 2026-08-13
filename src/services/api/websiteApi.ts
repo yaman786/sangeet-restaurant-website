@@ -61,26 +61,44 @@ export const getWebsiteStats = async (): Promise<Record<string, number>> => {
 
 export const fetchEvents = async (): Promise<EventRow[]> => {
   return apiCallWrapper(async () => {
-    return await api.get('/events');
+    return await api.get('/website/events');
   }, 'fetchEvents');
 };
 
 export const fetchFeaturedEvents = async (): Promise<EventRow[]> => {
   return apiCallWrapper(async () => {
-    return await api.get('/events/featured');
+    return await api.get('/website/events/featured');
   }, 'fetchFeaturedEvents');
 };
 
 export const fetchUpcomingEvents = async (): Promise<EventRow[]> => {
   return apiCallWrapper(async () => {
-    return await api.get('/events/upcoming');
+    return await api.get('/website/events/upcoming');
   }, 'fetchUpcomingEvents');
 };
 
 export const fetchEventById = async (id: string | number): Promise<EventRow> => {
   return apiCallWrapper(async () => {
-    return await api.get(`/events/${encodeURIComponent(id)}`);
+    return await api.get(`/website/events/${encodeURIComponent(id)}`);
   }, 'fetchEventById');
+};
+
+export const createEvent = async (data: any) => {
+  return apiCallWrapper(async () => {
+    return await api.post('/website/events', data);
+  }, 'createEvent', false);
+};
+
+export const updateEvent = async (id: string | number, data: any) => {
+  return apiCallWrapper(async () => {
+    return await api.put(`/website/events/${encodeURIComponent(id)}`, data);
+  }, 'updateEvent', false);
+};
+
+export const deleteEvent = async (id: string | number) => {
+  return apiCallWrapper(async () => {
+    return await api.delete(`/website/events/${encodeURIComponent(id)}`);
+  }, 'deleteEvent', false);
 };
 
 export const getPublicWebsiteConfig = async (): Promise<Record<string, any>> => {

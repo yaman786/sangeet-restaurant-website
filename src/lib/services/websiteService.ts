@@ -325,8 +325,10 @@ class WebsiteService {
       this.getActiveBanners().catch(() => ([]))
     ]);
 
+    const s = settings as any;
+
     // Parse Hero Banner
-    const heroBanner = settings.hero_banner?.value || banners.find((b: any) => b.is_active || b.bannerKey === 'hero') || {
+    const heroBanner = s.hero_banner?.value || banners.find((b: any) => b.is_active || b.bannerKey === 'hero') || {
       title: "Experience South Asian Elegance",
       subtitle: "Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong.",
       image_url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&h=900&fit=crop",
@@ -337,7 +339,7 @@ class WebsiteService {
     };
 
     // Parse Business Hours & Override
-    const businessHours = settings.business_hours?.value || {
+    const businessHours = s.business_hours?.value || {
       status_override: "normal", // 'normal' | 'force_open' | 'force_closed'
       schedule: {
         monday: { open: "17:30", close: "23:00", closed: false },
@@ -352,10 +354,10 @@ class WebsiteService {
 
     // Contact info
     const contactInfo = {
-      phone: settings.phone?.value || "+852 2345 6789",
-      email: settings.email?.value || "info@sangeet.hk",
-      address: settings.address?.value || "Wanchai, Hong Kong",
-      maps_iframe: settings.maps_iframe?.value || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3691.86!2d114.17!3d22.28!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjLCsDE2JzQ4LjAiTiAxMTTCsDEwJzEyLjAiRQ!5e0!3m2!1sen!2shk!4v1600000000000"
+      phone: s.phone?.value || "+852 2345 6789",
+      email: s.email?.value || "info@sangeet.hk",
+      address: s.address?.value || "Wanchai, Hong Kong",
+      maps_iframe: s.maps_iframe?.value || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3691.86!2d114.17!3d22.28!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjLCsDE2JzQ4LjAiTiAxMTTCsDEwJzEyLjAiRQ!5e0!3m2!1sen!2shk!4v1600000000000"
     };
 
     const rawPayload = {

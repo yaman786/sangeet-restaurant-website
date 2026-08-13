@@ -64,7 +64,8 @@ export {
   getWebsiteContent, updateWebsiteContent,
   getWebsiteMedia, uploadWebsiteMedia, updateWebsiteMedia, deleteWebsiteMedia,
   getWebsiteStats, getPublicWebsiteConfig,
-  fetchEvents, fetchFeaturedEvents, fetchUpcomingEvents, fetchEventById
+  fetchEvents, fetchFeaturedEvents, fetchUpcomingEvents, fetchEventById,
+  createEvent, updateEvent, deleteEvent
 } from './websiteApi';
 
 // Analytics & Health

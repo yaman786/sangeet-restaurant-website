@@ -120,38 +120,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
 
   // ── Data ──────────────────────────────────────────────────
-  const UPCOMING_EVENTS = [
-    {
-      id: 1,
-      title: "Diwali Festival Celebration",
-      description: "A spectacular evening of traditional cuisine, live music, and cultural performances.",
-      date: "2024-11-12",
-      time: "6:00 PM – 11:00 PM",
-      image_url: "https://images.unsplash.com/photo-1606220838315-056192d5e927?w=800&h=600&fit=crop",
-      category: "Cultural Festival",
-      price: "From $45",
-    },
-    {
-      id: 2,
-      title: "Bollywood Night",
-      description: "Live Bollywood music, dance performances, and a curated menu inspired by Indian cinema.",
-      date: "2024-11-25",
-      time: "8:00 PM – 1:00 AM",
-      image_url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop",
-      category: "Entertainment",
-      price: "From $35",
-    },
-    {
-      id: 3,
-      title: "Corporate Lunch Special",
-      description: "Tailored group menus and private dining for business meetings and corporate events.",
-      date: "2024-12-02",
-      time: "12:00 PM – 3:00 PM",
-      image_url: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop",
-      category: "Business",
-      price: "From $25",
-    },
-  ];
+  const UPCOMING_EVENTS = events || [];
 
   const JOURNEY_PILLARS = [
     {
@@ -174,11 +143,18 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
     },
   ];
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const activeEvents = (events || []).filter((event: any) => {
+    const eventDate = new Date(event.date || event.event_date);
+    return !isNaN(eventDate.getTime()) && eventDate >= today;
+  });
+
   // Events carousel
   const paginateEvents = (direction: any) => {
     setCurrentEventsSlide(prev => {
-      if (direction === 1) return prev === UPCOMING_EVENTS.length - 1 ? 0 : prev + 1;
-      return prev === 0 ? UPCOMING_EVENTS.length - 1 : prev - 1;
+      if (direction === 1) return prev === activeEvents.length - 1 ? 0 : prev + 1;
+      return prev === 0 ? activeEvents.length - 1 : prev - 1;
     });
   };
 
@@ -453,13 +429,6 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
           </motion.div>
 
           {(() => {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const activeEvents = UPCOMING_EVENTS.filter((event: any) => {
-              const eventDate = new Date(event.date || event.event_date);
-              return !isNaN(eventDate.getTime()) && eventDate >= today;
-            });
-
             if (activeEvents.length === 0) {
               return (
                 <div className="bg-sangeet-neutral-900 border border-sangeet-neutral-800 rounded-3xl p-8 md:p-12 text-center max-w-4xl mx-auto shadow-2xl relative overflow-hidden">
@@ -494,11 +463,11 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
                   <div className="relative">
                     <div className="overflow-hidden rounded-3xl">
                       <div
-                        className="flex transition-transform duration-700 ease-out-expo"
+                        className="flex transition-transform duration-500 ease-out"
                         style={{ transform: `translateX(-${currentEventsSlide * 100}%)` }}
                       >
-                        {activeEvents.map((event) => (
-                          <div key={event.id} className="w-full flex-shrink-0">
+                        {activeEvents.map((event: any, index: number) => (
+                          <div key={event.id || index} className="w-full flex-shrink-0">
                             <div className="relative h-[480px] group">
                               <Image
                                 src={event.image_url}
@@ -553,7 +522,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
 
                     {/* Dots */}
                     <div className="flex justify-center gap-2 mt-6">
-                      {activeEvents.map((_, index) => (
+                      {activeEvents.map((_: any, index: number) => (
                         <button
                           key={index}
                           onClick={() => setCurrentEventsSlide(index)}
@@ -572,7 +541,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
                 {/* Mobile Events — Horizontal scroll */}
                 <div className="md:hidden">
                   <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide -mx-5 px-5">
-                    {activeEvents.map((event, index) => (
+                    {activeEvents.map((event: any, index: number) => (
                       <motion.div
                         key={event.id}
                         initial={{ opacity: 0, x: 40 }}

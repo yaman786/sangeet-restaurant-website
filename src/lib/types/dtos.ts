@@ -83,8 +83,9 @@ export interface CreateEventDTO {
   title: string;
   description?: string;
   date: string | Date;
-  start_time: string;
-  end_time: string;
+  time?: string;
+  category?: string;
+  price?: string;
   image_url?: string;
   is_active?: boolean;
   is_featured?: boolean;

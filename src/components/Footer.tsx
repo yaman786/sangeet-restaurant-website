@@ -77,7 +77,6 @@ const Footer = () => {
               
               {/* Social Media Links */}
               <div className="flex space-x-3 md:space-x-4">
-              <div className="flex space-x-3 md:space-x-4">
                 {socialLinks.facebook && (
                   <motion.a
                     href={socialLinks.facebook}

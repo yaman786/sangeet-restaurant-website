@@ -154,6 +154,9 @@ model events {
   title       String    @db.VarChar(255)
   description String?   @db.Text
   date        DateTime  @db.Date
+  time        String?   @db.VarChar(100)
+  category    String?   @db.VarChar(100)
+  price       String?   @db.VarChar(100)
   image_url   String?   @db.Text
   is_featured Boolean?  @default(false)
   created_at  DateTime? @default(now()) @db.Timestamp(6)
