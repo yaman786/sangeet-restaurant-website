@@ -13,7 +13,7 @@ class WebsiteService {
     const settings: Record<string, any> = {};
     rows.forEach(row => {
       let value: any = row.setting_value;
-      if (row.setting_type === 'json' && value) {
+      if (value && typeof value === 'string' && (row.setting_type === 'json' || value.trim().startsWith('{') || value.trim().startsWith('['))) {
         try { value = JSON.parse(value); } catch (e: any) { logger.warn('Error parsing JSON setting:', row.setting_key, e.message); }
       } else if (row.setting_type === 'boolean') {
         value = value === 'true';
@@ -33,7 +33,7 @@ class WebsiteService {
       const valStr = String(value);
       upserts.push(prisma.restaurant_settings.upsert({
         where: { setting_key: key },
-        update: { setting_value: valStr, updated_at: new Date(), updated_by: userId },
+        update: { setting_value: valStr, setting_type: data.type || 'text', updated_at: new Date(), updated_by: userId },
         create: { setting_key: key, setting_value: valStr, setting_type: data.type || 'text', updated_by: userId }
       }));
     }
