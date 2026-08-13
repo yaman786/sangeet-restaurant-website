@@ -26,7 +26,8 @@ import {
   Phone,
   Mail,
   MapPin,
-  Share2
+  Share2,
+  Upload
 } from 'lucide-react';
 import {
   getRestaurantSettings,
@@ -187,8 +188,29 @@ const RestaurantWebsiteManagementPage = () => {
       setSaving(false);
     }
   };
-
   // Media Handlers
+  const handleHeroImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('media_key', 'hero');
+
+    try {
+      const toastId = toast.loading('Uploading image...');
+      const response = await uploadWebsiteMedia(formData);
+      const newMedia = (response as any).media || response;
+      setHeroForm(prev => ({ ...prev, image_url: newMedia.file_path }));
+      toast.dismiss(toastId);
+      toast.success('Hero image uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading hero image:', error);
+      toast.dismiss();
+      toast.error('Failed to upload hero image');
+    }
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -394,13 +416,20 @@ const RestaurantWebsiteManagementPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Background Image URL</label>
-                    <input
-                      type="text"
-                      value={heroForm.image_url}
-                      onChange={(e) => setHeroForm({ ...heroForm, image_url: e.target.value })}
-                      className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
-                    />
+                    <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Background Image</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={heroForm.image_url}
+                        onChange={(e) => setHeroForm({ ...heroForm, image_url: e.target.value })}
+                        className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                        placeholder="Paste image URL here..."
+                      />
+                      <label className="shrink-0 flex items-center justify-center bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 border border-sangeet-neutral-700 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors text-sm font-semibold">
+                        <Upload className="w-4 h-4 mr-2" /> Upload
+                        <input type="file" className="hidden" accept="image/*" onChange={handleHeroImageUpload} />
+                      </label>
+                    </div>
                     {heroForm.image_url && (
                       <div className="mt-3 relative h-40 w-full rounded-lg overflow-hidden border border-sangeet-neutral-800">
                         <img src={heroForm.image_url} alt="Hero Preview" className="object-cover w-full h-full" />
