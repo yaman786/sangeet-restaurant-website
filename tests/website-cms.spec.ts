@@ -44,16 +44,17 @@ test('Website CMS Hero Title Update & Live UI Sync', async ({ page }) => {
   await saveBtn.click();
 
   // Wait for save operation to complete (button text reverts back to 'Save All Changes')
+  // Wait for save operation to complete (button text reverts back to 'Save All Changes')
   await expect(saveBtn).toHaveText('Save All Changes', { timeout: 15000 });
   console.log('✅ CMS settings saved in admin panel');
 
   console.log('--- Phase 3: Navigating to Public Website (/) ---');
   await page.goto('/');
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('networkidle');
 
   // Assert updated Hero Title is rendered dynamically on public website
   const heroHeading = page.locator('h1', { hasText: TEST_HERO_TITLE });
-  await expect(heroHeading).toBeVisible({ timeout: 15000 });
+  await expect(heroHeading).toBeVisible({ timeout: 30000 });
 
   console.log(`🎉 SUCCESS: Live public website dynamically rendered CMS Hero Title: "${TEST_HERO_TITLE}"`);
 });

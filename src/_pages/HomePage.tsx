@@ -50,16 +50,9 @@ const StatusPill = () => {
 const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
   const navigate = useNavigate();
   const [currentEventsSlide, setCurrentEventsSlide] = useState(0);
-  const [liveConfig, setLiveConfig] = useState(cmsConfig);
-
-  useEffect(() => {
-    getPublicWebsiteConfig()
-      .then(res => { if (res) setLiveConfig(res); })
-      .catch(err => console.error("Error fetching live CMS config:", err));
-  }, []);
 
   // Parse CMS dynamic config
-  const heroData = liveConfig?.hero || cmsConfig?.hero || {
+  const heroData = cmsConfig?.hero || {
     title: "Experience South Asian Elegance",
     subtitle: "Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong.",
     image_url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop",
@@ -69,7 +62,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
     secondary_cta_link: "/menu"
   };
 
-  const announcementData = liveConfig?.announcement || cmsConfig?.announcement || {
+  const announcementData = cmsConfig?.announcement || {
     is_active: true,
     text: "✨ Welcome to Sangeet — Book your table online for an authentic South Asian dining experience.",
     link: "/reservations",
