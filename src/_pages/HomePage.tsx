@@ -221,16 +221,16 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
             <button
-              onClick={() => navigate(heroData.primary_cta_link || '/reservations')}
+              onClick={() => navigate('/reservations')}
               className="btn-primary text-heading-sm px-10 py-4"
             >
-              {heroData.primary_cta_text || "Reserve Your Table"}
+              Reserve Your Table
             </button>
             <button
-              onClick={() => navigate(heroData.secondary_cta_link || '/menu')}
+              onClick={() => navigate('/menu')}
               className="btn-secondary px-8 py-4"
             >
-              {heroData.secondary_cta_text || "Explore the Menu"}
+              Explore the Menu
             </button>
           </motion.div>
 

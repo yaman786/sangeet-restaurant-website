@@ -447,27 +447,6 @@ const RestaurantWebsiteManagementPage = () => {
                       </div>
                     )}
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Primary CTA Button Text</label>
-                      <input
-                        type="text"
-                        value={heroForm.primary_cta_text}
-                        onChange={(e) => setHeroForm({ ...heroForm, primary_cta_text: e.target.value })}
-                        className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Primary CTA Link</label>
-                      <input
-                        type="text"
-                        value={heroForm.primary_cta_link}
-                        onChange={(e) => setHeroForm({ ...heroForm, primary_cta_link: e.target.value })}
-                        className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
-                      />
-                    </div>
-                  </div>
                 </div>
 
               </motion.div>
