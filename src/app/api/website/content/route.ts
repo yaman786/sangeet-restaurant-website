@@ -20,8 +20,8 @@ export async function PUT(req: NextRequest) {
     const roleError = requireAdmin(authResult.user!);
     if (roleError) return roleError;
 
-    const result = await websiteService.updateWebsiteContent(authResult.user!.id, await req.json());
-    return NextResponse.json(result);
+    await websiteService.updateWebsiteContent(authResult.user!.id, await req.json());
+    return NextResponse.json({ success: true, message: 'Website content updated successfully' });
   } catch (error) {
     return handleApiError(error);
   }
