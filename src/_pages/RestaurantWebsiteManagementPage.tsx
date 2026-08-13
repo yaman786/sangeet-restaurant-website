@@ -159,6 +159,7 @@ const RestaurantWebsiteManagementPage = () => {
       const settingsPayload: Record<string, any> = {
         announcement_bar: { value: announcementForm, type: 'json' },
         business_hours: { value: businessHoursForm, type: 'json' },
+        hero_banner: { value: heroForm, type: 'json' },
         phone: { value: contactForm.phone, type: 'text' },
         email: { value: contactForm.email, type: 'text' },
         address: { value: contactForm.address, type: 'text' },

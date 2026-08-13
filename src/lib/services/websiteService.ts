@@ -311,7 +311,7 @@ class WebsiteService {
     ]);
 
     // Parse Hero Banner
-    const heroBanner = banners.find((b: any) => b.is_active || b.bannerKey === 'hero') || {
+    const heroBanner = settings.hero_banner?.value || banners.find((b: any) => b.is_active || b.bannerKey === 'hero') || {
       title: "Experience South Asian Elegance",
       subtitle: "Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong.",
       image_url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&h=900&fit=crop",
