@@ -15,6 +15,7 @@ import {
   Eye,
   Save,
   Trash2,
+  Edit,
   Plus,
   X,
   CheckCircle,
@@ -36,6 +37,7 @@ import {
   updateWebsiteContent,
   getWebsiteMedia,
   deleteWebsiteMedia,
+  updateWebsiteMedia,
   getWebsiteStats,
   getAllTimeSlots,
   createTimeSlot,
@@ -61,6 +63,7 @@ const RestaurantWebsiteManagementPage = () => {
   const [activeTab, setActiveTab] = useState('hero');
   const [saving, setSaving] = useState(false);
   const [showLivePreview, setShowLivePreview] = useState(false);
+  const [editingMedia, setEditingMedia] = useState<any>(null);
 
   // CMS State Sections
   const [heroForm, setHeroForm] = useState({
@@ -241,6 +244,24 @@ const RestaurantWebsiteManagementPage = () => {
       toast.success('Media deleted');
     } catch (error) {
       toast.error('Failed to delete media');
+    }
+  };
+
+  const handleUpdateMedia = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMedia) return;
+    try {
+      const data = {
+        media_key: editingMedia.media_key,
+        alt_text: editingMedia.alt_text,
+        caption: editingMedia.caption
+      };
+      await updateWebsiteMedia(editingMedia.id, data);
+      setMediaList(prev => prev.map(m => String(m.id) === String(editingMedia.id) ? { ...m, ...data } : m));
+      toast.success('Media updated');
+      setEditingMedia(null);
+    } catch (error) {
+      toast.error('Failed to update media');
     }
   };
 
@@ -678,13 +699,22 @@ const RestaurantWebsiteManagementPage = () => {
                   {mediaList.map((item) => (
                     <div key={item.id} className="relative group bg-sangeet-neutral-900 rounded-xl overflow-hidden border border-sangeet-neutral-800">
                       <img src={item.file_path} alt={item.alt_text || 'Media'} className="w-full h-36 object-cover" />
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleDeleteMedia(item.id)}
-                          className="p-2 rounded-lg bg-red-600 text-white hover:bg-red-500"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                        <span className="text-white text-xs font-bold bg-amber-500/80 px-2 py-1 rounded">{item.media_key || 'gallery'}</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setEditingMedia(item)}
+                            className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-500"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMedia(item.id)}
+                            className="p-2 rounded-lg bg-red-600 text-white hover:bg-red-500"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -738,8 +768,89 @@ const RestaurantWebsiteManagementPage = () => {
 
           </div>
         </div>
-
       </main>
+
+      {/* EDIT MEDIA MODAL */}
+      <AnimatePresence>
+        {editingMedia && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              className="bg-sangeet-neutral-900 border border-sangeet-neutral-800 rounded-xl p-6 max-w-md w-full shadow-2xl relative"
+            >
+              <button
+                onClick={() => setEditingMedia(null)}
+                className="absolute top-4 right-4 text-sangeet-neutral-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <h3 className="text-xl font-bold text-amber-400 mb-6">Edit Media</h3>
+              
+              <form onSubmit={handleUpdateMedia} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Category</label>
+                  <select
+                    value={editingMedia.media_key || 'gallery'}
+                    onChange={(e) => setEditingMedia({ ...editingMedia, media_key: e.target.value })}
+                    className="w-full bg-sangeet-neutral-950 border border-sangeet-neutral-800 rounded-lg px-4 py-2.5 text-white focus:border-amber-400 focus:outline-none"
+                  >
+                    <option value="dining">Dining Areas</option>
+                    <option value="celebrations">Celebrations</option>
+                    <option value="cultural">Cultural Experience</option>
+                    <option value="culinary">Culinary Journey</option>
+                    <option value="gallery">General Gallery</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Title (Alt Text)</label>
+                  <input
+                    type="text"
+                    value={editingMedia.alt_text || ''}
+                    onChange={(e) => setEditingMedia({ ...editingMedia, alt_text: e.target.value })}
+                    className="w-full bg-sangeet-neutral-950 border border-sangeet-neutral-800 rounded-lg px-4 py-2.5 text-white focus:border-amber-400 focus:outline-none"
+                    placeholder="e.g. Main Dining Hall"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Description</label>
+                  <textarea
+                    value={editingMedia.caption || ''}
+                    onChange={(e) => setEditingMedia({ ...editingMedia, caption: e.target.value })}
+                    className="w-full bg-sangeet-neutral-950 border border-sangeet-neutral-800 rounded-lg px-4 py-2.5 text-white focus:border-amber-400 focus:outline-none h-24"
+                    placeholder="Brief description for the gallery..."
+                  />
+                </div>
+                
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setEditingMedia(null)}
+                    className="flex-1 px-4 py-2.5 rounded-lg border border-sangeet-neutral-700 text-white hover:bg-sangeet-neutral-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold transition-colors"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

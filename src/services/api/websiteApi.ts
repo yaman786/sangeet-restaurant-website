@@ -47,6 +47,12 @@ export const deleteWebsiteMedia = async (id: string | number) => {
   }, 'deleteWebsiteMedia', false);
 };
 
+export const updateWebsiteMedia = async (id: string | number, data: any) => {
+  return apiCallWrapper(async () => {
+    return await api.put(`/website/media/${encodeURIComponent(id)}`, data);
+  }, 'updateWebsiteMedia', false);
+};
+
 export const getWebsiteStats = async (): Promise<Record<string, number>> => {
   return apiCallWrapper(async () => {
     return await api.get('/website/stats');

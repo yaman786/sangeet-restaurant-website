@@ -115,6 +115,21 @@ class WebsiteService {
     return { success: true };
   }
 
+  async updateWebsiteMediaRecord(id: number, data: { alt_text?: string; caption?: string; media_key?: string }): Promise<any> {
+    const media = await prisma.website_media.findUnique({ where: { id } });
+    if (!media) throw new NotFoundError('Media');
+
+    return prisma.website_media.update({
+      where: { id },
+      data: {
+        alt_text: data.alt_text !== undefined ? data.alt_text : media.alt_text,
+        caption: data.caption !== undefined ? data.caption : media.caption,
+        media_key: data.media_key !== undefined ? data.media_key : media.media_key,
+        updated_at: new Date()
+      }
+    });
+  }
+
   async getWebsiteStats(): Promise<Record<string, number>> {
     const [settingsCount, contentCount, mediaCount] = await prisma.$transaction([
       prisma.restaurant_settings.count(),

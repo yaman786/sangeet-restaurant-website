@@ -62,7 +62,7 @@ export {
 export {
   getRestaurantSettings, updateRestaurantSettings,
   getWebsiteContent, updateWebsiteContent,
-  getWebsiteMedia, uploadWebsiteMedia, deleteWebsiteMedia,
+  getWebsiteMedia, uploadWebsiteMedia, updateWebsiteMedia, deleteWebsiteMedia,
   getWebsiteStats, getPublicWebsiteConfig,
   fetchEvents, fetchFeaturedEvents, fetchUpcomingEvents, fetchEventById
 } from './websiteApi';

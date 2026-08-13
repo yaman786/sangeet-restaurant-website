@@ -6,6 +6,35 @@ import { ImageIcon, Building2, PartyPopper, Theater, UtensilsCrossed } from 'luc
 
 export const AboutGallery = () => {
   const [activeFilter, setActiveFilter] = useState('all');
+  const [galleryImages, setGalleryImages] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    const fetchMedia = async () => {
+      try {
+        const res = await fetch('/api/website/media');
+        if (res.ok) {
+          const data = await res.json();
+          // Filter to only include gallery-related media (not default/hero)
+          const validCategories = ['dining', 'celebrations', 'cultural', 'culinary', 'gallery'];
+          const galleryData = data
+            .filter((item: any) => validCategories.includes(item.media_key))
+            .map((item: any) => ({
+              url: item.file_path,
+              title: item.alt_text || 'Experience Sangeet',
+              description: item.caption || '',
+              category: item.media_key
+            }));
+          
+          if (galleryData.length > 0) {
+            setGalleryImages(galleryData);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch gallery media', err);
+      }
+    };
+    fetchMedia();
+  }, []);
 
   const galleryFilters = [
     { id: 'all', label: 'All', icon: ImageIcon },
@@ -13,20 +42,6 @@ export const AboutGallery = () => {
     { id: 'celebrations', label: 'Celebrations', icon: PartyPopper },
     { id: 'cultural', label: 'Cultural Experience', icon: Theater },
     { id: 'culinary', label: 'Culinary Journey', icon: UtensilsCrossed }
-  ];
-
-  const galleryImages = [
-    { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop", title: "Main Dining Hall", description: "Our grand dining hall accommodates 150+ guests", category: "dining" },
-    { url: "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&h=600&fit=crop", title: "Private Dining Room", description: "Intimate private dining spaces", category: "dining" },
-    { url: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop", title: "Bar & Lounge", description: "Relax with premium spirits", category: "dining" },
-    { url: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&h=600&fit=crop", title: "Birthday Celebration", description: "Creating memorable birthdays", category: "celebrations" },
-    { url: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&h=600&fit=crop", title: "Wedding Reception", description: "Elegant wedding receptions", category: "celebrations" },
-    { url: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=600&fit=crop", title: "Family Gathering", description: "Warm family gatherings", category: "celebrations" },
-    { url: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop", title: "Live Music", description: "Traditional South Asian music", category: "cultural" },
-    { url: "https://images.unsplash.com/photo-1547153760-18fc86324498?w=800&h=600&fit=crop", title: "Traditional Dance", description: "Cultural dance performances", category: "cultural" },
-    { url: "https://images.unsplash.com/photo-1606220838315-056192d5e927?w=800&h=600&fit=crop", title: "Cultural Decor", description: "Authentic South Asian decor", category: "cultural" },
-    { url: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&h=600&fit=crop", title: "Traditional Cooking", description: "Behind-the-scenes look", category: "culinary" },
-    { url: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800&h=600&fit=crop", title: "Signature Dishes", description: "Our most popular dishes", category: "culinary" }
   ];
 
   const filteredImages = activeFilter === 'all'
@@ -133,6 +148,14 @@ export const AboutGallery = () => {
             </motion.div>
           ))}
         </motion.div>
+        {/* If no images uploaded yet */}
+        {galleryImages.length === 0 && (
+          <div className="text-center py-20 text-sangeet-neutral-400">
+            <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
+            <h3 className="text-xl font-bold">More Memories Coming Soon!</h3>
+            <p className="mt-2 text-sm">We are currently curating our photo gallery. Check back soon.</p>
+          </div>
+        )}
       </div>
     </section>
   );
