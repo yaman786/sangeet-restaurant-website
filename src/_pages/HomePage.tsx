@@ -21,7 +21,7 @@ import { sanitizePhoneNumber } from '../utils/sanitizePhone';
  * - Playfair Display for headings, Outfit for body
  */
 
-const StatusPill = () => {
+const StatusPill = ({ businessHours }: { businessHours?: any }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -29,7 +29,59 @@ const StatusPill = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const isOpen = currentTime.getHours() >= 18 && currentTime.getHours() < 23;
+  // Format a time string (e.g. "17:30") into a 12-hour format ("5:30 PM")
+  const formatTime = (timeStr: string) => {
+    if (!timeStr) return '';
+    const [h, m] = timeStr.split(':');
+    const d = new Date();
+    d.setHours(parseInt(h, 10), parseInt(m, 10));
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  };
+
+  const getStatus = () => {
+    const config = businessHours || { status_override: 'normal', schedule: {} };
+    
+    if (config.status_override === 'force_open') {
+      return { isOpen: true, text: 'Open Now · Special Hours' };
+    }
+    if (config.status_override === 'force_closed') {
+      return { isOpen: false, text: 'Closed · Special Event / Holiday' };
+    }
+
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const currentDayKey = days[currentTime.getDay()];
+    const todaySchedule = config.schedule?.[currentDayKey];
+
+    if (!todaySchedule || todaySchedule.closed) {
+      return { isOpen: false, text: 'Closed Today' };
+    }
+
+    const currentH = currentTime.getHours();
+    const currentM = currentTime.getMinutes();
+    const currentAbsolute = currentH * 60 + currentM;
+
+    const [openH, openM] = (todaySchedule.open || '17:30').split(':').map(Number);
+    const [closeH, closeM] = (todaySchedule.close || '23:00').split(':').map(Number);
+    
+    const openAbsolute = openH * 60 + openM;
+    const closeAbsolute = closeH * 60 + closeM;
+
+    if (currentAbsolute >= openAbsolute && currentAbsolute < closeAbsolute) {
+      return { isOpen: true, text: `Open Now · Closes at ${formatTime(todaySchedule.close)}` };
+    } else if (currentAbsolute < openAbsolute) {
+      return { isOpen: false, text: `Closed · Opens at ${formatTime(todaySchedule.open)}` };
+    } else {
+      // It's after closing time today. Find tomorrow's opening time.
+      const tomorrowDayKey = days[(currentTime.getDay() + 1) % 7];
+      const tomorrowSchedule = config.schedule?.[tomorrowDayKey];
+      if (!tomorrowSchedule || tomorrowSchedule.closed) {
+        return { isOpen: false, text: 'Closed Now' };
+      }
+      return { isOpen: false, text: `Closed · Opens tomorrow at ${formatTime(tomorrowSchedule.open)}` };
+    }
+  };
+
+  const status = getStatus();
 
   return (
     <motion.div
@@ -38,9 +90,9 @@ const StatusPill = () => {
       transition={{ duration: 1, delay: 1.2 }}
       className="mt-10 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-sangeet-neutral-900/60 backdrop-blur-md border border-sangeet-neutral-700/30"
     >
-      <div className={`w-2 h-2 rounded-full ${isOpen ? 'bg-green-400' : 'bg-red-400'}`} />
+      <div className={`w-2 h-2 rounded-full ${status.isOpen ? 'bg-green-400' : 'bg-red-400'}`} />
       <span className="text-caption text-sangeet-neutral-300">
-        {isOpen ? 'Open Now · Closes at 11 PM' : 'Closed · Opens at 6 PM'}
+        {status.text}
       </span>
       <span className="text-caption text-sangeet-neutral-500">· Wanchai, HK</span>
     </motion.div>
@@ -235,7 +287,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
           </motion.div>
 
           {/* Minimal Status Pill */}
-          <StatusPill />
+          <StatusPill businessHours={cmsConfig?.business_hours} />
         </motion.div>
 
         {/* Scroll Indicator */}
