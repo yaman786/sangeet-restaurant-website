@@ -750,18 +750,34 @@ const RestaurantWebsiteManagementPage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {timeSlots.map((slot) => (
-                    <div key={slot.id} className="flex items-center justify-between p-3.5 bg-sangeet-neutral-900 rounded-lg border border-sangeet-neutral-800">
-                      <span className="font-semibold text-sm text-amber-300">{slot.time_slot}</span>
-                      <div className="flex items-center gap-2">
+                    <div key={slot.id} className={`flex items-center justify-between p-4 rounded-xl border transition-all ${slot.is_active ? 'bg-sangeet-neutral-900 border-sangeet-neutral-800' : 'bg-sangeet-neutral-950/80 border-red-900/30 opacity-75'}`}>
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-base font-bold text-amber-300">{slot.time_slot}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {/* Interactive ON / OFF Toggle Switch */}
                         <button
+                          type="button"
                           onClick={() => handleToggleTimeSlot(slot.id, slot.is_active)}
-                          className={`px-2 py-1 rounded text-xs font-bold ${slot.is_active ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'}`}
+                          className={`relative inline-flex h-6 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${slot.is_active ? 'bg-emerald-600' : 'bg-sangeet-neutral-700'}`}
+                          title={slot.is_active ? 'Click to Turn OFF' : 'Click to Turn ON'}
                         >
-                          {slot.is_active ? 'Active' : 'Off'}
+                          <span className="sr-only">Toggle Slot</span>
+                          <span
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out text-[9px] font-black flex items-center justify-center ${slot.is_active ? 'translate-x-8 text-emerald-700' : 'translate-x-0 text-sangeet-neutral-600'}`}
+                          >
+                            {slot.is_active ? 'ON' : 'OFF'}
+                          </span>
                         </button>
-                        <button onClick={() => handleDeleteTimeSlot(slot.id)} className="text-sangeet-neutral-500 hover:text-red-400">
+
+                        {/* Delete Button */}
+                        <button 
+                          onClick={() => handleDeleteTimeSlot(slot.id)} 
+                          className="p-1.5 rounded-lg text-sangeet-neutral-500 hover:text-red-400 hover:bg-red-950/30 transition-colors"
+                          title="Delete slot"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
