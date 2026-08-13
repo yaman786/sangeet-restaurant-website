@@ -438,7 +438,7 @@ const RestaurantWebsiteManagementPage = () => {
                       </label>
                     </div>
                     {heroForm.image_url && (
-                      <div className="mt-3 relative h-40 w-full rounded-lg overflow-hidden border border-sangeet-neutral-800">
+                      <div className="mt-3 relative aspect-video w-full max-h-[300px] rounded-lg overflow-hidden border border-sangeet-neutral-800">
                         {heroForm.image_url.match(/\.(mp4|webm)$/i) ? (
                           <video src={heroForm.image_url} autoPlay loop muted playsInline className="object-cover w-full h-full" />
                         ) : (
