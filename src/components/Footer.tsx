@@ -19,6 +19,12 @@ const Footer = () => {
     facebook: "https://facebook.com",
     instagram: "https://instagram.com"
   });
+  const [contactInfo, setContactInfo] = React.useState<any>({
+    phone: "+852 2345 6789",
+    email: "info@sangeet.hk",
+    address: "Wanchai, Hong Kong"
+  });
+  const [businessHours, setBusinessHours] = React.useState<any>(null);
 
   React.useEffect(() => {
     const fetchConfig = async () => {
@@ -27,6 +33,8 @@ const Footer = () => {
         if (res.ok) {
           const data = await res.json();
           if (data?.social) setSocialLinks(data.social);
+          if (data?.contact) setContactInfo(data.contact);
+          if (data?.business_hours) setBusinessHours(data.business_hours);
         }
       } catch (err) {
         console.error('Failed to fetch footer config', err);
@@ -158,8 +166,7 @@ const Footer = () => {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sangeet-neutral-300 text-sm md:text-base">Wanchai, Hong Kong</p>
-                    <p className="text-sangeet-neutral-400 text-xs md:text-sm">Central District</p>
+                    <p className="text-sangeet-neutral-300 text-sm md:text-base">{contactInfo.address}</p>
                   </div>
                 </div>
                 
@@ -171,7 +178,7 @@ const Footer = () => {
                   </div>
                   <div>
                     {(() => {
-                      const phone = sanitizePhoneNumber('+852 2345 6789');
+                      const phone = sanitizePhoneNumber(contactInfo.phone || '+852 2345 6789');
                       return (
                         <a 
                           href={phone.telHref} 
@@ -183,16 +190,20 @@ const Footer = () => {
                     })()}
                   </div>
                 </div>
-                
+
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 mt-1">
                     <svg className="h-4 w-4 text-sangeet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sangeet-neutral-300 text-sm md:text-base">6:00 PM - 11:00 PM</p>
-                    <p className="text-sangeet-neutral-400 text-xs md:text-sm">Daily</p>
+                    <a 
+                      href={`mailto:${contactInfo.email}`} 
+                      className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 text-sm md:text-base touch-manipulation"
+                    >
+                      {contactInfo.email}
+                    </a>
                   </div>
                 </div>
               </div>

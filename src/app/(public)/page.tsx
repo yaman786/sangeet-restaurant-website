@@ -7,24 +7,43 @@ import eventService from '@/lib/services/eventService';
 import websiteService from '@/lib/services/websiteService';
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Sangeet Restaurant - Authentic South Asian Cuisine in Hong Kong',
-  description: 'Experience South Asian Elegance. Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong. Book a table or explore our menu.',
-  openGraph: {
-    title: 'Sangeet Restaurant - Authentic South Asian Cuisine',
-    description: 'Experience South Asian Elegance in the heart of Hong Kong.',
-    siteName: 'Sangeet Restaurant',
-    images: [
-      {
-        url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=630&fit=crop',
-        width: 1200,
-        height: 630,
-      }
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  let seoConfig = {
+    title: 'Sangeet Restaurant - Authentic South Asian Cuisine in Hong Kong',
+    description: 'Experience South Asian Elegance. Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong. Book a table or explore our menu.',
+    keywords: 'South Asian restaurant, Hong Kong dining, Indian cuisine, Wanchai food, Sangeet',
+    og_image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=630&fit=crop'
+  };
+
+  try {
+    const res = await websiteService.getPublicWebsiteConfig();
+    if (res?.seo) {
+      seoConfig = { ...seoConfig, ...res.seo };
+    }
+  } catch (err) {
+    console.error("Failed to fetch SEO metadata", err);
+  }
+
+  return {
+    title: seoConfig.title,
+    description: seoConfig.description,
+    keywords: seoConfig.keywords,
+    openGraph: {
+      title: seoConfig.title,
+      description: seoConfig.description,
+      siteName: 'Sangeet Restaurant',
+      images: [
+        {
+          url: seoConfig.og_image,
+          width: 1200,
+          height: 630,
+        }
+      ],
+      locale: 'en_US',
+      type: 'website',
+    },
+  };
+}
 
 const FALLBACK_MENU = [
   {

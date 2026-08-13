@@ -14,6 +14,27 @@ import toast from 'react-hot-toast';
 const ContactPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const [contactInfo, setContactInfo] = useState<any>({
+    phone: "+852 2345 6789",
+    email: "info@sangeet.hk",
+    address: "Wanchai, Hong Kong",
+    maps_iframe: ""
+  });
+
+  React.useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch('/api/website/public-config');
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.contact) setContactInfo(data.contact);
+        }
+      } catch (err) {
+        console.error('Failed to fetch contact config', err);
+      }
+    };
+    fetchConfig();
+  }, []);
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
@@ -40,15 +61,15 @@ const ContactPage = () => {
   };
 
   const handleCall = () => {
-    window.location.href = 'tel:+85223456789';
+    window.location.href = `tel:${contactInfo.phone.replace(/[^0-9+]/g, '')}`;
   };
 
   const handleEmail = () => {
-    window.location.href = 'mailto:info@sangeet.hk';
+    window.location.href = `mailto:${contactInfo.email}`;
   };
 
   const handleDirections = () => {
-    const address = encodeURIComponent('Wanchai, Hong Kong');
+    const address = encodeURIComponent(contactInfo.address);
     const url = `https://www.google.com/maps/search/?api=1&query=${address}`;
     window.open(url, '_blank');
   };
@@ -102,8 +123,7 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h4 className="text-sangeet-400 font-semibold mb-1">Address</h4>
-                    <p className="text-sangeet-neutral-300 text-sm md:text-base">Wanchai, Hong Kong</p>
-                    <p className="text-sangeet-neutral-400 text-xs md:text-sm">Central District</p>
+                    <p className="text-sangeet-neutral-300 text-sm md:text-base">{contactInfo.address}</p>
                   </div>
                 </motion.div>
 
@@ -120,7 +140,7 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h4 className="text-sangeet-400 font-semibold mb-1">Phone</h4>
-                    <p className="text-sangeet-neutral-300 text-sm md:text-base">+852 2345 6789</p>
+                    <p className="text-sangeet-neutral-300 text-sm md:text-base">{contactInfo.phone}</p>
                     <p className="text-sangeet-neutral-400 text-xs md:text-sm">Tap to call</p>
                   </div>
                 </motion.div>
@@ -138,7 +158,7 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h4 className="text-sangeet-400 font-semibold mb-1">Email</h4>
-                    <p className="text-sangeet-neutral-300 text-sm md:text-base">info@sangeet.hk</p>
+                    <p className="text-sangeet-neutral-300 text-sm md:text-base">{contactInfo.email}</p>
                     <p className="text-sangeet-neutral-400 text-xs md:text-sm">Tap to email</p>
                   </div>
                 </motion.div>
@@ -164,18 +184,24 @@ const ContactPage = () => {
             <div className="bg-sangeet-neutral-900 p-6 md:p-8 rounded-xl shadow-lg border border-sangeet-neutral-800">
               <h3 className="text-xl md:text-2xl font-bold text-sangeet-400 mb-6">Location</h3>
               <div className="relative h-48 md:h-64 rounded-lg overflow-hidden">
-                <Image
-                  src="https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=800&h=400&fit=crop"
-                  alt="Wanchai, Hong Kong - Sangeet Restaurant Location"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900/60 to-transparent"></div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <div className="bg-sangeet-neutral-900/90 backdrop-blur-md rounded-lg p-4 border border-sangeet-neutral-700">
+                {contactInfo.maps_iframe ? (
+                  <div className="absolute inset-0 w-full h-full" dangerouslySetInnerHTML={{ __html: contactInfo.maps_iframe }} />
+                ) : (
+                  <Image
+                    src="https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?w=800&h=400&fit=crop"
+                    alt="Sangeet Restaurant Location"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover"
+                  />
+                )}
+                {!contactInfo.maps_iframe && (
+                  <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900/60 to-transparent"></div>
+                )}
+                <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
+                  <div className="bg-sangeet-neutral-900/90 backdrop-blur-md rounded-lg p-4 border border-sangeet-neutral-700 pointer-events-auto shadow-lg">
                     <h4 className="text-sangeet-400 font-bold text-base md:text-lg mb-1">📍 Sangeet Restaurant</h4>
-                    <p className="text-sangeet-neutral-300 text-sm">Wanchai, Hong Kong</p>
+                    <p className="text-sangeet-neutral-300 text-sm">{contactInfo.address}</p>
                     <motion.button
                       onClick={handleDirections}
                       whileHover={{ scale: 1.05 }}
