@@ -229,12 +229,17 @@ const RestaurantWebsiteManagementPage = () => {
 
     try {
       const response = await uploadWebsiteMedia(formData);
-      setMediaList(prev => [...prev, (response as any).media || response]);
-      toast.success('Image uploaded successfully!');
+      const newMedia = (response as any).media || response;
+      setMediaList(prev => [...prev, newMedia]);
+      toast.success('Image uploaded! Now add the details.');
+      // Automatically open the Edit modal for the newly uploaded photo
+      setEditingMedia(newMedia);
     } catch (error) {
       console.error('Error uploading file:', error);
       toast.error('Failed to upload image');
     }
+    // Reset the input so the same file can be re-selected if needed
+    e.target.value = '';
   };
 
   const handleDeleteMedia = async (id: string) => {
