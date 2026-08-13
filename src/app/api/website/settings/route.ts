@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import websiteService from '@/lib/services/websiteService';
 import { handleApiError, ValidationError } from '@/lib/errors';
-import { verifyAuthToken } from '@/lib/auth';
+import { authenticateToken, requireAdmin } from '@/lib/auth';
 
 export async function GET() {
   try {
@@ -16,10 +16,10 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
   try {
-    const authResult = await verifyAuthToken(req, ['admin']);
-    if (!authResult.valid) {
-      return authResult.response;
-    }
+    const authResult = await authenticateToken(req);
+    if (authResult.errorResponse) return authResult.errorResponse;
+    const roleError = requireAdmin(authResult.user!);
+    if (roleError) return roleError;
 
     const body = await req.json();
     if (!body || typeof body !== 'object') {
