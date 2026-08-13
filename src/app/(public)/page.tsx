@@ -1,8 +1,9 @@
 export const dynamic = 'force-dynamic';
 
 import HomePage from '@/_pages/HomePage';
-import { serverFetchReviews, serverFetchEvents, serverFetchPublicWebsiteConfig } from '@/services/api';
+import { serverFetchReviews, serverFetchEvents } from '@/services/api';
 import menuService from '@/lib/services/menuService';
+import websiteService from '@/lib/services/websiteService';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -59,7 +60,7 @@ export default async function Home() {
       menuService.getAllMenuItems().then(res => JSON.parse(JSON.stringify(res))).catch(() => FALLBACK_MENU),
       serverFetchReviews().catch(() => FALLBACK_REVIEWS),
       serverFetchEvents().catch(() => FALLBACK_EVENTS),
-      serverFetchPublicWebsiteConfig().catch(() => null)
+      websiteService.getPublicWebsiteConfig().then(res => JSON.parse(JSON.stringify(res))).catch(() => null)
     ]);
     
     menuItems = menuRes || FALLBACK_MENU;
