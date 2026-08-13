@@ -61,19 +61,22 @@ export const getWebsiteStats = async (): Promise<Record<string, number>> => {
 
 export const fetchEvents = async (): Promise<EventRow[]> => {
   return apiCallWrapper(async () => {
-    return await api.get('/website/events');
+    const res = await api.get('/website/events');
+    return (res as any).events || [];
   }, 'fetchEvents');
 };
 
 export const fetchFeaturedEvents = async (): Promise<EventRow[]> => {
   return apiCallWrapper(async () => {
-    return await api.get('/website/events/featured');
+    const res = await api.get('/website/events/featured');
+    return (res as any).events || [];
   }, 'fetchFeaturedEvents');
 };
 
 export const fetchUpcomingEvents = async (): Promise<EventRow[]> => {
   return apiCallWrapper(async () => {
-    return await api.get('/website/events/upcoming');
+    const res = await api.get('/website/events/upcoming');
+    return (res as any).events || [];
   }, 'fetchUpcomingEvents');
 };
 
