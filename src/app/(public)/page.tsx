@@ -1,8 +1,9 @@
 export const dynamic = 'force-dynamic';
 
 import HomePage from '@/_pages/HomePage';
-import { serverFetchReviews, serverFetchEvents } from '@/services/api';
 import menuService from '@/lib/services/menuService';
+import reviewService from '@/lib/services/reviewService';
+import eventService from '@/lib/services/eventService';
 import websiteService from '@/lib/services/websiteService';
 import type { Metadata } from 'next';
 
@@ -24,8 +25,6 @@ export const metadata: Metadata = {
     type: 'website',
   },
 };
-
-export const revalidate = 60;
 
 const FALLBACK_MENU = [
   {
@@ -58,23 +57,18 @@ export default async function Home() {
   try {
     const [menuRes, reviewsRes, eventsRes, cmsRes] = await Promise.all([
       menuService.getAllMenuItems().then(res => JSON.parse(JSON.stringify(res))).catch(() => FALLBACK_MENU),
-      serverFetchReviews().catch(() => FALLBACK_REVIEWS),
-      serverFetchEvents().catch(() => FALLBACK_EVENTS),
+      reviewService.getAllReviews().then(res => JSON.parse(JSON.stringify(res))).catch(() => FALLBACK_REVIEWS),
+      eventService.getAllEvents().then(res => JSON.parse(JSON.stringify(res))).catch(() => FALLBACK_EVENTS),
       websiteService.getPublicWebsiteConfig().then(res => JSON.parse(JSON.stringify(res))).catch(() => null)
     ]);
     
-    menuItems = menuRes || FALLBACK_MENU;
-    reviews = reviewsRes || FALLBACK_REVIEWS;
-    events = eventsRes || FALLBACK_EVENTS;
+    menuItems = (menuRes && menuRes.length > 0) ? menuRes : FALLBACK_MENU;
+    reviews = (reviewsRes && reviewsRes.length > 0) ? reviewsRes : FALLBACK_REVIEWS;
+    events = (eventsRes && eventsRes.length > 0) ? eventsRes : FALLBACK_EVENTS;
     cmsConfig = cmsRes;
   } catch (err) {
     console.error("Failed to fetch home page data on server", err);
   }
-
-  // Pass fallback if the response was an empty array and we want to show something rich initially
-  if (!menuItems || menuItems.length === 0) menuItems = FALLBACK_MENU;
-  if (!reviews || reviews.length === 0) reviews = FALLBACK_REVIEWS;
-  if (!events || events.length === 0) events = FALLBACK_EVENTS;
 
   return <HomePage menuItems={menuItems} reviews={reviews} events={events} cmsConfig={cmsConfig} />;
 }

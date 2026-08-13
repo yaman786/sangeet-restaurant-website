@@ -43,8 +43,8 @@ test('Website CMS Hero Title Update & Live UI Sync', async ({ page }) => {
   await expect(saveBtn).toBeVisible({ timeout: 5000 });
   await saveBtn.click();
 
-  // Wait for save operation
-  await page.waitForTimeout(2000);
+  // Wait for save operation to complete (button text reverts back to 'Save All Changes')
+  await expect(saveBtn).toHaveText('Save All Changes', { timeout: 15000 });
   console.log('✅ CMS settings saved in admin panel');
 
   console.log('--- Phase 3: Navigating to Public Website (/) ---');
