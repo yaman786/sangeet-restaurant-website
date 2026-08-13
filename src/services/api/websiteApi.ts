@@ -89,5 +89,5 @@ export const serverFetchEvents = async (): Promise<EventRow[]> => {
 };
 
 export const serverFetchPublicWebsiteConfig = async (): Promise<Record<string, any>> => {
-  return serverFetch<Record<string, any>>('/website/public-config', { next: { revalidate: 60 } });
+  return serverFetch<Record<string, any>>('/website/public-config', { cache: 'no-store' });
 };
