@@ -87,9 +87,7 @@ const RestaurantWebsiteManagementPage = () => {
 
   const [socialForm, setSocialForm] = useState({
     facebook: "https://facebook.com",
-    instagram: "https://instagram.com",
-    tripadvisor: "https://tripadvisor.com",
-    openrice: "https://openrice.com"
+    instagram: "https://instagram.com"
   });
 
   const [seoForm, setSeoForm] = useState({
