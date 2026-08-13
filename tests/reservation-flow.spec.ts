@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
  * Full Reservation E2E Flow Test (Production Ready)
  * 
  * Executes Customer Booking + Admin UI Login + Table Assignment Confirmation.
- * Uses customer email ranayaman66@gmail.com so live email delivery can be visually confirmed.
+ * Uses exact customer email: ranayaman66@gmail.com
  */
 
 test('Complete Reservation & Admin Confirmation Flow', async ({ page }) => {
@@ -30,17 +30,17 @@ test('Complete Reservation & Admin Confirmation Flow', async ({ page }) => {
   await page.fill('input[name="phone"]', TEST_CUSTOMER.phone);
   await page.selectOption('select[name="guests"]', TEST_CUSTOMER.guests);
 
-  // Pick tomorrow's date
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const dateString = tomorrow.toISOString().split('T')[0];
+  // Pick a date 5 days in the future to avoid any duplicate slot conflicts
+  const targetDate = new Date();
+  targetDate.setDate(targetDate.getDate() + 5);
+  const dateString = targetDate.toISOString().split('T')[0];
   await page.fill('input[type="date"]', dateString);
   await page.dispatchEvent('input[type="date"]', 'change');
 
-  // Wait for available time slots and select first available
+  // Wait for available time slots and select available slot
   const timeSelect = page.locator('select[name="time"]');
   await expect(timeSelect).toBeEnabled({ timeout: 10000 });
-  await timeSelect.selectOption({ index: 1 });
+  await timeSelect.selectOption({ index: 2 });
 
   // Special requests
   await page.fill('textarea[name="special_requests"]', TEST_CUSTOMER.specialRequests);
@@ -139,5 +139,5 @@ test('Complete Reservation & Admin Confirmation Flow', async ({ page }) => {
   }
 
   expect(assignedSuccess).toBeTruthy();
-  console.log('🎉 Phase 2 Passed: Admin confirmed reservation with Table Assignment successfully! Confirmation email dispatched.');
+  console.log('🎉 Phase 2 Passed: Admin confirmed reservation with Table Assignment successfully! Confirmation email dispatched to ranayaman66@gmail.com.');
 });

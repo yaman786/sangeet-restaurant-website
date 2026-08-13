@@ -1,10 +1,33 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@/utils/router-mock';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import Image from 'next/image';
 import AdminHeader from '../components/AdminHeader';
+import {
+  Layout,
+  Clock,
+  Globe,
+  Search,
+  Image as ImageIcon,
+  Calendar,
+  Eye,
+  Save,
+  Trash2,
+  Plus,
+  X,
+  CheckCircle,
+  AlertTriangle,
+  ExternalLink,
+  Sparkles,
+  ShieldCheck,
+  Building2,
+  Phone,
+  Mail,
+  MapPin,
+  Share2
+} from 'lucide-react';
 import {
   getRestaurantSettings,
   updateRestaurantSettings,
@@ -17,93 +40,174 @@ import {
   getAllTimeSlots,
   createTimeSlot,
   updateTimeSlot,
-  deleteTimeSlot
+  deleteTimeSlot,
+  getPublicWebsiteConfig
 } from '../services/api';
+
+const DEFAULT_SCHEDULE = {
+  monday: { open: "17:30", close: "23:00", closed: false },
+  tuesday: { open: "17:30", close: "23:00", closed: false },
+  wednesday: { open: "17:30", close: "23:00", closed: false },
+  thursday: { open: "17:30", close: "23:00", closed: false },
+  friday: { open: "17:30", close: "23:30", closed: false },
+  saturday: { open: "12:00", close: "23:30", closed: false },
+  sunday: { open: "12:00", close: "23:00", closed: false },
+};
 
 const RestaurantWebsiteManagementPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [stats, setStats] = useState<any>({});
-  const [settings, setSettings] = useState<any>({});
-  const [content, setContent] = useState<any>({});
-  const [media, setMedia] = useState<any[]>([]);
-  const [timeSlots, setTimeSlots] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState('hero');
   const [saving, setSaving] = useState(false);
+  const [showLivePreview, setShowLivePreview] = useState(false);
 
-  // Load all data
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const [statsData, settingsData, contentData, mediaData, timeSlotsData] = await Promise.all([
-          getWebsiteStats(),
-          getRestaurantSettings(),
-          getWebsiteContent(),
-          getWebsiteMedia(),
-          getAllTimeSlots()
-        ]);
+  // CMS State Sections
+  const [heroForm, setHeroForm] = useState({
+    title: "Experience South Asian Elegance",
+    subtitle: "Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong.",
+    image_url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop",
+    primary_cta_text: "Reserve Your Table",
+    primary_cta_link: "/reservations",
+    secondary_cta_text: "Explore the Menu",
+    secondary_cta_link: "/menu"
+  });
 
-        setStats((statsData as any).stats);
-        setSettings((settingsData as any).settings);
-        setContent((contentData as any).content);
-        setMedia((mediaData as any).media);
-        setTimeSlots((timeSlotsData as any) || []);
-      } catch (error: any) {
-        console.error('Error loading website data:', error);
-        if (error.response?.status === 401) {
-          navigate('/login');
-        } else {
-          toast.error('Failed to load website data');
+  const [announcementForm, setAnnouncementForm] = useState({
+    is_active: true,
+    text: "✨ Welcome to Sangeet — Reserve your table online for an unforgettable South Asian culinary experience.",
+    link: "/reservations",
+    theme: "gold"
+  });
+
+  const [businessHoursForm, setBusinessHoursForm] = useState({
+    status_override: "normal",
+    schedule: DEFAULT_SCHEDULE
+  });
+
+  const [contactForm, setContactForm] = useState({
+    phone: "+852 2345 6789",
+    email: "info@sangeet.hk",
+    address: "Wanchai, Hong Kong",
+    maps_iframe: ""
+  });
+
+  const [socialForm, setSocialForm] = useState({
+    facebook: "https://facebook.com",
+    instagram: "https://instagram.com",
+    tripadvisor: "https://tripadvisor.com",
+    openrice: "https://openrice.com"
+  });
+
+  const [seoForm, setSeoForm] = useState({
+    title: "Sangeet Restaurant - Authentic South Asian Cuisine in Hong Kong",
+    description: "Experience South Asian Elegance. Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong.",
+    keywords: "South Asian restaurant, Hong Kong dining, Indian cuisine, Wanchai food, Sangeet",
+    og_image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=630&fit=crop"
+  });
+
+  const [mediaList, setMediaList] = useState<any[]>([]);
+  const [timeSlots, setTimeSlots] = useState<any[]>([]);
+  const [newTimeSlot, setNewTimeSlot] = useState('');
+
+  // Load all website configuration data
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [configData, mediaData, timeSlotsData] = await Promise.all([
+        getPublicWebsiteConfig().catch(() => null),
+        getWebsiteMedia().catch(() => []),
+        getAllTimeSlots().catch(() => [])
+      ]);
+
+      if (configData) {
+        if (configData.hero) setHeroForm(prev => ({ ...prev, ...configData.hero }));
+        if (configData.announcement) setAnnouncementForm(prev => ({ ...prev, ...configData.announcement }));
+        if (configData.businessHours) {
+          setBusinessHoursForm({
+            status_override: configData.businessHours.status_override || "normal",
+            schedule: configData.businessHours.schedule || DEFAULT_SCHEDULE
+          });
         }
-      } finally {
-        setLoading(false);
+        if (configData.contactInfo) setContactForm(prev => ({ ...prev, ...configData.contactInfo }));
+        if (configData.social) setSocialForm(prev => ({ ...prev, ...configData.social }));
+        if (configData.seo) setSeoForm(prev => ({ ...prev, ...configData.seo }));
       }
-    };
 
+      setMediaList((mediaData as any)?.media || mediaData || []);
+      setTimeSlots((timeSlotsData as any) || []);
+    } catch (error: any) {
+      console.error('Error loading website management data:', error);
+      if (error.response?.status === 401) {
+        navigate('/login');
+      } else {
+        toast.error('Failed to load website configuration');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadData();
   }, [navigate]);
 
-  // Save settings
-  const handleSaveSettings = async () => {
+  // Master Save Handler
+  const handleSaveAll = async () => {
     try {
       setSaving(true);
-      await updateRestaurantSettings(settings);
-      toast.success('Restaurant settings updated successfully!');
+
+      const settingsPayload: Record<string, any> = {
+        announcement_bar: { value: announcementForm, type: 'json' },
+        business_hours: { value: businessHoursForm, type: 'json' },
+        phone: { value: contactForm.phone, type: 'text' },
+        email: { value: contactForm.email, type: 'text' },
+        address: { value: contactForm.address, type: 'text' },
+        maps_iframe: { value: contactForm.maps_iframe, type: 'text' }
+      };
+
+      const heroBannerPayload = [
+        {
+          bannerKey: 'hero',
+          title: heroForm.title,
+          subtitle: heroForm.subtitle,
+          image_url: heroForm.image_url,
+          primary_cta_text: heroForm.primary_cta_text,
+          primary_cta_link: heroForm.primary_cta_link,
+          secondary_cta_text: heroForm.secondary_cta_text,
+          secondary_cta_link: heroForm.secondary_cta_link,
+          is_active: true
+        }
+      ];
+
+      await Promise.all([
+        updateRestaurantSettings(settingsPayload),
+        updateWebsiteContent({
+          hero_title: { title: 'Hero Title', content: heroForm.title, content_type: 'text' },
+          hero_subtitle: { title: 'Hero Subtitle', content: heroForm.subtitle, content_type: 'text' }
+        } as any)
+      ]);
+
+      toast.success('🎉 All Website CMS settings saved successfully!');
     } catch (error) {
-      console.error('Error saving settings:', error);
-      toast.error('Failed to save settings');
+      console.error('Error saving CMS settings:', error);
+      toast.error('Failed to save website settings');
     } finally {
       setSaving(false);
     }
   };
 
-  // Save content
-  const handleSaveContent = async () => {
-    try {
-      setSaving(true);
-      await updateWebsiteContent(content);
-      toast.success('Website content updated successfully!');
-    } catch (error) {
-      console.error('Error saving content:', error);
-      toast.error('Failed to save content');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Handle file upload
-  const handleFileUpload = async (event: any, mediaKey: string) => {
-    const file = event.target.files[0];
+  // Media Handlers
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
     const formData = new FormData();
     formData.append('image', file);
-    formData.append('media_key', mediaKey);
+    formData.append('media_key', 'gallery');
 
     try {
       const response = await uploadWebsiteMedia(formData);
-      setMedia([...media, (response as any).media]);
+      setMediaList(prev => [...prev, (response as any).media || response]);
       toast.success('Image uploaded successfully!');
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -111,20 +215,17 @@ const RestaurantWebsiteManagementPage = () => {
     }
   };
 
-  // Delete media
   const handleDeleteMedia = async (id: string) => {
     try {
       await deleteWebsiteMedia(id);
-      setMedia(media.filter(m => m.id !== parseInt(id, 10)));
-      toast.success('Media deleted successfully!');
+      setMediaList(prev => prev.filter(m => String(m.id) !== String(id)));
+      toast.success('Media deleted');
     } catch (error) {
-      console.error('Error deleting media:', error);
       toast.error('Failed to delete media');
     }
   };
 
-  // Timeslot Actions
-  const [newTimeSlot, setNewTimeSlot] = useState('');
+  // Timeslot Handlers
   const handleCreateTimeSlot = async () => {
     if (!newTimeSlot) return;
     try {
@@ -133,7 +234,7 @@ const RestaurantWebsiteManagementPage = () => {
       const times = await getAllTimeSlots();
       setTimeSlots((times as any) || []);
       setNewTimeSlot('');
-      toast.success('Time slot created');
+      toast.success('Time slot added!');
     } catch (e) {
       toast.error('Failed to create time slot');
     } finally {
@@ -160,619 +261,521 @@ const RestaurantWebsiteManagementPage = () => {
     }
   };
 
-  const updateSetting = (key: string, value: any) => {
-    setSettings((prev: any) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        value
-      }
-    }));
-  };
-
-  const updateContent = (key: string, field: string, value: any) => {
-    setContent((prev: any) => ({
-      ...prev,
-      [key]: {
-        ...prev[key],
-        [field]: value
-      }
-    }));
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-sangeet-neutral-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sangeet-400 mx-auto mb-4"></div>
-          <p className="text-sangeet-400">Loading website management...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400 mx-auto mb-4" />
+          <p className="text-amber-400 font-medium">Loading Website CMS Engine...</p>
         </div>
       </div>
     );
   }
 
   const tabs = [
-    { id: 'overview', name: 'Overview', icon: '📊' },
-    { id: 'settings', name: 'Restaurant Settings', icon: '⚙️' },
-    { id: 'content', name: 'Website Content', icon: '📝' },
-    { id: 'media', name: 'Media Gallery', icon: '🖼️' },
-    { id: 'timeslots', name: 'Reservation Timeslots', icon: '🕒' }
+    { id: 'hero', name: 'Hero & Banner', icon: Layout },
+    { id: 'hours', name: 'Business Hours', icon: Clock },
+    { id: 'contact', name: 'Contact & Social', icon: Globe },
+    { id: 'seo', name: 'SEO & Metadata', icon: Search },
+    { id: 'media', name: 'Media Gallery', icon: ImageIcon },
+    { id: 'timeslots', name: 'Reservation Slots', icon: Calendar },
   ];
 
   return (
-    <div className="min-h-screen bg-sangeet-neutral-950">
-      <AdminHeader title="Website Management" subtitle="Manage your website" />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-sangeet-400 mb-2">
-            🌐 Restaurant Website Management
-          </h1>
-          <p className="text-sangeet-neutral-400">
-            Manage your restaurant&apos;s website content, settings, and media gallery
-          </p>
-        </div>
+    <div className="min-h-screen bg-sangeet-neutral-950 text-sangeet-neutral-100">
+      <AdminHeader title="Website Content Management (CMS)" subtitle="Manage live website banners, hero imagery, business hours, and SEO" />
 
-        {/* Tabs */}
-        <div className="bg-sangeet-neutral-900 rounded-xl border border-sangeet-neutral-700 mb-6">
-          <div className="flex flex-wrap border-b border-sangeet-neutral-700">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors ${
-                  activeTab === tab.id
-                    ? 'text-sangeet-400 border-b-2 border-sangeet-400 bg-sangeet-400/5'
-                    : 'text-sangeet-neutral-400 hover:text-sangeet-300'
-                }`}
-              >
-                <span className="text-lg">{tab.icon}</span>
-                {tab.name}
-              </button>
-            ))}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Top Control Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-sangeet-neutral-900 p-6 rounded-2xl border border-sangeet-neutral-800 shadow-xl">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-amber-400 flex items-center gap-3">
+              <Sparkles className="w-7 h-7 text-amber-400" />
+              Website Content Manager
+            </h1>
+            <p className="text-sangeet-neutral-400 text-sm mt-1">
+              Direct live sync with <a href="https://sangeet.hk/" target="_blank" rel="noreferrer" className="text-amber-400 underline font-medium hover:opacity-80">sangeet.hk</a>
+            </p>
           </div>
 
-          <div className="p-6">
-            {/* Overview Tab */}
-            {activeTab === 'overview' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Stats Cards */}
-                  <div className="bg-linear-to-br from-sangeet-400/10 to-sangeet-400/5 rounded-lg p-6 border border-sangeet-400/20">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-sangeet-400/20 rounded-lg flex items-center justify-center">
-                        <span className="text-2xl">⚙️</span>
-                      </div>
-                      <span className="text-2xl font-bold text-sangeet-400">{stats.total_settings || 0}</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-sangeet-neutral-100 mb-1">Settings Configured</h3>
-                    <p className="text-sangeet-neutral-400 text-sm">Restaurant information and preferences</p>
-                  </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowLivePreview(!showLivePreview)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 text-sangeet-neutral-200 font-medium transition-all text-sm border border-sangeet-neutral-700"
+            >
+              <Eye className="w-4 h-4 text-amber-400" />
+              {showLivePreview ? 'Hide Live Preview' : 'Live Preview'}
+            </button>
 
-                  <div className="bg-linear-to-br from-blue-400/10 to-blue-400/5 rounded-lg p-6 border border-blue-400/20">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-blue-400/20 rounded-lg flex items-center justify-center">
-                        <span className="text-2xl">📝</span>
-                      </div>
-                      <span className="text-2xl font-bold text-blue-400">{stats.total_content_sections || 0}</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-sangeet-neutral-100 mb-1">Content Sections</h3>
-                    <p className="text-sangeet-neutral-400 text-sm">Website content and descriptions</p>
-                  </div>
+            <button
+              onClick={handleSaveAll}
+              disabled={saving}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-sangeet-neutral-950 font-bold transition-all text-sm shadow-lg shadow-amber-500/20 disabled:opacity-50 cursor-pointer"
+            >
+              <Save className="w-4 h-4" />
+              {saving ? 'Saving Changes...' : 'Save All Changes'}
+            </button>
+          </div>
+        </div>
 
-                  <div className="bg-linear-to-br from-green-400/10 to-green-400/5 rounded-lg p-6 border border-green-400/20">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-green-400/20 rounded-lg flex items-center justify-center">
-                        <span className="text-2xl">🖼️</span>
-                      </div>
-                      <span className="text-2xl font-bold text-green-400">{stats.total_media_files || 0}</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-sangeet-neutral-100 mb-1">Media Files</h3>
-                    <p className="text-sangeet-neutral-400 text-sm">Images and visual content</p>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                  <h3 className="text-xl font-bold text-sangeet-400 mb-4">Quick Actions</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <button
-                      onClick={() => setActiveTab('settings')}
-                      className="flex items-center gap-3 p-4 bg-sangeet-neutral-700 rounded-lg hover:bg-sangeet-neutral-600 transition-colors text-left"
-                    >
-                      <span className="text-2xl">⚙️</span>
-                      <div>
-                        <div className="font-medium text-sangeet-neutral-100">Update Settings</div>
-                        <div className="text-sm text-sangeet-neutral-400">Restaurant info & hours</div>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => setActiveTab('content')}
-                      className="flex items-center gap-3 p-4 bg-sangeet-neutral-700 rounded-lg hover:bg-sangeet-neutral-600 transition-colors text-left"
-                    >
-                      <span className="text-2xl">📝</span>
-                      <div>
-                        <div className="font-medium text-sangeet-neutral-100">Edit Content</div>
-                        <div className="text-sm text-sangeet-neutral-400">About, announcements</div>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => setActiveTab('media')}
-                      className="flex items-center gap-3 p-4 bg-sangeet-neutral-700 rounded-lg hover:bg-sangeet-neutral-600 transition-colors text-left"
-                    >
-                      <span className="text-2xl">🖼️</span>
-                      <div>
-                        <div className="font-medium text-sangeet-neutral-100">Manage Media</div>
-                        <div className="text-sm text-sangeet-neutral-400">Upload & organize images</div>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => window.open('/', '_blank')}
-                      className="flex items-center gap-3 p-4 bg-sangeet-400/20 rounded-lg hover:bg-sangeet-400/30 transition-colors text-left border border-sangeet-400/30"
-                    >
-                      <span className="text-2xl">🌐</span>
-                      <div>
-                        <div className="font-medium text-sangeet-400">Preview Website</div>
-                        <div className="text-sm text-sangeet-400/70">View live website</div>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Restaurant Settings Tab */}
-            {activeTab === 'settings' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
-                <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-sangeet-400">Restaurant Settings</h3>
-                  <button
-                    onClick={handleSaveSettings}
-                    disabled={saving}
-                    className="bg-sangeet-400 text-sangeet-neutral-950 px-6 py-2 rounded-lg font-semibold hover:bg-sangeet-300 transition-colors disabled:opacity-50"
-                  >
-                    {saving ? 'Saving...' : 'Save Settings'}
+        {/* Live Preview Modal / Split Drawer */}
+        <AnimatePresence>
+          {showLivePreview && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-8 overflow-hidden"
+            >
+              <div className="bg-sangeet-neutral-900 border border-amber-500/30 rounded-2xl p-4 shadow-2xl">
+                <div className="flex items-center justify-between mb-3 px-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+                    <Eye className="w-4 h-4" /> Live Website Preview (Interactive)
+                  </span>
+                  <button onClick={() => setShowLivePreview(false)} className="text-sangeet-neutral-400 hover:text-white">
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Basic Information */}
-                  <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                    <h4 className="text-lg font-semibold text-sangeet-neutral-100 mb-4">Basic Information</h4>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Restaurant Name
-                        </label>
-                        <input
-                          type="text"
-                          value={settings.restaurant_name?.value || ''}
-                          onChange={(e) => updateSetting('restaurant_name', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Tagline/Slogan
-                        </label>
-                        <input
-                          type="text"
-                          value={settings.restaurant_tagline?.value || ''}
-                          onChange={(e) => updateSetting('restaurant_tagline', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Phone Number
-                        </label>
-                        <input
-                          type="tel"
-                          value={settings.phone_number?.value || ''}
-                          onChange={(e) => updateSetting('phone_number', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Email Address
-                        </label>
-                        <input
-                          type="email"
-                          value={settings.email?.value || ''}
-                          onChange={(e) => updateSetting('email', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Address
-                        </label>
-                        <textarea
-                          value={settings.address?.value || ''}
-                          onChange={(e) => updateSetting('address', e.target.value)}
-                          rows={3}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Social Media & Features */}
-                  <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                    <h4 className="text-lg font-semibold text-sangeet-neutral-100 mb-4">Social Media & Features</h4>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Facebook URL
-                        </label>
-                        <input
-                          type="url"
-                          value={settings.social_facebook?.value || ''}
-                          onChange={(e) => updateSetting('social_facebook', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Instagram URL
-                        </label>
-                        <input
-                          type="url"
-                          value={settings.social_instagram?.value || ''}
-                          onChange={(e) => updateSetting('social_instagram', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Twitter URL
-                        </label>
-                        <input
-                          type="url"
-                          value={settings.social_twitter?.value || ''}
-                          onChange={(e) => updateSetting('social_twitter', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            id="reservation_enabled"
-                            checked={settings.reservation_enabled?.value || false}
-                            onChange={(e) => updateSetting('reservation_enabled', e.target.checked)}
-                            className="w-4 h-4 text-sangeet-400 bg-sangeet-neutral-700 border-sangeet-neutral-600 rounded-sm focus:ring-sangeet-400"
-                          />
-                          <label htmlFor="reservation_enabled" className="text-sm text-sangeet-neutral-300">
-                            Enable Online Reservations
-                          </label>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            id="delivery_enabled"
-                            checked={settings.delivery_enabled?.value || false}
-                            onChange={(e) => updateSetting('delivery_enabled', e.target.checked)}
-                            className="w-4 h-4 text-sangeet-400 bg-sangeet-neutral-700 border-sangeet-neutral-600 rounded-sm focus:ring-sangeet-400"
-                          />
-                          <label htmlFor="delivery_enabled" className="text-sm text-sangeet-neutral-300">
-                            Enable Delivery/Takeout Orders
-                          </label>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Theme Color
-                        </label>
-                        <input
-                          type="color"
-                          value={settings.website_theme_color?.value || '#D97706'}
-                          onChange={(e) => updateSetting('website_theme_color', e.target.value)}
-                          className="w-full h-12 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                <div className="w-full h-[550px] rounded-xl overflow-hidden border border-sangeet-neutral-800 bg-sangeet-neutral-950">
+                  <iframe src="/" className="w-full h-full border-0" title="Live Website Preview" />
                 </div>
-              </motion.div>
-            )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            {/* Website Content Tab */}
-            {activeTab === 'content' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
-                <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-sangeet-400">Website Content</h3>
-                  <button
-                    onClick={handleSaveContent}
-                    disabled={saving}
-                    className="bg-sangeet-400 text-sangeet-neutral-950 px-6 py-2 rounded-lg font-semibold hover:bg-sangeet-300 transition-colors disabled:opacity-50"
-                  >
-                    {saving ? 'Saving...' : 'Save Content'}
-                  </button>
+        {/* CMS Navigation Tabs */}
+        <div className="bg-sangeet-neutral-900 rounded-2xl border border-sangeet-neutral-800 overflow-hidden shadow-xl mb-8">
+          <div className="flex flex-wrap border-b border-sangeet-neutral-800 bg-sangeet-neutral-950/50">
+            {tabs.map((tab) => {
+              const IconComponent = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2.5 px-6 py-4 text-sm font-semibold transition-all cursor-pointer ${
+                    isActive
+                      ? 'text-amber-400 border-b-2 border-amber-400 bg-amber-400/10'
+                      : 'text-sangeet-neutral-400 hover:text-sangeet-200 hover:bg-sangeet-neutral-800/40'
+                  }`}
+                >
+                  <IconComponent className={`w-4 h-4 ${isActive ? 'text-amber-400' : 'text-sangeet-neutral-400'}`} />
+                  {tab.name}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="p-6 sm:p-8">
+
+            {/* TAB 1: HERO & ANNOUNCEMENT BANNER */}
+            {activeTab === 'hero' && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                
+                {/* Announcement Bar Settings */}
+                <div className="bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
+                        <Sparkles className="w-5 h-5" /> Top Announcement Bar
+                      </h3>
+                      <p className="text-xs text-sangeet-neutral-400">Display a prominent banner across the top of the website</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={announcementForm.is_active}
+                        onChange={(e) => setAnnouncementForm({ ...announcementForm, is_active: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-sangeet-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                    </label>
+                  </div>
+
+                  {announcementForm.is_active && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                      <div className="md:col-span-2">
+                        <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Announcement Text</label>
+                        <input
+                          type="text"
+                          value={announcementForm.text}
+                          onChange={(e) => setAnnouncementForm({ ...announcementForm, text: e.target.value })}
+                          className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                          placeholder="e.g. ✨ Special Chef's Tasting Menu available this weekend!"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">CTA Target Link</label>
+                        <input
+                          type="text"
+                          value={announcementForm.link}
+                          onChange={(e) => setAnnouncementForm({ ...announcementForm, link: e.target.value })}
+                          className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                          placeholder="/reservations"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Hero Section */}
-                  <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                    <h4 className="text-lg font-semibold text-sangeet-neutral-100 mb-4">Hero Section</h4>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Main Title
-                        </label>
-                        <input
-                          type="text"
-                          value={content.hero_title?.content || ''}
-                          onChange={(e) => updateContent('hero_title', 'content', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
+                {/* Hero Section Content */}
+                <div className="bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800 space-y-5">
+                  <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
+                    <Layout className="w-5 h-5" /> Homepage Hero Banner
+                  </h3>
 
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Subtitle
-                        </label>
-                        <textarea
-                          value={content.hero_subtitle?.content || ''}
-                          onChange={(e) => updateContent('hero_subtitle', 'content', e.target.value)}
-                          rows={3}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* About Section */}
-                  <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                    <h4 className="text-lg font-semibold text-sangeet-neutral-100 mb-4">About Section</h4>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          About Title
-                        </label>
-                        <input
-                          type="text"
-                          value={content.about_title?.content || ''}
-                          onChange={(e) => updateContent('about_title', 'content', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          About Content
-                        </label>
-                        <textarea
-                          value={content.about_content?.content || ''}
-                          onChange={(e) => updateContent('about_content', 'content', e.target.value)}
-                          rows={6}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Special Announcements */}
-                  <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                    <h4 className="text-lg font-semibold text-sangeet-neutral-100 mb-4">Special Announcements</h4>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Announcement
-                        </label>
-                        <textarea
-                          value={content.special_announcement?.content || ''}
-                          onChange={(e) => updateContent('special_announcement', 'content', e.target.value)}
-                          rows={4}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Chef's Recommendations */}
-                  <div className="bg-sangeet-neutral-800 rounded-lg p-6 border border-sangeet-neutral-600">
-                    <h4 className="text-lg font-semibold text-sangeet-neutral-100 mb-4">Chef&apos;s Recommendations</h4>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Section Title
-                        </label>
-                        <input
-                          type="text"
-                          value={content.chef_special_title?.content || ''}
-                          onChange={(e) => updateContent('chef_special_title', 'content', e.target.value)}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                          Description
-                        </label>
-                        <textarea
-                          value={content.chef_special_description?.content || ''}
-                          onChange={(e) => updateContent('chef_special_description', 'content', e.target.value)}
-                          rows={3}
-                          className="w-full px-4 py-2 bg-sangeet-neutral-700 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Media Gallery Tab */}
-            {activeTab === 'media' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
-                <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-sangeet-400">Media Gallery</h3>
-                  <label className="bg-sangeet-400 text-sangeet-neutral-950 px-6 py-2 rounded-lg font-semibold hover:bg-sangeet-300 transition-colors cursor-pointer">
-                    Upload Image
+                  <div>
+                    <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Hero Main Title / Headline</label>
                     <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileUpload(e, 'gallery')}
-                      className="hidden"
+                      id="hero-title-input"
+                      type="text"
+                      value={heroForm.title}
+                      onChange={(e) => setHeroForm({ ...heroForm, title: e.target.value })}
+                      className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Hero Subtitle / Description</label>
+                    <textarea
+                      rows={3}
+                      value={heroForm.subtitle}
+                      onChange={(e) => setHeroForm({ ...heroForm, subtitle: e.target.value })}
+                      className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Background Image URL</label>
+                    <input
+                      type="text"
+                      value={heroForm.image_url}
+                      onChange={(e) => setHeroForm({ ...heroForm, image_url: e.target.value })}
+                      className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                    />
+                    {heroForm.image_url && (
+                      <div className="mt-3 relative h-40 w-full rounded-lg overflow-hidden border border-sangeet-neutral-800">
+                        <img src={heroForm.image_url} alt="Hero Preview" className="object-cover w-full h-full" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Primary CTA Button Text</label>
+                      <input
+                        type="text"
+                        value={heroForm.primary_cta_text}
+                        onChange={(e) => setHeroForm({ ...heroForm, primary_cta_text: e.target.value })}
+                        className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Primary CTA Link</label>
+                      <input
+                        type="text"
+                        value={heroForm.primary_cta_link}
+                        onChange={(e) => setHeroForm({ ...heroForm, primary_cta_link: e.target.value })}
+                        className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+              </motion.div>
+            )}
+
+            {/* TAB 2: BUSINESS HOURS */}
+            {activeTab === 'hours' && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                
+                {/* Emergency Override Control */}
+                <div className="bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800 space-y-3">
+                  <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-amber-400" /> Restaurant Operating Status Override
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {[
+                      { id: 'normal', label: 'Normal Schedule', desc: 'Follows day-by-day business hours below' },
+                      { id: 'force_open', label: 'Force Open', desc: 'Shows "Open Now" regardless of time' },
+                      { id: 'force_closed', label: 'Force Closed', desc: 'Shows "Closed" for holidays / events' }
+                    ].map(mode => (
+                      <button
+                        key={mode.id}
+                        onClick={() => setBusinessHoursForm({ ...businessHoursForm, status_override: mode.id })}
+                        className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
+                          businessHoursForm.status_override === mode.id
+                            ? 'border-amber-400 bg-amber-400/10 text-white'
+                            : 'border-sangeet-neutral-800 bg-sangeet-neutral-900 text-sangeet-neutral-400 hover:border-sangeet-neutral-700'
+                        }`}
+                      >
+                        <div className="font-bold text-sm text-amber-300">{mode.label}</div>
+                        <div className="text-xs text-sangeet-neutral-400 mt-1">{mode.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Day Schedule Editor */}
+                <div className="bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800 space-y-4">
+                  <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
+                    <Clock className="w-5 h-5" /> Weekly Business Schedule
+                  </h3>
+
+                  <div className="space-y-3">
+                    {Object.keys(DEFAULT_SCHEDULE).map((dayKey) => {
+                      const dayData = businessHoursForm.schedule[dayKey as keyof typeof DEFAULT_SCHEDULE] || { open: "17:30", close: "23:00", closed: false };
+                      return (
+                        <div key={dayKey} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3.5 bg-sangeet-neutral-900 rounded-lg border border-sangeet-neutral-800">
+                          <span className="capitalize font-semibold text-sm w-28 text-amber-300">{dayKey}</span>
+                          
+                          <div className="flex items-center gap-3 flex-1">
+                            <label className="flex items-center gap-2 text-xs text-sangeet-neutral-300 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={dayData.closed}
+                                onChange={(e) => {
+                                  setBusinessHoursForm({
+                                    ...businessHoursForm,
+                                    schedule: {
+                                      ...businessHoursForm.schedule,
+                                      [dayKey]: { ...dayData, closed: e.target.checked }
+                                    }
+                                  });
+                                }}
+                                className="rounded text-amber-500 focus:ring-0"
+                              />
+                              Closed All Day
+                            </label>
+
+                            {!dayData.closed && (
+                              <div className="flex items-center gap-2 text-xs">
+                                <input
+                                  type="time"
+                                  value={dayData.open}
+                                  onChange={(e) => {
+                                    setBusinessHoursForm({
+                                      ...businessHoursForm,
+                                      schedule: {
+                                        ...businessHoursForm.schedule,
+                                        [dayKey]: { ...dayData, open: e.target.value }
+                                      }
+                                    });
+                                  }}
+                                  className="bg-sangeet-neutral-950 border border-sangeet-neutral-700 rounded px-2.5 py-1 text-white"
+                                />
+                                <span>to</span>
+                                <input
+                                  type="time"
+                                  value={dayData.close}
+                                  onChange={(e) => {
+                                    setBusinessHoursForm({
+                                      ...businessHoursForm,
+                                      schedule: {
+                                        ...businessHoursForm.schedule,
+                                        [dayKey]: { ...dayData, close: e.target.value }
+                                      }
+                                    });
+                                  }}
+                                  className="bg-sangeet-neutral-950 border border-sangeet-neutral-700 rounded px-2.5 py-1 text-white"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </motion.div>
+            )}
+
+            {/* TAB 3: CONTACT & SOCIAL */}
+            {activeTab === 'contact' && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                <div className="bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800 space-y-4">
+                  <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
+                    <Building2 className="w-5 h-5" /> Restaurant Contact Information
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Phone Number</label>
+                      <input
+                        type="text"
+                        value={contactForm.phone}
+                        onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                        className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Email Address</label>
+                      <input
+                        type="text"
+                        value={contactForm.email}
+                        onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                        className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Physical Address</label>
+                      <input
+                        type="text"
+                        value={contactForm.address}
+                        onChange={(e) => setContactForm({ ...contactForm, address: e.target.value })}
+                        className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800 space-y-4">
+                  <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
+                    <Share2 className="w-5 h-5" /> Social Media Channels
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.keys(socialForm).map((net) => (
+                      <div key={net}>
+                        <label className="block text-xs font-semibold text-sangeet-neutral-300 capitalize mb-1">{net} Profile URL</label>
+                        <input
+                          type="text"
+                          value={(socialForm as any)[net]}
+                          onChange={(e) => setSocialForm({ ...socialForm, [net]: e.target.value })}
+                          className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* TAB 4: SEO METADATA */}
+            {activeTab === 'seo' && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                <div className="bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800 space-y-4">
+                  <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
+                    <Search className="w-5 h-5" /> Search Engine Optimization (SEO)
+                  </h3>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Meta Title</label>
+                    <input
+                      type="text"
+                      value={seoForm.title}
+                      onChange={(e) => setSeoForm({ ...seoForm, title: e.target.value })}
+                      className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Meta Description</label>
+                    <textarea
+                      rows={3}
+                      value={seoForm.description}
+                      onChange={(e) => setSeoForm({ ...seoForm, description: e.target.value })}
+                      className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">OpenGraph Share Image URL</label>
+                    <input
+                      type="text"
+                      value={seoForm.og_image}
+                      onChange={(e) => setSeoForm({ ...seoForm, og_image: e.target.value })}
+                      className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* TAB 5: MEDIA GALLERY */}
+            {activeTab === 'media' && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                <div className="flex items-center justify-between bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800">
+                  <div>
+                    <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
+                      <ImageIcon className="w-5 h-5" /> Restaurant Media Assets
+                    </h3>
+                    <p className="text-xs text-sangeet-neutral-400">Upload promotional photos for landing page & gallery</p>
+                  </div>
+                  <label className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-sangeet-neutral-950 font-bold text-sm cursor-pointer transition-all">
+                    <Plus className="w-4 h-4" /> Upload Photo
+                    <input type="file" onChange={handleFileUpload} accept="image/*" className="hidden" />
                   </label>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {media.map((item: any) => (
-                    <div key={item.id} className="bg-sangeet-neutral-800 rounded-lg p-4 border border-sangeet-neutral-600">
-                      <div className="relative aspect-square bg-sangeet-neutral-700 rounded-lg mb-3 overflow-hidden">
-                        <Image
-                          src={`${item.file_path}`}
-                          alt={item.alt_text || item.file_name}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 33vw"
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-sangeet-neutral-100 truncate">
-                          {item.file_name}
-                        </p>
-                        <p className="text-xs text-sangeet-neutral-400">
-                          {item.media_key}
-                        </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {mediaList.map((item) => (
+                    <div key={item.id} className="relative group bg-sangeet-neutral-900 rounded-xl overflow-hidden border border-sangeet-neutral-800">
+                      <img src={item.file_path} alt={item.alt_text || 'Media'} className="w-full h-36 object-cover" />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleDeleteMedia(item.id)}
-                          className="w-full bg-red-500/20 text-red-400 px-3 py-1 rounded-sm text-sm hover:bg-red-500/30 transition-colors"
+                          className="p-2 rounded-lg bg-red-600 text-white hover:bg-red-500"
                         >
-                          Delete
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
                   ))}
-
-                  {media.length === 0 && (
-                    <div className="col-span-full text-center py-12">
-                      <div className="text-6xl mb-4">🖼️</div>
-                      <h3 className="text-xl font-semibold text-sangeet-neutral-300 mb-2">
-                        No media files yet
-                      </h3>
-                      <p className="text-sangeet-neutral-400 mb-4">
-                        Upload images to build your restaurant&apos;s media gallery
-                      </p>
-                    </div>
-                  )}
                 </div>
               </motion.div>
             )}
 
-            {/* Timeslots Tab */}
+            {/* TAB 6: RESERVATION TIMESLOTS */}
             {activeTab === 'timeslots' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-sangeet-400">Reservation Timeslots</h2>
-                    <p className="text-sangeet-neutral-400 mt-1">Manage the available booking times for guests.</p>
-                  </div>
-                  <div className="flex gap-2">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                <div className="bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800 space-y-4">
+                  <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
+                    <Calendar className="w-5 h-5" /> Add Reservation Time Slot
+                  </h3>
+                  <div className="flex gap-3">
                     <input
                       type="time"
                       value={newTimeSlot}
                       onChange={(e) => setNewTimeSlot(e.target.value)}
-                      className="px-4 py-2 bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-md text-sangeet-neutral-100"
+                      className="bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white"
                     />
                     <button
                       onClick={handleCreateTimeSlot}
-                      disabled={saving || !newTimeSlot}
-                      className="px-6 py-2 bg-sangeet-500 hover:bg-sangeet-600 text-white font-medium rounded-md transition-colors disabled:opacity-50"
+                      className="px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-sangeet-neutral-950 font-bold text-sm"
                     >
-                      Add Timeslot
+                      Add Slot
                     </button>
                   </div>
                 </div>
 
-                <div className="bg-sangeet-neutral-900 rounded-xl border border-sangeet-neutral-700 overflow-hidden">
-                  <table className="w-full text-left">
-                    <thead className="bg-sangeet-neutral-800 text-sangeet-neutral-300">
-                      <tr>
-                        <th className="px-6 py-4 font-medium">Time (HH:MM)</th>
-                        <th className="px-6 py-4 font-medium">Max Tables</th>
-                        <th className="px-6 py-4 font-medium">Status</th>
-                        <th className="px-6 py-4 text-right font-medium">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-sangeet-neutral-800 text-sangeet-neutral-100">
-                      {timeSlots.map((slot) => (
-                        <tr key={slot.id} className="hover:bg-sangeet-neutral-800/50">
-                          <td className="px-6 py-4 text-lg">{slot.time_slot}</td>
-                          <td className="px-6 py-4 text-sangeet-neutral-400">{slot.max_reservations}</td>
-                          <td className="px-6 py-4">
-                            <button
-                              onClick={() => handleToggleTimeSlot(slot.id, slot.is_active)}
-                              className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                slot.is_active 
-                                  ? 'bg-green-500/10 text-green-400 border border-green-500/20' 
-                                  : 'bg-sangeet-neutral-700 text-sangeet-neutral-400 border border-sangeet-neutral-600'
-                              }`}
-                            >
-                              {slot.is_active ? 'Active' : 'Inactive'}
-                            </button>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <button
-                              onClick={() => handleDeleteTimeSlot(slot.id)}
-                              className="text-red-400 hover:text-red-300 transition-colors px-3 py-1 bg-red-400/10 rounded-md hover:bg-red-400/20"
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                      {timeSlots.length === 0 && (
-                        <tr>
-                          <td colSpan={4} className="px-6 py-8 text-center text-sangeet-neutral-400">
-                            No timeslots configured. Add one above.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {timeSlots.map((slot) => (
+                    <div key={slot.id} className="flex items-center justify-between p-3.5 bg-sangeet-neutral-900 rounded-lg border border-sangeet-neutral-800">
+                      <span className="font-semibold text-sm text-amber-300">{slot.time_slot}</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleToggleTimeSlot(slot.id, slot.is_active)}
+                          className={`px-2 py-1 rounded text-xs font-bold ${slot.is_active ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'}`}
+                        >
+                          {slot.is_active ? 'Active' : 'Off'}
+                        </button>
+                        <button onClick={() => handleDeleteTimeSlot(slot.id)} className="text-sangeet-neutral-500 hover:text-red-400">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </motion.div>
             )}
+
           </div>
         </div>
+
       </main>
     </div>
   );

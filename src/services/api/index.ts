@@ -63,7 +63,7 @@ export {
   getRestaurantSettings, updateRestaurantSettings,
   getWebsiteContent, updateWebsiteContent,
   getWebsiteMedia, uploadWebsiteMedia, deleteWebsiteMedia,
-  getWebsiteStats,
+  getWebsiteStats, getPublicWebsiteConfig,
   fetchEvents, fetchFeaturedEvents, fetchUpcomingEvents, fetchEventById
 } from './websiteApi';
 
@@ -77,4 +77,4 @@ export {
 // SERVER COMPONENT FETCHERS
 export { serverFetchMenuItems, serverFetchMenuCategories } from './menuApi';
 export { serverFetchReviews } from './reviewApi';
-export { serverFetchEvents } from './websiteApi';
+export { serverFetchEvents, serverFetchPublicWebsiteConfig } from './websiteApi';

@@ -77,7 +77,17 @@ export const fetchEventById = async (id: string | number): Promise<EventRow> => 
   }, 'fetchEventById');
 };
 
+export const getPublicWebsiteConfig = async (): Promise<Record<string, any>> => {
+  return apiCallWrapper(async () => {
+    return await api.get('/website/public-config');
+  }, 'getPublicWebsiteConfig');
+};
+
 // SERVER COMPONENT FETCHERS
 export const serverFetchEvents = async (): Promise<EventRow[]> => {
   return serverFetch<EventRow[]>('/events', { next: { revalidate: 3600 } });
+};
+
+export const serverFetchPublicWebsiteConfig = async (): Promise<Record<string, any>> => {
+  return serverFetch<Record<string, any>>('/website/public-config', { next: { revalidate: 60 } });
 };

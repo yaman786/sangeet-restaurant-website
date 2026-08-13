@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import HomePage from '@/_pages/HomePage';
-import { serverFetchReviews, serverFetchEvents } from '@/services/api';
+import { serverFetchReviews, serverFetchEvents, serverFetchPublicWebsiteConfig } from '@/services/api';
 import menuService from '@/lib/services/menuService';
 import type { Metadata } from 'next';
 
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 const FALLBACK_MENU = [
   {
@@ -52,17 +52,20 @@ export default async function Home() {
   let menuItems = FALLBACK_MENU;
   let reviews = FALLBACK_REVIEWS;
   let events = FALLBACK_EVENTS;
+  let cmsConfig: any = null;
 
   try {
-    const [menuRes, reviewsRes, eventsRes] = await Promise.all([
+    const [menuRes, reviewsRes, eventsRes, cmsRes] = await Promise.all([
       menuService.getAllMenuItems().then(res => JSON.parse(JSON.stringify(res))).catch(() => FALLBACK_MENU),
       serverFetchReviews().catch(() => FALLBACK_REVIEWS),
-      serverFetchEvents().catch(() => FALLBACK_EVENTS)
+      serverFetchEvents().catch(() => FALLBACK_EVENTS),
+      serverFetchPublicWebsiteConfig().catch(() => null)
     ]);
     
     menuItems = menuRes || FALLBACK_MENU;
     reviews = reviewsRes || FALLBACK_REVIEWS;
     events = eventsRes || FALLBACK_EVENTS;
+    cmsConfig = cmsRes;
   } catch (err) {
     console.error("Failed to fetch home page data on server", err);
   }
@@ -72,5 +75,5 @@ export default async function Home() {
   if (!reviews || reviews.length === 0) reviews = FALLBACK_REVIEWS;
   if (!events || events.length === 0) events = FALLBACK_EVENTS;
 
-  return <HomePage menuItems={menuItems} reviews={reviews} events={events} />;
+  return <HomePage menuItems={menuItems} reviews={reviews} events={events} cmsConfig={cmsConfig} />;
 }

@@ -47,9 +47,27 @@ const StatusPill = () => {
   );
 };
 
-const HomePage = ({ menuItems, reviews, events }: any) => {
+const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
   const navigate = useNavigate();
   const [currentEventsSlide, setCurrentEventsSlide] = useState(0);
+
+  // Parse CMS dynamic config
+  const heroData = cmsConfig?.hero || {
+    title: "Experience South Asian Elegance",
+    subtitle: "Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong.",
+    image_url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop",
+    primary_cta_text: "Reserve Your Table",
+    primary_cta_link: "/reservations",
+    secondary_cta_text: "Explore the Menu",
+    secondary_cta_link: "/menu"
+  };
+
+  const announcementData = cmsConfig?.announcement || {
+    is_active: true,
+    text: "✨ Welcome to Sangeet — Book your table online for an authentic South Asian dining experience.",
+    link: "/reservations",
+    theme: "gold"
+  };
 
   // Scroll-driven parallax for hero
   const { scrollY } = useScroll();
@@ -133,6 +151,18 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
   return (
     <div className="min-h-screen">
 
+      {/* Top Announcement Bar (Dynamic CMS) */}
+      {announcementData.is_active && (
+        <div className="bg-linear-to-r from-amber-600 via-amber-500 to-amber-600 text-sangeet-neutral-950 font-medium text-xs sm:text-sm py-2 px-4 text-center sticky top-0 z-50 flex items-center justify-center gap-2 shadow-md">
+          <span>{announcementData.text}</span>
+          {announcementData.link && (
+            <Link href={announcementData.link} className="underline font-bold hover:opacity-80 transition-opacity ml-1">
+              Learn More →
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* ───────────────────────────────────────────────────────
           HERO SECTION — Full-bleed cinematic, single CTA
           Benchmarked: Apple product pages, Airbnb homepage
@@ -141,7 +171,7 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
         {/* Background Image with Parallax */}
         <motion.div className="absolute inset-0" style={{ y: heroY }}>
           <Image
-            src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop"
+            src={heroData.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop"}
             alt="Sangeet Restaurant dining ambiance"
             fill
             priority
@@ -178,10 +208,7 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
             transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] as any}}
             className="text-display-sm sm:text-display-md md:text-display-lg text-white mb-6"
           >
-            Experience{' '}
-            <span className="text-gradient-gold italic">
-              South Asian Elegance
-            </span>
+            {heroData.title || "Experience South Asian Elegance"}
           </motion.h1>
 
           {/* Subheadline */}
@@ -191,7 +218,7 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
             transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] as any}}
             className="text-body-lg sm:text-heading-sm text-sangeet-neutral-300 mb-10 max-w-2xl mx-auto font-sans"
           >
-            Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong.
+            {heroData.subtitle || "Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong."}
           </motion.p>
 
           {/* Single Primary CTA + Ghost Secondary */}
@@ -202,16 +229,16 @@ const HomePage = ({ menuItems, reviews, events }: any) => {
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
             <button
-              onClick={() => navigate('/reservations')}
+              onClick={() => navigate(heroData.primary_cta_link || '/reservations')}
               className="btn-primary text-heading-sm px-10 py-4"
             >
-              Reserve Your Table
+              {heroData.primary_cta_text || "Reserve Your Table"}
             </button>
             <button
-              onClick={() => navigate('/menu')}
+              onClick={() => navigate(heroData.secondary_cta_link || '/menu')}
               className="btn-secondary px-8 py-4"
             >
-              Explore the Menu
+              {heroData.secondary_cta_text || "Explore the Menu"}
             </button>
           </motion.div>
 
