@@ -72,13 +72,6 @@ const RestaurantWebsiteManagementPage = () => {
     secondary_cta_link: "/menu"
   });
 
-  const [announcementForm, setAnnouncementForm] = useState({
-    is_active: true,
-    text: "✨ Welcome to Sangeet — Reserve your table online for an unforgettable South Asian culinary experience.",
-    link: "/reservations",
-    theme: "gold"
-  });
-
   const [businessHoursForm, setBusinessHoursForm] = useState({
     status_override: "normal",
     schedule: DEFAULT_SCHEDULE
@@ -121,7 +114,6 @@ const RestaurantWebsiteManagementPage = () => {
 
       if (configData) {
         if (configData.hero) setHeroForm(prev => ({ ...prev, ...configData.hero }));
-        if (configData.announcement) setAnnouncementForm(prev => ({ ...prev, ...configData.announcement }));
         if (configData.businessHours) {
           setBusinessHoursForm({
             status_override: configData.businessHours.status_override || "normal",
@@ -157,7 +149,6 @@ const RestaurantWebsiteManagementPage = () => {
       setSaving(true);
 
       const settingsPayload: Record<string, any> = {
-        announcement_bar: { value: announcementForm, type: 'json' },
         business_hours: { value: businessHoursForm, type: 'json' },
         hero_banner: { value: heroForm, type: 'json' },
         phone: { value: contactForm.phone, type: 'text' },
@@ -375,52 +366,6 @@ const RestaurantWebsiteManagementPage = () => {
             {activeTab === 'hero' && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
                 
-                {/* Announcement Bar Settings */}
-                <div className="bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
-                        <Sparkles className="w-5 h-5" /> Top Announcement Bar
-                      </h3>
-                      <p className="text-xs text-sangeet-neutral-400">Display a prominent banner across the top of the website</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={announcementForm.is_active}
-                        onChange={(e) => setAnnouncementForm({ ...announcementForm, is_active: e.target.checked })}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-sangeet-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                    </label>
-                  </div>
-
-                  {announcementForm.is_active && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                      <div className="md:col-span-2">
-                        <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">Announcement Text</label>
-                        <input
-                          type="text"
-                          value={announcementForm.text}
-                          onChange={(e) => setAnnouncementForm({ ...announcementForm, text: e.target.value })}
-                          className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
-                          placeholder="e.g. ✨ Special Chef's Tasting Menu available this weekend!"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-sangeet-neutral-300 mb-1">CTA Target Link</label>
-                        <input
-                          type="text"
-                          value={announcementForm.link}
-                          onChange={(e) => setAnnouncementForm({ ...announcementForm, link: e.target.value })}
-                          className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
-                          placeholder="/reservations"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 {/* Hero Section Content */}
                 <div className="bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800 space-y-5">
                   <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">

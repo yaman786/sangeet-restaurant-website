@@ -321,14 +321,6 @@ class WebsiteService {
       secondary_cta_link: "/menu"
     };
 
-    // Parse Announcement Bar
-    const announcement = settings.announcement_bar?.value || {
-      is_active: true,
-      text: "✨ Welcome to Sangeet — Reserve your table online for an unforgettable South Asian culinary experience.",
-      link: "/reservations",
-      theme: "gold"
-    };
-
     // Parse Business Hours & Override
     const businessHours = settings.business_hours?.value || {
       status_override: "normal", // 'normal' | 'force_open' | 'force_closed'
@@ -353,7 +345,6 @@ class WebsiteService {
 
     const rawPayload = {
       hero: heroBanner,
-      announcement,
       businessHours,
       contactInfo,
       settings,

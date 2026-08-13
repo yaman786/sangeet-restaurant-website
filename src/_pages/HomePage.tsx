@@ -62,13 +62,6 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
     secondary_cta_link: "/menu"
   };
 
-  const announcementData = cmsConfig?.announcement || {
-    is_active: true,
-    text: "✨ Welcome to Sangeet — Book your table online for an authentic South Asian dining experience.",
-    link: "/reservations",
-    theme: "gold"
-  };
-
   // Scroll-driven parallax for hero
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 500], [0, 150]);
@@ -150,18 +143,6 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
   // ════════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen">
-
-      {/* Top Announcement Bar (Dynamic CMS) */}
-      {announcementData.is_active && (
-        <div className="bg-linear-to-r from-amber-600 via-amber-500 to-amber-600 text-sangeet-neutral-950 font-medium text-xs sm:text-sm py-2 px-4 text-center sticky top-0 z-50 flex items-center justify-center gap-2 shadow-md">
-          <span>{announcementData.text}</span>
-          {announcementData.link && (
-            <Link href={announcementData.link} className="underline font-bold hover:opacity-80 transition-opacity ml-1">
-              Learn More →
-            </Link>
-          )}
-        </div>
-      )}
 
       {/* ───────────────────────────────────────────────────────
           HERO SECTION — Full-bleed cinematic, single CTA
