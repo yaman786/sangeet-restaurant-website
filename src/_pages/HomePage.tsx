@@ -7,7 +7,6 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 
 import logo from '../assets/images/logo.png';
 import ReviewsSection from '../components/ReviewsSection';
-import DigitalPreviewModal from '../components/DigitalPreviewModal';
 import { sanitizePhoneNumber } from '../utils/sanitizePhone';
 
 /**
@@ -730,9 +729,6 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
           </motion.div>
         </div>
       </section>
-
-      {/* Luxury Digital Preview / Soft Launch Modal */}
-      <DigitalPreviewModal />
 
     </div>
   );

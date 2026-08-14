@@ -1,23 +1,27 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, Phone, X, UtensilsCrossed, Calendar, Award } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DigitalPreviewModal() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const hasSeenPreview = sessionStorage.getItem('sangeet_preview_seen');
-    if (!hasSeenPreview) {
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-      }, 200);
-      return () => clearTimeout(timer);
+    // Don't show on admin, kitchen, or auth routes
+    if (pathname?.startsWith('/admin') || pathname?.startsWith('/kitchen') || pathname?.startsWith('/login')) {
+      return;
     }
-  }, []);
+    const hasSeenPreview = sessionStorage.getItem('sangeet_preview_seen');
+    console.log('[DigitalPreviewModal useEffect] pathname:', pathname, 'hasSeenPreview:', hasSeenPreview);
+    if (!hasSeenPreview) {
+      setIsOpen(true);
+    }
+  }, [pathname]);
 
   const handleDismiss = () => {
     setIsOpen(false);
@@ -25,6 +29,7 @@ export default function DigitalPreviewModal() {
   };
 
   if (!mounted) return null;
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/kitchen') || pathname?.startsWith('/login')) return null;
 
   return (
     <AnimatePresence>
