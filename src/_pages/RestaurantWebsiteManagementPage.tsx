@@ -75,6 +75,8 @@ const RestaurantWebsiteManagementPage = () => {
   const [eventsList, setEventsList] = useState<any[]>([]);
   const [editingEvent, setEditingEvent] = useState<any>(null);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [deleteConfirmEvent, setDeleteConfirmEvent] = useState<any | null>(null);
+  const [deletingEvent, setDeletingEvent] = useState(false);
 
   // CMS State Sections
   const [heroForm, setHeroForm] = useState({
@@ -371,14 +373,22 @@ const RestaurantWebsiteManagementPage = () => {
     }
   };
 
-  const handleDeleteEvent = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this event?')) return;
+  const handleDeleteEvent = (event: any) => {
+    setDeleteConfirmEvent(event);
+  };
+
+  const confirmDeleteEvent = async () => {
+    if (!deleteConfirmEvent) return;
+    setDeletingEvent(true);
     try {
-      await deleteEvent(id);
-      setEventsList(eventsList.filter(ev => ev.id !== id));
-      toast.success('Event deleted');
+      await deleteEvent(deleteConfirmEvent.id);
+      setEventsList(eventsList.filter(ev => ev.id !== deleteConfirmEvent.id));
+      toast.success('Event removed successfully');
+      setDeleteConfirmEvent(null);
     } catch (e) {
       toast.error('Failed to delete event');
+    } finally {
+      setDeletingEvent(false);
     }
   };
 
@@ -917,8 +927,9 @@ const RestaurantWebsiteManagementPage = () => {
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDeleteEvent(event.id)}
-                            className="p-2 bg-black/60 hover:bg-red-500 hover:text-white text-white rounded-full backdrop-blur-md transition-all shadow-xl"
+                            onClick={() => handleDeleteEvent(event)}
+                            className="p-2 bg-black/60 hover:bg-red-500 hover:text-white text-white rounded-full backdrop-blur-md transition-all shadow-xl cursor-pointer"
+                            title="Delete Event"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -1164,6 +1175,72 @@ const RestaurantWebsiteManagementPage = () => {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* DELETE EVENT CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {deleteConfirmEvent && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-sangeet-neutral-900 border border-sangeet-neutral-700/80 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+            >
+              <div className="p-6 border-b border-sangeet-neutral-800 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400">
+                  <Trash2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Delete Special Event</h3>
+                  <p className="text-sm text-sangeet-neutral-400">Remove from homepage celebrations</p>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="bg-sangeet-neutral-950 p-4 rounded-xl border border-sangeet-neutral-800">
+                  <div className="font-semibold text-sangeet-neutral-100 mb-1">{deleteConfirmEvent.title}</div>
+                  <div className="text-xs text-sangeet-neutral-400 flex items-center gap-2">
+                    <span>{new Date(deleteConfirmEvent.date).toLocaleDateString()}</span>
+                    {deleteConfirmEvent.category && <span>• {deleteConfirmEvent.category}</span>}
+                    {deleteConfirmEvent.price && <span className="text-amber-400 font-medium">• {deleteConfirmEvent.price}</span>}
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-300 flex items-start gap-2.5">
+                  <span className="text-base leading-none">⚠️</span>
+                  <span className="leading-relaxed">
+                    This action will permanently delete this event. You can also keep it and update its date for future use.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-3 p-6 border-t border-sangeet-neutral-800 bg-sangeet-neutral-950/60">
+                <button
+                  type="button"
+                  disabled={deletingEvent}
+                  onClick={() => setDeleteConfirmEvent(null)}
+                  className="flex-1 px-5 py-2.5 rounded-lg bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 text-sangeet-neutral-200 font-medium transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={deletingEvent}
+                  onClick={confirmDeleteEvent}
+                  className="flex-1 px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold transition-all shadow-lg hover:shadow-red-600/30 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {deletingEvent ? 'Deleting...' : 'Delete Event'}
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}

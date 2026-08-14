@@ -109,7 +109,7 @@ test('Create Special Event in CMS & Live UI Sync', async ({ page }) => {
 
   console.log(`🎉 SUCCESS: Live public website dynamically rendered the new Event: "${TEST_EVENT_TITLE}"`);
 
-  console.log('--- Phase 4: Cleanup - Deleting Event ---');
+  console.log('--- Phase 4: Cleanup - Deleting Event via Professional Modal ---');
   await page.goto('/admin/website-management');
   await page.waitForLoadState('networkidle');
   
@@ -120,9 +120,17 @@ test('Create Special Event in CMS & Live UI Sync', async ({ page }) => {
   const eventCard = page.locator('div.group', { hasText: TEST_EVENT_TITLE });
   await expect(eventCard).toBeVisible({ timeout: 15000 });
   
-  const deleteBtn = eventCard.locator('button').filter({ has: page.locator('svg.lucide-trash2') });
+  const deleteBtn = eventCard.locator('button[title="Delete Event"]');
   await deleteBtn.click({ force: true });
   
+  // Verify Professional Confirmation Modal appears
+  const modalHeading = page.locator('h3', { hasText: 'Delete Special Event' });
+  await expect(modalHeading).toBeVisible({ timeout: 10000 });
+  
+  // Click Confirm Delete inside modal
+  const confirmDeleteBtn = page.locator('button', { hasText: 'Delete Event' });
+  await confirmDeleteBtn.click();
+  
   await page.waitForTimeout(2000);
-  console.log('✅ Event successfully deleted from production');
+  console.log('✅ Event successfully deleted via professional confirmation dialog');
 });
