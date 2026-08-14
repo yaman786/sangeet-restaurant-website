@@ -12,10 +12,9 @@ export default function DigitalPreviewModal() {
     setMounted(true);
     const hasSeenPreview = sessionStorage.getItem('sangeet_preview_seen');
     if (!hasSeenPreview) {
-      // Small timeout for smooth natural page entrance
       const timer = setTimeout(() => {
         setIsOpen(true);
-      }, 700);
+      }, 200);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -30,7 +29,7 @@ export default function DigitalPreviewModal() {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
           {/* Backdrop with frosted glass effect */}
           <motion.div
             initial={{ opacity: 0 }}
