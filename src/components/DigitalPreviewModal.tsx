@@ -4,6 +4,8 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, Phone, X, UtensilsCrossed, Calendar, Award } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+import logo from '../assets/images/logo.png';
 
 export default function DigitalPreviewModal() {
   const pathname = usePathname();
@@ -17,7 +19,6 @@ export default function DigitalPreviewModal() {
       return;
     }
     const hasSeenPreview = sessionStorage.getItem('sangeet_preview_seen');
-    console.log('[DigitalPreviewModal useEffect] pathname:', pathname, 'hasSeenPreview:', hasSeenPreview);
     if (!hasSeenPreview) {
       setIsOpen(true);
     }
@@ -50,11 +51,11 @@ export default function DigitalPreviewModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-lg bg-linear-to-b from-sangeet-neutral-900 via-sangeet-neutral-900/95 to-sangeet-neutral-950 border border-amber-500/30 rounded-3xl p-6 sm:p-8 shadow-[0_0_50px_rgba(212,175,55,0.15)] overflow-hidden z-10"
+            className="relative w-full max-w-lg bg-linear-to-b from-sangeet-neutral-900 via-sangeet-neutral-900/98 to-sangeet-neutral-950 border border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-[0_0_60px_rgba(212,175,55,0.25)] overflow-hidden z-10"
           >
             {/* Ambient Background Glows */}
-            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-sangeet-red-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-56 h-56 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-56 h-56 bg-sangeet-red-500/10 rounded-full blur-3xl pointer-events-none" />
 
             {/* Close Button */}
             <button
@@ -65,13 +66,28 @@ export default function DigitalPreviewModal() {
               <X className="w-5 h-5" />
             </button>
 
-            {/* Header Content */}
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-widest mb-4 shadow-sm">
+            {/* BIG PROMINENT SANGEET LOGO WITH AMBIENT GOLD RADIANCE */}
+            <div className="relative mb-6 flex flex-col items-center justify-center text-center">
+              <div className="relative mb-3">
+                {/* Radial Gold Aura */}
+                <div className="absolute -inset-4 bg-radial from-amber-400/30 via-amber-500/10 to-transparent blur-xl pointer-events-none" />
+                <Image
+                  src={logo}
+                  alt="Sangeet Restaurant Logo"
+                  priority
+                  className="relative h-20 sm:h-24 md:h-28 w-auto object-contain filter brightness-110 contrast-105 drop-shadow-[0_15px_30px_rgba(212,175,55,0.35)]"
+                />
+              </div>
+
+              {/* Exclusive Digital Preview Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-widest shadow-sm">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
                 <span>Exclusive Digital Preview</span>
               </div>
+            </div>
 
+            {/* Heading Content */}
+            <div className="text-center mb-6">
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mb-2 leading-tight">
                 A Taste of <span className="text-gradient-gold italic">What’s to Come</span>
               </h2>
@@ -82,21 +98,21 @@ export default function DigitalPreviewModal() {
             </div>
 
             {/* Feature Highlights Grid */}
-            <div className="grid grid-cols-3 gap-2.5 mb-6 py-4 px-3 rounded-2xl bg-sangeet-neutral-950/70 border border-sangeet-neutral-800">
-              <div className="text-center p-2 rounded-xl bg-sangeet-neutral-900/60 border border-sangeet-neutral-800/50">
+            <div className="grid grid-cols-3 gap-2.5 mb-6 py-4 px-3 rounded-2xl bg-sangeet-neutral-950/80 border border-sangeet-neutral-800/80 shadow-inner">
+              <div className="text-center p-2.5 rounded-xl bg-sangeet-neutral-900/80 border border-sangeet-neutral-800/60 hover:border-amber-500/30 transition-colors">
                 <UtensilsCrossed className="w-5 h-5 text-amber-400 mx-auto mb-1.5" />
                 <span className="block text-[11px] font-semibold text-sangeet-neutral-200">Signature Menus</span>
-                <span className="block text-[9px] text-sangeet-neutral-400">Live Preview</span>
+                <span className="block text-[9px] text-amber-400/80 font-medium">Live Preview</span>
               </div>
-              <div className="text-center p-2 rounded-xl bg-sangeet-neutral-900/60 border border-sangeet-neutral-800/50">
+              <div className="text-center p-2.5 rounded-xl bg-sangeet-neutral-900/80 border border-sangeet-neutral-800/60 hover:border-amber-500/30 transition-colors">
                 <Calendar className="w-5 h-5 text-amber-400 mx-auto mb-1.5" />
                 <span className="block text-[11px] font-semibold text-sangeet-neutral-200">Diwali Galas</span>
-                <span className="block text-[9px] text-sangeet-neutral-400">Special Events</span>
+                <span className="block text-[9px] text-amber-400/80 font-medium">Special Events</span>
               </div>
-              <div className="text-center p-2 rounded-xl bg-sangeet-neutral-900/60 border border-sangeet-neutral-800/50">
+              <div className="text-center p-2.5 rounded-xl bg-sangeet-neutral-900/80 border border-sangeet-neutral-800/60 hover:border-amber-500/30 transition-colors">
                 <Award className="w-5 h-5 text-amber-400 mx-auto mb-1.5" />
                 <span className="block text-[11px] font-semibold text-sangeet-neutral-200">5,300 Sq Ft</span>
-                <span className="block text-[9px] text-sangeet-neutral-400">Luxury Venue</span>
+                <span className="block text-[9px] text-amber-400/80 font-medium">Luxury Venue</span>
               </div>
             </div>
 
@@ -108,7 +124,7 @@ export default function DigitalPreviewModal() {
             <div className="space-y-3">
               <button
                 onClick={handleDismiss}
-                className="w-full py-3.5 px-6 rounded-xl bg-linear-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-sangeet-neutral-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 group cursor-pointer"
+                className="w-full py-4 px-6 rounded-xl bg-linear-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-sangeet-neutral-950 font-bold text-sm shadow-xl shadow-amber-500/25 transition-all flex items-center justify-center gap-2 group cursor-pointer"
               >
                 <span>Explore Sangeet Experience</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -118,14 +134,14 @@ export default function DigitalPreviewModal() {
                 <Link
                   href="/contact"
                   onClick={handleDismiss}
-                  className="text-xs text-sangeet-neutral-400 hover:text-amber-400 transition-colors underline-offset-4 hover:underline"
+                  className="text-xs text-sangeet-neutral-400 hover:text-amber-400 transition-colors underline-offset-4 hover:underline font-medium"
                 >
                   Private Event Inquiries
                 </Link>
                 <span className="text-sangeet-neutral-700">•</span>
                 <a
                   href="tel:+85223456789"
-                  className="text-xs text-sangeet-neutral-400 hover:text-amber-400 transition-colors flex items-center gap-1"
+                  className="text-xs text-sangeet-neutral-400 hover:text-amber-400 transition-colors flex items-center gap-1 font-medium"
                 >
                   <Phone className="w-3 h-3 text-amber-400" />
                   <span>+852 2345 6789</span>
