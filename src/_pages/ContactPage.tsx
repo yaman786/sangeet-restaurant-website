@@ -297,20 +297,27 @@ const ContactPage = () => {
                   <label htmlFor="subject" className="block text-sangeet-neutral-300 text-sm font-medium mb-2">
                     Subject *
                   </label>
-                  <select
-                    id="subject"
-                    {...register('subject', { required: 'Subject is required' })}
-                    className="w-full px-4 py-3 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 text-sangeet-neutral-100 focus:outline-hidden focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-2 focus:ring-offset-sangeet-neutral-900 transition-all duration-200 text-sm md:text-base"
-                  >
-                    <option value="">Select a subject</option>
-                    <option value="reservation">Reservation Request</option>
-                    <option value="feedback">Feedback</option>
-                    <option value="general">General Inquiry</option>
-                    <option value="catering">Catering Services</option>
-                    <option value="other">Other</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="subject"
+                      {...register('subject', { required: 'Subject is required' })}
+                      className="w-full px-4 py-3.5 rounded-xl bg-sangeet-neutral-800/90 border border-sangeet-neutral-600 text-sangeet-neutral-100 focus:outline-hidden focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 transition-all duration-200 text-sm md:text-base appearance-none cursor-pointer pr-10"
+                    >
+                      <option value="" className="bg-sangeet-neutral-900 text-sangeet-neutral-400">Select inquiry type</option>
+                      <option value="reservation" className="bg-sangeet-neutral-900 text-white">🍽️ Table Reservation Request</option>
+                      <option value="events" className="bg-sangeet-neutral-900 text-white">🪔 Private Dining & Festive Celebrations</option>
+                      <option value="catering" className="bg-sangeet-neutral-900 text-white">🍱 Corporate & Event Catering</option>
+                      <option value="feedback" className="bg-sangeet-neutral-900 text-white">⭐ Guest Experience Feedback</option>
+                      <option value="general" className="bg-sangeet-neutral-900 text-white">💬 General Inquiry</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-sangeet-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
                   {errors.subject && (
-                    <p className="mt-1 text-red-400 text-xs">{errors.subject.message as string}</p>
+                    <p className="mt-1.5 text-red-400 text-xs font-medium">{errors.subject.message as string}</p>
                   )}
                 </div>
 

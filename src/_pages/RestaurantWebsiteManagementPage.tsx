@@ -114,17 +114,14 @@ const RestaurantWebsiteManagementPage = () => {
   });
 
   const [mediaList, setMediaList] = useState<any[]>([]);
-  const [timeSlots, setTimeSlots] = useState<any[]>([]);
-  const [newTimeSlot, setNewTimeSlot] = useState('');
 
   // Load all website configuration data
   const loadData = async () => {
     try {
       setLoading(true);
-      const [configData, mediaData, timeSlotsData, eventsData] = await Promise.all([
+      const [configData, mediaData, eventsData] = await Promise.all([
         getPublicWebsiteConfig().catch(() => null),
         getWebsiteMedia().catch(() => []),
-        getAllTimeSlots().catch(() => []),
         fetchEvents().catch(() => [])
       ]);
 
@@ -142,7 +139,6 @@ const RestaurantWebsiteManagementPage = () => {
       }
 
       setMediaList((mediaData as any)?.media || mediaData || []);
-      setTimeSlots((timeSlotsData as any) || []);
       setEventsList((eventsData as any) || []);
     } catch (error: any) {
       console.error('Error loading website management data:', error);
@@ -314,42 +310,6 @@ const RestaurantWebsiteManagementPage = () => {
     }
   };
 
-  // Timeslot Handlers
-  const handleCreateTimeSlot = async () => {
-    if (!newTimeSlot) return;
-    try {
-      setSaving(true);
-      await createTimeSlot({ time_slot: newTimeSlot });
-      const times = await getAllTimeSlots();
-      setTimeSlots((times as any) || []);
-      setNewTimeSlot('');
-      toast.success('Time slot added!');
-    } catch (e) {
-      toast.error('Failed to create time slot');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleToggleTimeSlot = async (id: number, isActive: boolean) => {
-    try {
-      await updateTimeSlot(id, { is_active: !isActive });
-      setTimeSlots(timeSlots.map(t => t.id === id ? { ...t, is_active: !isActive } : t));
-    } catch (e) {
-      toast.error('Failed to update time slot');
-    }
-  };
-
-  const handleDeleteTimeSlot = async (id: number) => {
-    try {
-      await deleteTimeSlot(id);
-      setTimeSlots(timeSlots.filter(t => t.id !== id));
-      toast.success('Time slot deleted');
-    } catch (e) {
-      toast.error('Failed to delete time slot');
-    }
-  };
-
   // Event Handlers
   const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -426,7 +386,6 @@ const RestaurantWebsiteManagementPage = () => {
     { id: 'contact', name: 'Contact & Social', icon: Globe },
     { id: 'seo', name: 'SEO & Metadata', icon: Search },
     { id: 'media', name: 'Media Gallery', icon: ImageIcon },
-    { id: 'reservations', name: 'Reservations', icon: Calendar },
     { id: 'events', name: 'Special Events', icon: PartyPopper }
   ];
 
@@ -824,66 +783,6 @@ const RestaurantWebsiteManagementPage = () => {
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {/* TAB 6: RESERVATION TIMESLOTS */}
-            {activeTab === 'timeslots' && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                <div className="bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800 space-y-4">
-                  <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
-                    <Calendar className="w-5 h-5" /> Add Reservation Time Slot
-                  </h3>
-                  <div className="flex gap-3">
-                    <input
-                      type="time"
-                      value={newTimeSlot}
-                      onChange={(e) => setNewTimeSlot(e.target.value)}
-                      className="bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white"
-                    />
-                    <button
-                      onClick={handleCreateTimeSlot}
-                      className="px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-sangeet-neutral-950 font-bold text-sm"
-                    >
-                      Add Slot
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {timeSlots.map((slot) => (
-                    <div key={slot.id} className={`flex items-center justify-between p-4 rounded-xl border transition-all ${slot.is_active ? 'bg-sangeet-neutral-900 border-sangeet-neutral-800' : 'bg-sangeet-neutral-950/80 border-red-900/30 opacity-75'}`}>
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono text-base font-bold text-amber-300">{slot.time_slot}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {/* Interactive ON / OFF Toggle Switch */}
-                        <button
-                          type="button"
-                          onClick={() => handleToggleTimeSlot(slot.id, slot.is_active)}
-                          className={`relative inline-flex h-6 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${slot.is_active ? 'bg-emerald-600' : 'bg-sangeet-neutral-700'}`}
-                          title={slot.is_active ? 'Click to Turn OFF' : 'Click to Turn ON'}
-                        >
-                          <span className="sr-only">Toggle Slot</span>
-                          <span
-                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out text-[9px] font-black flex items-center justify-center ${slot.is_active ? 'translate-x-8 text-emerald-700' : 'translate-x-0 text-sangeet-neutral-600'}`}
-                          >
-                            {slot.is_active ? 'ON' : 'OFF'}
-                          </span>
-                        </button>
-
-                        {/* Delete Button */}
-                        <button 
-                          onClick={() => handleDeleteTimeSlot(slot.id)} 
-                          className="p-1.5 rounded-lg text-sangeet-neutral-500 hover:text-red-400 hover:bg-red-950/30 transition-colors"
-                          title="Delete slot"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
                     </div>
                   ))}

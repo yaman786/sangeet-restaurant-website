@@ -197,17 +197,24 @@ const ReservationsPage = () => {
                 <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
                   Number of Guests *
                 </label>
-                <select
-                  {...register('guests')}
-                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent"
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                    <option key={num} value={num}>
-                      {num} {num === 1 ? 'Guest' : 'Guests'}
-                    </option>
-                  ))}
-                </select>
-                {errors.guests && <p className="text-red-500 text-xs mt-1">{errors.guests.message}</p>}
+                <div className="relative">
+                  <select
+                    {...register('guests')}
+                    className="w-full px-4 py-3.5 bg-sangeet-neutral-800/90 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400/20 focus:border-sangeet-400 appearance-none cursor-pointer pr-10 text-sm md:text-base font-medium"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                      <option key={num} value={num} className="bg-sangeet-neutral-900 text-white">
+                        👥 {num} {num === 1 ? 'Guest' : 'Guests'}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-sangeet-400">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+                {errors.guests && <p className="text-red-400 text-xs mt-1.5 font-medium">{errors.guests.message}</p>}
               </div>
             </div>
 
@@ -222,30 +229,37 @@ const ReservationsPage = () => {
                   {...register('date')}
                   min={today}
                   max={maxDateStr}
-                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  className="w-full px-4 py-3.5 bg-sangeet-neutral-800/90 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400/20 focus:border-sangeet-400 text-sm md:text-base [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:brightness-0 [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                 />
-                {errors.date && <p className="text-red-500 text-xs mt-1">{errors.date.message}</p>}
+                {errors.date && <p className="text-red-400 text-xs mt-1.5 font-medium">{errors.date.message}</p>}
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
                   Preferred Time *
                 </label>
-                <select
-                  {...register('time')}
-                  disabled={!selectedDate || isLoadingSlots}
-                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="">
-                    {isLoadingSlots ? 'Loading available times...' : (!selectedDate ? 'Select a date first' : (timeOptions.length === 0 ? 'No slots available' : 'Select a time'))}
-                  </option>
-                  {timeOptions.map(time => (
-                    <option key={time} value={time}>
-                      {formatTime(time)}
+                <div className="relative">
+                  <select
+                    {...register('time')}
+                    disabled={!selectedDate || isLoadingSlots}
+                    className="w-full px-4 py-3.5 bg-sangeet-neutral-800/90 border border-sangeet-neutral-600 rounded-xl text-sangeet-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400/20 focus:border-sangeet-400 appearance-none cursor-pointer pr-10 text-sm md:text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="" className="bg-sangeet-neutral-900 text-sangeet-neutral-400">
+                      {isLoadingSlots ? 'Loading available times...' : (!selectedDate ? 'Select a date first' : (timeOptions.length === 0 ? 'No slots available' : 'Select a dining time'))}
                     </option>
-                  ))}
-                </select>
-                {errors.time && <p className="text-red-500 text-xs mt-1">{errors.time.message}</p>}
+                    {timeOptions.map(time => (
+                      <option key={time} value={time} className="bg-sangeet-neutral-900 text-white">
+                        ⏰ {formatTime(time)}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-sangeet-400">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+                {errors.time && <p className="text-red-400 text-xs mt-1.5 font-medium">{errors.time.message}</p>}
               </div>
             </div>
 

@@ -20,6 +20,8 @@ const HistoryDashboard = () => {
 
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
+  const [orderToRestore, setOrderToRestore] = useState<any>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
 
   const { data = [] as any[], isLoading: loading } = useQuery<any[]>({
     queryKey: ['history', activeTab, filters.startDate, filters.endDate],
@@ -204,11 +206,9 @@ const HistoryDashboard = () => {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (confirm('Are you sure you want to restore this order to the Active Kitchen display?')) {
-                                    handleRestoreOrder(item.id);
-                                  }
+                                  setOrderToRestore(item);
                                 }}
-                                className="p-2 text-sangeet-neutral-400 hover:text-sangeet-400 hover:bg-sangeet-neutral-700 rounded-lg transition-colors inline-block ml-2"
+                                className="p-2 text-sangeet-neutral-400 hover:text-sangeet-400 hover:bg-sangeet-neutral-700 rounded-lg transition-colors inline-block ml-2 cursor-pointer"
                                 title="Restore to Active Orders"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -401,6 +401,58 @@ const HistoryDashboard = () => {
                     </div>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* RESTORE ORDER CONFIRMATION MODAL */}
+        {orderToRestore && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+            >
+              <div className="p-6 border-b border-sangeet-neutral-800 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-white">Restore Order</h4>
+                  <p className="text-xs text-sangeet-neutral-400">Send order back to Kitchen Display</p>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <p className="text-sm text-sangeet-neutral-300">
+                  Are you sure you want to restore <strong className="text-amber-400">{orderToRestore.order_number || `Order #${orderToRestore.id}`}</strong> ({orderToRestore.table_number ? `Table ${orderToRestore.table_number}` : 'Takeaway'}) back to the active kitchen queue?
+                </p>
+              </div>
+
+              <div className="flex gap-3 p-6 border-t border-sangeet-neutral-800 bg-sangeet-neutral-950/60">
+                <button
+                  type="button"
+                  disabled={isRestoring}
+                  onClick={() => setOrderToRestore(null)}
+                  className="flex-1 px-5 py-2.5 rounded-xl bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 text-sangeet-neutral-200 font-medium text-sm transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isRestoring}
+                  onClick={async () => {
+                    setIsRestoring(true);
+                    await handleRestoreOrder(orderToRestore.id);
+                    setIsRestoring(false);
+                    setOrderToRestore(null);
+                  }}
+                  className="flex-1 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isRestoring ? 'Restoring...' : 'Confirm Restore'}
+                </button>
               </div>
             </motion.div>
           </div>
