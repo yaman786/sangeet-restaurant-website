@@ -28,6 +28,7 @@ export interface CreateReservationDTO {
   guests: string | number;
   special_requests?: string;
   table_id?: string | number | null;
+  status?: string;
 }
 
 export interface UpdateReservationDTO {

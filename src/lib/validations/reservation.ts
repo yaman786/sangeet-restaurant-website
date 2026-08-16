@@ -21,7 +21,9 @@ export const reservationSchema = z.object({
     .min(5, 'Phone number is too short')
     .max(20, 'Phone number is too long')
     .regex(/^[+\d][\d\s\-()]{4,19}$/, 'Please enter a valid phone number'),
-  special_requests: z.string().max(500, 'Special requests too long').optional()
+  special_requests: z.string().max(500, 'Special requests too long').optional(),
+  table_id: z.preprocess((val) => (val !== undefined && val !== null && val !== '' ? Number(val) : null), z.number().nullable().optional()),
+  status: z.enum(['pending', 'confirmed', 'completed', 'cancelled', 'no-show']).optional()
 });
 
 export const updateReservationSchema = reservationSchema.partial().extend({

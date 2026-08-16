@@ -305,10 +305,11 @@ class ReservationService {
   }
 
   async createReservation(data: CreateReservationDTO): Promise<any> {
-    const { customer_name, email, phone, date, time, guests, special_requests, table_id } = data;
+    const { customer_name, email, phone, date, time, guests, special_requests, table_id, status } = data;
     const parsedGuests = Number(guests);
     const durationMs = calculateDiningDuration(parsedGuests);
     const requestedTime = parseRestaurantTime(date as any, time as any).toDate();
+    const effectiveStatus = (status as any) || (table_id ? 'confirmed' : 'pending');
     
     // Wrap the availability check and insertion in an atomic transaction to prevent race conditions
     const reservation = await prisma.$transaction(async (tx) => {
@@ -350,7 +351,10 @@ class ReservationService {
           guests: parsedGuests,
           special_requests: special_requests || null,
           table_id: table_id ? Number(table_id) : null,
-          status: 'pending'
+          status: effectiveStatus
+        },
+        include: {
+          tables: true
         }
       });
     });
@@ -358,8 +362,12 @@ class ReservationService {
     let emailFailed = false;
     if (reservation.email) {
       try {
+        const emailPromise = effectiveStatus === 'confirmed'
+          ? sendReservationConfirmedEmail(reservation as any)
+          : sendReservationCreatedEmail(reservation as any);
+
         await Promise.allSettled([
-          sendReservationCreatedEmail(reservation as any),
+          emailPromise,
           sendAdminReservationNoticeEmail(reservation as any)
         ]);
       } catch (err) {

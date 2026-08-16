@@ -970,27 +970,38 @@ const ReservationManagementPage = () => {
                     </div>
                   </div>
 
-                  {/* Table Assignment (Recommended) */}
-                  <div>
-                    <label className="block text-sm font-medium text-amber-400 mb-1">
-                      Assign Table (Direct Confirmation)
+                  {/* Table Assignment (Direct 1-Step Confirmation) */}
+                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 space-y-2">
+                    <label className="block text-sm font-bold text-amber-300 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">🪑 Assign Table (Instant Confirmation)</span>
+                      {newReservationData.table_id ? (
+                        <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full">
+                          ✓ Confirmed & Assigned
+                        </span>
+                      ) : (
+                        <span className="text-[11px] font-semibold text-amber-400/80 bg-amber-500/20 px-2 py-0.5 rounded-full">
+                          ⏳ Pending (No Table)
+                        </span>
+                      )}
                     </label>
                     <select
                       value={newReservationData.table_id || ''}
                       onChange={(e) => setNewReservationData({ ...newReservationData, table_id: e.target.value })}
-                      className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-sm"
+                      className="w-full px-3.5 py-2.5 bg-sangeet-neutral-950 border border-amber-500/40 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-sm font-medium"
                     >
                       <option value="">-- No table assigned (Save as Pending) --</option>
                       {tables
                         .filter(t => t.is_active && t.capacity >= (newReservationData.guests || 1))
                         .map(t => (
                           <option key={t.id} value={t.id}>
-                            Table {t.table_number} (Capacity: {t.capacity} seats{t.table_name ? ` • ${t.table_name}` : ''})
+                            Table {t.table_number} ({t.capacity} seats{t.table_name ? ` • ${t.table_name}` : ''})
                           </option>
                         ))}
                     </select>
-                    <p className="text-[11px] text-sangeet-neutral-400 mt-1">
-                      Selecting a table immediately confirms the reservation. Leaving it blank saves it as pending for later table assignment.
+                    <p className="text-[11px] text-amber-300/80">
+                      {newReservationData.table_id
+                        ? '✨ Direct 1-Step: Selecting a table immediately assigns the seating and confirms the reservation.'
+                        : 'ℹ️ Leaving this blank saves the reservation as pending for later table assignment.'}
                     </p>
                   </div>
 
