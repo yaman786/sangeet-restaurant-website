@@ -414,7 +414,7 @@ const ReservationManagementPage = () => {
     <div className="min-h-screen bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
       <AdminHeader title="Reservations" subtitle="Manage reservations" />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-6 lg:px-8 py-6">
         {/* Interactive Filter Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           <motion.button
@@ -644,62 +644,74 @@ const ReservationManagementPage = () => {
                   className="bg-sangeet-neutral-900 rounded-xl border-2 border-amber-500/30 shadow-xl overflow-hidden"
                 >
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full text-left border-collapse">
                       <thead className="bg-amber-500/10 border-b border-amber-500/20">
                         <tr>
                           <th 
-                            className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                            className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors"
                             onClick={() => handleSort('customer')}
                           >
                             <div className="flex items-center space-x-1">
                               <span>Customer</span>
-                              {sortConfig.key === 'customer' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} className="opacity-50" />}
+                              {sortConfig.key === 'customer' ? (sortConfig.direction === 'asc' ? <ArrowUp size={13} /> : <ArrowDown size={13} />) : <ArrowUpDown size={13} className="opacity-50" />}
                             </div>
                           </th>
                           <th 
-                            className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                            className="px-3.5 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors whitespace-nowrap"
                             onClick={() => handleSort('datetime')}
                           >
                             <div className="flex items-center space-x-1">
                               <span>Date & Time</span>
-                              {sortConfig.key === 'datetime' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} className="opacity-50" />}
+                              {sortConfig.key === 'datetime' ? (sortConfig.direction === 'asc' ? <ArrowUp size={13} /> : <ArrowDown size={13} />) : <ArrowUpDown size={13} className="opacity-50" />}
                             </div>
                           </th>
                           <th 
-                            className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                            className="px-3 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors whitespace-nowrap"
                             onClick={() => handleSort('guests')}
                           >
-                            <div className="flex items-center space-x-1">
+                            <div className="flex items-center justify-center space-x-1">
                               <span>Guests</span>
-                              {sortConfig.key === 'guests' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />) : <ArrowUpDown size={14} className="opacity-50" />}
+                              {sortConfig.key === 'guests' ? (sortConfig.direction === 'asc' ? <ArrowUp size={13} /> : <ArrowDown size={13} />) : <ArrowUpDown size={13} className="opacity-50" />}
                             </div>
                           </th>
-                          <th className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20">
+                          <th className="px-3 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 whitespace-nowrap">
                             Table
                           </th>
-                          <th className="px-6 py-4 text-left text-amber-400 font-semibold border-r border-amber-500/20">
+                          <th className="px-3 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 whitespace-nowrap">
                             Status
                           </th>
-                          <th className="px-6 py-4 text-left text-amber-400 font-semibold">Actions</th>
+                          <th className="px-3.5 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-amber-400 whitespace-nowrap">
+                            Actions
+                          </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-amber-500/10">
+                      <tbody className="divide-y divide-amber-500/10 text-xs">
                         {currentReservations.map((reservation) => (
                           <tr key={reservation.id} className="hover:bg-amber-500/5 transition-colors">
-                            <td className="px-6 py-4 border-r border-amber-500/10">
-                              <div>
-                                <div className="text-sangeet-neutral-100 font-medium">{reservation.customer_name}</div>
-                                <div className="text-sangeet-neutral-400 text-sm">{reservation.email}</div>
+                            <td className="px-4 py-3 border-r border-amber-500/10">
+                              <div className="max-w-[190px]">
+                                <div className="text-sangeet-neutral-100 font-semibold text-sm truncate" title={reservation.customer_name}>
+                                  {reservation.customer_name}
+                                </div>
+                                <div className="text-sangeet-neutral-400 text-xs truncate" title={reservation.email || reservation.phone}>
+                                  {reservation.email || reservation.phone || 'No contact'}
+                                </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 border-r border-amber-500/10">
-                              <div className="text-sangeet-neutral-100">
-                                {formatDate(reservation.date)}<br/>
-                                <span className="text-sangeet-neutral-400">{formatTime(reservation.time)}</span>
+                            <td className="px-3.5 py-3 border-r border-amber-500/10 whitespace-nowrap">
+                              <div className="text-sangeet-neutral-200 text-xs font-medium">
+                                {formatDate(reservation.date)}
+                              </div>
+                              <div className="text-amber-400 font-bold text-xs mt-0.5">
+                                {formatTime(reservation.time)}
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-sangeet-neutral-100 border-r border-amber-500/10">{reservation.guests}</td>
-                            <td className="px-6 py-4 border-r border-amber-500/10">
+                            <td className="px-3 py-3 text-center border-r border-amber-500/10 whitespace-nowrap">
+                              <span className="px-2.5 py-1 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-700 text-sangeet-neutral-200 font-bold text-xs inline-flex items-center gap-1 shadow-2xs">
+                                👥 {reservation.guests}
+                              </span>
+                            </td>
+                            <td className="px-3 py-3 border-r border-amber-500/10 whitespace-nowrap">
                               {reservation.table_id || reservation.tables?.table_number ? (
                                 <button
                                   onClick={() => {
@@ -708,11 +720,11 @@ const ReservationManagementPage = () => {
                                     setNotifyGuestOnShift(true);
                                     setShowAssignTableModal(true);
                                   }}
-                                  className="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500/60 text-amber-400 font-semibold text-xs inline-flex items-center gap-2 transition-all duration-200 shadow-xs hover:shadow-amber-500/10 cursor-pointer group"
+                                  className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500/60 text-amber-300 font-bold text-xs inline-flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer group"
                                   title="Click to shift or reassign table"
                                 >
                                   <span>🪑 Table {getTableNumber(reservation.table_id, reservation.tables)}</span>
-                                  <span className="text-[11px] text-amber-400/70 group-hover:text-amber-300 underline underline-offset-2">✏️ Shift</span>
+                                  <span className="text-[10px] text-amber-400/80 group-hover:text-amber-200 underline">Shift</span>
                                 </button>
                               ) : (
                                 <button
@@ -722,20 +734,20 @@ const ReservationManagementPage = () => {
                                     setNotifyGuestOnShift(true);
                                     setShowAssignTableModal(true);
                                   }}
-                                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-sangeet-neutral-950 font-bold text-xs inline-flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all duration-200 cursor-pointer"
+                                  className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-sangeet-neutral-950 font-bold text-xs inline-flex items-center gap-1 shadow-xs transition-all cursor-pointer"
                                   title="Assign table to confirm booking"
                                 >
                                   <span>⚡ + Assign Table</span>
                                 </button>
                               )}
                             </td>
-                            <td className="px-6 py-4 border-r border-amber-500/10">
-                              <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${getStatusColor(reservation.status)}`}>
+                            <td className="px-3 py-3 border-r border-amber-500/10 whitespace-nowrap">
+                              <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold text-white shadow-2xs ${getStatusColor(reservation.status)}`}>
                                 {getStatusIcon(reservation.status)} {reservation.status}
                               </span>
                             </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center space-x-2">
+                            <td className="px-3.5 py-3 whitespace-nowrap">
+                              <div className="flex items-center justify-end gap-1.5">
                                 {reservation.status === 'pending' && (
                                   <button
                                     onClick={() => {
@@ -744,7 +756,7 @@ const ReservationManagementPage = () => {
                                       setNotifyGuestOnShift(true);
                                       setShowAssignTableModal(true);
                                     }}
-                                    className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-sangeet-neutral-950 rounded-md text-xs font-bold shadow-xs transition-colors flex items-center gap-1"
+                                    className="px-2 py-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-sangeet-neutral-950 rounded-md text-xs font-bold shadow-xs transition-all flex items-center gap-1 cursor-pointer"
                                     title="Confirm & Assign Table"
                                   >
                                     <span>⚡ Confirm</span>
@@ -755,7 +767,7 @@ const ReservationManagementPage = () => {
                                   <select
                                     value={reservation.status}
                                     onChange={(e) => handleStatusUpdate(reservation.id, e.target.value)}
-                                    className="px-2.5 py-1 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-md text-sangeet-neutral-100 text-xs"
+                                    className="px-2 py-1 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-750 border border-sangeet-neutral-700 rounded-md text-sangeet-neutral-200 text-xs focus:outline-none focus:border-amber-400 transition-colors cursor-pointer"
                                   >
                                     {reservation.status === 'pending' && (
                                       <>
@@ -774,26 +786,28 @@ const ReservationManagementPage = () => {
                                   </select>
                                 )}
 
-                                  <button
-                                    onClick={() => {
-                                      setSelectedReservation(reservation);
-                                      setShowDetailsModal(true);
-                                    }}
-                                    className="px-3 py-1 bg-sangeet-neutral-800 text-sangeet-400 border border-sangeet-400/30 rounded-sm text-sm font-medium hover:bg-sangeet-400 hover:text-black transition-colors"
-                                  >
-                                    View
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setSelectedReservation(reservation);
-                                      setShowDeleteModal(true);
-                                    }}
-                                    className="px-3 py-1 bg-linear-to-r from-red-500 to-pink-500 text-white rounded-sm text-sm font-medium"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </td>
+                                <button
+                                  onClick={() => {
+                                    setSelectedReservation(reservation);
+                                    setShowDetailsModal(true);
+                                  }}
+                                  className="px-2.5 py-1 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-700 text-amber-300 border border-amber-400/30 hover:border-amber-400/60 rounded-md text-xs font-semibold transition-all cursor-pointer"
+                                  title="View details"
+                                >
+                                  View
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setSelectedReservation(reservation);
+                                    setShowDeleteModal(true);
+                                  }}
+                                  className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 hover:border-red-500/60 rounded-md text-xs font-semibold transition-all cursor-pointer"
+                                  title="Delete reservation"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
