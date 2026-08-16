@@ -36,6 +36,7 @@ const ReservationManagementPage = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedTableId, setSelectedTableId] = useState<string>('');
   const [selectedReservation, setSelectedReservation] = useState<any>(null);
+  const [notifyGuestOnShift, setNotifyGuestOnShift] = useState<boolean>(true);
    
   const [showAddReservationModal, setShowAddReservationModal] = useState(false);
   const [showShiftManager, setShowShiftManager] = useState(false);
@@ -46,6 +47,7 @@ const ReservationManagementPage = () => {
     date: new Date().toISOString().split('T')[0],
     time: '19:00',
     guests: 2,
+    table_id: '',
     special_requests: '',
     status: 'confirmed'
   });
@@ -168,8 +170,20 @@ const ReservationManagementPage = () => {
     
     setIsSubmitting(true);
     try {
-      const createdRes = await createReservation(newReservationData);
+      const assignedTableId = newReservationData.table_id ? parseInt(newReservationData.table_id, 10) : null;
+      const payload: any = {
+        ...newReservationData,
+        status: assignedTableId ? 'confirmed' : 'pending',
+        table_id: assignedTableId || undefined
+      };
+
+      const createdRes = await createReservation(payload);
       const actualRes = (createdRes as any)?.reservation || createdRes;
+      
+      if (assignedTableId) {
+        const tableObj = tables.find(t => t.id === assignedTableId);
+        actualRes.tables = tableObj;
+      }
       
       // Update local state directly
       setReservations(prev => [actualRes, ...prev]);
@@ -182,11 +196,12 @@ const ReservationManagementPage = () => {
         date: new Date().toISOString().split('T')[0],
         time: '19:00',
         guests: 2,
+        table_id: '',
         special_requests: '',
         status: 'confirmed'
       });
       setShowAddReservationModal(false);
-      toast.success('Reservation successfully added');
+      toast.success(assignedTableId ? 'Reservation confirmed and table assigned!' : 'Reservation created as pending (awaiting table assignment)');
     } catch (error: any) {
       console.error('Error adding reservation:', error);
       toast.error(error.response?.data?.error || 'Failed to add reservation');
@@ -200,6 +215,8 @@ const ReservationManagementPage = () => {
       const reservation = reservations.find(r => r.id === reservationId);
       if (newStatus === 'confirmed' && !reservation.table_id) {
         setSelectedReservation(reservation);
+        setSelectedTableId('');
+        setNotifyGuestOnShift(true);
         setShowAssignTableModal(true);
         return; // intercept and open modal
       }
@@ -228,12 +245,14 @@ const ReservationManagementPage = () => {
       const destTableId = parseInt(selectedTableId, 10);
       const isPending = selectedReservation.status === 'pending';
       const targetStatus = isPending ? 'confirmed' : selectedReservation.status;
+      const isTableShift = Boolean(selectedReservation.table_id && selectedReservation.table_id !== destTableId);
       
-      // Use full updateReservation
+      // Use full updateReservation with notify_guest flag
       await updateReservation(selectedReservation.id, {
         status: targetStatus,
-        table_id: destTableId
-      });
+        table_id: destTableId,
+        notify_guest: notifyGuestOnShift
+      } as any);
       
       const assignedTable = tables.find(t => t.id === destTableId);
 
@@ -250,7 +269,12 @@ const ReservationManagementPage = () => {
       setShowAssignTableModal(false);
       setSelectedReservation(null);
       setSelectedTableId('');
-      toast.success(isPending ? 'Reservation confirmed and table assigned!' : 'Table seating updated successfully!');
+      
+      if (isTableShift) {
+        toast.success(`Table shifted to Table ${assignedTable?.table_number || destTableId}${notifyGuestOnShift && selectedReservation.email ? ' & notification email sent!' : '!'}`);
+      } else {
+        toast.success(`Reservation confirmed & Table ${assignedTable?.table_number || destTableId} assigned!`);
+      }
     } catch (error: any) {
       console.error('Error assigning table:', error);
       toast.error(error.response?.data?.error || 'Failed to assign table');
@@ -677,40 +701,32 @@ const ReservationManagementPage = () => {
                             <td className="px-6 py-4 text-sangeet-neutral-100 border-r border-amber-500/10">{reservation.guests}</td>
                             <td className="px-6 py-4 border-r border-amber-500/10">
                               {reservation.table_id || reservation.tables?.table_number ? (
-                                <div className="flex items-center gap-2">
-                                  <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 font-semibold text-xs inline-flex items-center gap-1.5 whitespace-nowrap">
-                                    🪑 {getTableNumber(reservation.table_id, reservation.tables)}
-                                  </span>
-                                  {reservation.status !== 'completed' && reservation.status !== 'cancelled' && (
-                                    <button
-                                      onClick={() => {
-                                        setSelectedReservation(reservation);
-                                        setSelectedTableId(String(reservation.table_id || ''));
-                                        setShowAssignTableModal(true);
-                                      }}
-                                      className="text-[11px] text-sangeet-neutral-400 hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
-                                      title="Change table assignment"
-                                    >
-                                      Shift
-                                    </button>
-                                  )}
-                                </div>
+                                <button
+                                  onClick={() => {
+                                    setSelectedReservation(reservation);
+                                    setSelectedTableId(String(reservation.table_id || ''));
+                                    setNotifyGuestOnShift(true);
+                                    setShowAssignTableModal(true);
+                                  }}
+                                  className="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500/60 text-amber-400 font-semibold text-xs inline-flex items-center gap-2 transition-all duration-200 shadow-xs hover:shadow-amber-500/10 cursor-pointer group"
+                                  title="Click to shift or reassign table"
+                                >
+                                  <span>🪑 Table {getTableNumber(reservation.table_id, reservation.tables)}</span>
+                                  <span className="text-[11px] text-amber-400/70 group-hover:text-amber-300 underline underline-offset-2">✏️ Shift</span>
+                                </button>
                               ) : (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sangeet-neutral-500 text-sm">-</span>
-                                  {reservation.status !== 'cancelled' && reservation.status !== 'completed' && (
-                                    <button
-                                      onClick={() => {
-                                        setSelectedReservation(reservation);
-                                        setSelectedTableId('');
-                                        setShowAssignTableModal(true);
-                                      }}
-                                      className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30 transition-colors cursor-pointer"
-                                    >
-                                      + Assign
-                                    </button>
-                                  )}
-                                </div>
+                                <button
+                                  onClick={() => {
+                                    setSelectedReservation(reservation);
+                                    setSelectedTableId('');
+                                    setNotifyGuestOnShift(true);
+                                    setShowAssignTableModal(true);
+                                  }}
+                                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-sangeet-neutral-950 font-bold text-xs inline-flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all duration-200 cursor-pointer"
+                                  title="Assign table to confirm booking"
+                                >
+                                  <span>⚡ + Assign Table</span>
+                                </button>
                               )}
                             </td>
                             <td className="px-6 py-4 border-r border-amber-500/10">
@@ -720,16 +736,31 @@ const ReservationManagementPage = () => {
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center space-x-2">
+                                {reservation.status === 'pending' && (
+                                  <button
+                                    onClick={() => {
+                                      setSelectedReservation(reservation);
+                                      setSelectedTableId('');
+                                      setNotifyGuestOnShift(true);
+                                      setShowAssignTableModal(true);
+                                    }}
+                                    className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-sangeet-neutral-950 rounded-md text-xs font-bold shadow-xs transition-colors flex items-center gap-1"
+                                    title="Confirm & Assign Table"
+                                  >
+                                    <span>⚡ Confirm</span>
+                                  </button>
+                                )}
+
                                 {reservation.status !== 'completed' && reservation.status !== 'cancelled' && (
                                   <select
                                     value={reservation.status}
                                     onChange={(e) => handleStatusUpdate(reservation.id, e.target.value)}
-                                    className="px-3 py-1 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-sm text-sangeet-neutral-100 text-sm"
+                                    className="px-2.5 py-1 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-md text-sangeet-neutral-100 text-xs"
                                   >
                                     {reservation.status === 'pending' && (
                                       <>
                                         <option value="pending">Pending</option>
-                                        <option value="confirmed">Confirmed</option>
+                                        <option value="confirmed">Confirm (with Table)</option>
                                         <option value="cancelled">Cancelled</option>
                                       </>
                                     )}
@@ -934,6 +965,30 @@ const ReservationManagementPage = () => {
                     </div>
                   </div>
 
+                  {/* Table Assignment (Recommended) */}
+                  <div>
+                    <label className="block text-sm font-medium text-amber-400 mb-1">
+                      Assign Table (Direct Confirmation)
+                    </label>
+                    <select
+                      value={newReservationData.table_id || ''}
+                      onChange={(e) => setNewReservationData({ ...newReservationData, table_id: e.target.value })}
+                      className="w-full px-4 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-700 rounded-lg text-sangeet-neutral-100 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-sm"
+                    >
+                      <option value="">-- No table assigned (Save as Pending) --</option>
+                      {tables
+                        .filter(t => t.is_active && t.capacity >= (newReservationData.guests || 1))
+                        .map(t => (
+                          <option key={t.id} value={t.id}>
+                            Table {t.table_number} (Capacity: {t.capacity} seats{t.table_name ? ` • ${t.table_name}` : ''})
+                          </option>
+                        ))}
+                    </select>
+                    <p className="text-[11px] text-sangeet-neutral-400 mt-1">
+                      Selecting a table immediately confirms the reservation. Leaving it blank saves it as pending for later table assignment.
+                    </p>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
                       Special Requests (Optional)
@@ -1078,74 +1133,107 @@ const ReservationManagementPage = () => {
         )}
       </AnimatePresence>
 
-      {/* Assign Table Modal */}
+      {/* Assign / Shift Table Modal */}
       <AnimatePresence>
         {showAssignTableModal && selectedReservation && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center z-50 p-4"
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-sangeet-neutral-900 rounded-2xl border border-sangeet-neutral-700 shadow-2xl max-w-lg w-full p-6"
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-sangeet-neutral-900 rounded-2xl border border-amber-500/30 shadow-[0_10px_40px_rgba(0,0,0,0.8)] max-w-lg w-full p-6 text-left"
             >
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-linear-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">🪑</span>
+              <div className="flex items-center gap-4 mb-5 pb-4 border-b border-amber-500/10">
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-amber-500/20 text-sangeet-neutral-950 font-bold shrink-0">
+                  🪑
                 </div>
-                <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">
-                  {selectedReservation.table_id ? 'Shift / Reassign Table' : 'Assign Table'}
-                </h3>
-                <p className="text-sangeet-neutral-400">
-                  {selectedReservation.table_id 
-                    ? `Currently assigned to ${getTableNumber(selectedReservation.table_id, selectedReservation.tables)}. Select a new table for ${selectedReservation.customer_name} (${selectedReservation.guests} guests).`
-                    : `Please assign a table with capacity for ${selectedReservation.guests} guests to confirm.`}
-                </p>
+                <div>
+                  <h3 className="text-xl font-bold text-sangeet-neutral-100">
+                    {selectedReservation.table_id ? 'Shift / Reassign Seating' : 'Assign Table & Confirm'}
+                  </h3>
+                  <p className="text-sangeet-neutral-400 text-xs mt-0.5">
+                    {selectedReservation.customer_name} • {selectedReservation.guests} Guests • {formatDate(selectedReservation.date)} at {formatTime(selectedReservation.time)}
+                  </p>
+                </div>
               </div>
 
+              {/* Current Seating Badge if Shifting */}
+              {selectedReservation.table_id && (
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3.5 mb-4 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-400 font-semibold">Current Seating:</span>
+                    <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">
+                      Table {getTableNumber(selectedReservation.table_id, selectedReservation.tables)}
+                    </span>
+                  </div>
+                  <span className="text-sangeet-neutral-400">Moving to new table below ↓</span>
+                </div>
+              )}
+
               {/* Table Selection */}
-              <div className="bg-sangeet-neutral-800 rounded-xl p-4 mb-6 border border-sangeet-neutral-600">
-                <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Select Destination Table</label>
+              <div className="bg-sangeet-neutral-800/80 rounded-xl p-4 mb-4 border border-sangeet-neutral-700">
+                <label className="block text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2">
+                  Select Destination Table (Min. {selectedReservation.guests} seats)
+                </label>
                 <select
                   value={selectedTableId}
                   onChange={(e) => setSelectedTableId(e.target.value)}
-                  className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-600 text-sangeet-neutral-100 rounded-lg px-4 py-3 focus:outline-hidden focus:ring-2 focus:ring-sangeet-500"
+                  className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-600 text-sangeet-neutral-100 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
                 >
-                  <option value="">-- Choose a table --</option>
+                  <option value="">-- Choose an available table --</option>
                   {tables
-                    .filter(t => t.capacity >= selectedReservation.guests && t.is_active)
+                    .filter(t => t.is_active && t.capacity >= selectedReservation.guests)
                     .map(t => (
-                      <option key={t.id} value={t.id}>
-                        Table {t.table_number} (Capacity: {t.capacity}{t.table_name ? ` • ${t.table_name}` : ''})
+                      <option key={t.id} value={t.id} disabled={t.id === selectedReservation.table_id}>
+                        Table {t.table_number} — Capacity: {t.capacity} seats {t.table_name ? `(${t.table_name})` : ''} {t.id === selectedReservation.table_id ? '(Current Table)' : ''}
                       </option>
                     ))}
                 </select>
-                {tables.filter(t => t.capacity >= selectedReservation.guests && t.is_active).length === 0 && (
-                  <p className="text-red-400 text-sm mt-2">No active tables found with enough capacity.</p>
+                {tables.filter(t => t.is_active && t.capacity >= selectedReservation.guests).length === 0 && (
+                  <p className="text-red-400 text-xs mt-2">No active tables found with capacity for {selectedReservation.guests} guests.</p>
                 )}
               </div>
 
+              {/* Guest Email Notification Toggle */}
+              {selectedReservation.email && (
+                <div className="bg-sangeet-neutral-800/50 rounded-xl p-3.5 mb-5 border border-sangeet-neutral-700/60 flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="notifyGuestOnShift"
+                    checked={notifyGuestOnShift}
+                    onChange={(e) => setNotifyGuestOnShift(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded text-amber-500 bg-sangeet-neutral-900 border-sangeet-neutral-600 focus:ring-amber-400 cursor-pointer accent-amber-500"
+                  />
+                  <label htmlFor="notifyGuestOnShift" className="text-xs text-sangeet-neutral-300 leading-relaxed cursor-pointer select-none">
+                    <strong className="text-amber-400 font-semibold block mb-0.5">Send Automatic Guest Update Email</strong>
+                    Notify <span className="text-sangeet-neutral-200">{selectedReservation.email}</span> with a professional email regarding this seating arrangement.
+                  </label>
+                </div>
+              )}
+
               {/* Action Buttons */}
-              <div className="flex space-x-3">
+              <div className="flex space-x-3 pt-2">
                 <button
                   onClick={() => {
                     setShowAssignTableModal(false);
                     setSelectedReservation(null);
                     setSelectedTableId('');
                   }}
-                  className="flex-1 px-4 py-3 bg-sangeet-neutral-800 text-sangeet-neutral-300 rounded-lg hover:bg-sangeet-neutral-700 hover:text-sangeet-neutral-100 transition-all duration-300 border border-sangeet-neutral-600"
+                  className="flex-1 px-4 py-3 bg-sangeet-neutral-800 text-sangeet-neutral-300 rounded-xl hover:bg-sangeet-neutral-700 hover:text-sangeet-neutral-100 transition-all text-sm font-medium border border-sangeet-neutral-700"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAssignTable}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-sangeet-neutral-950 font-bold rounded-lg shadow-lg shadow-amber-500/20 transition-all duration-300"
+                  disabled={!selectedTableId}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-sangeet-neutral-950 font-bold rounded-xl shadow-lg shadow-amber-500/20 transition-all text-sm"
                 >
-                  {selectedReservation.table_id ? 'Update Table Seating' : 'Assign & Confirm'}
+                  {selectedReservation.table_id ? '🔄 Confirm Table Shift' : '⚡ Assign & Confirm'}
                 </button>
               </div>
             </motion.div>
@@ -1195,11 +1283,38 @@ const ReservationManagementPage = () => {
                         {selectedReservation.status.toUpperCase()}
                       </span>
                     </div>
-                    {selectedReservation.table_id && (
-                      <div className="inline-block bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-1.5 mt-1">
-                        <p className="text-amber-400 font-bold text-sm">Table {selectedReservation.table_id}</p>
-                      </div>
-                    )}
+                    <div className="mt-1">
+                      {selectedReservation.table_id || selectedReservation.tables?.table_number ? (
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold text-xs">
+                            🪑 Table {getTableNumber(selectedReservation.table_id, selectedReservation.tables)}
+                          </span>
+                          <button
+                            onClick={() => {
+                              setShowDetailsModal(false);
+                              setSelectedTableId(String(selectedReservation.table_id || ''));
+                              setNotifyGuestOnShift(true);
+                              setShowAssignTableModal(true);
+                            }}
+                            className="text-xs px-2 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded border border-amber-500/40 transition-colors"
+                          >
+                            🔄 Shift Table
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setShowDetailsModal(false);
+                            setSelectedTableId('');
+                            setNotifyGuestOnShift(true);
+                            setShowAssignTableModal(true);
+                          }}
+                          className="text-xs px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 text-sangeet-neutral-950 font-bold rounded-lg shadow-sm"
+                        >
+                          ⚡ Assign Table Now
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 

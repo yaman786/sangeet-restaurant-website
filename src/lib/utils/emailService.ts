@@ -165,6 +165,71 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
     `
   }),
 
+  reservationTableChanged: (reservation: any) => ({
+    subject: `🪑 Seating Update for Your Sangeet Reservation — ${new Date(reservation.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+    html: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 100%; width: 100%; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+        <div style="background-color: #ffffff; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: 1px solid #e9ecef; max-width: 100%;">
+          <div style="text-align: center; margin-bottom: 30px; padding-bottom: 25px; border-bottom: 2px solid #f8f9fa;">
+            <div style="background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); padding: 20px; border-radius: 15px; margin-bottom: 15px;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 32px;">🍽️ Sangeet Restaurant</h1>
+            </div>
+            <p style="color: #6c757d; margin: 5px 0 0 0; font-size: 15px;">Hong Kong's Premier Dining Destination</p>
+          </div>
+
+          <div style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); padding: 30px; border-radius: 15px; margin-bottom: 25px; border-left: 5px solid #d4af37;">
+            <h2 style="color: #92400e; margin: 0 0 12px 0; font-size: 22px;">🪑 Seating Arrangement Update</h2>
+            <p style="color: #78350f; margin: 0; font-size: 15px; line-height: 1.6;">
+              Dear <strong>${escapeHtml(reservation.customer_name)}</strong>,<br/><br/>
+              To optimize our dining room arrangements and ensure the highest level of comfort and ambiance for your upcoming visit, we have updated your assigned table seating:
+            </p>
+          </div>
+
+          <div style="background: #f8fafc; padding: 25px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #e2e8f0;">
+            <h3 style="color: #1e293b; margin: 0 0 15px 0; font-size: 18px; text-align: center;">📋 Your Updated Booking Details</h3>
+            <div style="display: grid; gap: 10px; font-size: 15px; color: #334155;">
+              <p style="margin: 4px 0;"><strong>👤 Guest Name:</strong> ${escapeHtml(reservation.customer_name)}</p>
+              <p style="margin: 4px 0;"><strong>👥 Party Size:</strong> ${reservation.guests} people</p>
+              <p style="margin: 4px 0;"><strong>📅 Date:</strong> ${new Date(reservation.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              <p style="margin: 4px 0;"><strong>🕐 Time:</strong> ${formatRestaurantTime(reservation.time)}</p>
+              ${reservation.previous_table_number ? `
+              <div style="background: #ffffff; padding: 15px; border-radius: 10px; margin-top: 10px; border: 1px dashed #cbd5e1;">
+                <p style="margin: 0 0 5px 0; color: #64748b; font-size: 14px;">Previous Table: <strike>Table ${escapeHtml(reservation.previous_table_number)}</strike></p>
+                <p style="margin: 0; color: #047857; font-size: 17px; font-weight: bold;">✨ New Assigned Table: Table ${escapeHtml(reservation.new_table_number || reservation.table_id)}</p>
+              </div>
+              ` : `
+              <p style="margin: 4px 0; color: #047857; font-weight: bold;"><strong>🪑 Assigned Table:</strong> Table ${escapeHtml(reservation.new_table_number || reservation.table_id)}</p>
+              `}
+            </div>
+          </div>
+
+          ${reservation.special_requests ? `
+          <div style="background: #eff6ff; padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid #3b82f6;">
+            <h4 style="color: #1e40af; margin: 0 0 8px 0;">💬 Special Requests (Preserved)</h4>
+            <p style="color: #1e3a8a; font-style: italic; margin: 0;">"${escapeHtml(reservation.special_requests)}"</p>
+          </div>
+          ` : ''}
+
+          <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid #22c55e;">
+            <p style="color: #15803d; margin: 0; font-size: 14px; line-height: 1.5;">
+              ✅ <strong>Guaranteed Reservation:</strong> Your dining time, party size, and all special requests remain completely secured.
+            </p>
+          </div>
+
+          <div style="text-align: center; padding-top: 25px; border-top: 2px solid #f8f9fa;">
+            <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">
+              If you have any questions or additional seating preferences, please feel free to reach out to us at +852 2345 6789 or reply to this email.
+            </p>
+            <p style="color: #1e293b; font-weight: 600; font-size: 15px; margin: 0;">We look forward to welcoming you at Sangeet!</p>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 20px;">
+              <p style="color: #6c757d; font-size: 13px; margin: 0;">📍 Wanchai, Hong Kong | 📞 +852 2345 6789 | 📧 info@sangeet.hk</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+  }),
+
   adminReservationNotice: (reservation) => ({
     subject: `🔔 NEW RESERVATION ALERT: ${reservation.customer_name} (${reservation.guests} Guests)`,
     html: `
@@ -300,6 +365,10 @@ export const sendReservationConfirmedEmail = async (reservation: ReservationEmai
 
 export const sendReservationCancelledEmail = async (reservation: ReservationEmailData): Promise<EmailResult> => {
   return await sendEmail(reservation.email, 'reservationCancelled', reservation);
+};
+
+export const sendReservationTableChangedEmail = async (reservation: any): Promise<EmailResult> => {
+  return await sendEmail(reservation.email, 'reservationTableChanged', reservation);
 };
 
 export const sendAdminReservationNoticeEmail = async (reservation: ReservationEmailData): Promise<EmailResult> => {

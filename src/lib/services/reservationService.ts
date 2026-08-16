@@ -1,6 +1,12 @@
 import { prisma } from '@/lib/db';
 import { NotFoundError, ConflictError, ValidationError } from '@/lib/errors';
-import { sendReservationCreatedEmail, sendReservationConfirmedEmail, sendReservationCancelledEmail, sendAdminReservationNoticeEmail } from '../utils/emailService';
+import { 
+  sendReservationCreatedEmail, 
+  sendReservationConfirmedEmail, 
+  sendReservationCancelledEmail, 
+  sendReservationTableChangedEmail,
+  sendAdminReservationNoticeEmail 
+} from '../utils/emailService';
 import { emitNewReservation, emitReservationUpdate } from './pusherServer';
 import { parseRestaurantTime } from '../utils/timeUtils';
 import { CreateReservationDTO, UpdateReservationDTO, ReservationQueryDTO, CreateTimeSlotDTO, UpdateTimeSlotDTO } from '../types/dtos';
@@ -390,10 +396,19 @@ class ReservationService {
     
     // Wrap the availability check and update in an atomic transaction to prevent race conditions
     let oldStatus: string | null = '';
+    let oldTableId: number | null = null;
+    let oldTableNumber: string | undefined;
+    let newTableNumber: string | undefined;
+
     const reservation = await prisma.$transaction(async (tx) => {
-      const existingRes = await tx.reservations.findUnique({ where: { id: parseInt(id) } });
+      const existingRes = await tx.reservations.findUnique({ 
+        where: { id: parseInt(id) },
+        include: { tables: true }
+      });
       if (!existingRes) throw new NotFoundError('Reservation');
       oldStatus = existingRes.status;
+      oldTableId = existingRes.table_id;
+      oldTableNumber = existingRes.tables?.table_number;
 
       const targetDate = date ? new Date(date) : existingRes.date;
       
@@ -422,6 +437,9 @@ class ReservationService {
           }
         });
         if (existing) throw new ConflictError('Table is already reserved for this date and time');
+
+        const destTable = await tx.tables.findUnique({ where: { id: targetTableId } });
+        newTableNumber = destTable?.table_number;
       }
 
       return await tx.reservations.update({
@@ -437,13 +455,29 @@ class ReservationService {
           table_id: targetTableId,
           status: status || existingRes.status,
           updated_at: new Date()
+        },
+        include: {
+          tables: true
         }
       });
     });
 
     emitReservationUpdate(reservation).catch(err => console.error('Pusher error:', err));
 
-    if (status && status !== oldStatus && reservation.email) {
+    // Case 1: Table changed for an existing booking (Table Shift Notification)
+    if (oldTableId && reservation.table_id && oldTableId !== reservation.table_id && reservation.email && (data as any).notify_guest !== false) {
+      try {
+        await sendReservationTableChangedEmail({
+          ...reservation,
+          previous_table_number: oldTableNumber,
+          new_table_number: newTableNumber || reservation.tables?.table_number
+        });
+      } catch (err) {
+        console.error('Error sending table change notification email:', err);
+      }
+    } 
+    // Case 2: Status transition to confirmed or newly assigned confirmation email
+    else if (status && status !== oldStatus && reservation.email) {
       let emailFailed = false;
       try {
         if (status === 'confirmed') await sendReservationConfirmedEmail(reservation as any);
