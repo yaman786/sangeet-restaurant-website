@@ -331,11 +331,11 @@ const ReservationManagementPage = () => {
    
   const getTableNumber = (tableId: string | number | null | undefined, reservationTables?: any) => {
     if (reservationTables?.table_number) {
-      return `Table ${reservationTables.table_number}${reservationTables.table_name ? ` (${reservationTables.table_name})` : ''}`;
+      return `${reservationTables.table_number}${reservationTables.table_name ? ` (${reservationTables.table_name})` : ''}`;
     }
     if (!tableId) return null;
     const table = tables.find(t => String(t.id) === String(tableId) || String(t.table_number) === String(tableId));
-    return table ? `Table ${table.table_number}${table.table_name ? ` (${table.table_name})` : ''}` : `Table ${tableId}`;
+    return table ? `${table.table_number}${table.table_name ? ` (${table.table_name})` : ''}` : `${tableId}`;
   };
 
   // Filter reservations based on activeFilter and search
@@ -641,14 +641,14 @@ const ReservationManagementPage = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="bg-sangeet-neutral-900 rounded-xl border-2 border-amber-500/30 shadow-xl overflow-hidden"
+                  className="bg-sangeet-neutral-900 rounded-xl border border-amber-500/20 shadow-xl overflow-hidden"
                 >
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                  <div className="w-full">
+                    <table className="w-full table-fixed text-left border-collapse">
                       <thead className="bg-amber-500/10 border-b border-amber-500/20">
                         <tr>
                           <th 
-                            className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                            className="w-[23%] px-3.5 py-3 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors"
                             onClick={() => handleSort('customer')}
                           >
                             <div className="flex items-center space-x-1">
@@ -657,7 +657,7 @@ const ReservationManagementPage = () => {
                             </div>
                           </th>
                           <th 
-                            className="px-3.5 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors whitespace-nowrap"
+                            className="w-[16%] px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors"
                             onClick={() => handleSort('datetime')}
                           >
                             <div className="flex items-center space-x-1">
@@ -666,7 +666,7 @@ const ReservationManagementPage = () => {
                             </div>
                           </th>
                           <th 
-                            className="px-3 py-3.5 text-center text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors whitespace-nowrap"
+                            className="w-[9%] px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors"
                             onClick={() => handleSort('guests')}
                           >
                             <div className="flex items-center justify-center space-x-1">
@@ -674,13 +674,13 @@ const ReservationManagementPage = () => {
                               {sortConfig.key === 'guests' ? (sortConfig.direction === 'asc' ? <ArrowUp size={13} /> : <ArrowDown size={13} />) : <ArrowUpDown size={13} className="opacity-50" />}
                             </div>
                           </th>
-                          <th className="px-3 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 whitespace-nowrap">
+                          <th className="w-[18%] px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10">
                             Table
                           </th>
-                          <th className="px-3 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 whitespace-nowrap">
+                          <th className="w-[14%] px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10">
                             Status
                           </th>
-                          <th className="px-3.5 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-amber-400 whitespace-nowrap">
+                          <th className="w-[20%] px-3 py-3 text-right text-xs font-bold uppercase tracking-wider text-amber-400">
                             Actions
                           </th>
                         </tr>
@@ -688,30 +688,28 @@ const ReservationManagementPage = () => {
                       <tbody className="divide-y divide-amber-500/10 text-xs">
                         {currentReservations.map((reservation) => (
                           <tr key={reservation.id} className="hover:bg-amber-500/5 transition-colors">
-                            <td className="px-4 py-3 border-r border-amber-500/10">
-                              <div className="max-w-[190px]">
-                                <div className="text-sangeet-neutral-100 font-semibold text-sm truncate" title={reservation.customer_name}>
-                                  {reservation.customer_name}
-                                </div>
-                                <div className="text-sangeet-neutral-400 text-xs truncate" title={reservation.email || reservation.phone}>
-                                  {reservation.email || reservation.phone || 'No contact'}
-                                </div>
+                            <td className="px-3.5 py-3 border-r border-amber-500/10 overflow-hidden">
+                              <div className="text-sangeet-neutral-100 font-semibold text-sm truncate" title={reservation.customer_name}>
+                                {reservation.customer_name}
+                              </div>
+                              <div className="text-sangeet-neutral-400 text-xs truncate" title={reservation.email || reservation.phone}>
+                                {reservation.email || reservation.phone || 'No contact'}
                               </div>
                             </td>
-                            <td className="px-3.5 py-3 border-r border-amber-500/10 whitespace-nowrap">
-                              <div className="text-sangeet-neutral-200 text-xs font-medium">
+                            <td className="px-3 py-3 border-r border-amber-500/10">
+                              <div className="text-sangeet-neutral-200 text-xs font-medium truncate">
                                 {formatDate(reservation.date)}
                               </div>
                               <div className="text-amber-400 font-bold text-xs mt-0.5">
                                 {formatTime(reservation.time)}
                               </div>
                             </td>
-                            <td className="px-3 py-3 text-center border-r border-amber-500/10 whitespace-nowrap">
-                              <span className="px-2.5 py-1 rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-700 text-sangeet-neutral-200 font-bold text-xs inline-flex items-center gap-1 shadow-2xs">
+                            <td className="px-2 py-3 text-center border-r border-amber-500/10">
+                              <span className="px-2 py-0.5 rounded-md bg-sangeet-neutral-800 border border-sangeet-neutral-700 text-sangeet-neutral-200 font-bold text-xs inline-flex items-center gap-1 shadow-2xs">
                                 👥 {reservation.guests}
                               </span>
                             </td>
-                            <td className="px-3 py-3 border-r border-amber-500/10 whitespace-nowrap">
+                            <td className="px-3 py-3 border-r border-amber-500/10 overflow-hidden">
                               {reservation.table_id || reservation.tables?.table_number ? (
                                 <button
                                   onClick={() => {
@@ -720,11 +718,11 @@ const ReservationManagementPage = () => {
                                     setNotifyGuestOnShift(true);
                                     setShowAssignTableModal(true);
                                   }}
-                                  className="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500/60 text-amber-300 font-bold text-xs inline-flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer group"
+                                  className="max-w-full px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500/60 text-amber-300 font-bold text-xs inline-flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer group truncate"
                                   title="Click to shift or reassign table"
                                 >
-                                  <span>🪑 Table {getTableNumber(reservation.table_id, reservation.tables)}</span>
-                                  <span className="text-[10px] text-amber-400/80 group-hover:text-amber-200 underline">Shift</span>
+                                  <span className="truncate">🪑 {getTableNumber(reservation.table_id, reservation.tables)}</span>
+                                  <span className="text-[10px] text-amber-400/80 group-hover:text-amber-200 underline shrink-0">Shift</span>
                                 </button>
                               ) : (
                                 <button
@@ -737,32 +735,18 @@ const ReservationManagementPage = () => {
                                   className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-sangeet-neutral-950 font-bold text-xs inline-flex items-center gap-1 shadow-xs transition-all cursor-pointer"
                                   title="Assign table to confirm booking"
                                 >
-                                  <span>⚡ + Assign Table</span>
+                                  <span>⚡ + Assign</span>
                                 </button>
                               )}
                             </td>
-                            <td className="px-3 py-3 border-r border-amber-500/10 whitespace-nowrap">
-                              <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold text-white shadow-2xs ${getStatusColor(reservation.status)}`}>
-                                {getStatusIcon(reservation.status)} {reservation.status}
+                            <td className="px-3 py-3 border-r border-amber-500/10">
+                              <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold text-white shadow-2xs inline-flex items-center gap-1 whitespace-nowrap ${getStatusColor(reservation.status)}`}>
+                                <span>{getStatusIcon(reservation.status)}</span>
+                                <span>{reservation.status}</span>
                               </span>
                             </td>
-                            <td className="px-3.5 py-3 whitespace-nowrap">
+                            <td className="px-3 py-3 text-right">
                               <div className="flex items-center justify-end gap-1.5">
-                                {reservation.status === 'pending' && (
-                                  <button
-                                    onClick={() => {
-                                      setSelectedReservation(reservation);
-                                      setSelectedTableId('');
-                                      setNotifyGuestOnShift(true);
-                                      setShowAssignTableModal(true);
-                                    }}
-                                    className="px-2 py-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-sangeet-neutral-950 rounded-md text-xs font-bold shadow-xs transition-all flex items-center gap-1 cursor-pointer"
-                                    title="Confirm & Assign Table"
-                                  >
-                                    <span>⚡ Confirm</span>
-                                  </button>
-                                )}
-
                                 {reservation.status !== 'completed' && reservation.status !== 'cancelled' && (
                                   <select
                                     value={reservation.status}

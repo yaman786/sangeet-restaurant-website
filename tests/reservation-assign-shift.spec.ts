@@ -61,9 +61,9 @@ test.describe('Reservation Table Confirmation & Shift Workflows', () => {
     // Verify row appears in pending state
     const row = page.locator(`tr:has-text("${guestName}")`).first();
     await expect(row).toBeVisible({ timeout: 15000 });
-    await expect(row.locator('span:has-text("pending")')).toBeVisible();
+    await expect(row.locator('span:has-text("pending")').first()).toBeVisible();
 
-    // 3. Click the prompt "+ Assign Table" / "⚡ Confirm" button
+    // 3. Click the prompt "+ Assign Table" button
     console.log(`--- Step 3: Click Confirm / Assign Table on Pending Booking ---`);
     const assignBtnPrompt = row.locator('button', { hasText: 'Assign' }).first();
     await expect(assignBtnPrompt).toBeVisible({ timeout: 5000 });
@@ -85,8 +85,8 @@ test.describe('Reservation Table Confirmation & Shift Workflows', () => {
 
     // 5. Verify status is now confirmed and table chip is visible with Shift action
     console.log(`--- Step 4: Verify Table Assigned & Shift Badge Visible ---`);
-    await expect(row.locator('span:has-text("confirmed")')).toBeVisible({ timeout: 15000 });
-    const tableChip = row.locator('button:has-text("🪑 Table")');
+    await expect(row.locator('span:has-text("confirmed")').first()).toBeVisible({ timeout: 15000 });
+    const tableChip = row.locator('button', { hasText: '🪑' });
     await expect(tableChip).toBeVisible();
     await expect(tableChip.locator('text=Shift')).toBeVisible();
 
