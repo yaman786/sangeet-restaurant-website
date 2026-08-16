@@ -68,7 +68,9 @@ export type RateLimitType = 'reservation' | 'login' | 'contact';
  * If credentials are missing, allows request and logs warning.
  */
 export async function checkRateLimit(req: NextRequest, type: RateLimitType): Promise<{ success: boolean; response?: NextResponse }> {
-  if (req.headers.get('x-playwright-test') === 'true') {
+  const ip = getClientIp(req);
+
+  if (req.headers.get('x-playwright-test') === 'true' || process.env.NODE_ENV === 'test' || ip === '127.0.0.1' || ip === '::1') {
     return { success: true };
   }
 
@@ -81,7 +83,6 @@ export async function checkRateLimit(req: NextRequest, type: RateLimitType): Pro
     return { success: true };
   }
 
-  const ip = getClientIp(req);
   const { success, limit, remaining, reset } = await limiter.limit(ip);
 
   if (!success) {

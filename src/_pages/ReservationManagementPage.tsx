@@ -169,9 +169,10 @@ const ReservationManagementPage = () => {
     setIsSubmitting(true);
     try {
       const createdRes = await createReservation(newReservationData);
+      const actualRes = (createdRes as any)?.reservation || createdRes;
       
       // Update local state directly
-      setReservations(prev => [createdRes, ...prev]);
+      setReservations(prev => [actualRes, ...prev]);
       
       // Reset form & close modal
       setNewReservationData({
@@ -224,21 +225,32 @@ const ReservationManagementPage = () => {
     }
     
     try {
-      // Use full updateReservation instead of updateReservationStatus
+      const destTableId = parseInt(selectedTableId, 10);
+      const isPending = selectedReservation.status === 'pending';
+      const targetStatus = isPending ? 'confirmed' : selectedReservation.status;
+      
+      // Use full updateReservation
       await updateReservation(selectedReservation.id, {
-        status: 'confirmed',
-        table_id: parseInt(selectedTableId, 10)
+        status: targetStatus,
+        table_id: destTableId
       });
       
+      const assignedTable = tables.find(t => t.id === destTableId);
+
       // Update local state directly
       setReservations(prev => prev.map(res => 
-        res.id === selectedReservation.id ? { ...res, status: 'confirmed', table_id: selectedTableId } : res
+        res.id === selectedReservation.id ? { 
+          ...res, 
+          status: targetStatus, 
+          table_id: destTableId,
+          tables: assignedTable || res.tables
+        } : res
       ));
       
       setShowAssignTableModal(false);
       setSelectedReservation(null);
       setSelectedTableId('');
-      toast.success('Reservation confirmed and table assigned!');
+      toast.success(isPending ? 'Reservation confirmed and table assigned!' : 'Table seating updated successfully!');
     } catch (error: any) {
       console.error('Error assigning table:', error);
       toast.error(error.response?.data?.error || 'Failed to assign table');
@@ -293,9 +305,13 @@ const ReservationManagementPage = () => {
   };
 
    
-  const getTableNumber = (tableId: string | number) => {
-    const table = tables.find(t => t.id === tableId);
-    return table ? table.table_number : 'Not assigned';
+  const getTableNumber = (tableId: string | number | null | undefined, reservationTables?: any) => {
+    if (reservationTables?.table_number) {
+      return `Table ${reservationTables.table_number}${reservationTables.table_name ? ` (${reservationTables.table_name})` : ''}`;
+    }
+    if (!tableId) return null;
+    const table = tables.find(t => String(t.id) === String(tableId) || String(t.table_number) === String(tableId));
+    return table ? `Table ${table.table_number}${table.table_name ? ` (${table.table_name})` : ''}` : `Table ${tableId}`;
   };
 
   // Filter reservations based on activeFilter and search
@@ -660,9 +676,42 @@ const ReservationManagementPage = () => {
                             </td>
                             <td className="px-6 py-4 text-sangeet-neutral-100 border-r border-amber-500/10">{reservation.guests}</td>
                             <td className="px-6 py-4 border-r border-amber-500/10">
-                              <span className="text-sangeet-neutral-100 font-medium">
-                                {reservation.table_id ? `Table ${reservation.table_id}` : <span className="text-sangeet-neutral-500">-</span>}
-                              </span>
+                              {reservation.table_id || reservation.tables?.table_number ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 font-semibold text-xs inline-flex items-center gap-1.5 whitespace-nowrap">
+                                    🪑 {getTableNumber(reservation.table_id, reservation.tables)}
+                                  </span>
+                                  {reservation.status !== 'completed' && reservation.status !== 'cancelled' && (
+                                    <button
+                                      onClick={() => {
+                                        setSelectedReservation(reservation);
+                                        setSelectedTableId(String(reservation.table_id || ''));
+                                        setShowAssignTableModal(true);
+                                      }}
+                                      className="text-[11px] text-sangeet-neutral-400 hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
+                                      title="Change table assignment"
+                                    >
+                                      Shift
+                                    </button>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sangeet-neutral-500 text-sm">-</span>
+                                  {reservation.status !== 'cancelled' && reservation.status !== 'completed' && (
+                                    <button
+                                      onClick={() => {
+                                        setSelectedReservation(reservation);
+                                        setSelectedTableId('');
+                                        setShowAssignTableModal(true);
+                                      }}
+                                      className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30 transition-colors cursor-pointer"
+                                    >
+                                      + Assign
+                                    </button>
+                                  )}
+                                </div>
+                              )}
                             </td>
                             <td className="px-6 py-4 border-r border-amber-500/10">
                               <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${getStatusColor(reservation.status)}`}>
@@ -1048,15 +1097,19 @@ const ReservationManagementPage = () => {
                 <div className="w-16 h-16 bg-linear-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">🪑</span>
                 </div>
-                <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">Assign Table</h3>
+                <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">
+                  {selectedReservation.table_id ? 'Shift / Reassign Table' : 'Assign Table'}
+                </h3>
                 <p className="text-sangeet-neutral-400">
-                  Please assign a table with capacity for {selectedReservation.guests} guests to confirm.
+                  {selectedReservation.table_id 
+                    ? `Currently assigned to ${getTableNumber(selectedReservation.table_id, selectedReservation.tables)}. Select a new table for ${selectedReservation.customer_name} (${selectedReservation.guests} guests).`
+                    : `Please assign a table with capacity for ${selectedReservation.guests} guests to confirm.`}
                 </p>
               </div>
 
               {/* Table Selection */}
               <div className="bg-sangeet-neutral-800 rounded-xl p-4 mb-6 border border-sangeet-neutral-600">
-                <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Select an Available Table</label>
+                <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Select Destination Table</label>
                 <select
                   value={selectedTableId}
                   onChange={(e) => setSelectedTableId(e.target.value)}
@@ -1067,7 +1120,7 @@ const ReservationManagementPage = () => {
                     .filter(t => t.capacity >= selectedReservation.guests && t.is_active)
                     .map(t => (
                       <option key={t.id} value={t.id}>
-                        Table {t.table_number} (Capacity: {t.capacity})
+                        Table {t.table_number} (Capacity: {t.capacity}{t.table_name ? ` • ${t.table_name}` : ''})
                       </option>
                     ))}
                 </select>
@@ -1090,9 +1143,9 @@ const ReservationManagementPage = () => {
                 </button>
                 <button
                   onClick={handleAssignTable}
-                  className="flex-1 px-4 py-3 bg-linear-to-r from-sangeet-500 to-sangeet-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 font-medium"
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-sangeet-neutral-950 font-bold rounded-lg shadow-lg shadow-amber-500/20 transition-all duration-300"
                 >
-                  Assign & Confirm
+                  {selectedReservation.table_id ? 'Update Table Seating' : 'Assign & Confirm'}
                 </button>
               </div>
             </motion.div>

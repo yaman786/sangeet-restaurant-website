@@ -12,8 +12,18 @@ export const updateTable = async (id: number, data: { capacity?: number; table_t
   }, 'updateTable', false);
 };
 
-export const deleteTable = async (id: number, permanent = false) => {
+export const deleteTable = async (id: number, permanent = false, transferToTableId?: number) => {
   return apiCallWrapper(async () => {
-    return await api.delete(`/tables/${id}${permanent ? '?permanent=true' : ''}`);
+    const params = new URLSearchParams();
+    if (permanent) params.set('permanent', 'true');
+    if (transferToTableId) params.set('transfer_to_table_id', String(transferToTableId));
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    return await api.delete(`/tables/${id}${queryString}`);
   }, 'deleteTable', false);
+};
+
+export const fetchTableActiveReservations = async (id: number) => {
+  return apiCallWrapper(async () => {
+    return await api.get(`/tables/${id}/active-reservations`);
+  }, 'fetchTableActiveReservations', false);
 };

@@ -81,6 +81,9 @@ class ReservationService {
     
     return prisma.reservations.findMany({
       where: whereClause,
+      include: {
+        tables: true
+      },
       orderBy: [
         { date: 'asc' },
         { time: 'asc' }

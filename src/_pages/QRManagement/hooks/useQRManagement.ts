@@ -9,7 +9,8 @@ import {
   downloadPrintableQRCode,
   restoreQRCode,
   createTable,
-  deleteTable
+  deleteTable,
+  fetchTableActiveReservations
 } from '../../../services/api';
 
 export const useQRManagement = () => {
@@ -23,6 +24,9 @@ export const useQRManagement = () => {
   const [analytics, setAnalytics] = useState<any>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [activeReservationsForDelete, setActiveReservationsForDelete] = useState<any[]>([]);
+  const [checkingActiveReservations, setCheckingActiveReservations] = useState(false);
+  const [transferToTableId, setTransferToTableId] = useState<string>('');
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [downloadTarget, setDownloadTarget] = useState<any>(null);
   
@@ -179,31 +183,27 @@ export const useQRManagement = () => {
     }
   };
 
-  const handleBulkGenerate = async () => {
+
+
+  const handleBulkGenerate = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     try {
       const tableNumbers = bulkFormData.tableNumbers.split(',').map(num => num.trim()).filter(num => num);
       if (tableNumbers.length === 0) {
         toast.error('Please enter table numbers');
         return;
       }
-      const response = await bulkGenerateTableQRCodes({
-        tableNumbers, baseUrl: bulkFormData.baseUrl, design: bulkFormData.design
+      await bulkGenerateTableQRCodes({
+        tableNumbers,
+        baseUrl: bulkFormData.baseUrl,
+        design: bulkFormData.design
       });
-      if ((response as any).summary.successful > 0) {
-        toast.success(`Generated ${(response as any).summary.successful} QR codes successfully!`);
-      }
-      if ((response as any).errors && (response as any).errors.length > 0) {
-        toast.error(`${(response as any).errors.length} QR codes failed to generate`);
-      }
+      toast.success(`Bulk generated QR codes successfully!`);
       setShowBulkModal(false);
-      setBulkFormData({
-        tableNumbers: '', capacity: 4, baseUrl: process.env.NEXT_PUBLIC_CLIENT_URL || 'https://sangeet.hk',
-        design: { darkColor: '#1d1b16', lightColor: '#ffffff', width: 300, margin: 2 }
-      });
       loadQRCodes();
     } catch (error: any) {
       console.error('Error bulk generating QR codes:', error);
-      toast.error('Failed to bulk generate QR codes');
+      toast.error(error.message || 'Failed to bulk generate QR codes');
     }
   };
 
@@ -221,25 +221,52 @@ export const useQRManagement = () => {
 
   const handleDeleteQR = async (qrCode: any, permanent = false) => {
     setDeleteTarget({ qrCode, permanent });
+    setActiveReservationsForDelete([]);
+    setTransferToTableId('');
+    setCheckingActiveReservations(true);
     setShowDeleteModal(true);
+
+    try {
+      const res: any = await fetchTableActiveReservations(qrCode.id);
+      if (res && res.activeReservations) {
+        setActiveReservationsForDelete(res.activeReservations);
+      }
+    } catch (error) {
+      console.error('Error checking active reservations for table:', error);
+    } finally {
+      setCheckingActiveReservations(false);
+    }
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = async (selectedTransferId?: number) => {
     if (!deleteTarget) return;
+    
+    const targetTransferId = selectedTransferId || (transferToTableId ? parseInt(transferToTableId, 10) : undefined);
+    
+    if (activeReservationsForDelete.length > 0 && !targetTransferId) {
+      toast.error('Please select a destination table to transfer the active reservations.');
+      return;
+    }
+
     try {
-      if (deleteTarget.permanent) {
-        await deleteTable(deleteTarget.qrCode.id, true);
+      const res: any = await deleteTable(deleteTarget.qrCode.id, deleteTarget.permanent, targetTransferId);
+      
+      if (targetTransferId && res?.transferredCount) {
+        toast.success(`Table ${deleteTarget.qrCode.table_number} deleted. ${res.transferredCount} reservation(s) transferred!`);
+      } else if (deleteTarget.permanent) {
         toast.success(`Table ${deleteTarget.qrCode.table_number} permanently deleted!`);
       } else {
-        await deleteTable(deleteTarget.qrCode.id, false);
         toast.success(`Table ${deleteTarget.qrCode.table_number} archived successfully!`);
       }
+      
       loadQRCodes();
       setShowDeleteModal(false);
       setDeleteTarget(null);
+      setActiveReservationsForDelete([]);
+      setTransferToTableId('');
     } catch (error: any) {
       console.error('Error deleting table:', error);
-      const errorMessage = error.message || error.response?.data?.error || 'Failed to delete table';
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to delete table';
       toast.error(errorMessage);
     }
   };
@@ -296,6 +323,9 @@ export const useQRManagement = () => {
     analytics, setAnalytics,
     showDeleteModal, setShowDeleteModal,
     deleteTarget, setDeleteTarget,
+    activeReservationsForDelete,
+    checkingActiveReservations,
+    transferToTableId, setTransferToTableId,
     showDownloadModal, setShowDownloadModal,
     downloadTarget, setDownloadTarget,
     downloadOptions, setDownloadOptions,

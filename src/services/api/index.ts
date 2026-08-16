@@ -51,7 +51,7 @@ export {
 } from './qrApi';
 
 // Table Management
-export { createTable, updateTable, deleteTable } from './tableApi';
+export { createTable, updateTable, deleteTable, fetchTableActiveReservations } from './tableApi';
 
 // Reviews
 export {

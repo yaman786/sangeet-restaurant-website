@@ -19,6 +19,9 @@ const QRManagement = () => {
     analytics, setAnalytics,
     showDeleteModal, setShowDeleteModal,
     deleteTarget, setDeleteTarget,
+    activeReservationsForDelete,
+    checkingActiveReservations,
+    transferToTableId, setTransferToTableId,
     showDownloadModal, setShowDownloadModal,
     downloadTarget, setDownloadTarget,
     downloadOptions, setDownloadOptions,
@@ -96,6 +99,10 @@ const QRManagement = () => {
         analytics={analytics}
         showDeleteModal={showDeleteModal} setShowDeleteModal={setShowDeleteModal}
         deleteTarget={deleteTarget} setDeleteTarget={setDeleteTarget}
+        activeReservationsForDelete={activeReservationsForDelete}
+        checkingActiveReservations={checkingActiveReservations}
+        transferToTableId={transferToTableId} setTransferToTableId={setTransferToTableId}
+        allTables={qrCodes?.tableQRCodes || []}
         showDownloadModal={showDownloadModal} setShowDownloadModal={setShowDownloadModal}
         downloadTarget={downloadTarget} setDownloadTarget={setDownloadTarget}
         downloadOptions={downloadOptions} setDownloadOptions={setDownloadOptions}
