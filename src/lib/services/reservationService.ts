@@ -8,7 +8,7 @@ import {
   sendAdminReservationNoticeEmail 
 } from '../utils/emailService';
 import { emitNewReservation, emitReservationUpdate } from './pusherServer';
-import { parseRestaurantTime } from '../utils/timeUtils';
+import dayjs, { parseRestaurantTime, RESTAURANT_TIMEZONE } from '../utils/timeUtils';
 import { CreateReservationDTO, UpdateReservationDTO, ReservationQueryDTO, CreateTimeSlotDTO, UpdateTimeSlotDTO } from '../types/dtos';
 
 function calculateDiningDuration(guests: number): number {
@@ -20,8 +20,8 @@ function calculateDiningDuration(guests: number): number {
 class ReservationService {
   async sweepOverdueReservations(): Promise<number> {
     try {
-      const now = new Date();
-      const fortyFiveMinsAgo = new Date(now.getTime() - 45 * 60000);
+      const nowHk = dayjs().tz(RESTAURANT_TIMEZONE);
+      const fortyFiveMinsAgo = nowHk.subtract(45, 'minute');
       
       const activeReservations = await prisma.reservations.findMany({
         where: {
@@ -34,13 +34,11 @@ class ReservationService {
       const noShowIds: number[] = [];
       for (const res of activeReservations) {
         if (!res.date || !res.time) continue;
-        const dateStr = new Date(res.date).toISOString().split('T')[0];
-        const timeObj = new Date(res.time);
-        const hours = String(timeObj.getUTCHours()).padStart(2, '0');
-        const mins = String(timeObj.getUTCMinutes()).padStart(2, '0');
-        const scheduledAt = new Date(`${dateStr}T${hours}:${mins}:00.000Z`);
+        const dateStr = dayjs(res.date).tz(RESTAURANT_TIMEZONE).format('YYYY-MM-DD');
+        const timeStr = dayjs(res.time).tz(RESTAURANT_TIMEZONE).format('HH:mm');
+        const scheduledAt = parseRestaurantTime(dateStr, timeStr);
 
-        if (scheduledAt < fortyFiveMinsAgo) {
+        if (scheduledAt.isBefore(fortyFiveMinsAgo)) {
           noShowIds.push(res.id);
         }
       }
@@ -50,7 +48,6 @@ class ReservationService {
           where: { id: { in: noShowIds } },
           data: {
             status: 'no-show',
-            is_archived: true,
             updated_at: new Date()
           }
         });
@@ -81,8 +78,6 @@ class ReservationService {
       whereClause.is_archived = true;
     } else if (query.archived === 'false') {
       whereClause.is_archived = false;
-    } else {
-      whereClause.is_archived = false; // By default, only show non-archived
     }
     
     return prisma.reservations.findMany({
