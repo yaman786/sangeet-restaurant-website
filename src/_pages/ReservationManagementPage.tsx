@@ -648,7 +648,7 @@ const ReservationManagementPage = () => {
                       <thead className="bg-amber-500/10 border-b border-amber-500/20">
                         <tr>
                           <th 
-                            className="w-[23%] px-3.5 py-3 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                            className="w-[26%] px-3.5 py-3 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors"
                             onClick={() => handleSort('customer')}
                           >
                             <div className="flex items-center space-x-1">
@@ -657,7 +657,7 @@ const ReservationManagementPage = () => {
                             </div>
                           </th>
                           <th 
-                            className="w-[16%] px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                            className="w-[18%] px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors"
                             onClick={() => handleSort('datetime')}
                           >
                             <div className="flex items-center space-x-1">
@@ -666,7 +666,7 @@ const ReservationManagementPage = () => {
                             </div>
                           </th>
                           <th 
-                            className="w-[9%] px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors"
+                            className="w-[10%] px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition-colors"
                             onClick={() => handleSort('guests')}
                           >
                             <div className="flex items-center justify-center space-x-1">
@@ -677,10 +677,10 @@ const ReservationManagementPage = () => {
                           <th className="w-[18%] px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10">
                             Table
                           </th>
-                          <th className="w-[14%] px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10">
+                          <th className="w-[16%] px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-amber-400 border-r border-amber-500/10">
                             Status
                           </th>
-                          <th className="w-[20%] px-3 py-3 text-right text-xs font-bold uppercase tracking-wider text-amber-400">
+                          <th className="w-[12%] px-3 py-3 text-right text-xs font-bold uppercase tracking-wider text-amber-400">
                             Actions
                           </th>
                         </tr>
@@ -740,36 +740,43 @@ const ReservationManagementPage = () => {
                               )}
                             </td>
                             <td className="px-3 py-3 border-r border-amber-500/10">
-                              <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold text-white shadow-2xs inline-flex items-center gap-1 whitespace-nowrap ${getStatusColor(reservation.status)}`}>
-                                <span>{getStatusIcon(reservation.status)}</span>
-                                <span>{reservation.status}</span>
-                              </span>
-                            </td>
-                            <td className="px-3 py-3 text-right">
-                              <div className="flex items-center justify-end gap-1.5">
-                                {reservation.status !== 'completed' && reservation.status !== 'cancelled' && (
+                              {reservation.status === 'completed' || reservation.status === 'cancelled' ? (
+                                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold text-white shadow-2xs inline-flex items-center gap-1 whitespace-nowrap ${getStatusColor(reservation.status)}`}>
+                                  <span>{getStatusIcon(reservation.status)}</span>
+                                  <span>{reservation.status}</span>
+                                </span>
+                              ) : (
+                                <div className="relative inline-block w-full max-w-[145px]">
                                   <select
                                     value={reservation.status}
                                     onChange={(e) => handleStatusUpdate(reservation.id, e.target.value)}
-                                    className="px-2 py-1 bg-sangeet-neutral-800 hover:bg-sangeet-neutral-750 border border-sangeet-neutral-700 rounded-md text-sangeet-neutral-200 text-xs focus:outline-none focus:border-amber-400 transition-colors cursor-pointer"
+                                    className={`w-full appearance-none px-2.5 py-1 pr-6 rounded-lg text-xs font-bold shadow-2xs cursor-pointer focus:outline-none transition-all truncate ${
+                                      reservation.status === 'pending'
+                                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                                        : 'bg-blue-500/20 text-blue-300 border border-blue-500/40 hover:bg-blue-500/30'
+                                    }`}
                                   >
                                     {reservation.status === 'pending' && (
                                       <>
-                                        <option value="pending">Pending</option>
-                                        <option value="confirmed">Confirm (with Table)</option>
-                                        <option value="cancelled">Cancelled</option>
+                                        <option value="pending" className="bg-sangeet-neutral-900 text-sangeet-neutral-100">⏳ Pending</option>
+                                        <option value="confirmed" className="bg-sangeet-neutral-900 text-sangeet-neutral-100">✅ Confirm (with Table)</option>
+                                        <option value="cancelled" className="bg-sangeet-neutral-900 text-sangeet-neutral-100">❌ Cancel</option>
                                       </>
                                     )}
                                     {reservation.status === 'confirmed' && (
                                       <>
-                                        <option value="confirmed">Confirmed</option>
-                                        <option value="completed">Completed</option>
-                                        <option value="cancelled">Cancelled</option>
+                                        <option value="confirmed" className="bg-sangeet-neutral-900 text-sangeet-neutral-100">✅ Confirmed</option>
+                                        <option value="completed" className="bg-sangeet-neutral-900 text-sangeet-neutral-100">🎉 Complete</option>
+                                        <option value="cancelled" className="bg-sangeet-neutral-900 text-sangeet-neutral-100">❌ Cancel</option>
                                       </>
                                     )}
                                   </select>
-                                )}
-
+                                  <span className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[8px] opacity-70">▼</span>
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-3 py-3 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
                                 <button
                                   onClick={() => {
                                     setSelectedReservation(reservation);
