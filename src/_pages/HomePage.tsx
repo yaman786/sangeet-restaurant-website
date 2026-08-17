@@ -332,12 +332,8 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
 
 
       {/* ───────────────────────────────────────────────────────
-          EVENTS — Clean carousel
-          Benchmarked: Linear feature showcase
-      ─────────────────────────────────────────────────────── */}
-      {/* ───────────────────────────────────────────────────────
-          EVENTS — Luxury Cinematic Showcase & Strategic Controls
-          Benchmarked: Michelin Guide, Oberoi Luxury Resorts
+          EVENTS & PRIVATE DINING — Showcase & Carousel
+          Benchmarked: Dishoom & New Punjab Club private event showcases
       ─────────────────────────────────────────────────────── */}
       <section className="section-padding bg-sangeet-neutral-950 relative overflow-hidden">
         {/* Subtle background glow */}
@@ -347,13 +343,13 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
           {/* Section Header with Strategic Control Bar */}
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
             <motion.div {...fadeUp} className="max-w-2xl">
-              <span className="section-badge mb-3 inline-block">Curated Celebrations</span>
+              <span className="section-badge mb-3 inline-block">Events & Private Dining</span>
               <h2 className="section-title text-left mb-3">
-                Upcoming{' '}
-                <span className="text-gradient-gold italic">Festivals & Soirées</span>
+                What&apos;s{' '}
+                <span className="text-gradient-gold italic">On</span>
               </h2>
               <p className="text-body-md text-sangeet-neutral-400 leading-relaxed">
-                Immerse yourself in authentic South Asian festivities, classical musical evenings, and exclusive culinary banquets crafted by our master chefs.
+                Special dinners, festive celebrations, and private events at Sangeet.
               </p>
             </motion.div>
 
@@ -392,17 +388,17 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
                   <div className="absolute inset-0 bg-linear-to-r from-sangeet-400/5 via-transparent to-sangeet-red-500/5" />
                   <div className="relative z-10">
                     <span className="inline-block px-4 py-1.5 rounded-full bg-sangeet-400/20 text-sangeet-400 text-xs font-semibold uppercase tracking-wider mb-4 border border-sangeet-400/30">
-                      Private Dining & Events
+                      Private Dining & Gatherings
                     </span>
                     <h3 className="font-display text-2xl md:text-3xl text-sangeet-neutral-100 font-bold mb-4">
-                      Host Your Celebration With Us
+                      Host Your Next Event With Us
                     </h3>
                     <p className="text-sangeet-neutral-400 text-base md:text-lg max-w-2xl mx-auto mb-8">
-                      Looking for a private venue for birthdays, corporate dinners, or family celebrations? Reserve our dining room with customized South Asian menus and dedicated service.
+                      Our private dining space and dedicated team are available for birthdays, corporate dinners, festive celebrations, and family gatherings. Custom menus available upon request.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                       <Link href="/contact" className="btn-primary px-8 py-3 text-sm">
-                        Inquire for Private Events
+                        Inquire About Events
                       </Link>
                       <Link href="/reservations" className="btn-ghost px-8 py-3 text-sm border border-sangeet-neutral-700">
                         Reserve a Table
@@ -496,7 +492,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
                                     onClick={() => navigate('/reservations')}
                                     className="btn-primary px-8 py-3 text-sm font-semibold shadow-xl flex items-center gap-2 group-hover:shadow-sangeet-400/20"
                                   >
-                                    <span>Reserve For This Event</span>
+                                    <span>Reserve for This Event</span>
                                     <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                     </svg>
