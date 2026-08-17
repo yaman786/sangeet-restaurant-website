@@ -97,7 +97,7 @@ const RestaurantWebsiteManagementPage = () => {
   const [contactForm, setContactForm] = useState({
     phone: "+852 2345 6789",
     email: "info@sangeet.hk",
-    address: "Wanchai, Hong Kong",
+    address: "17 Fenwick Street, Wan Chai, Hong Kong",
     maps_iframe: ""
   });
 

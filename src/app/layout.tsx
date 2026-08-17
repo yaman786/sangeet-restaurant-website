@@ -23,6 +23,25 @@ const LoadingFallback = () => (
   </div>
 );
 
+const restaurantJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Restaurant",
+  "name": "Sangeet Restaurant",
+  "image": "/images/hero-interior.jpg",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "17 Fenwick Street",
+    "addressLocality": "Wan Chai",
+    "addressRegion": "Hong Kong Island",
+    "addressCountry": "HK"
+  },
+  "telephone": "+85223456789",
+  "servesCuisine": ["South Asian", "Indian", "Tandoori", "Halal"],
+  "priceRange": "HK$$",
+  "acceptsReservations": "True",
+  "currenciesAccepted": "HKD"
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -30,6 +49,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(restaurantJsonLd) }}
+        />
+      </head>
       <body className={`${playfair.variable} ${playfairSC.variable} ${outfit.variable} ${inter.variable} ${karla.variable} font-sans`}>
         <ErrorBoundary>
           <Providers>

@@ -22,7 +22,7 @@ const Footer = () => {
   const [contactInfo, setContactInfo] = React.useState<any>({
     phone: "+852 2345 6789",
     email: "info@sangeet.hk",
-    address: "Wanchai, Hong Kong"
+    address: "17 Fenwick Street, Wan Chai, Hong Kong"
   });
   const [businessHours, setBusinessHours] = React.useState<any>(null);
 
@@ -129,6 +129,12 @@ const Footer = () => {
                   <Link href="/reservations" className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 flex items-center group text-sm md:text-base touch-manipulation py-1">
                     <span className="mr-2 text-sangeet-400 group-hover:translate-x-1 transition-transform duration-300">→</span>
                     Make Reservation
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/location" className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 flex items-center group text-sm md:text-base touch-manipulation py-1">
+                    <span className="mr-2 text-sangeet-400 group-hover:translate-x-1 transition-transform duration-300">→</span>
+                    Location &amp; Hours
                   </Link>
                 </li>
                 <li>

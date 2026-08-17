@@ -140,14 +140,14 @@ const LocationPage = () => {
                     <div className="absolute bottom-6 left-6 bg-sangeet-neutral-900/95 backdrop-blur-md p-6 rounded-xl border border-sangeet-neutral-700 shadow-lg max-w-sm hidden md:block">
                         <h3 className="text-xl font-bold text-sangeet-400 mb-2">Sangeet Restaurant</h3>
                         <p className="text-sangeet-neutral-300 mb-4">
-                            123 Johnston Road,<br />
-                            Wanchai, Hong Kong
+                            17 Fenwick Street,<br />
+                            Wan Chai, Hong Kong
                         </p>
                         <a
-                            href="https://maps.google.com"
+                            href="https://www.google.com/maps/search/?api=1&query=17+Fenwick+Street+Wan+Chai+Hong+Kong"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center space-x-2 text-sm font-bold text-sangeet-neutral-900 bg-sangeet-400 px-4 py-2 rounded-lg hover:bg-sangeet-300 transition-colors"
+                            className="inline-flex items-center space-x-2 text-sm font-bold text-sangeet-neutral-950 bg-sangeet-400 px-4 py-2 rounded-lg hover:bg-sangeet-300 transition-colors"
                         >
                             <span>Get Directions</span>
                             <span>→</span>
