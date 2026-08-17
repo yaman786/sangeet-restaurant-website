@@ -111,7 +111,7 @@ const Header = () => {
               <Link href="/reservations"
                 className="px-4 py-2 rounded-lg bg-sangeet-400/10 text-sangeet-400 text-body-sm font-semibold
                            border border-sangeet-400/20 hover:bg-sangeet-400/20 hover:border-sangeet-400/30
-                           transition-all duration-200"
+                           transition-all duration-200 whitespace-nowrap shrink-0"
               >
                 Book a Table
               </Link>

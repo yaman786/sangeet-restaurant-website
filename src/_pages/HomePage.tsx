@@ -107,7 +107,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
   const heroData = cmsConfig?.hero || {
     title: "A Symphony of South Asian Gastronomy",
     subtitle: "Hong Kong's newest fine-dining sanctuary in Wan Chai. Authentic charcoal clay tandoor cooking and hand-crafted regional curries served in contemporary elegance.",
-    image_url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop",
+    image_url: "/images/hero-interior.jpg",
     primary_cta_text: "Reserve Your Table",
     primary_cta_link: "/reservations",
     secondary_cta_text: "Explore the Menu",
@@ -186,21 +186,22 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
               loop
               muted
               playsInline
-              className="object-cover scale-110 w-full h-full"
+              className="object-cover scale-105 w-full h-full"
             />
           ) : (
             <Image
-              src={heroData.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop"}
+              src={heroData.image_url || "/images/hero-interior.jpg"}
               alt="Sangeet Restaurant dining ambiance"
               fill
               priority
-              className="object-cover scale-110"
+              unoptimized
+              className="object-cover scale-105"
             />
           )}
         </motion.div>
 
-        {/* Cinematic Overlay — deep vignette */}
-        <div className="absolute inset-0 bg-linear-to-b from-sangeet-neutral-950/70 via-sangeet-neutral-950/40 to-sangeet-neutral-950/90 z-10" />
+        {/* Cinematic Overlay — warm fine-dining vignette */}
+        <div className="absolute inset-0 bg-linear-to-b from-sangeet-neutral-950/60 via-sangeet-neutral-950/25 to-sangeet-neutral-950/85 z-10" />
 
         {/* Hero Content */}
         <motion.div

@@ -82,7 +82,7 @@ const RestaurantWebsiteManagementPage = () => {
   const [heroForm, setHeroForm] = useState({
     title: "A Symphony of South Asian Gastronomy",
     subtitle: "Hong Kong's newest fine-dining sanctuary in Wan Chai. Authentic charcoal clay tandoor cooking and hand-crafted regional curries served in contemporary elegance.",
-    image_url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop",
+    image_url: "/images/hero-interior.jpg",
     primary_cta_text: "Reserve Your Table",
     primary_cta_link: "/reservations",
     secondary_cta_text: "Explore the Menu",
@@ -110,7 +110,7 @@ const RestaurantWebsiteManagementPage = () => {
     title: "Sangeet | Fine-Dining South Asian Cuisine & Clay Tandoor | Wan Chai, Hong Kong",
     description: "Sangeet is Hong Kong's newest South Asian fine-dining sanctuary in Wan Chai. Experience charcoal clay tandoor cooking, handcrafted regional curries, and modern luxury.",
     keywords: "Sangeet restaurant, Wan Chai Indian food, South Asian fine dining, Hong Kong tandoor, authentic Indian curries, private dining Wan Chai",
-    og_image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=630&fit=crop"
+    og_image: "/images/hero-interior.jpg"
   });
 
   const [mediaList, setMediaList] = useState<any[]>([]);
