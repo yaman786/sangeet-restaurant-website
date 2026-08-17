@@ -105,8 +105,8 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
 
   // Parse CMS dynamic config
   const heroData = cmsConfig?.hero || {
-    title: "Experience South Asian Elegance",
-    subtitle: "Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong.",
+    title: "A Symphony of South Asian Gastronomy",
+    subtitle: "Hong Kong's newest fine-dining sanctuary in Wan Chai. Authentic charcoal clay tandoor cooking and hand-crafted regional curries served in contemporary elegance.",
     image_url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop",
     primary_cta_text: "Reserve Your Table",
     primary_cta_link: "/reservations",
@@ -124,22 +124,22 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
 
   const JOURNEY_PILLARS = [
     {
-      title: "Heritage Recipes",
-      description: "Every dish draws from generations of family tradition, preserving the authentic flavors of South Asia.",
-      stat: "100+",
-      statLabel: "Family Recipes",
+      title: "Artisanal Charcoal Tandoor",
+      description: "Char-grilled kebabs, succulent tikkas, and freshly baked naans prepared over live charcoal in our traditional clay oven.",
+      stat: "100%",
+      statLabel: "Charcoal Fired",
     },
     {
-      title: "Artisan Craft",
-      description: "Our chef brings decades of mastery in traditional techniques, from tandoor to tawa.",
-      stat: "5,300",
-      statLabel: "Sq Ft Space",
+      title: "Hand-Crafted Spices",
+      description: "Signature whole spices hand-selected and slow-simmered to create our rich, aromatic regional curries.",
+      stat: "60+",
+      statLabel: "Signature Dishes",
     },
     {
-      title: "Vibrant Community",
-      description: "Located in the heart of Wanchai, we bring the warmth of South Asian hospitality to Hong Kong.",
-      stat: "150+",
-      statLabel: "Seat Capacity",
+      title: "Contemporary Luxury",
+      description: "A refined dining sanctuary in Wan Chai designed for intimate dinners, celebrations, and corporate gatherings.",
+      stat: "Wan Chai",
+      statLabel: "Hong Kong",
     },
   ];
 
@@ -291,13 +291,13 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
         <div className="max-w-6xl mx-auto container-padding">
           {/* Section Header */}
           <motion.div {...fadeUp} className="text-center mb-16 md:mb-20">
-            <span className="section-badge mb-4">Our Story</span>
+            <span className="section-badge mb-4">The Sangeet Experience</span>
             <h2 className="section-title">
-              A Culinary Heritage,{' '}
-              <span className="text-gradient-gold italic">Reimagined</span>
+              A New Symphony of Flavors,{' '}
+              <span className="text-gradient-gold italic">Now in Wan Chai</span>
             </h2>
             <p className="section-subtitle">
-              From humble family kitchens to the vibrant heart of Wanchai — every dish tells a story of tradition, passion, and artistry.
+              Sangeet brings an exciting new South Asian fine-dining experience to Hong Kong — where authentic charcoal tandoor mastery meets contemporary luxury.
             </p>
           </motion.div>
 
@@ -688,10 +688,10 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
           <motion.div {...fadeUp}>
             <h2 className="font-display text-display-md md:text-display-lg text-sangeet-neutral-100 mb-6">
               Ready to Experience{' '}
-              <span className="text-gradient-gold italic">Authentic Flavors</span>?
+              <span className="text-gradient-gold italic">A Symphony of Flavors</span>?
             </h2>
             <p className="text-body-lg text-sangeet-neutral-400 mb-10 max-w-xl mx-auto">
-              Book your table today and embark on a culinary journey through the rich traditions of South Asia.
+              Reserve your table for our Grand Opening in Wan Chai and enjoy an unforgettable evening of culinary excellence.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -716,9 +716,9 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
             {/* Trust bar */}
             <div className="flex flex-wrap justify-center gap-6 md:gap-10 mt-14">
               {[
-                { label: "Award Winning", sub: "Best South Asian 2024" },
-                { label: "500+ Happy Guests", sub: "Customer Favorite" },
-                { label: "Open Daily", sub: "6 PM – 11 PM" },
+                { label: "100% Halal Meats", sub: "Quality Sourced" },
+                { label: "Clay Tandoor Oven", sub: "Live Charcoal Cooking" },
+                { label: "Lunch & Dinner", sub: "Open Daily in Wan Chai" },
               ].map((item, i) => (
                 <div key={i} className="text-center">
                   <div className="text-body-sm text-sangeet-neutral-200 font-semibold">{item.label}</div>

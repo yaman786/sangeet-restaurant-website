@@ -14,75 +14,75 @@ const AboutPage = () => {
   const navigate = useNavigate();
 // Gallery moved to AboutGallery component
 
-  // Unique story highlights with diverse focus
+  // Grand Opening story highlights
   const storyHighlights = [
     {
       icon: Star,
-      title: "Innovation Meets Tradition",
-      description: "Chef Rajesh Kumar's creative approach to classic South Asian recipes, blending authentic flavors with contemporary techniques"
+      title: "The Meaning of Sangeet",
+      description: "In Sanskrit, Sangeet signifies the harmonious symphony of music, rhythm, and emotion — a philosophy we infuse into every spice blend and curated dish."
     },
     {
       icon: Building2,
-      title: "Versatile Venue",
-      description: "Multiple dining spaces designed for every occasion - from romantic dinners to corporate events and cultural celebrations"
-    },
-    {
-      icon: Theater,
-      title: "Living Culture",
-      description: "Daily live performances featuring traditional music, dance, and cultural storytelling that bring South Asian heritage to life"
-    }
-  ];
-
-  // Key statistics
-  const keyStats = [
-    { number: "150+", label: "Seat Capacity", icon: UtensilsCrossed },
-    { number: "5,300", label: "Sq Ft Space", icon: Building2 },
-    { number: "100+", label: "Family Recipes", icon: History }
-  ];
-
-  // Enhanced team members with strategic positioning
-  const teamMembers = [
-    {
-      name: "Chef Rajesh Kumar",
-      role: "Executive Chef & Culinary Director",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-      description: "Award-winning chef with 15+ years crafting authentic South Asian cuisine. His signature dishes blend traditional techniques with modern innovation, earning recognition in Hong Kong's culinary scene."
-    },
-    {
-      name: "Priya Sharma",
-      role: "General Manager & Hospitality Director",
-      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=face",
-      description: "Leading our team with 10+ years in luxury hospitality. Priya ensures every guest receives personalized attention and creates memorable experiences for celebrations and events."
-    },
-    {
-      name: "Amit Patel",
-      role: "Beverage Director & Sommelier",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-      description: "Expert in premium spirits and wine pairings. Amit curates our extensive beverage program, featuring rare teas from the Himalayas and fine wines that complement our authentic cuisine."
-    }
-  ];
-
-  // Enhanced awards and recognition with strategic positioning
-  const awards = [
-    {
-      icon: Award,
-      title: "Best New Restaurant 2024",
-      description: "Hong Kong Food Awards - Excellence in South Asian Cuisine"
-    },
-    {
-      icon: Star,
-      title: "4.8/5 Customer Rating",
-      description: "Based on 500+ verified reviews - Outstanding Service & Quality"
-    },
-    {
-      icon: Theater,
-      title: "Cultural Excellence Award",
-      description: "Hong Kong Tourism Board - Best Cultural Dining Experience"
+      title: "Contemporary Luxury Sanctuary",
+      description: "An opulent dining destination in Wan Chai featuring intimate booth seating, a private dining room, and an ambient cocktail lounge."
     },
     {
       icon: UtensilsCrossed,
-      title: "Chef's Choice Award",
-      description: "Hong Kong Culinary Association - Innovation in Traditional Cuisine"
+      title: "Artisanal Charcoal Craft",
+      description: "Master chefs utilizing authentic clay tandoor ovens and slow-cooked regional recipes from across the South Asian subcontinent."
+    }
+  ];
+
+  // Key highlights
+  const keyStats = [
+    { number: "100%", label: "Halal Sourced", icon: Award },
+    { number: "60+", label: "Signature Dishes", icon: UtensilsCrossed },
+    { number: "Wan Chai", label: "Hong Kong", icon: Building2 }
+  ];
+
+  // Executive culinary team
+  const teamMembers = [
+    {
+      name: "Executive Head Chef",
+      role: "Culinary Director",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
+      description: "Master chef dedicated to authentic South Asian culinary art. His signature creations blend traditional clay tandoor techniques with modern fine-dining finesse."
+    },
+    {
+      name: "Hospitality Team",
+      role: "General Management",
+      image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=face",
+      description: "Leading our service team with warmth and precision, ensuring every guest experiences the gracious hospitality of South Asian culture."
+    },
+    {
+      name: "Sommelier & Bar Team",
+      role: "Beverage Program",
+      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
+      description: "Curating our beverage program with handcrafted signature mocktails, fine wine pairings, and traditional spiced Himalayan teas."
+    }
+  ];
+
+  // Culinary commitments & standards
+  const culinaryCommitments = [
+    {
+      icon: Award,
+      title: "100% Halal Quality Sourcing",
+      description: "All our meats are certified Halal, prepared fresh with premium ingredients and authentic aromatic spices."
+    },
+    {
+      icon: UtensilsCrossed,
+      title: "Live Charcoal Clay Tandoor",
+      description: "Char-grilled kebabs, tender tikkas, and handcrafted naans baked fresh at 400°C over natural charcoal."
+    },
+    {
+      icon: Star,
+      title: "Dedicated Vegetarian & Vegan Delicacies",
+      description: "Rich, authentic plant-based curries crafted from scratch without compromising on flavor, texture, or depth."
+    },
+    {
+      icon: Building2,
+      title: "Unrivaled Hospitality & Private Events",
+      description: "Warm, attentive service tailored for intimate romantic dinners, family celebrations, and corporate gatherings."
     }
   ];
 
@@ -183,13 +183,13 @@ const AboutPage = () => {
               transition={{ duration: 1, delay: 0.4 }}
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-10 leading-tight px-4"
             >
-              <span className="text-white">From Family</span>
+              <span className="text-white">A New Symphony</span>
               <br />
               <span className="text-transparent bg-clip-text bg-linear-to-r from-sangeet-400 to-sangeet-red-500">
-                Traditions
+                Of Flavors
               </span>
               <br />
-              <span className="text-white">To Your Table</span>
+              <span className="text-white">In Hong Kong</span>
             </motion.h1>
 
             {/* Story Subtitle - Unique & Compelling */}
@@ -199,10 +199,9 @@ const AboutPage = () => {
               transition={{ duration: 1, delay: 0.6 }}
               className="text-lg md:text-xl text-sangeet-neutral-300 mb-16 max-w-4xl mx-auto leading-relaxed px-4"
             >
-              Welcome to Sangeet, where the soul of South Asia comes alive in the heart of Wanchai.
-              <span className="text-sangeet-400 font-semibold"> Rooted in vibrant traditions of music, dance, and culinary artistry</span>,
-              we&apos;re more than a dining destination—we&apos;re an immersive celebration of culture, community, and connection.
-              Every moment at Sangeet is crafted to create unforgettable memories.
+              Welcome to Sangeet, Hong Kong&apos;s newest South Asian fine-dining sanctuary in the heart of Wan Chai.
+              <span className="text-sangeet-400 font-semibold"> Inspired by the Sanskrit word for musical harmony</span>,
+              we celebrate the artistry of South Asian gastronomy through live charcoal tandoor cooking, fragrant whole spices, and modern luxury.
             </motion.p>
 
             {/* Story Timeline Preview - Better Grid */}
@@ -214,20 +213,20 @@ const AboutPage = () => {
             >
               <div className="bg-sangeet-neutral-900/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300">
                 <div className="text-3xl md:text-4xl mb-4 text-sangeet-400"><ChefHat /></div>
-                <h3 className="text-sangeet-400 font-bold text-lg md:text-xl mb-3">Chef&apos;s Signature</h3>
-                <p className="text-sangeet-neutral-400 text-sm md:text-base">Chef Rajesh Kumar&apos;s innovative take on traditional South Asian flavors</p>
+                <h3 className="text-sangeet-400 font-bold text-lg md:text-xl mb-3">Master Craftsmanship</h3>
+                <p className="text-sangeet-neutral-400 text-sm md:text-base">Authentic regional recipes elevated with contemporary fine-dining presentation</p>
               </div>
 
               <div className="bg-sangeet-neutral-900/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300">
                 <div className="text-3xl md:text-4xl mb-4 text-sangeet-400"><Building2 /></div>
                 <h3 className="text-sangeet-400 font-bold text-lg md:text-xl mb-3">Sophisticated Spaces</h3>
-                <p className="text-sangeet-neutral-400 text-sm md:text-base">Multiple dining areas designed for intimate dinners and grand celebrations</p>
+                <p className="text-sangeet-neutral-400 text-sm md:text-base">Atmospheric dining rooms designed for intimate dinners and private celebrations</p>
               </div>
 
               <div className="bg-sangeet-neutral-900/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300">
-                <div className="text-3xl md:text-4xl mb-4 text-sangeet-400"><Theater /></div>
-                <h3 className="text-sangeet-400 font-bold text-lg md:text-xl mb-3">Cultural Immersion</h3>
-                <p className="text-sangeet-neutral-400 text-sm md:text-base">Live performances and authentic decor that transport you to South Asia</p>
+                <div className="text-3xl md:text-4xl mb-4 text-sangeet-400"><UtensilsCrossed /></div>
+                <h3 className="text-sangeet-400 font-bold text-lg md:text-xl mb-3">Charcoal Tandoor</h3>
+                <p className="text-sangeet-neutral-400 text-sm md:text-base">Live clay-oven roasting that infuses every kebab and naan with smoky perfection</p>
               </div>
             </motion.div>
 
@@ -411,7 +410,7 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* Awards Section */}
+      {/* Culinary Commitments Section */}
       <section className="py-20 bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -420,14 +419,14 @@ const AboutPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-sangeet-400 mb-4">Recognition & Awards</h2>
-            <p className="text-sangeet-neutral-400 text-lg max-w-3xl mx-auto">Celebrating our achievements and commitment to culinary excellence</p>
+            <h2 className="text-4xl md:text-5xl font-bold text-sangeet-400 mb-4">Our Culinary Commitments</h2>
+            <p className="text-sangeet-neutral-400 text-lg max-w-3xl mx-auto">Uncompromising standards in sourcing, authentic clay tandoor cooking, and luxury hospitality</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {awards.map((award, index) => (
+            {culinaryCommitments.map((commitment, index) => (
               <motion.div
-                key={award.title}
+                key={commitment.title}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -435,13 +434,13 @@ const AboutPage = () => {
                 className="group bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-2xl p-8 shadow-2xl hover:shadow-sangeet-400/20 transition-all duration-500 border border-sangeet-neutral-700 hover:border-sangeet-400 text-center"
               >
                 <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <award.icon />
+                  <commitment.icon />
                 </div>
                 <h3 className="text-xl font-bold text-sangeet-400 mb-3 group-hover:text-sangeet-300 transition-colors">
-                  {award.title}
+                  {commitment.title}
                 </h3>
                 <p className="text-sangeet-neutral-400 font-medium">
-                  {award.description}
+                  {commitment.description}
                 </p>
               </motion.div>
             ))}

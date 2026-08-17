@@ -329,8 +329,8 @@ class WebsiteService {
 
     // Parse Hero Banner
     const heroBanner = s.hero_banner?.value || banners.find((b: any) => b.is_active || b.bannerKey === 'hero') || {
-      title: "Experience South Asian Elegance",
-      subtitle: "Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong.",
+      title: "A Symphony of South Asian Gastronomy",
+      subtitle: "Hong Kong's newest fine-dining sanctuary in Wan Chai. Authentic charcoal clay tandoor cooking and hand-crafted regional curries served in contemporary elegance.",
       image_url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&h=900&fit=crop",
       primary_cta_text: "Reserve a Table",
       primary_cta_link: "/reservations",

@@ -80,8 +80,8 @@ const RestaurantWebsiteManagementPage = () => {
 
   // CMS State Sections
   const [heroForm, setHeroForm] = useState({
-    title: "Experience South Asian Elegance",
-    subtitle: "Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong.",
+    title: "A Symphony of South Asian Gastronomy",
+    subtitle: "Hong Kong's newest fine-dining sanctuary in Wan Chai. Authentic charcoal clay tandoor cooking and hand-crafted regional curries served in contemporary elegance.",
     image_url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&h=1080&fit=crop",
     primary_cta_text: "Reserve Your Table",
     primary_cta_link: "/reservations",
@@ -107,9 +107,9 @@ const RestaurantWebsiteManagementPage = () => {
   });
 
   const [seoForm, setSeoForm] = useState({
-    title: "Sangeet Restaurant - Authentic South Asian Cuisine in Hong Kong",
-    description: "Experience South Asian Elegance. Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong.",
-    keywords: "South Asian restaurant, Hong Kong dining, Indian cuisine, Wanchai food, Sangeet",
+    title: "Sangeet | Fine-Dining South Asian Cuisine & Clay Tandoor | Wan Chai, Hong Kong",
+    description: "Sangeet is Hong Kong's newest South Asian fine-dining sanctuary in Wan Chai. Experience charcoal clay tandoor cooking, handcrafted regional curries, and modern luxury.",
+    keywords: "Sangeet restaurant, Wan Chai Indian food, South Asian fine dining, Hong Kong tandoor, Halal food Hong Kong, private dining Wan Chai",
     og_image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=630&fit=crop"
   });
 
