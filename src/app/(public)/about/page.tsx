@@ -2,8 +2,8 @@ import AboutPage from '@/_pages/AboutPage';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About Us | Sangeet Restaurant',
-  description: 'Learn about our story, meet our team, and discover what makes Sangeet the premier destination for authentic South Asian cuisine in Hong Kong.',
+  title: 'About | Sangeet Restaurant Wan Chai',
+  description: 'About Sangeet — South Asian fine dining in Wan Chai, Hong Kong. Authentic tandoori grills, slow-cooked regional curries, 100% Halal certified meats, and private dining.',
 };
 
 export default function Page() {
