@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 import logo from '../assets/images/logo.png';
-import ReviewsSection from '../components/ReviewsSection';
 import { sanitizePhoneNumber } from '../utils/sanitizePhone';
 
 /**
@@ -586,14 +585,8 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
 
 
       {/* ───────────────────────────────────────────────────────
-          REVIEWS — Pulled from existing component
-      ─────────────────────────────────────────────────────── */}
-      <ReviewsSection />
-
-
-      {/* ───────────────────────────────────────────────────────
           FINAL CTA — Clean, focused, premium
-          Benchmarked: Stripe bottom CTA
+          Benchmarked: Dishoom & Gymkhana closing CTAs
       ─────────────────────────────────────────────────────── */}
       <section className="relative section-padding bg-sangeet-neutral-900 overflow-hidden">
         {/* Subtle radial glow */}
@@ -604,18 +597,18 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
         <div className="max-w-3xl mx-auto container-padding text-center relative z-10">
           <motion.div {...fadeUp}>
             <h2 className="font-display text-display-md md:text-display-lg text-sangeet-neutral-100 mb-6">
-              Ready to Experience{' '}
-              <span className="text-gradient-gold italic">A Symphony of Flavors</span>?
+              Join Us in{' '}
+              <span className="text-gradient-gold italic">Wan Chai</span>
             </h2>
             <p className="text-body-lg text-sangeet-neutral-400 mb-10 max-w-xl mx-auto">
-              Reserve your table for our Grand Opening in Wan Chai and enjoy an unforgettable evening of culinary excellence.
+              Walk-ins welcome. Reservations recommended for dinner service and weekends.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link href="/reservations"
                 className="btn-primary text-heading-sm px-10 py-4"
               >
-                Reserve Your Table
+                Reserve a Table
               </Link>
               {(() => {
                 const phone = sanitizePhoneNumber('+852 2345 6789');
@@ -633,9 +626,9 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
             {/* Trust bar */}
             <div className="flex flex-wrap justify-center gap-6 md:gap-10 mt-14">
               {[
-                { label: "Premium Sourced", sub: "Finest Fresh Ingredients" },
-                { label: "Clay Tandoor Oven", sub: "Live Charcoal Cooking" },
-                { label: "Lunch & Dinner", sub: "Open Daily in Wan Chai" },
+                { label: "Freshly Prepared", sub: "Made to order daily" },
+                { label: "Private Dining", sub: "Available for groups" },
+                { label: "Wan Chai", sub: "Hong Kong" },
               ].map((item, i) => (
                 <div key={i} className="text-center">
                   <div className="text-body-sm text-sangeet-neutral-200 font-semibold">{item.label}</div>
