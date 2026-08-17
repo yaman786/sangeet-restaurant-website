@@ -18,18 +18,29 @@ const MenuView = ({
 
   // Filter menu items by category and search
   const filteredItems = menuItems.filter((item: any) => {
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase());
+    let matchesCategory = selectedCategory === 'all';
+    if (!matchesCategory) {
+      const selectedCatObj = categories.find((c: any) => c.name === selectedCategory);
+      const childCategoryNames = selectedCatObj?.children?.map((c: any) => c.name) || [];
+      const validCategoryNames = [selectedCategory, ...childCategoryNames];
+      const itemCat = item.category_name || item.category;
+      matchesCategory = validCategoryNames.includes(itemCat);
+    }
+
+    const matchesSearch = !searchTerm || 
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
     return matchesCategory && matchesSearch;
   });
 
   // Group items by category
   const itemsByCategory = filteredItems.reduce((acc: any, item: any) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
+    const catName = item.category_name || item.category;
+    if (!acc[catName]) {
+      acc[catName] = [];
     }
-    acc[item.category].push(item);
+    acc[catName].push(item);
     return acc;
   }, {});
 
