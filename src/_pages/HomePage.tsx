@@ -716,7 +716,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
             {/* Trust bar */}
             <div className="flex flex-wrap justify-center gap-6 md:gap-10 mt-14">
               {[
-                { label: "100% Halal Meats", sub: "Quality Sourced" },
+                { label: "Premium Sourced", sub: "Finest Fresh Ingredients" },
                 { label: "Clay Tandoor Oven", sub: "Live Charcoal Cooking" },
                 { label: "Lunch & Dinner", sub: "Open Daily in Wan Chai" },
               ].map((item, i) => (

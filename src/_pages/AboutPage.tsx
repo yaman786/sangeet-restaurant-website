@@ -35,7 +35,7 @@ const AboutPage = () => {
 
   // Key highlights
   const keyStats = [
-    { number: "100%", label: "Halal Sourced", icon: Award },
+    { number: "100%", label: "Fresh Sourced", icon: Award },
     { number: "60+", label: "Signature Dishes", icon: UtensilsCrossed },
     { number: "Wan Chai", label: "Hong Kong", icon: Building2 }
   ];
@@ -66,8 +66,8 @@ const AboutPage = () => {
   const culinaryCommitments = [
     {
       icon: Award,
-      title: "100% Halal Quality Sourcing",
-      description: "All our meats are certified Halal, prepared fresh with premium ingredients and authentic aromatic spices."
+      title: "Premium Sourced Ingredients",
+      description: "We hand-select the finest fresh meats, farm produce, and authentic whole spices to craft every single dish from scratch."
     },
     {
       icon: UtensilsCrossed,
