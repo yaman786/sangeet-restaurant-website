@@ -46,20 +46,20 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
 
   const JOURNEY_PILLARS = [
     {
-      title: "Artisanal Charcoal Tandoor",
-      description: "Char-grilled kebabs, succulent tikkas, and freshly baked naans prepared over live charcoal in our traditional clay oven.",
-      stat: "100%",
-      statLabel: "Charcoal Fired",
+      title: "Tandoori Grills & Fresh Breads",
+      description: "Marinated meats, seafood, and vegetables cooked at high heat. Naans and rotis baked fresh to order.",
+      stat: "Fresh",
+      statLabel: "Baked to Order",
     },
     {
-      title: "Hand-Crafted Spices",
-      description: "Signature whole spices hand-selected and slow-simmered to create our rich, aromatic regional curries.",
+      title: "Slow-Cooked Regional Curries",
+      description: "Time-honoured recipes from across South Asia. Whole spices roasted in-house. Rich gravies simmered for depth.",
       stat: "60+",
-      statLabel: "Signature Dishes",
+      statLabel: "Dishes on Menu",
     },
     {
-      title: "Contemporary Luxury",
-      description: "A refined dining sanctuary in Wan Chai designed for intimate dinners, celebrations, and corporate gatherings.",
+      title: "A Warm, Considered Setting",
+      description: "Private dining available. Cocktail bar. Designed for dinners, celebrations, and corporate events.",
       stat: "Wan Chai",
       statLabel: "Hong Kong",
     },
@@ -204,20 +204,20 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
 
 
       {/* ───────────────────────────────────────────────────────
-          OUR STORY — Elegant 3-column grid
-          Benchmarked: Stripe features section
+          OUR STORY / THE THREE PILLARS — Elegant 3-column grid
+          Benchmarked: Stripe features section, Gymkhana & Semma
       ─────────────────────────────────────────────────────── */}
       <section className="section-padding bg-sangeet-neutral-950">
         <div className="max-w-6xl mx-auto container-padding">
           {/* Section Header */}
           <motion.div {...fadeUp} className="text-center mb-16 md:mb-20">
-            <span className="section-badge mb-4">The Sangeet Experience</span>
+            <span className="section-badge mb-4">What We Do</span>
             <h2 className="section-title">
-              A New Symphony of Flavors,{' '}
-              <span className="text-gradient-gold italic">Now in Wan Chai</span>
+              Authentic Cooking.{' '}
+              <span className="text-gradient-gold italic">Refined Setting.</span>
             </h2>
             <p className="section-subtitle">
-              Sangeet brings an exciting new South Asian fine-dining experience to Hong Kong — where authentic charcoal tandoor mastery meets contemporary luxury.
+              Three elements define dining at Sangeet — the tandoor, the spice work, and the room.
             </p>
           </motion.div>
 
@@ -259,7 +259,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
             <Link href="/about"
               className="btn-ghost inline-flex items-center gap-2 text-sangeet-400 hover:text-sangeet-300"
             >
-              Read Our Full Story
+              Learn More About Us
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
