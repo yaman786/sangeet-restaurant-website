@@ -48,9 +48,15 @@ export default function DigitalPreviewModal() {
       return;
     }
 
-    // 3. Secret Developer/Client Bypass Token (?unlock=sangeet2026 or ?preview=sangeet)
+    // 3. Secret Developer/Client Bypass Token (?unlock=sangeet2026, ?preview=sangeet, or ?sangeet2026)
     const unlockParam = searchParams?.get('unlock') || searchParams?.get('preview');
-    if (unlockParam === 'sangeet2026' || unlockParam === 'sangeet' || unlockParam === 'secret') {
+    const hasDirectKey = searchParams?.has('sangeet2026') || searchParams?.has('sangeet') || searchParams?.has('preview');
+    if (
+      unlockParam === 'sangeet2026' ||
+      unlockParam === 'sangeet' ||
+      unlockParam === 'secret' ||
+      hasDirectKey
+    ) {
       localStorage.setItem('sangeet_dev_unlock', 'true');
       setIsLocked(false);
       return;
