@@ -75,7 +75,13 @@ export const useMenuManagement = () => {
     }
 
     if (filters.category) {
-      filtered = filtered.filter((item: any) => item.category_name === filters.category);
+      const selectedCatObj = categories.find((c: any) => c.name === filters.category);
+      const childCategoryNames = selectedCatObj?.children?.map((c: any) => c.name) || [];
+      const validCategoryNames = [filters.category, ...childCategoryNames];
+
+      filtered = filtered.filter((item: any) => 
+        validCategoryNames.includes(item.category_name) || validCategoryNames.includes(item.category)
+      );
     }
 
     if (filters.priceRange) {

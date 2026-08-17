@@ -88,9 +88,11 @@ const MenuFilters = ({ filters, handleFilterChange, categories, clearFilters }: 
             onChange={(category: string) => handleFilterChange('category', category)}
             options={[
               { value: '', label: 'All Categories' },
-              ...categories.map((category: { name: string; item_count: number }) => ({
+              ...categories.map((category: { name: string; item_count?: number; parent?: any }) => ({
                 value: category.name,
-                label: `${category.name} (${category.item_count})`
+                label: category.item_count !== undefined
+                  ? `${category.parent ? '↳ ' : ''}${category.name} (${category.item_count})`
+                  : category.name
               }))
             ]}
             className="w-full"

@@ -9,15 +9,58 @@ export async function GET(req: NextRequest) {
     const categories = await prisma.categories.findMany({
       where: { is_active: true },
       include: {
-        children: true,
-        parent: true
+        children: {
+          include: {
+            _count: { select: { menu_items: true } }
+          }
+        },
+        parent: true,
+        _count: {
+          select: { menu_items: true }
+        }
       },
       orderBy: [
         { display_order: 'asc' },
         { name: 'asc' }
       ]
     });
-    return NextResponse.json(categories);
+
+    // Also get counts by string name fallback to be 100% accurate
+    const allItems = await prisma.menu_items.findMany({
+      where: { is_active: true },
+      select: { category: true, category_id: true }
+    });
+
+    const categoryItemCounts: Record<string, number> = {};
+    const categoryIdCounts: Record<number, number> = {};
+
+    allItems.forEach(item => {
+      if (item.category) {
+        categoryItemCounts[item.category] = (categoryItemCounts[item.category] || 0) + 1;
+      }
+      if (item.category_id) {
+        categoryIdCounts[item.category_id] = (categoryIdCounts[item.category_id] || 0) + 1;
+      }
+    });
+
+    const enrichedCategories = categories.map(cat => {
+      let directCount = categoryIdCounts[cat.id] || categoryItemCounts[cat.name] || cat._count?.menu_items || 0;
+      // If parent category has children (e.g. Non-Veg Mains), sum up children items
+      if (cat.children && cat.children.length > 0) {
+        const childrenCount = cat.children.reduce((acc, child) => {
+          const childCount = categoryIdCounts[child.id] || categoryItemCounts[child.name] || (child as any)._count?.menu_items || 0;
+          return acc + childCount;
+        }, 0);
+        directCount = Math.max(directCount, childrenCount);
+      }
+
+      return {
+        ...cat,
+        item_count: directCount
+      };
+    });
+
+    return NextResponse.json(enrichedCategories);
   } catch (error) {
     return handleApiError(error);
   }

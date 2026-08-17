@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
     const formattedItems = items.map(item => ({
       ...item,
-      category_name: item.categories?.name,
+      category_name: item.categories?.name || item.category,
     }));
     
     return NextResponse.json(formattedItems);
