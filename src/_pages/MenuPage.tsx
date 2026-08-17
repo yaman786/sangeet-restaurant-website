@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Leaf, Flame, Star, ChefHat, Search } from 'lucide-react';
+import { Leaf, Flame, Star, UtensilsCrossed, ShieldCheck, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMenuItems, fetchMenuCategories } from '../services/api';
 
@@ -24,44 +24,63 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
     spicy: false,
     popular: false
   });
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const { data: menuItems = FALLBACK_MENU, isLoading: menuLoading } = useQuery({
-    queryKey: ['menuItems', filters],
-    queryFn: () => fetchMenuItems(filters) as any,
-    initialData: filters.vegetarian === false && filters.spicy === false && filters.popular === false && initialMenuItems && initialMenuItems.length > 0 ? initialMenuItems : undefined,
-    placeholderData: FALLBACK_MENU,
-    select: (data) => Array.isArray(data) ? data : [],
+  // Fetch menu items with React Query
+  const { data: menuItems = FALLBACK_MENU, isLoading: loading } = useQuery({
+    queryKey: ['menuItems'],
+    queryFn: () => fetchMenuItems(),
+    initialData: initialMenuItems || FALLBACK_MENU,
+    staleTime: 5 * 60 * 1000,
   });
 
+  // Fetch categories with React Query
   const { data: categories = FALLBACK_CATEGORIES } = useQuery({
     queryKey: ['menuCategories'],
-    queryFn: fetchMenuCategories as any,
-    initialData: initialCategories && initialCategories.length > 0 ? initialCategories : undefined,
-    placeholderData: FALLBACK_CATEGORIES,
-    select: (data) => Array.isArray(data) ? data : [],
+    queryFn: () => fetchMenuCategories(),
+    initialData: initialCategories || FALLBACK_CATEGORIES,
+    staleTime: 5 * 60 * 1000,
   });
 
-  const loading = menuLoading;
+  // Split categories into top-level and subcategories
+  const topLevelCategories = categories.filter((cat: any) => !cat.parent_id);
+  const subCategories = categories.filter((cat: any) => cat.parent_id);
 
-  const topLevelCategories = categories.filter((c: any) => !c.parent_id);
-
-  let filteredMenuItems = menuItems;
-  
-  if (activeTopCategory !== 'all') {
-    const parentCat = categories.find((c: any) => c.name === activeTopCategory);
-    const childCats = categories.filter((c: any) => c.parent_id === parentCat?.id);
+  // Filter items
+  const filteredItems = menuItems.filter((item: any) => {
+    const matchesSearch = !searchTerm || 
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    if (activeSubCategory !== 'all') {
-       filteredMenuItems = menuItems.filter((item: any) => item.category_name === activeSubCategory);
-    } else {
-       const validCategoryNames = [activeTopCategory, ...childCats.map((c: any) => c.name)];
-       filteredMenuItems = menuItems.filter((item: any) => validCategoryNames.includes(item.category_name));
+    const matchesDietary = 
+      (!filters.vegetarian || item.is_vegetarian) &&
+      (!filters.spicy || item.is_spicy) &&
+      (!filters.popular || item.is_popular);
+
+    let matchesCategory = true;
+    if (activeTopCategory !== 'all') {
+      const topCat = categories.find((c: any) => c.name === activeTopCategory && !c.parent_id);
+      if (topCat) {
+        const allowedCatIds = [topCat.id, ...subCategories.filter((c: any) => c.parent_id === topCat.id).map((c: any) => c.id)];
+        matchesCategory = allowedCatIds.includes(item.category_id);
+      }
     }
-  }
+
+    if (matchesCategory && activeSubCategory !== 'all') {
+      const subCat = categories.find((c: any) => c.name === activeSubCategory && c.parent_id);
+      if (subCat) {
+        matchesCategory = item.category_id === subCat.id;
+      }
+    }
+
+    return matchesSearch && matchesDietary && matchesCategory;
+  });
+
+  const filteredMenuItems = filteredItems;
 
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
-      {/* Hero Section - Mobile Optimized */}
+      {/* Menu Header with Full Ambiance Background */}
       <div className="relative bg-linear-to-br from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950 py-12 md:py-20">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
@@ -83,11 +102,14 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
             className="text-center mb-8 md:mb-12"
           >
             <div className="inline-flex items-center space-x-2 bg-linear-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4">
-              <ChefHat className="w-5 h-5 text-sangeet-400" />
-              <span className="text-sangeet-400 font-semibold text-sm md:text-base">Culinary Excellence</span>
+              <UtensilsCrossed className="w-5 h-5 text-sangeet-400" />
+              <span className="text-sangeet-400 font-semibold text-sm md:text-base">Our Menu</span>
             </div>
-            <p className="text-sangeet-neutral-400 text-base md:text-lg max-w-2xl mx-auto">
-              Experience the finest Indian & Nepali cuisine crafted with passion
+            <h1 className="text-display-sm sm:text-display-md md:text-display-lg font-display text-white mb-4">
+              South Asian Cuisine &amp; Specialties
+            </h1>
+            <p className="text-sangeet-neutral-300 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+              Tandoori grills, slow-cooked regional curries, biryanis, and freshly baked breads. All meats are 100% Halal certified. Vegetarian and vegan selections available.
             </p>
           </motion.div>
 
@@ -95,6 +117,10 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
           <div className="mb-6 md:mb-8">
             {/* Dietary Filters */}
             <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-4">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sangeet-neutral-900/90 border border-sangeet-400/30 text-sangeet-300 text-xs sm:text-sm font-medium shadow-sm">
+                <ShieldCheck className="w-4 h-4 text-sangeet-400" />
+                100% Halal Certified
+              </span>
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}

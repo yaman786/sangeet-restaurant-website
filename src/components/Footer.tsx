@@ -71,8 +71,7 @@ const Footer = () => {
               </div>
               
               <p className="text-sangeet-neutral-300 mb-6 max-w-md leading-relaxed text-sm md:text-base">
-                Where the soul of South Asia comes alive in the heart of Wanchai. 
-                Experience the rich flavors and warm hospitality that make every meal memorable.
+                South Asian fine dining in the heart of Wan Chai, Hong Kong. Tandoori grills, slow-cooked regional curries, and craft cocktails. All meats are 100% Halal certified.
               </p>
               
               {/* Social Media Links */}

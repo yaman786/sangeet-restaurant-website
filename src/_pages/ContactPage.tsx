@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 
+import { Mail } from 'lucide-react';
+
 /**
  * ContactPage Component
  * Mobile-first contact page with responsive design
@@ -86,12 +88,12 @@ const ContactPage = () => {
             className="text-center mb-8 md:mb-12"
           >
             <div className="inline-flex items-center space-x-2 bg-linear-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4">
-              <span className="text-xl md:text-2xl">📞</span>
-              <span className="text-sangeet-400 font-semibold text-sm md:text-base">Contact Us</span>
+              <Mail className="w-4 h-4 text-sangeet-400" />
+              <span className="text-sangeet-400 font-semibold text-sm md:text-base">Contact</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-sangeet-400 mb-3 md:mb-4">Get in Touch</h1>
-            <p className="text-sangeet-neutral-400 text-base md:text-lg max-w-2xl mx-auto">
-              Get in touch with us for reservations, feedback, or any questions
+            <h1 className="text-3xl md:text-5xl font-display text-white mb-3 md:mb-4">Get in Touch</h1>
+            <p className="text-sangeet-neutral-300 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+              For reservations, private dining inquiries, or general questions.
             </p>
           </motion.div>
         </div>

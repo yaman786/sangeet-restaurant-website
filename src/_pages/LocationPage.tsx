@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { MapPin, Train, Navigation, Car } from 'lucide-react';
 
 /**
  * LocationPage Component
@@ -54,23 +55,23 @@ const LocationPage = () => {
     const TRANSIT_OPTIONS = [
         {
             mode: "MTR",
-            icon: "🚇",
-            title: "Wanchai Station",
+            icon: Train,
+            title: "Wan Chai Station",
             details: "Exit A3 (Johnston Road)",
             highlight: "3 min walk",
-            description: "Head left just out of the exit. We are located centrally on the bustling street."
+            description: "Head left just out of the exit. Centrally located on the main street."
         },
         {
             mode: "Tram",
-            icon: "🚋",
+            icon: Navigation,
             title: "The 'Ding Ding'",
             details: "Fleming Road Stop",
             highlight: "Doorstep Access",
-            description: "Experience HK's iconic tramway. Hop off at Fleming Road and look for our golden signage."
+            description: "Experience HK's iconic tramway. Hop off at Fleming Road and look for our signage."
         },
         {
             mode: "Taxi / Car",
-            icon: "🚖",
+            icon: Car,
             title: "Drop-off Point",
             details: "Tai Yau Plaza",
             highlight: "Parking Nearby",
@@ -82,7 +83,7 @@ const LocationPage = () => {
         <div className="min-h-screen bg-sangeet-neutral-950">
 
             {/* Hero Section */}
-            <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
+            <section className="relative h-[55vh] flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-0">
                     <Image
                         src="https://images.unsplash.com/photo-1606220838315-056192d5e927?w=1920&h=1080&fit=crop"
@@ -101,15 +102,15 @@ const LocationPage = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
                     >
-                        <div className="inline-block bg-sangeet-400/10 backdrop-blur-md border border-sangeet-400/20 text-sangeet-400 px-4 py-1.5 rounded-full text-sm font-semibold mb-6">
-                            📍 Wanchai, Hong Kong
+                        <div className="inline-flex items-center gap-2 bg-sangeet-400/10 backdrop-blur-md border border-sangeet-400/20 text-sangeet-400 px-4 py-1.5 rounded-full text-sm font-semibold mb-6">
+                            <MapPin className="w-4 h-4" />
+                            <span>Wan Chai, Hong Kong</span>
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-                            Where Heritage Meets <span className="text-transparent bg-clip-text bg-linear-to-r from-sangeet-400 to-red-500">Hustle</span>
+                        <h1 className="text-4xl md:text-6xl font-display text-white mb-6">
+                            In the Heart of <span className="text-gradient-gold italic">Wan Chai</span>
                         </h1>
-                        <p className="text-xl text-sangeet-neutral-300 leading-relaxed">
-                            Dining in the heart of Hong Kong&apos;s most vibrant district.
-                            A culinary sanctuary amidst the energy of Wanchai.
+                        <p className="text-lg md:text-xl text-sangeet-neutral-300 leading-relaxed max-w-2xl mx-auto">
+                            Conveniently situated in Wan Chai, just steps from the MTR and tramway.
                         </p>
                     </motion.div>
                 </div>
@@ -176,7 +177,9 @@ const LocationPage = () => {
                                 variants={itemVariants}
                                 className="bg-sangeet-neutral-900 p-8 rounded-xl border border-sangeet-neutral-800 hover:border-sangeet-400/50 transition-colors group"
                             >
-                                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{transit.icon}</div>
+                                <div className="w-12 h-12 rounded-xl bg-sangeet-400/10 border border-sangeet-400/20 flex items-center justify-center text-sangeet-400 mb-4 group-hover:scale-110 transition-transform duration-300">
+                                    <transit.icon className="w-6 h-6" />
+                                </div>
                                 <h3 className="text-xl font-bold text-white mb-2">{transit.mode}</h3>
                                 <div className="bg-sangeet-neutral-800 inline-block px-3 py-1 rounded-sm text-sangeet-400 text-sm font-semibold mb-4">
                                     {transit.highlight}

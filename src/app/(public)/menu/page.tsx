@@ -3,8 +3,8 @@ import menuService from '@/lib/services/menuService';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Menu - Sangeet Restaurant',
-  description: 'Explore our authentic South Asian menu. From Butter Chicken to spicy Biryanis, discover your next favorite dish.',
+  title: 'Menu | Sangeet Restaurant Wan Chai',
+  description: 'Explore the South Asian menu at Sangeet in Wan Chai, Hong Kong. Tandoori grills, slow-cooked curries, biryanis, and fresh breads. 100% Halal certified meats.',
 };
 
 export const dynamic = 'force-dynamic';

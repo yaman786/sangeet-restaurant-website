@@ -9,6 +9,8 @@ import { createReservationAction } from '@/app/actions/reservationActions';
 import { parseRestaurantTime, formatRestaurantTime } from '@/lib/utils/timeUtils';
 import { getAvailableTimeSlots } from '@/services/api/reservationApi';
 
+import { Calendar } from 'lucide-react';
+
 const ReservationsPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -119,23 +121,23 @@ const ReservationsPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center space-x-2 bg-linear-to-r from-sangeet-400/20 to-sangeet-red-500/20 backdrop-blur-md border border-sangeet-400/30 rounded-full px-4 md:px-6 py-2 mb-4"
           >
-            <span className="text-xl md:text-2xl">📅</span>
+            <Calendar className="w-4 h-4 text-sangeet-400" />
             <span className="text-sangeet-400 font-semibold text-sm md:text-base">Reservations</span>
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-sangeet-400 mb-4 sm:mb-6"
+            className="text-3xl sm:text-4xl md:text-5xl font-display text-white mb-4 sm:mb-6"
           >
-            Make a Reservation
+            Reserve a Table
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-base sm:text-lg md:text-xl text-sangeet-neutral-300 max-w-2xl mx-auto px-2"
+            className="text-base sm:text-lg md:text-xl text-sangeet-neutral-300 max-w-2xl mx-auto px-2 leading-relaxed"
           >
-            Reserve your table at Sangeet Restaurant. We&apos;re handle the rest and contact you to confirm your table assignment.
+            Book your table at Sangeet. Instant confirmation sent to your email. For parties of 8 or more, please contact us directly.
           </motion.p>
         </div>
       </div>

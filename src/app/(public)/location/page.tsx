@@ -2,8 +2,8 @@ import LocationPage from '@/_pages/LocationPage';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Location & Hours | Sangeet Restaurant',
-  description: 'Find Sangeet Restaurant in Wanchai, Hong Kong. View our opening hours, address, and get directions to our authentic South Asian dining experience.',
+  title: 'Location & Transit | Sangeet Restaurant Wan Chai',
+  description: 'Find Sangeet Restaurant in Wan Chai, Hong Kong. Opening hours, MTR and tramway transit guide, and neighborhood directions.',
 };
 
 export default function Page() {
