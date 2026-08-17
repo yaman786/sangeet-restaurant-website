@@ -270,8 +270,8 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
 
 
       {/* ───────────────────────────────────────────────────────
-          DINING EXPERIENCE — Full-bleed image + text
-          Benchmarked: Airbnb experience pages
+          DINING EXPERIENCE / THE SPACE — Split image + text
+          Benchmarked: Gymkhana & Benares dining room showcases
       ─────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[500px] lg:min-h-[600px]">
@@ -284,9 +284,10 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
             className="relative overflow-hidden min-h-[350px] lg:min-h-full"
           >
             <Image
-              src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&h=600&fit=crop"
-              alt="Chef preparing authentic South Asian dishes"
+              src="/images/hero-interior.jpg"
+              alt="Sangeet Restaurant interior dining room"
               fill
+              unoptimized
               className="object-cover"
             />
             <div className="absolute inset-0 bg-linear-to-r from-transparent to-sangeet-neutral-950/30 hidden lg:block" />
@@ -295,25 +296,25 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
           {/* Content Side */}
           <div className="flex items-center bg-sangeet-neutral-900 p-8 md:p-14 lg:p-18">
             <motion.div {...fadeUp} className="max-w-lg">
-              <span className="section-badge mb-6">The Experience</span>
+              <span className="section-badge mb-6">The Space</span>
               <h2 className="font-display text-display-sm md:text-display-md text-sangeet-neutral-100 mb-6">
-                Where Every Meal{' '}
-                <span className="text-gradient-gold italic">Becomes a Memory</span>
+                A Setting Designed for{' '}
+                <span className="text-gradient-gold italic">Every Occasion</span>
               </h2>
               <p className="text-body-md text-sangeet-neutral-400 mb-8 leading-relaxed">
-                Step into an atmosphere of warmth and sophistication. Our 5,300 sq ft space features three distinct dining areas — each designed to create the perfect setting for family celebrations, intimate dinners, and corporate gatherings.
+                From quiet dinners to family celebrations and corporate events. Sangeet features a main dining room with comfortable table and booth seating, a full cocktail bar, and a private room for group bookings.
               </p>
 
-              {/* Mini stats row */}
-              <div className="grid grid-cols-3 gap-4 mb-8">
+              {/* 3 Feature cards */}
+              <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-8">
                 {[
-                  { value: "3", label: "Dining Areas" },
-                  { value: "150+", label: "Seats" },
-                  { value: "Private", label: "Dining Room" },
+                  { title: "Main Dining", subtitle: "Table & booths" },
+                  { title: "Cocktail Bar", subtitle: "Craft drinks" },
+                  { title: "Private Events", subtitle: "Group dining" },
                 ].map((item, i) => (
-                  <div key={i} className="text-center p-3 rounded-xl bg-sangeet-neutral-800/50 border border-sangeet-neutral-700/30">
-                    <div className="text-heading-lg text-sangeet-400 font-display">{item.value}</div>
-                    <div className="text-caption text-sangeet-neutral-500">{item.label}</div>
+                  <div key={i} className="text-center p-3 sm:p-4 rounded-xl bg-sangeet-neutral-800/50 border border-sangeet-neutral-700/30">
+                    <div className="text-heading-sm sm:text-heading-md text-sangeet-400 font-sans font-semibold mb-1">{item.title}</div>
+                    <div className="text-caption text-sangeet-neutral-400">{item.subtitle}</div>
                   </div>
                 ))}
               </div>
@@ -322,7 +323,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
                 onClick={() => navigate('/reservations')}
                 className="btn-primary"
               >
-                Reserve Your Experience
+                Reserve a Table
               </button>
             </motion.div>
           </div>
