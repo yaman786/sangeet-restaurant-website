@@ -105,12 +105,12 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
 
   // Parse CMS dynamic config
   const heroData = cmsConfig?.hero || {
-    title: "A Symphony of South Asian Gastronomy",
-    subtitle: "Hong Kong's newest fine-dining sanctuary in Wan Chai. Authentic charcoal clay tandoor cooking and hand-crafted regional curries served in contemporary elegance.",
+    title: "South Asian Fine Dining in Wan Chai",
+    subtitle: "Tandoori grills, regional curries, and craft cocktails. Now open in Hong Kong.",
     image_url: "/images/hero-interior.jpg",
-    primary_cta_text: "Reserve Your Table",
+    primary_cta_text: "Reserve a Table",
     primary_cta_link: "/reservations",
-    secondary_cta_text: "Explore the Menu",
+    secondary_cta_text: "View Menu",
     secondary_cta_link: "/menu"
   };
 
@@ -229,7 +229,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
             transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] as any}}
             className="text-display-sm sm:text-display-md md:text-display-lg text-white mb-6"
           >
-            {heroData.title || "Experience South Asian Elegance"}
+            {heroData.title || "South Asian Fine Dining in Wan Chai"}
           </motion.h1>
 
           {/* Subheadline */}
@@ -239,7 +239,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
             transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] as any}}
             className="text-body-lg sm:text-heading-sm text-sangeet-neutral-300 mb-10 max-w-2xl mx-auto font-sans"
           >
-            {heroData.subtitle || "Authentic cuisine rooted in tradition, crafted with passion, served in the heart of Hong Kong."}
+            {heroData.subtitle || "Tandoori grills, regional curries, and craft cocktails. Now open in Hong Kong."}
           </motion.p>
 
           {/* Single Primary CTA + Ghost Secondary */}
@@ -250,16 +250,16 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
             <button
-              onClick={() => navigate('/reservations')}
+              onClick={() => navigate(heroData.primary_cta_link || '/reservations')}
               className="btn-primary text-heading-sm px-10 py-4"
             >
-              Reserve Your Table
+              {heroData.primary_cta_text || "Reserve a Table"}
             </button>
             <button
-              onClick={() => navigate('/menu')}
+              onClick={() => navigate(heroData.secondary_cta_link || '/menu')}
               className="btn-secondary px-8 py-4"
             >
-              Explore the Menu
+              {heroData.secondary_cta_text || "View Menu"}
             </button>
           </motion.div>
 

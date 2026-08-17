@@ -329,12 +329,12 @@ class WebsiteService {
 
     // Parse Hero Banner
     const heroBanner = s.hero_banner?.value || banners.find((b: any) => b.is_active || b.bannerKey === 'hero') || {
-      title: "A Symphony of South Asian Gastronomy",
-      subtitle: "Hong Kong's newest fine-dining sanctuary in Wan Chai. Authentic charcoal clay tandoor cooking and hand-crafted regional curries served in contemporary elegance.",
+      title: "South Asian Fine Dining in Wan Chai",
+      subtitle: "Tandoori grills, regional curries, and craft cocktails. Now open in Hong Kong.",
       image_url: "/images/hero-interior.jpg",
       primary_cta_text: "Reserve a Table",
       primary_cta_link: "/reservations",
-      secondary_cta_text: "Explore Menu",
+      secondary_cta_text: "View Menu",
       secondary_cta_link: "/menu"
     };
 
