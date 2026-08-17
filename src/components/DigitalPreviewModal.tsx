@@ -18,7 +18,9 @@ import logo from '../assets/images/logo.png';
 export default function DigitalPreviewModal() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isLocked, setIsLocked] = useState(false);
+  
+  // Default to locked; only unlock if explicitly allowed (localhost, admin, or token)
+  const [isLocked, setIsLocked] = useState(true);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -47,7 +49,7 @@ export default function DigitalPreviewModal() {
     }
 
     // 3. Secret Developer/Client Bypass Token (?unlock=sangeet2026 or ?preview=sangeet)
-    const unlockParam = searchParams.get('unlock') || searchParams.get('preview');
+    const unlockParam = searchParams?.get('unlock') || searchParams?.get('preview');
     if (unlockParam === 'sangeet2026' || unlockParam === 'sangeet' || unlockParam === 'secret') {
       localStorage.setItem('sangeet_dev_unlock', 'true');
       setIsLocked(false);
@@ -60,14 +62,15 @@ export default function DigitalPreviewModal() {
       return;
     }
 
-    // 5. Production Domain: Fully locked for public
+    // 5. Production Domain: 100% locked for public
     setIsLocked(true);
   }, [pathname, searchParams]);
 
+  // If not mounted yet or if unlocked, don't show lock overlay
   if (!mounted || !isLocked) return null;
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-sangeet-neutral-950 flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-y-auto">
+    <div className="fixed inset-0 z-[99999] bg-sangeet-neutral-950 flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-y-auto select-none">
       {/* Background Architectural Ambience */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <Image
