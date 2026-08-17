@@ -36,7 +36,9 @@ export default function RootLayout({
             <Suspense fallback={<LoadingFallback />}>
               {children}
             </Suspense>
-            <DigitalPreviewModal />
+            <Suspense fallback={null}>
+              <DigitalPreviewModal />
+            </Suspense>
           </Providers>
         </ErrorBoundary>
       </body>
