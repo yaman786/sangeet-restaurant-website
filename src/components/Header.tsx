@@ -47,12 +47,6 @@ const Header = () => {
     return () => { document.body.style.overflow = ''; };
   }, [isMenuOpen]);
 
-  // Restaurant status
-  const isOpen = useMemo(() => {
-    const h = new Date().getHours();
-    return h >= 18 && h < 23;
-  }, []);
-
   return (
     <>
       {/* ── Desktop + Mobile Header ── */}
@@ -97,17 +91,8 @@ const Header = () => {
               ))}
             </nav>
 
-            {/* Right side — Status + CTA (Desktop) */}
-            <div className="hidden md:flex items-center gap-4">
-              {/* Status pill */}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-sangeet-neutral-800/40 border border-sangeet-neutral-700/20">
-                <div className={`w-1.5 h-1.5 rounded-full ${isOpen ? 'bg-green-400' : 'bg-sangeet-neutral-500'}`} />
-                <span className="text-caption text-sangeet-neutral-400">
-                  {isOpen ? 'Open' : 'Closed'}
-                </span>
-              </div>
-
-              {/* CTA */}
+            {/* Right side — CTA (Desktop) */}
+            <div className="hidden md:flex items-center">
               <Link href="/reservations"
                 className="px-4 py-2 rounded-lg bg-sangeet-400/10 text-sangeet-400 text-body-sm font-semibold
                            border border-sangeet-400/20 hover:bg-sangeet-400/20 hover:border-sangeet-400/30
@@ -205,16 +190,8 @@ const Header = () => {
                   onClick={() => setIsMenuOpen(false)}
                   className="btn-primary w-full text-center block"
                 >
-                  Reserve Your Table
+                  Reserve a Table
                 </Link>
-
-                {/* Status */}
-                <div className="flex items-center justify-center gap-2 mt-4">
-                  <div className={`w-2 h-2 rounded-full ${isOpen ? 'bg-green-400' : 'bg-sangeet-neutral-500'}`} />
-                  <span className="text-caption text-sangeet-neutral-400">
-                    {isOpen ? 'Open Now · Closes at 11 PM' : 'Closed · Opens at 6 PM'}
-                  </span>
-                </div>
               </div>
             </motion.nav>
           </>
