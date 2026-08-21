@@ -163,7 +163,7 @@ export default function DigitalPreviewModal() {
               className="inline-flex items-center gap-1.5 hover:text-amber-400 transition-colors"
             >
               <Phone className="w-3.5 h-3.5 text-amber-400" />
-              <span className="font-mono">+852 2345 6789</span>
+              <span className="font-mono">+852 26568820</span>
             </a>
 
             <a

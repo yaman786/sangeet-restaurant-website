@@ -14,9 +14,6 @@ test('Hide Announcement Banner Test', async ({ page }) => {
   await page.waitForLoadState('networkidle');
 
   // 3. Toggle off announcement banner
-  // The checkbox is tricky, we need to click the visual toggle next to it
-  const toggle = page.locator('label').filter({ hasText: 'Top Announcement Bar' }).locator('.bg-sangeet-neutral-800');
-  // Wait, let's just click the checkbox directly if possible
   const checkbox = page.locator('input[type="checkbox"]').first();
   await checkbox.uncheck({ force: true });
   

@@ -42,7 +42,7 @@ const TermsOfServicePage = () => {
           </h2>
           <div className="space-y-3 text-body-sm text-sangeet-neutral-300">
             <p>
-              • <strong>Table Hold Time:</strong> Reserved tables will be held for up to 15 minutes past the scheduled booking time before being released to walk-in guests. If you are running late, please notify us by calling +852 2345 6789.
+              • <strong>Table Hold Time:</strong> Reserved tables will be held for up to 15 minutes past the scheduled booking time before being released to walk-in guests. If you are running late, please notify us by calling +852 26568820.
             </p>
             <p>
               • <strong>Dining Duration:</strong> To ensure all guests enjoy their experience, standard dinner seatings are allocated a 2-hour dining window during peak evening and weekend services.
@@ -93,7 +93,7 @@ const TermsOfServicePage = () => {
           </p>
           <div className="text-sm text-sangeet-300 space-y-1">
             <div>Sangeet Restaurant, 17 Fenwick Street, Wan Chai, Hong Kong</div>
-            <div>Email: <a href="mailto:info@sangeet.hk" className="text-sangeet-400 underline">info@sangeet.hk</a> | Phone: <a href="tel:+85223456789" className="text-sangeet-400 underline">+852 2345 6789</a></div>
+            <div>Email: <a href="mailto:info@sangeet.hk" className="text-sangeet-400 underline">info@sangeet.hk</a> | Phone: <a href="tel:+85226568820" className="text-sangeet-400 underline">+852 26568820</a></div>
           </div>
         </div>
 

@@ -1,16 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Strict QA: Multiple Orders Flow', () => {
-  let tableNumber: string;
-  let orderId1: number;
-
   test('Should place 1st order successfully', async ({ request }) => {
     // 1. Get the actual table ID for the API
     const tablesResponse = await request.get('http://localhost:3000/api/tables');
     const tables = await tablesResponse.json();
     expect(tables.length).toBeGreaterThan(0);
     const table = tables[0];
-    tableNumber = table.table_number;
     
     // 2. Place 1st order
     const orderData = {
@@ -29,8 +25,6 @@ test.describe('Strict QA: Multiple Orders Flow', () => {
     expect(response.status()).toBe(201);
     const body = await response.json();
     expect(body.order).toBeDefined();
-    
-    orderId1 = body.order.id;
   });
 
   test('Should place 2nd order successfully', async ({ request }) => {

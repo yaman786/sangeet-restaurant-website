@@ -125,7 +125,7 @@ const PrivacyPolicyPage = () => {
             <div className="font-semibold text-white">Sangeet Restaurant Management</div>
             <div className="text-sangeet-300">Address: 17 Fenwick Street, Wan Chai, Hong Kong</div>
             <div className="text-sangeet-300">Email: <a href="mailto:info@sangeet.hk" className="text-sangeet-400 underline">info@sangeet.hk</a></div>
-            <div className="text-sangeet-300">Telephone: <a href="tel:+85223456789" className="text-sangeet-400 underline">+852 2345 6789</a></div>
+            <div className="text-sangeet-300">Telephone: <a href="tel:+85226568820" className="text-sangeet-400 underline">+852 26568820</a></div>
           </div>
         </div>
 

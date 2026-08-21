@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test('capture live site', async ({ page }) => {
   console.log("Navigating to https://www.sangeet.hk...");

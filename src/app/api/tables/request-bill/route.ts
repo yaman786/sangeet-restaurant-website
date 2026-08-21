@@ -4,9 +4,15 @@ import { prisma } from '@/lib/db';
 import { handleApiError } from '@/lib/errors';
 import { ValidationError, NotFoundError } from '@/lib/errors';
 import { pusherServer } from '@/lib/services/pusherServer';
+import { checkRateLimit } from '@/lib/utils/rateLimit';
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimit = await checkRateLimit(req, 'table-action');
+    if (!rateLimit.success && rateLimit.response) {
+      return rateLimit.response;
+    }
+
     const { tableNumber } = await req.json();
 
     if (!tableNumber) {

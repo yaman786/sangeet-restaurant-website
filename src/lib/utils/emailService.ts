@@ -84,7 +84,7 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
           <div style="text-align: center; padding-top: 30px; border-top: 2px solid #f8f9fa;">
             <p style="color: #6c757d;">We look forward to creating an unforgettable dining experience for you!</p>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
-              <p style="color: #6c757d; font-size: 13px;">📍 17 Fenwick Street, Wan Chai, Hong Kong | 📞 +852 2345 6789 | 📧 info@sangeet.hk</p>
+              <p style="color: #6c757d; font-size: 13px;">📍 17 Fenwick Street, Wan Chai, Hong Kong | 📞 +852 26568820 | 📧 info@sangeet.hk</p>
             </div>
           </div>
         </div>
@@ -124,7 +124,7 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
           <div style="text-align: center; padding-top: 30px; border-top: 2px solid #f8f9fa;">
             <p style="color: #6c757d;">We can't wait to create an unforgettable dining experience for you!</p>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
-              <p style="color: #6c757d; font-size: 13px;">📍 17 Fenwick Street, Wan Chai, Hong Kong | 📞 +852 2345 6789 | 📧 info@sangeet.hk</p>
+              <p style="color: #6c757d; font-size: 13px;">📍 17 Fenwick Street, Wan Chai, Hong Kong | 📞 +852 26568820 | 📧 info@sangeet.hk</p>
             </div>
           </div>
         </div>
@@ -157,7 +157,7 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
           <div style="text-align: center; padding-top: 30px; border-top: 2px solid #f8f9fa;">
             <p style="color: #6c757d;">We hope to see you soon!</p>
             <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
-              <p style="color: #6c757d; font-size: 13px;">📍 17 Fenwick Street, Wan Chai, Hong Kong | 📞 +852 2345 6789 | 📧 info@sangeet.hk</p>
+              <p style="color: #6c757d; font-size: 13px;">📍 17 Fenwick Street, Wan Chai, Hong Kong | 📞 +852 26568820 | 📧 info@sangeet.hk</p>
             </div>
           </div>
         </div>
@@ -218,11 +218,11 @@ const emailTemplates: Record<EmailTemplate, (data: ReservationEmailData) => Emai
 
           <div style="text-align: center; padding-top: 25px; border-top: 2px solid #f8f9fa;">
             <p style="color: #6c757d; font-size: 14px; margin-bottom: 15px;">
-              If you have any questions or additional seating preferences, please feel free to reach out to us at +852 2345 6789 or reply to this email.
+              If you have any questions or additional seating preferences, please feel free to reach out to us at +852 26568820 or reply to this email.
             </p>
             <p style="color: #1e293b; font-weight: 600; font-size: 15px; margin: 0;">We look forward to welcoming you at Sangeet!</p>
             <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 20px;">
-              <p style="color: #6c757d; font-size: 13px; margin: 0;">📍 17 Fenwick Street, Wan Chai, Hong Kong | 📞 +852 2345 6789 | 📧 info@sangeet.hk</p>
+              <p style="color: #6c757d; font-size: 13px; margin: 0;">📍 17 Fenwick Street, Wan Chai, Hong Kong | 📞 +852 26568820 | 📧 info@sangeet.hk</p>
             </div>
           </div>
         </div>

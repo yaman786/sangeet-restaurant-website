@@ -356,18 +356,21 @@ class ReservationService {
 
     let emailFailed = false;
     if (reservation.email) {
-      try {
-        const emailPromise = effectiveStatus === 'confirmed'
-          ? sendReservationConfirmedEmail(reservation as any)
-          : sendReservationCreatedEmail(reservation as any);
+      const emailPromise = effectiveStatus === 'confirmed'
+        ? sendReservationConfirmedEmail(reservation as any)
+        : sendReservationCreatedEmail(reservation as any);
 
-        await Promise.allSettled([
-          emailPromise,
-          sendAdminReservationNoticeEmail(reservation as any)
-        ]);
-      } catch (err) {
-        console.error('Error sending creation email:', err);
+      const results = await Promise.allSettled([
+        emailPromise,
+        sendAdminReservationNoticeEmail(reservation as any)
+      ]);
+
+      if (results[0].status === 'rejected') {
+        console.error('Error sending customer reservation email:', results[0].reason);
         emailFailed = true;
+      }
+      if (results[1].status === 'rejected') {
+        console.error('Error sending admin reservation notice email:', results[1].reason);
       }
     } else {
       // Send admin notice even if customer email was not provided

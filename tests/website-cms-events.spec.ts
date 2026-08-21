@@ -90,7 +90,7 @@ test('Create Special Event in CMS & Live UI Sync', async ({ page }) => {
   // Wait for the POST response
   const saveResponse = await saveResponsePromise;
   const saveStatus = saveResponse.status();
-  const saveBody = await saveResponse.json().catch(() => null);
+  const _saveBody = await saveResponse.json().catch(() => null);
   
   expect(saveStatus).toBe(200);
   console.log('✅ Event successfully created in the database');

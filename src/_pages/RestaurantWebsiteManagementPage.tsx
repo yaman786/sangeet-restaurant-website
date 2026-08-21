@@ -95,7 +95,7 @@ const RestaurantWebsiteManagementPage = () => {
   });
 
   const [contactForm, setContactForm] = useState({
-    phone: "+852 2345 6789",
+    phone: "+852 26568820",
     email: "info@sangeet.hk",
     address: "17 Fenwick Street, Wan Chai, Hong Kong",
     maps_iframe: ""

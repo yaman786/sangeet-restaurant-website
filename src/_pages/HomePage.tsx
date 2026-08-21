@@ -611,7 +611,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
                 Reserve a Table
               </Link>
               {(() => {
-                const phone = sanitizePhoneNumber('+852 2345 6789');
+                const phone = sanitizePhoneNumber('+852 26568820');
                 return (
                   <a
                     href={phone.telHref}
