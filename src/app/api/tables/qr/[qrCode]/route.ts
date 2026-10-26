@@ -6,26 +6,48 @@ import { handleApiError, NotFoundError } from '@/lib/errors';
 export async function GET(req: NextRequest, props: { params: Promise<{ qrCode: string }> }) {
   const params = await props.params;
   try {
-    const rawQr = decodeURIComponent(params.qrCode);
-    const cleanedQr = rawQr.replace(/^table-/i, '').replace(/^tb-/i, '').trim();
-    const numericId = !isNaN(Number(cleanedQr)) && Number(cleanedQr) > 0 ? Number(cleanedQr) : undefined;
+    const rawQr = decodeURIComponent(params.qrCode).trim();
+    const strippedSlug = rawQr
+      .replace(/^https?:\/\/[^\/]+\/qr\//i, '')
+      .replace(/^\/qr\//i, '')
+      .trim();
+    const strippedNumber = strippedSlug
+      .replace(/^table[-_\s]?/i, '')
+      .replace(/^tb[-_\s]?/i, '')
+      .trim();
 
-    const whereConditions: any[] = [
-      { qr_code_url: { contains: rawQr, mode: 'insensitive' } },
-      { table_number: { equals: rawQr, mode: 'insensitive' } },
-      { table_number: { equals: cleanedQr, mode: 'insensitive' } }
-    ];
-
-    if (numericId !== undefined) {
-      whereConditions.push({ id: numericId });
-    }
-
-    const table = await prisma.tables.findFirst({
+    // 1. Try exact table_number match first (highest priority)
+    let table = await prisma.tables.findFirst({
       where: {
-        OR: whereConditions,
+        OR: [
+          { table_number: { equals: strippedNumber, mode: 'insensitive' } },
+          { table_number: { equals: strippedSlug, mode: 'insensitive' } },
+          { table_number: { equals: rawQr, mode: 'insensitive' } }
+        ],
         is_active: true
       }
     });
+
+    // 2. Try exact or boundary-safe QR url match
+    if (!table) {
+      table = await prisma.tables.findFirst({
+        where: {
+          OR: [
+            { qr_code_url: { equals: rawQr, mode: 'insensitive' } },
+            { qr_code_url: { endsWith: `/qr/table-${strippedNumber}`, mode: 'insensitive' } },
+            { qr_code_url: { endsWith: `/qr/${strippedSlug}`, mode: 'insensitive' } }
+          ],
+          is_active: true
+        }
+      });
+    }
+
+    // 3. Fallback to primary key id if query is pure number
+    if (!table && !isNaN(Number(strippedNumber)) && Number(strippedNumber) > 0) {
+      table = await prisma.tables.findFirst({
+        where: { id: Number(strippedNumber), is_active: true }
+      });
+    }
     if (!table) throw new NotFoundError('Table');
     return NextResponse.json(table);
   } catch (error) {

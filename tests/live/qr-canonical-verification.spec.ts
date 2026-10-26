@@ -74,4 +74,38 @@ test.describe('QR Canonical Domain & UI Verification', () => {
       fullPage: false,
     });
   });
+
+  test('4. Table 1 vs Table 10 exact disambiguation test', async ({ request, page }) => {
+    // API verification
+    const res1 = await request.get('/api/tables/qr/table-1');
+    expect(res1.status()).toBe(200);
+    const data1 = await res1.json();
+    expect(data1.table_number).toBe('1');
+    expect(data1.qr_code_url).toBe('https://www.sangeet.hk/qr/table-1');
+
+    const res10 = await request.get('/api/tables/qr/table-10');
+    expect(res10.status()).toBe(200);
+    const data10 = await res10.json();
+    expect(data10.table_number).toBe('10');
+    expect(data10.qr_code_url).toBe('https://www.sangeet.hk/qr/table-10');
+
+    const resNum1 = await request.get('/api/tables/number/1');
+    expect((await resNum1.json()).table_number).toBe('1');
+
+    const resNum10 = await request.get('/api/tables/number/10');
+    expect((await resNum10.json()).table_number).toBe('10');
+
+    // UI verification for Table 1
+    await page.goto('/qr/table-1', { waitUntil: 'networkidle' });
+    const badge1 = page.locator('text=Table 1').first();
+    await expect(badge1).toBeVisible({ timeout: 15000 });
+    // Verify it doesn't show Table 10
+    const badge10OnPage1 = page.locator('text=Table 10');
+    await expect(badge10OnPage1).toHaveCount(0);
+
+    // UI verification for Table 10
+    await page.goto('/qr/table-10', { waitUntil: 'networkidle' });
+    const badge10 = page.locator('text=Table 10').first();
+    await expect(badge10).toBeVisible({ timeout: 15000 });
+  });
 });

@@ -6,21 +6,36 @@ import { handleApiError, NotFoundError } from '@/lib/errors';
 export async function GET(req: NextRequest, props: { params: Promise<{ tableNumber: string }> }) {
   const params = await props.params;
   try {
-    const rawNumber = params.tableNumber;
+    const rawNumber = decodeURIComponent(params.tableNumber).trim();
+    const strippedSlug = rawNumber
+      .replace(/^https?:\/\/[^\/]+\/qr\//i, '')
+      .replace(/^\/qr\//i, '')
+      .trim();
+    const strippedNumber = strippedSlug
+      .replace(/^table[-_\s]?/i, '')
+      .replace(/^tb[-_\s]?/i, '')
+      .trim();
+
     let table = await prisma.tables.findFirst({
-      where: { table_number: rawNumber, is_active: true }
+      where: {
+        OR: [
+          { table_number: { equals: strippedNumber, mode: 'insensitive' } },
+          { table_number: { equals: strippedSlug, mode: 'insensitive' } },
+          { table_number: { equals: rawNumber, mode: 'insensitive' } }
+        ],
+        is_active: true
+      }
     });
 
     if (!table) {
-      const strippedNumber = rawNumber.replace(/^table-?/i, '');
       table = await prisma.tables.findFirst({
         where: {
-          is_active: true,
           OR: [
-            { table_number: { equals: rawNumber, mode: 'insensitive' } },
-            { table_number: { equals: strippedNumber, mode: 'insensitive' } },
-            { qr_code_url: { contains: rawNumber } }
-          ]
+            { qr_code_url: { equals: rawNumber, mode: 'insensitive' } },
+            { qr_code_url: { endsWith: `/qr/table-${strippedNumber}`, mode: 'insensitive' } },
+            { qr_code_url: { endsWith: `/qr/${strippedSlug}`, mode: 'insensitive' } }
+          ],
+          is_active: true
         }
       });
     }
