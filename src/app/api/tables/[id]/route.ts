@@ -4,6 +4,8 @@ import { prisma } from '@/lib/db';
 import { handleApiError, NotFoundError } from '@/lib/errors';
 import { authenticateToken, requireRole } from '@/lib/auth';
 
+import beautifulQRGenerator from '@/lib/utils/beautifulQRGenerator';
+
 export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   try {
@@ -15,13 +17,32 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
     const body = await req.json();
     const { table_number, capacity, qr_code_url, location, table_type } = body;
     
+    const envUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || process.env.FRONTEND_URL;
+    const canonicalDomain = (envUrl && !envUrl.includes('vercel.app'))
+      ? envUrl.replace(/\/+$/, '')
+      : 'https://www.sangeet.hk';
+
+    let updatedQrUrl = qr_code_url;
+    let updatedQrData: string | undefined = undefined;
+
+    if (table_number) {
+      const cleanNum = String(table_number).trim();
+      updatedQrUrl = (qr_code_url && !qr_code_url.includes('vercel.app'))
+        ? qr_code_url
+        : `${canonicalDomain}/qr/table-${cleanNum}`;
+      const options = { theme: 'modern', design: 'classic' };
+      const qrCodeBuffer = await beautifulQRGenerator.generateBeautifulQRCode(cleanNum, updatedQrUrl, options);
+      updatedQrData = `data:image/svg+xml;base64,${qrCodeBuffer.toString('base64')}`;
+    }
+
     try {
       const table = await prisma.tables.update({
         where: { id: parseInt(params.id, 10) },
         data: {
           table_number,
           capacity: capacity ? parseInt(capacity, 10) : undefined,
-          qr_code_url,
+          qr_code_url: updatedQrUrl,
+          qr_code_data: updatedQrData,
           table_name: location,
           table_type: table_type || undefined
         }

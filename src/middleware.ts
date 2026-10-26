@@ -11,6 +11,16 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 const protectedPaths = ['/admin', '/kitchen'];
 
 export async function middleware(request: NextRequest) {
+  // 1. Permanent redirect for *.vercel.app traffic to canonical domain
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
+  if (host.includes('vercel.app')) {
+    const canonicalUrl = new URL(request.url);
+    canonicalUrl.protocol = 'https:';
+    canonicalUrl.host = 'www.sangeet.hk';
+    canonicalUrl.port = '';
+    return NextResponse.redirect(canonicalUrl, 308);
+  }
+
   const { pathname } = request.nextUrl;
 
   // Check if it's a protected route (excluding login pages)

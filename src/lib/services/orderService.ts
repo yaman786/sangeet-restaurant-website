@@ -356,7 +356,11 @@ class OrderService {
     const table = await prisma.tables.findFirst({ where: { table_number: tableNumber } });
     if (!table) throw new NotFoundError(`Table ${tableNumber}`);
     
-    const qrData = await generateQRCode(tableNumber, process.env.FRONTEND_URL || 'https://sangeet.hk');
+    const envUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || process.env.FRONTEND_URL;
+    const canonicalDomain = (envUrl && !envUrl.includes('vercel.app'))
+      ? envUrl.replace(/\/+$/, '')
+      : 'https://www.sangeet.hk';
+    const qrData = await generateQRCode(tableNumber, canonicalDomain);
     
     const updatedTable = await prisma.tables.update({
       where: { id: table.id },

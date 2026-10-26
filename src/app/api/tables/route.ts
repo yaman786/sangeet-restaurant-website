@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { handleApiError } from '@/lib/errors';
 import { authenticateToken, requireRole } from '@/lib/auth';
+import beautifulQRGenerator from '@/lib/utils/beautifulQRGenerator';
 
 export async function GET(req: NextRequest) {
   try {
@@ -32,6 +33,15 @@ export async function POST(req: NextRequest) {
 
     const tableNumStr = String(table_number).trim();
 
+    const envUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || process.env.FRONTEND_URL;
+    const canonicalDomain = (envUrl && !envUrl.includes('vercel.app'))
+      ? envUrl.replace(/\/+$/, '')
+      : 'https://www.sangeet.hk';
+    const qrUrl = `${canonicalDomain}/qr/table-${tableNumStr}`;
+    const options = { theme: 'modern', design: 'classic' };
+    const qrCodeBuffer = await beautifulQRGenerator.generateBeautifulQRCode(tableNumStr, qrUrl, options);
+    const qrCodeDataURL = `data:image/svg+xml;base64,${qrCodeBuffer.toString('base64')}`;
+
     // Check if table already exists in the database
     const existingTable = await prisma.tables.findFirst({
       where: { table_number: tableNumStr }
@@ -49,7 +59,10 @@ export async function POST(req: NextRequest) {
         data: {
           is_active: true,
           capacity: capacity ? parseInt(capacity, 10) : existingTable.capacity,
-          table_type: table_type || existingTable.table_type
+          table_type: table_type || existingTable.table_type,
+          qr_code_url: qrUrl,
+          qr_code_data: qrCodeDataURL,
+          design_settings: options
         }
       });
 
@@ -66,6 +79,9 @@ export async function POST(req: NextRequest) {
           table_number: tableNumStr,
           capacity: capacity ? parseInt(capacity, 10) : 4,
           table_type: table_type || 'standard',
+          qr_code_url: qrUrl,
+          qr_code_data: qrCodeDataURL,
+          design_settings: options,
           is_active: true
         }
       });

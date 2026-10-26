@@ -159,10 +159,10 @@ const QRModals = ({
                     value={formData.customUrl}
                     onChange={(e) => setFormData({...formData, customUrl: e.target.value})}
                     className="w-full px-3 py-2 border border-sangeet-neutral-600 rounded-md focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 bg-sangeet-neutral-800 text-sangeet-neutral-100 placeholder-sangeet-neutral-500"
-                    placeholder="https://your-restaurant.com/qr/table-1"
+                    placeholder="https://www.sangeet.hk/qr/table-1"
                   />
                   <p className="text-xs text-sangeet-neutral-500 mt-1">
-                    Leave empty to use default: https://sangeet.hk/qr/table-[number]
+                    Leave empty to use default: https://www.sangeet.hk/qr/table-[number]
                   </p>
                 </div>
               </div>

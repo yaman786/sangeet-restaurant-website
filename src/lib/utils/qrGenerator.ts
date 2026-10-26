@@ -3,9 +3,10 @@ import QRCode from 'qrcode';
 import type { QRCodeResult } from '../types';
 
 // Generate QR code for a table
-export const generateQRCode = async (tableNumber: number | string, baseUrl = 'https://sangeet.hk'): Promise<QRCodeResult> => {
+export const generateQRCode = async (tableNumber: number | string, baseUrl = 'https://www.sangeet.hk'): Promise<QRCodeResult> => {
   try {
-    const qrUrl = `${baseUrl}/qr/table-${tableNumber}`;
+    const cleanBaseUrl = (baseUrl && !baseUrl.includes('vercel.app')) ? baseUrl.replace(/\/+$/, '') : 'https://www.sangeet.hk';
+    const qrUrl = `${cleanBaseUrl}/qr/table-${tableNumber}`;
     const qrCodeDataURL = await QRCode.toDataURL(qrUrl, {
       width: 300,
       margin: 2,

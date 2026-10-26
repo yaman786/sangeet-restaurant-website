@@ -12,8 +12,8 @@ class QRService {
     return table;
   }
 
-  async generateTableQRCode(data: { tableNumber: string, theme?: string, colors?: any, design?: string, capacity?: number }): Promise<{ table: any, qrCode: any }> {
-    const { tableNumber, theme, colors, design, capacity } = data;
+  async generateTableQRCode(data: { tableNumber: string, theme?: string, colors?: any, design?: string, capacity?: number, customUrl?: string }): Promise<{ table: any, qrCode: any }> {
+    const { tableNumber, theme, colors, design, capacity, customUrl } = data;
     
     let table = await prisma.tables.findFirst({
       where: { table_number: tableNumber }
@@ -32,7 +32,11 @@ class QRService {
       });
     }
     
-    const qrUrl = `${process.env.FRONTEND_URL || 'https://sangeet.hk'}/qr/table-${tableNumber}`;
+    const envUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || process.env.FRONTEND_URL;
+    const canonicalDomain = (envUrl && !envUrl.includes('vercel.app'))
+      ? envUrl.replace(/\/+$/, '')
+      : 'https://www.sangeet.hk';
+    const qrUrl = customUrl?.trim() || `${canonicalDomain}/qr/table-${tableNumber}`;
     const options = { theme: theme || 'modern', colors, design: design || 'classic' };
     
     const qrCodeBuffer = await beautifulQRGenerator.generateBeautifulQRCode(tableNumber, qrUrl, options);

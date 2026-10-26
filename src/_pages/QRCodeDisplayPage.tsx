@@ -30,7 +30,9 @@ const QRCodeDisplayPage = () => {
 
 
   const handlePrint = (tableNumber: any) => {
-    const qrUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://sangeet.hk'}/qr/table-${tableNumber}`;
+    const rawUrl = process.env.NEXT_PUBLIC_FRONTEND_URL;
+    const canonicalDomain = (rawUrl && !rawUrl.includes('vercel.app')) ? rawUrl.replace(/\/+$/, '') : 'https://www.sangeet.hk';
+    const qrUrl = `${canonicalDomain}/qr/table-${tableNumber}`;
     return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}`;
   };
 
