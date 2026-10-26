@@ -322,4 +322,5 @@ export interface QRGenerationOptions {
   format?: 'png' | 'jpeg' | 'svg';
   colors?: ColorTheme;
   theme?: string;
+  design?: string;
 }
