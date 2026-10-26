@@ -1,30 +1,20 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Grand Opening Full Lock Screen & Bypass Verification', () => {
-  test('Localhost auto-bypasses lock screen for developers', async ({ page }) => {
-    await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
+test.describe('Production Public Direct Access Verification (Lock Removed)', () => {
+  test('Localhost loads live website without lock screen', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'commit' });
     await page.waitForTimeout(1000);
 
     // Headline on the public page should be directly visible
-    const headline = page.locator('h1', { hasText: 'A Symphony of South Asian Gastronomy' });
-    await expect(headline).toBeVisible();
+    const headline = page.locator('h1', { hasText: 'South Asian Fine Dining in Wan Chai' });
+    await expect(headline).toBeVisible({ timeout: 15000 });
 
-    // No full-screen lock overlay blocking interaction
+    // Lock overlay should NOT be present
     const lockScreen = page.locator('text=Grand Opening • Coming Soon');
     await expect(lockScreen).not.toBeVisible();
   });
 
-  test('Admin routes are completely accessible', async ({ page }) => {
-    await page.goto('http://localhost:3000/admin/login', { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(/.*admin\/login/);
-  });
-
-  test('Kitchen display routes are completely accessible', async ({ page }) => {
-    await page.goto('http://localhost:3000/kitchen/login', { waitUntil: 'domcontentloaded' });
-    await expect(page).toHaveURL(/.*kitchen\/login/);
-  });
-
-  test('Simulated production domain displays full un-dismissible lock screen', async ({ page }) => {
+  test('Simulated production domain (sangeet.hk) loads live website directly without lock screen', async ({ page }) => {
     // Mock hostname to production sangeet.hk
     await page.addInitScript(() => {
       Object.defineProperty(window, 'location', {
@@ -33,18 +23,24 @@ test.describe('Grand Opening Full Lock Screen & Bypass Verification', () => {
       });
     });
 
-    await page.goto('http://localhost:3000/', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(1000);
+    await page.goto('/', { waitUntil: 'commit' });
 
-    // Lock screen elements should be visible
+    // Live site headline must be directly visible to customers
+    const headline = page.locator('h1', { hasText: 'South Asian Fine Dining in Wan Chai' });
+    await expect(headline).toBeVisible({ timeout: 15000 });
+
+    // Lock screen elements should NOT be visible
     const lockBadge = page.locator('text=Grand Opening • Coming Soon');
-    await expect(lockBadge).toBeVisible();
+    await expect(lockBadge).not.toBeVisible();
+  });
 
-    const lockTitle = page.locator('text=A Symphony of South Asian Gastronomy');
-    await expect(lockTitle).toBeVisible();
+  test('Admin routes are completely accessible', async ({ page }) => {
+    await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
+    await expect(page).toHaveURL(/.*admin\/login/);
+  });
 
-    // There should be NO close (X) button
-    const closeBtn = page.locator('button[aria-label="Close preview"]');
-    await expect(closeBtn).not.toBeVisible();
+  test('Kitchen display routes are completely accessible', async ({ page }) => {
+    await page.goto('/kitchen/login', { waitUntil: 'domcontentloaded' });
+    await expect(page).toHaveURL(/.*kitchen\/login/);
   });
 });

@@ -3,7 +3,6 @@ import { Playfair_Display, Playfair_Display_SC, Outfit, Inter, Karla } from "nex
 import "./globals.css";
 import Providers from "./providers";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import DigitalPreviewModal from "@/components/DigitalPreviewModal";
 import { Suspense } from 'react';
 
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
@@ -60,9 +59,6 @@ export default function RootLayout({
           <Providers>
             <Suspense fallback={<LoadingFallback />}>
               {children}
-            </Suspense>
-            <Suspense fallback={null}>
-              <DigitalPreviewModal />
             </Suspense>
           </Providers>
         </ErrorBoundary>

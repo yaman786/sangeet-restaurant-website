@@ -13,8 +13,10 @@ const protectedPaths = ['/admin', '/kitchen'];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Check if it's a protected route
-  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
+  // Check if it's a protected route (excluding login pages)
+  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path)) &&
+    !pathname.startsWith('/admin/login') &&
+    !pathname.startsWith('/kitchen/login');
 
   if (isProtectedPath) {
     const token = request.cookies.get('auth_token')?.value;
