@@ -78,7 +78,9 @@ test.describe('Live Production QA Audit: QR Table Ordering Flow', () => {
 
     // 9. Verify transition to Live Tracking Dashboard
     await page.waitForURL(/.*\/dashboard/, { timeout: 15000 });
-    await expect(page.locator('h1, h2, h3').filter({ hasText: 'Table 1' })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h2:has-text("Order Tracking")')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(orderData.order.order_number).first()).toBeVisible();
+    await expect(page.locator('text=Order Received').first()).toBeVisible();
   });
 
   test('Audit 3: Call Waiter and Request Bill Service APIs', async ({ request }) => {
