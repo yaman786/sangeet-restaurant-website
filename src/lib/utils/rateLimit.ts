@@ -86,52 +86,58 @@ export type RateLimitType = 'reservation' | 'login' | 'contact' | 'order' | 'tab
  * If credentials are missing, allows request and logs warning.
  */
 export async function checkRateLimit(req: NextRequest, type: RateLimitType): Promise<{ success: boolean; response?: NextResponse }> {
-  const ip = getClientIp(req);
+  try {
+    const ip = getClientIp(req);
 
-  if (req.headers.get('x-playwright-test') === 'true' || process.env.NODE_ENV === 'test' || ip === '127.0.0.1' || ip === '::1') {
-    return { success: true };
-  }
+    if (req.headers.get('x-playwright-test') === 'true' || process.env.NODE_ENV === 'test' || ip === '127.0.0.1' || ip === '::1') {
+      return { success: true };
+    }
 
-  if (!isConfigured) {
-    return { success: true };
-  }
+    if (!isConfigured) {
+      return { success: true };
+    }
 
-  const limiter = 
-    type === 'reservation' ? reservationLimiter : 
-    type === 'login' ? loginLimiter : 
-    type === 'contact' ? contactLimiter :
-    type === 'order' ? orderLimiter :
-    tableActionLimiter;
-  if (!limiter) {
-    return { success: true };
-  }
+    const limiter = 
+      type === 'reservation' ? reservationLimiter : 
+      type === 'login' ? loginLimiter : 
+      type === 'contact' ? contactLimiter :
+      type === 'order' ? orderLimiter :
+      tableActionLimiter;
+    if (!limiter) {
+      return { success: true };
+    }
 
-  const { success, limit, remaining, reset } = await limiter.limit(ip);
+    const { success, limit, remaining, reset } = await limiter.limit(ip);
 
-  if (!success) {
-    const retryAfter = Math.ceil((reset - Date.now()) / 1000);
-    logger.warn(`🛑 Rate limit exceeded for IP ${ip} on [${type}]. Remaining: ${remaining}`);
-    
-    return {
-      success: false,
-      response: NextResponse.json(
-        {
-          error: 'Too Many Requests',
-          message: 'You have exceeded the rate limit. Please try again later.',
-          retryAfterSeconds: retryAfter > 0 ? retryAfter : 60,
-        },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': String(retryAfter > 0 ? retryAfter : 60),
-            'X-RateLimit-Limit': String(limit),
-            'X-RateLimit-Remaining': String(remaining),
-            'X-RateLimit-Reset': String(reset),
+    if (!success) {
+      const retryAfter = Math.ceil((reset - Date.now()) / 1000);
+      logger.warn(`🛑 Rate limit exceeded for IP ${ip} on [${type}]. Remaining: ${remaining}`);
+      
+      return {
+        success: false,
+        response: NextResponse.json(
+          {
+            error: 'Too Many Requests',
+            message: 'You have exceeded the rate limit. Please try again later.',
+            retryAfterSeconds: retryAfter > 0 ? retryAfter : 60,
           },
-        }
-      ),
-    };
-  }
+          {
+            status: 429,
+            headers: {
+              'Retry-After': String(retryAfter > 0 ? retryAfter : 60),
+              'X-RateLimit-Limit': String(limit),
+              'X-RateLimit-Remaining': String(remaining),
+              'X-RateLimit-Reset': String(reset),
+            },
+          }
+        ),
+      };
+    }
 
-  return { success: true };
+    return { success: true };
+  } catch (error: any) {
+    // Fail-open: Redis down or unreachable must NEVER take down restaurant ordering operations
+    logger.warn(`⚠️ Rate limiting fail-open bypass (Redis unavailable for ${type}): ${error?.message || error}`);
+    return { success: true };
+  }
 }

@@ -13,25 +13,31 @@ export async function POST(req: NextRequest) {
       return rateLimit.response;
     }
 
-    const { tableNumber } = await req.json();
+    const body = await req.json();
+    const tableNumber = body.tableNumber || body.table_number;
 
     if (!tableNumber) {
       throw new ValidationError('tableNumber is required');
     }
 
     const table = await prisma.tables.findFirst({
-      where: { table_number: tableNumber, is_active: true }
+      where: { table_number: String(tableNumber), is_active: true }
     });
 
     if (!table) {
       throw new NotFoundError('Table');
     }
 
-    await pusherServer.trigger('admin-channel', 'request-bill', {
-      type: 'request-bill',
-      tableNumber,
-      timestamp: new Date().toISOString()
-    });
+    try {
+      await pusherServer.trigger('admin-channel', 'request-bill', {
+        type: 'request-bill',
+        tableNumber: String(tableNumber),
+        paymentMethod: body.payment_method || body.paymentMethod || 'cash',
+        timestamp: new Date().toISOString()
+      });
+    } catch (pushErr) {
+      console.warn('Pusher notification for request-bill failed (non-blocking):', pushErr);
+    }
 
     return NextResponse.json({ success: true, message: `Bill requested for table ${tableNumber}` });
   } catch (error) {
