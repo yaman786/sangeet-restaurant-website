@@ -40,7 +40,7 @@ export {
 export {
   loginUser, getProfile, changePassword,
   getAllUsers, createUser, updateUser, deleteUser,
-  toggleUserStatus, getUserStats
+  toggleUserStatus, getUserStats, requestForgotPassword
 } from './authApi';
 
 // QR Codes

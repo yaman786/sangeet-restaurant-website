@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import { ROLE_META } from './utils';
 
 const RoleFilter = ({
   stats,
@@ -110,6 +111,7 @@ const RoleFilter = ({
                 <span className="text-sangeet-neutral-500">🔍</span>
               </div>
               <input
+                id="staff-search"
                 type="text"
                 placeholder="Search by name, username, or email..."
                 value={searchTerm}
@@ -131,13 +133,15 @@ const RoleFilter = ({
           <div className="flex gap-3">
             <div className="relative">
               <select
+                id="staff-filter-role"
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
                 className="appearance-none px-4 py-3 pr-8 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200 cursor-pointer"
               >
                 <option value="all">👥 All Roles</option>
-                <option value="admin">👑 Admin</option>
-                <option value="staff">👤 Staff</option>
+                {(Object.keys(ROLE_META) as Array<keyof typeof ROLE_META>).map((role) => (
+                  <option key={role} value={role}>{ROLE_META[role].icon} {ROLE_META[role].label}</option>
+                ))}
               </select>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                 <span className="text-sangeet-neutral-400">▼</span>
@@ -146,6 +150,7 @@ const RoleFilter = ({
 
             <div className="relative">
               <select
+                id="staff-filter-status"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="appearance-none px-4 py-3 pr-8 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200 cursor-pointer"
@@ -162,6 +167,7 @@ const RoleFilter = ({
 
           {/* Add User Button */}
           <button
+            id="staff-add-user"
             onClick={() => setShowCreateModal(true)}
             className="px-6 py-3 bg-linear-to-r from-sangeet-400 to-sangeet-300 text-sangeet-neutral-950 font-semibold rounded-lg hover:from-sangeet-300 hover:to-sangeet-200 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-sangeet-400/25 flex items-center gap-2 whitespace-nowrap"
           >

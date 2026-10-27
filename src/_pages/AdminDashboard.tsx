@@ -102,7 +102,7 @@ const AdminDashboard = () => {
           )}
 
           {/* Kitchen Access */}
-          {(user?.role === 'admin' || user?.role === 'kitchen' || user?.role === 'waiter') && (
+          {(user?.role === 'admin' || user?.role === 'kitchen') && (
             <div className="bg-sangeet-neutral-900 rounded-xl p-6 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300 group">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-orange-400/20 rounded-lg flex items-center justify-center group-hover:bg-orange-400/30 transition-colors">

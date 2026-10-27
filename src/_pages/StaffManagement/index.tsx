@@ -6,6 +6,7 @@ import StaffTable from './StaffTable';
 import StaffForm from './StaffForm';
 import RoleFilter from './RoleFilter';
 import { useStaffManagement } from './hooks/useStaffManagement';
+import { getInitials } from './utils';
 
 const StaffManagement = () => {
   const navigate = useNavigate();
@@ -16,6 +17,9 @@ const StaffManagement = () => {
     setPage,
     stats,
     loading,
+    error,
+    refetch,
+    isSaving,
     currentUser,
     showCreateModal,
     setShowCreateModal,
@@ -50,6 +54,30 @@ const StaffManagement = () => {
           <div className="spinner mx-auto mb-4"></div>
           <p className="text-sangeet-400">Loading staff management...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-sangeet-neutral-950">
+        <AdminHeader title="Staff Management" subtitle="Manage admin and staff accounts" showBackButton={true} onBackClick={() => navigate('/admin/dashboard')} />
+        <main className="max-w-3xl mx-auto px-4 py-16">
+          <div className="bg-sangeet-neutral-900 rounded-xl border border-red-500/30 p-10 text-center" role="alert" data-testid="staff-error">
+            <div className="text-5xl mb-4">⚠️</div>
+            <h2 className="text-xl font-semibold text-sangeet-neutral-100 mb-2">We couldn&apos;t load your team</h2>
+            <p className="text-sangeet-neutral-400 mb-6">
+              {error.message || 'Something went wrong while contacting the server.'} Your session is still active.
+            </p>
+            <button
+              id="staff-retry"
+              onClick={refetch}
+              className="px-6 py-3 bg-linear-to-r from-sangeet-400 to-sangeet-300 text-sangeet-neutral-950 font-semibold rounded-lg hover:from-sangeet-300 hover:to-sangeet-200 transition-all duration-200"
+            >
+              Try again
+            </button>
+          </div>
+        </main>
       </div>
     );
   }
@@ -141,7 +169,7 @@ const StaffManagement = () => {
                     Add Your First Team Member
                   </button>
                   <div className="text-xs text-sangeet-neutral-500 max-w-sm mx-auto">
-                    You can add administrators (full access) or staff members (kitchen access)
+                    You can add administrators (full access), kitchen staff, reception or waiters
                   </div>
                 </div>
               ) : (
@@ -191,6 +219,7 @@ const StaffManagement = () => {
               setFormData={setFormData} 
               isEditing={false} 
               handleSubmit={handleCreateUser} 
+              isSaving={isSaving}
               onCancel={() => { setShowCreateModal(false); resetForm(); }} 
             />
           </div>
@@ -205,12 +234,12 @@ const StaffManagement = () => {
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-linear-to-br from-sangeet-400/20 to-sangeet-400/10 rounded-full flex items-center justify-center border border-sangeet-400/20">
                   <span className="text-lg font-semibold text-sangeet-400">
-                    {editingUser.first_name[0]}{editingUser.last_name[0]}
+                    {getInitials(editingUser.full_name || editingUser.username)}
                   </span>
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-sangeet-400">Edit User</h2>
-                  <p className="text-sm text-sangeet-neutral-400">Update {editingUser.first_name}&apos;s information</p>
+                  <p className="text-sm text-sangeet-neutral-400">Update {editingUser.full_name || editingUser.username}&apos;s information</p>
                 </div>
               </div>
               <button
@@ -228,6 +257,8 @@ const StaffManagement = () => {
               setFormData={setFormData} 
               isEditing={true} 
               handleSubmit={handleUpdateUser} 
+              isSaving={isSaving}
+              lockRole={editingUser.id === currentUser?.id}
               onCancel={() => { setShowEditModal(false); resetForm(); }} 
             />
           </div>
@@ -242,13 +273,13 @@ const StaffManagement = () => {
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-linear-to-br from-sangeet-400/20 to-sangeet-400/10 rounded-full flex items-center justify-center border border-sangeet-400/20">
                   <span className="text-lg font-semibold text-sangeet-400">
-                    {confirmAction.user?.first_name[0]}{confirmAction.user?.last_name[0]}
+                    {getInitials(confirmAction.user?.full_name || confirmAction.user?.username)}
                   </span>
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-sangeet-400">{confirmAction.title}</h3>
                   <p className="text-sm text-sangeet-neutral-400">
-                    {confirmAction.user?.first_name} {confirmAction.user?.last_name}
+                    {confirmAction.user?.full_name || confirmAction.user?.username}
                   </p>
                 </div>
               </div>
@@ -280,10 +311,16 @@ const StaffManagement = () => {
                 Cancel
               </button>
               <button
+                id="staff-confirm-action"
                 onClick={async () => {
                   setShowConfirmModal(false);
-                  await confirmAction.onConfirm();
-                  setConfirmAction(null);
+                  try {
+                    await confirmAction.onConfirm();
+                  } catch {
+                    // The mutation's onError handler already surfaced the failure as a toast.
+                  } finally {
+                    setConfirmAction(null);
+                  }
                 }}
                 className={`flex-1 px-6 py-3 text-white font-semibold rounded-lg transition-all duration-200 ${confirmAction.confirmStyle}`}
               >

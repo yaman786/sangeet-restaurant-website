@@ -3,8 +3,11 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/db';
 import config from '@/lib/utils/env';
 import { UnauthorizedError, NotFoundError, ConflictError, AppError, ValidationError } from '@/lib/errors';
-import type { UserInfo, UserRole, JwtPayload, PaginationQuery, PaginatedResult, ChangePasswordDTO, UpdateUserDTO } from '@/lib/types';
-import { registerSchema } from '@/lib/validations/auth';
+import type { UserInfo, UserRole, JwtPayload, PaginationQuery, PaginatedResult, ChangePasswordDTO, UpdateUserDTO, UserStats } from '@/lib/types';
+import { registerSchema, updateUserSchema, changePasswordSchema } from '@/lib/validations/auth';
+
+const MAX_PAGE_SIZE = 100;
+const RECENT_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
 interface LoginInput {
   email?: string;
@@ -78,10 +81,7 @@ class AuthService {
   }
 
   async changePassword(userId: number, data: ChangePasswordDTO): Promise<void> {
-    const { currentPassword, newPassword } = data;
-    if (!currentPassword || !newPassword) {
-      throw new ValidationError('Current and new passwords are required');
-    }
+    const { currentPassword, newPassword } = changePasswordSchema.parse(data);
 
     const user = await prisma.users.findUnique({
       where: { id: userId },
@@ -114,9 +114,10 @@ class AuthService {
       throw new UnauthorizedError('Only administrators can view all users');
     }
 
-    const { page = 1, limit = 10, role, search, status } = query;
-    const skip = (Number(page) - 1) * Number(limit);
-    const take = Number(limit);
+    const { role, search, status } = query;
+    const page = Math.max(1, Number.parseInt(String(query.page ?? 1), 10) || 1);
+    const take = Math.min(MAX_PAGE_SIZE, Math.max(1, Number.parseInt(String(query.limit ?? 10), 10) || 10));
+    const skip = (page - 1) * take;
 
     const where: any = { deleted_at: null };
     
@@ -151,7 +152,7 @@ class AuthService {
       data: users as any[],
       metadata: {
         total,
-        page: Number(page),
+        page,
         totalPages: Math.ceil(total / take),
         limit: take
       }
@@ -201,44 +202,94 @@ class AuthService {
     return user as any;
   }
 
-  async updateUser(requesterRole: UserRole, userId: string, data: UpdateUserDTO): Promise<UserInfo> {
+  private parseUserId(userId: string): number {
+    const id = Number.parseInt(userId, 10);
+    if (!Number.isInteger(id) || id <= 0) {
+      throw new ValidationError('Invalid user ID');
+    }
+    return id;
+  }
+
+  /**
+   * Guarantees the system always keeps at least one active, non-deleted admin
+   * once `excludingId` is removed from the admin pool.
+   */
+  private async assertAnotherActiveAdminExists(excludingId: number): Promise<void> {
+    const remaining = await prisma.users.count({
+      where: { role: 'admin', is_active: true, deleted_at: null, NOT: { id: excludingId } }
+    });
+    if (remaining === 0) {
+      throw new ConflictError('At least one active administrator is required');
+    }
+  }
+
+  async updateUser(requesterId: number, requesterRole: UserRole, userId: string, data: UpdateUserDTO): Promise<UserInfo> {
     if (requesterRole !== 'admin') {
       throw new UnauthorizedError('Only administrators can update users');
     }
 
-    const { username, email, password, role, first_name, last_name, full_name, phone, is_active } = data;
+    const targetId = this.parseUserId(userId);
 
-    // Support either full_name or first_name + last_name formats
-    const computedFullName = full_name || 
-      (first_name || last_name ? [first_name, last_name].filter(Boolean).join(' ') : undefined);
-
-    const existing = await prisma.users.findFirst({
-      where: {
-        OR: [
-          { username },
-          { email }
-        ],
-        NOT: { id: parseInt(userId, 10) }
-      }
+    // Support either full_name or legacy first_name + last_name payloads
+    const { first_name, last_name, ...rest } = data;
+    const legacyFullName = first_name || last_name
+      ? [first_name, last_name].filter(Boolean).join(' ')
+      : undefined;
+    const parsed = updateUserSchema.parse({
+      ...rest,
+      full_name: rest.full_name ?? legacyFullName,
+      password: rest.password && rest.password.trim() !== '' ? rest.password : undefined
     });
 
-    if (existing) {
-      throw new ConflictError('Username or email already exists');
+    const target = await prisma.users.findFirst({ where: { id: targetId, deleted_at: null } });
+    if (!target) {
+      throw new NotFoundError('User');
+    }
+
+    const isSelf = requesterId === targetId;
+    if (isSelf && parsed.role && parsed.role !== target.role) {
+      throw new ConflictError('You cannot change your own role');
+    }
+    if (isSelf && parsed.is_active === false) {
+      throw new ConflictError('You cannot disable your own account');
+    }
+
+    const losesAdminAccess = target.role === 'admin' && target.is_active !== false &&
+      ((parsed.role !== undefined && parsed.role !== 'admin') || parsed.is_active === false);
+    if (losesAdminAccess) {
+      await this.assertAnotherActiveAdminExists(targetId);
+    }
+
+    const identityConditions: Array<{ username: string } | { email: string }> = [];
+    if (parsed.username) identityConditions.push({ username: parsed.username });
+    if (parsed.email) identityConditions.push({ email: parsed.email });
+    if (identityConditions.length > 0) {
+      const conflict = await prisma.users.findFirst({
+        where: { OR: identityConditions, NOT: { id: targetId } }
+      });
+      if (conflict) {
+        throw new ConflictError('Username or email already exists');
+      }
     }
 
     const updateData: any = {
-      username, email, role, full_name: computedFullName, 
-      phone: phone || null, is_active, updated_at: new Date()
+      username: parsed.username,
+      email: parsed.email,
+      role: parsed.role,
+      full_name: parsed.full_name,
+      is_active: parsed.is_active,
+      phone: parsed.phone === undefined ? undefined : (parsed.phone || null),
+      updated_at: new Date()
     };
 
-    if (password && password.trim() !== '') {
+    if (parsed.password) {
       const salt = await bcrypt.genSalt(10);
-      updateData.password_hash = await bcrypt.hash(password, salt);
+      updateData.password_hash = await bcrypt.hash(parsed.password, salt);
     }
 
     try {
       const user = await prisma.users.update({
-        where: { id: parseInt(userId, 10) },
+        where: { id: targetId },
         data: updateData,
         select: {
           id: true, username: true, email: true, role: true,
@@ -249,6 +300,7 @@ class AuthService {
       return user as any;
     } catch (e: any) {
       if (e.code === 'P2025') throw new NotFoundError('User');
+      if (e.code === 'P2002') throw new ConflictError('Username or email already exists');
       throw e;
     }
   }
@@ -258,13 +310,24 @@ class AuthService {
       throw new UnauthorizedError('Only administrators can delete users');
     }
 
-    if (requesterId.toString() === userId) {
+    const targetId = this.parseUserId(userId);
+
+    if (requesterId === targetId) {
       throw new ConflictError('You cannot delete your own account');
     }
 
+    const target = await prisma.users.findFirst({ where: { id: targetId, deleted_at: null } });
+    if (!target) {
+      throw new NotFoundError('User');
+    }
+
+    if (target.role === 'admin' && target.is_active !== false) {
+      await this.assertAnotherActiveAdminExists(targetId);
+    }
+
     const result = await prisma.users.updateMany({
-      where: { id: parseInt(userId, 10), deleted_at: null },
-      data: { deleted_at: new Date(), is_active: false }
+      where: { id: targetId, deleted_at: null },
+      data: { deleted_at: new Date(), is_active: false, updated_at: new Date() }
     });
 
     if (result.count === 0) {
@@ -277,20 +340,26 @@ class AuthService {
       throw new UnauthorizedError('Only administrators can update users');
     }
 
-    if (requesterId.toString() === userId) {
+    const targetId = this.parseUserId(userId);
+
+    if (requesterId === targetId) {
       throw new ConflictError('You cannot disable your own account');
     }
 
     const existing = await prisma.users.findFirst({
-      where: { id: parseInt(userId, 10), deleted_at: null }
+      where: { id: targetId, deleted_at: null }
     });
 
     if (!existing) {
       throw new NotFoundError('User');
     }
 
+    if (existing.role === 'admin' && existing.is_active !== false) {
+      await this.assertAnotherActiveAdminExists(targetId);
+    }
+
     const user = await prisma.users.update({
-      where: { id: parseInt(userId, 10) },
+      where: { id: targetId },
       data: { is_active: !existing.is_active, updated_at: new Date() },
       select: { id: true, username: true, email: true, role: true, is_active: true }
     });
@@ -301,23 +370,60 @@ class AuthService {
     };
   }
 
-  async getUserStats(requesterRole: UserRole): Promise<Record<string, number>> {
+  async getUserStats(requesterRole: UserRole): Promise<UserStats> {
     if (requesterRole !== 'admin') {
       throw new UnauthorizedError('Only administrators can view stats');
     }
 
     const users = await prisma.users.findMany({
       where: { deleted_at: null },
-      select: { is_active: true, role: true }
+      select: { is_active: true, role: true, created_at: true }
     });
 
+    const recentCutoff = Date.now() - RECENT_WINDOW_MS;
+    const roles: Record<string, number> = {};
+    for (const u of users) {
+      roles[u.role] = (roles[u.role] || 0) + 1;
+    }
+
+    const active = users.filter(u => u.is_active).length;
+    const admins = roles.admin || 0;
+
     return {
-      total_users: users.length,
-      active_users: users.filter(u => u.is_active).length,
-      admin_users: users.filter(u => u.role === 'admin').length,
-      kitchen_users: users.filter(u => u.role === 'kitchen').length,
-      reception_users: users.filter(u => u.role === 'reception').length,
-      waiter_users: users.filter(u => u.role === 'waiter').length
+      total: users.length,
+      active,
+      inactive: users.length - active,
+      admins,
+      staff: users.length - admins,
+      recent: users.filter(u => u.created_at && u.created_at.getTime() >= recentCutoff).length,
+      roles
+    };
+  }
+
+  async requestPasswordReset(identifier: string): Promise<{ message: string }> {
+    const trimmed = (identifier || '').trim();
+    if (!trimmed) {
+      throw new ValidationError('Username or email is required');
+    }
+
+    const user = await prisma.users.findFirst({
+      where: {
+        OR: [
+          { email: { equals: trimmed, mode: 'insensitive' } },
+          { username: { equals: trimmed, mode: 'insensitive' } }
+        ],
+        deleted_at: null
+      }
+    });
+
+    if (!user) {
+      return {
+        message: 'If an account matches those details, password reset instructions have been recorded. Please contact your manager or admin.'
+      };
+    }
+
+    return {
+      message: `Password reset request received for ${user.username}. Please ask an on-duty Administrator to reset your password in Staff Management, or contact management at info@sangeet.hk.`
     };
   }
 }

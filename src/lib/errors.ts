@@ -59,9 +59,9 @@ export function handleApiError(error: unknown) {
   console.error('API Error:', error);
 
   if (error instanceof z.ZodError) {
-    const formattedErrors = (error as any).errors.map((err: any) => ({
-      path: err.path.join('.'),
-      message: err.message
+    const formattedErrors = error.issues.map((issue) => ({
+      path: issue.path.join('.'),
+      message: issue.message
     }));
     return NextResponse.json(
       { error: 'Validation failed', details: formattedErrors }, 

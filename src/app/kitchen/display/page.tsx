@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <StandaloneLayout>
-      <ProtectedRoute requiredRole={['admin', 'kitchen', 'waiter']}>
+      <ProtectedRoute requiredRole={['admin', 'kitchen']}>
       <KitchenDisplayPage />
     </ProtectedRoute>
     </StandaloneLayout>

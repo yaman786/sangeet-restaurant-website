@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from '@/utils/router-mock';
 import { motion } from 'framer-motion';
-import { loginUser } from '../services/api';
+import { loginUser, requestForgotPassword } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,7 +23,32 @@ const LoginPage = () => {
   });
 
   const [error, setError] = useState('');
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotIdentifier, setForgotIdentifier] = useState('');
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotIdentifier.trim()) {
+      toast.error('Please enter your username or email');
+      return;
+    }
+    setForgotSubmitting(true);
+    setForgotMessage(null);
+    try {
+      const res = await requestForgotPassword(forgotIdentifier.trim());
+      setForgotMessage(res?.message || 'Password reset request recorded. Please contact your manager or admin.');
+      toast.success('Request received');
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.message || 'Failed to submit request';
+      toast.error(msg);
+      setForgotMessage(msg);
+    } finally {
+      setForgotSubmitting(false);
+    }
+  };
 
   const onSubmit = async (data: any) => {
     setError('');
@@ -38,8 +63,12 @@ const LoginPage = () => {
 
       if (user.role === 'admin') {
         navigate('/admin/dashboard');
-      } else if (user.role === 'staff') {
+      } else if (user.role === 'kitchen') {
+        navigate('/kitchen/display');
+      } else if (user.role === 'waiter' || user.role === 'staff') {
         navigate('/admin/orders');
+      } else if (user.role === 'reception') {
+        navigate('/admin/reservations');
       } else {
         navigate('/admin/dashboard');
       }
@@ -125,9 +154,22 @@ const LoginPage = () => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-sangeet-neutral-300">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForgotMessage(null);
+                    setShowForgotModal(true);
+                  }}
+                  className="text-xs text-sangeet-400 hover:text-sangeet-300 hover:underline transition-all duration-150"
+                  data-testid="forgot-password-link"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <input
                 type="password"
                 id="password"
@@ -172,6 +214,98 @@ const LoginPage = () => {
           </p>
         </div>
       </motion.div>
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="forgot-password-title"
+          data-testid="forgot-password-modal"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-md bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-2xl shadow-2xl p-6 relative"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-sangeet-400/10 border border-sangeet-400/30 flex items-center justify-center text-xl">
+                  🔑
+                </div>
+                <div>
+                  <h3 id="forgot-password-title" className="text-lg font-bold text-sangeet-100">
+                    Staff Password Assistance
+                  </h3>
+                  <p className="text-xs text-sangeet-neutral-400">
+                    Sangeet Restaurant Portal Security
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(false)}
+                className="text-sangeet-neutral-400 hover:text-sangeet-100 p-1 rounded-md transition-colors"
+                aria-label="Close"
+                data-testid="close-forgot-modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-sangeet-neutral-300 leading-relaxed mb-4">
+              Staff accounts are managed by restaurant administration. An on-duty Administrator can reset your password immediately inside <span className="text-sangeet-400 font-medium">Admin &gt; Staff Management</span>.
+            </p>
+
+            <form onSubmit={handleForgotSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="forgot-identifier" className="block text-xs font-medium text-sangeet-neutral-300 mb-1">
+                  Your Username or Registered Email
+                </label>
+                <input
+                  id="forgot-identifier"
+                  type="text"
+                  value={forgotIdentifier}
+                  onChange={(e) => setForgotIdentifier(e.target.value)}
+                  placeholder="e.g. raj_waiter or staff@sangeet.hk"
+                  className="w-full px-3 py-2.5 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sm text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent transition-all"
+                  required
+                />
+              </div>
+
+              {forgotMessage && (
+                <div className="p-3 bg-sangeet-neutral-800/80 border border-sangeet-400/30 rounded-lg text-xs text-sangeet-300 leading-relaxed">
+                  {forgotMessage}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(false)}
+                  className="px-4 py-2 text-xs font-medium text-sangeet-neutral-300 hover:text-white bg-sangeet-neutral-800 rounded-lg hover:bg-sangeet-neutral-700 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={forgotSubmitting}
+                  className="px-4 py-2 text-xs font-semibold text-sangeet-neutral-950 bg-sangeet-400 hover:bg-sangeet-300 rounded-lg transition-colors disabled:opacity-50 shadow-md"
+                  data-testid="submit-forgot-password"
+                >
+                  {forgotSubmitting ? 'Submitting...' : 'Notify Admin'}
+                </button>
+              </div>
+            </form>
+
+            <div className="mt-4 pt-3 border-t border-sangeet-neutral-800 text-[11px] text-sangeet-neutral-400 flex items-center justify-between">
+              <span>📞 Manager: +852 26568820</span>
+              <span>📧 info@sangeet.hk</span>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

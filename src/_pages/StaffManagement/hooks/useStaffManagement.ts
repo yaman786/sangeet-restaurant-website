@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from '@/utils/router-mock';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -8,201 +7,222 @@ import {
   updateUser,
   deleteUser,
   toggleUserStatus,
-  getUserStats,
-  getProfile
+  getUserStats
 } from '../../../services/api';
 import { useAuth } from '../../../contexts/AuthContext';
-import type { UserRow } from '@/lib/types';
+import type { UserInfo, UserStats } from '@/lib/types';
+import { EMPTY_STAFF_FORM, getErrorMessage, type StaffFormData } from '../utils';
+
+const PAGE_SIZE = 50;
+
+const EMPTY_STATS: UserStats = {
+  total: 0, active: 0, inactive: 0, admins: 0, staff: 0, recent: 0, roles: {}
+};
+
+export interface ConfirmAction {
+  type: 'delete' | 'toggle';
+  user: UserInfo;
+  title: string;
+  message: string;
+  confirmText: string;
+  confirmStyle: string;
+  onConfirm: () => Promise<unknown>;
+}
 
 export const useStaffManagement = () => {
   const [page, setPage] = useState(1);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingUser, setEditingUser] = useState<any>(null);
+  const [editingUser, setEditingUser] = useState<UserInfo | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<any>(null);
-  
-  const [formData, setFormData] = useState({
-    username: '', email: '', password: '', role: 'waiter',
-    first_name: '', last_name: '', phone: '', is_active: true
-  });
-  
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
+
+  const [formData, setFormData] = useState<StaffFormData>(EMPTY_STAFF_FORM);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-  
-  const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuth();
+
+  // Identity comes from AuthContext (verified against /api/auth/me). A failed data request
+  // must never be treated as an expired session; real 401/403 responses are handled
+  // centrally by the API client interceptor.
+  const { user: currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (!isAuthenticated) {
-        navigate('/login');
-        return;
-      }
-      try {
-        const response: any = await getProfile();
-        setCurrentUser(response.user || response);
-        if ((response.user || response).role !== 'admin') {
-          toast.error('Access denied. Admin role required.');
-          navigate('/admin/dashboard');
-          return;
-        }
-      } catch (error) {
-        logout();
-        navigate('/login');
-      }
-    };
-    checkAuth();
-  }, [isAuthenticated, navigate, logout]);
-
-  // React Query for Users
-  const { data: usersData, isLoading: usersLoading } = useQuery({
+  const usersQuery = useQuery({
     queryKey: ['users', page],
-    queryFn: () => (getAllUsers as any)({ page, limit: 50 }),
-    enabled: !!currentUser && currentUser.role === 'admin',
+    queryFn: () => getAllUsers({ page, limit: PAGE_SIZE }),
+    enabled: isAdmin,
+    retry: 1,
     placeholderData: (previousData) => previousData
   });
 
-  // React Query for Stats
-  const { data: statsData, isLoading: statsLoading } = useQuery({
+  const statsQuery = useQuery({
     queryKey: ['usersStats'],
     queryFn: () => getUserStats(),
-    enabled: !!currentUser && currentUser.role === 'admin'
+    enabled: isAdmin,
+    retry: 1
   });
 
-  const loading = !currentUser || usersLoading || statsLoading;
-  const users = (usersData as any)?.data || usersData || [];
-  const metadata = (usersData as any)?.metadata || { page: 1, totalPages: 1 };
-  const stats = statsData || { total: 0, active: 0, roles: {} as Record<string, number> };
+  const loading = usersQuery.isLoading || statsQuery.isLoading;
+  const error = (usersQuery.error || statsQuery.error) as Error | null;
+  const users: UserInfo[] = useMemo(() => usersQuery.data?.data ?? [], [usersQuery.data]);
+  const metadata = usersQuery.data?.metadata ?? { total: 0, page: 1, totalPages: 1, limit: PAGE_SIZE };
+  const stats: UserStats = statsQuery.data ?? EMPTY_STATS;
+
+  const refetch = useCallback(() => {
+    usersQuery.refetch();
+    statsQuery.refetch();
+  }, [usersQuery, statsQuery]);
+
+  // If the last user on the final page is removed, step back to a page that exists.
+  useEffect(() => {
+    if (metadata.totalPages > 0 && page > metadata.totalPages) {
+      setPage(metadata.totalPages);
+    }
+  }, [metadata.totalPages, page]);
 
   const resetForm = useCallback(() => {
-    setFormData({
-      username: '', email: '', password: '', role: 'waiter',
-      first_name: '', last_name: '', phone: '', is_active: true
-    });
+    setFormData(EMPTY_STAFF_FORM);
   }, []);
 
+  const invalidateStaffData = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['users'] });
+    queryClient.invalidateQueries({ queryKey: ['usersStats'] });
+  }, [queryClient]);
+
   const createMutation = useMutation({
-    mutationFn: (data: Partial<UserRow>) => createUser(data),
+    mutationFn: (data: StaffFormData) => createUser(data as never),
     onSuccess: () => {
       toast.success('User created successfully');
       setShowCreateModal(false);
       resetForm();
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['usersStats'] });
+      invalidateStaffData();
     },
-    onError: (error: any) => toast.error(error.response?.data?.error || 'Failed to create user')
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to create user'))
   });
 
-  const handleCreateUser = (e: any) => {
+  const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.username || !formData.email || !formData.password || !formData.first_name || !formData.last_name) {
+    if (!formData.username.trim() || !formData.email.trim() || !formData.password || !formData.full_name.trim()) {
       toast.error('Please fill in all required fields');
       return;
     }
-    createMutation.mutate(formData as any);
+    createMutation.mutate({
+      ...formData,
+      username: formData.username.trim(),
+      email: formData.email.trim(),
+      full_name: formData.full_name.trim(),
+      phone: formData.phone.trim()
+    });
   };
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: any) => updateUser(id, data),
+    mutationFn: ({ id, data }: { id: number; data: Partial<StaffFormData> }) => updateUser(id, data as never),
     onSuccess: () => {
       toast.success('User updated successfully');
       setShowEditModal(false);
       setEditingUser(null);
       resetForm();
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['usersStats'] });
+      invalidateStaffData();
     },
-    onError: (error: any) => toast.error(error.response?.data?.error || 'Failed to update user')
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to update user'))
   });
 
-  const handleUpdateUser = (e: any) => {
+  const handleUpdateUser = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
-    const updateData = { ...formData };
-    if (!updateData.password) delete (updateData as any).password;
+    const { password, ...rest } = formData;
+    const updateData: Partial<StaffFormData> = {
+      ...rest,
+      username: rest.username.trim(),
+      email: rest.email.trim(),
+      full_name: rest.full_name.trim(),
+      phone: rest.phone.trim()
+    };
+    if (password) updateData.password = password;
     updateMutation.mutate({ id: editingUser.id, data: updateData });
   };
 
   const deleteMutation = useMutation({
-    mutationFn: (userId: any) => deleteUser(userId),
+    mutationFn: (userId: number) => deleteUser(userId),
     onSuccess: () => {
       toast.success('User deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['usersStats'] });
+      invalidateStaffData();
     },
-    onError: (error: any) => toast.error(error.response?.data?.error || 'Failed to delete user')
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to delete user'))
   });
 
-  const handleDeleteUser = (userId: any) => {
-    const user = users.find((u: any) => u.id === userId);
+  const handleDeleteUser = (userId: number) => {
+    const user = users.find((u) => u.id === userId);
+    if (!user) return;
     setConfirmAction({
       type: 'delete',
-      user: user,
+      user,
       title: 'Delete User Account',
-      message: `Are you sure you want to delete ${user.first_name} ${user.last_name}'s account? This action cannot be undone.`,
+      message: `Are you sure you want to delete ${user.full_name || user.username}'s account? They will immediately lose access to the system.`,
       confirmText: 'Delete Account',
       confirmStyle: 'bg-red-500 hover:bg-red-600',
-      onConfirm: async () => deleteMutation.mutateAsync(userId)
+      onConfirm: () => deleteMutation.mutateAsync(userId)
     });
     setShowConfirmModal(true);
   };
 
   const toggleStatusMutation = useMutation({
-    mutationFn: (userId: any) => toggleUserStatus(userId),
-    onSuccess: (_: any, userId: any) => {
-      const user = users.find((u: any) => u.id === userId);
-      toast.success(`User ${user.is_active ? 'disabled' : 'enabled'} successfully`);
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['usersStats'] });
+    mutationFn: (userId: number) => toggleUserStatus(userId),
+    onSuccess: (result) => {
+      toast.success(`User ${result.status} successfully`);
+      invalidateStaffData();
     },
-    onError: (error: any) => toast.error(error.response?.data?.error || 'Failed to update user status')
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to update user status'))
   });
 
-  const handleToggleStatus = (userId: any) => {
-    const user = users.find((u: any) => u.id === userId);
+  const handleToggleStatus = (userId: number) => {
+    const user = users.find((u) => u.id === userId);
+    if (!user) return;
     const action = user.is_active ? 'disable' : 'enable';
     setConfirmAction({
       type: 'toggle',
-      user: user,
+      user,
       title: `${action === 'disable' ? 'Disable' : 'Enable'} User Account`,
-      message: `Are you sure you want to ${action} ${user.first_name} ${user.last_name}'s account?`,
+      message: `Are you sure you want to ${action} ${user.full_name || user.username}'s account?`,
       confirmText: `${action === 'disable' ? 'Disable' : 'Enable'} Account`,
       confirmStyle: user.is_active ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600',
-      onConfirm: async () => toggleStatusMutation.mutateAsync(userId)
+      onConfirm: () => toggleStatusMutation.mutateAsync(userId)
     });
     setShowConfirmModal(true);
   };
 
-  const openEditModal = (user: any) => {
+  const openEditModal = (user: UserInfo) => {
     setEditingUser(user);
     setFormData({
       username: user.username,
       email: user.email,
       password: '',
       role: user.role,
-      first_name: user.first_name,
-      last_name: user.last_name,
+      full_name: user.full_name || '',
       phone: user.phone || '',
       is_active: user.is_active
     });
     setShowEditModal(true);
   };
 
-  const filteredUsers = users.filter((user: any) => {
-    const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === 'all' || user.role === filterRole;
-    const matchesStatus = filterStatus === 'all' ||
-      (filterStatus === 'active' && user.is_active) ||
-      (filterStatus === 'inactive' && !user.is_active);
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+  const filteredUsers = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return users.filter((user) => {
+      const matchesSearch = !term ||
+        user.username.toLowerCase().includes(term) ||
+        user.email.toLowerCase().includes(term) ||
+        (user.full_name || '').toLowerCase().includes(term);
+      const matchesRole = filterRole === 'all' || user.role === filterRole;
+      const matchesStatus = filterStatus === 'all' ||
+        (filterStatus === 'active' && user.is_active) ||
+        (filterStatus === 'inactive' && !user.is_active);
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [users, searchTerm, filterRole, filterStatus]);
 
   return {
     users,
@@ -211,6 +231,8 @@ export const useStaffManagement = () => {
     setPage,
     stats,
     loading,
+    error,
+    refetch,
     currentUser,
     showCreateModal,
     setShowCreateModal,
@@ -236,6 +258,7 @@ export const useStaffManagement = () => {
     handleDeleteUser,
     handleToggleStatus,
     openEditModal,
-    resetForm
+    resetForm,
+    isSaving: createMutation.isPending || updateMutation.isPending
   };
 };

@@ -18,6 +18,16 @@ export interface UpdateUserDTO {
   last_name?: string;
 }
 
+export interface UserStats {
+  total: number;
+  active: number;
+  inactive: number;
+  admins: number;
+  staff: number;
+  recent: number;
+  roles: Record<string, number>;
+}
+
 // ── Reservations ────────────────────────────────────────────
 export interface CreateReservationDTO {
   customer_name: string;

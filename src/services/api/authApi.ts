@@ -1,5 +1,5 @@
 import api, { apiCallWrapper } from './client';
-import { UserInfo, UserRow } from '@/lib/types';
+import { UserInfo, UserRow, UserStats, PaginatedResult } from '@/lib/types';
 
 export const loginUser = async (credentials: Record<string, string>) => {
   try {
@@ -27,9 +27,9 @@ export const changePassword = async (passwordData: Record<string, string>) => {
 };
 
 // User management API calls
-export const getAllUsers = async (): Promise<UserRow[]> => {
+export const getAllUsers = async (params: { page?: number; limit?: number } = {}): Promise<PaginatedResult<UserInfo>> => {
   return apiCallWrapper(async () => {
-    return await api.get('/auth/users');
+    return await api.get('/auth/users', { params });
   }, 'getAllUsers');
 };
 
@@ -51,14 +51,25 @@ export const deleteUser = async (id: string | number) => {
   }, 'deleteUser', false);
 };
 
-export const toggleUserStatus = async (id: string | number) => {
+export interface ToggleUserStatusResult {
+  status: 'enabled' | 'disabled';
+  user: Pick<UserInfo, 'id' | 'username' | 'email' | 'role' | 'is_active'>;
+}
+
+export const toggleUserStatus = async (id: string | number): Promise<ToggleUserStatusResult> => {
   return apiCallWrapper(async () => {
-    return await api.patch(`/auth/users/${encodeURIComponent(id)}/toggle-status`);
+    return await api.patch<unknown, ToggleUserStatusResult>(`/auth/users/${encodeURIComponent(id)}/toggle-status`);
   }, 'toggleUserStatus', false);
 };
 
-export const getUserStats = async (): Promise<{ total: number, active: number, roles: Record<string, number> }> => {
+export const getUserStats = async (): Promise<UserStats> => {
   return apiCallWrapper(async () => {
     return await api.get('/auth/users/stats');
   }, 'getUserStats');
+};
+
+export const requestForgotPassword = async (identifier: string): Promise<{ message: string }> => {
+  return apiCallWrapper(async () => {
+    return await api.post('/auth/forgot-password', { identifier });
+  }, 'requestForgotPassword', false);
 };
