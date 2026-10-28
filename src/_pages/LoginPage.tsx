@@ -61,17 +61,7 @@ const LoginPage = () => {
       const nameToDisplay = user.full_name?.split(' ')[0] || user.username || 'Admin';
       toast.success(`Welcome back, ${nameToDisplay}!`);
 
-      if (user.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else if (user.role === 'kitchen') {
-        navigate('/kitchen/display');
-      } else if (user.role === 'waiter' || user.role === 'staff') {
-        navigate('/admin/orders');
-      } else if (user.role === 'reception') {
-        navigate('/admin/reservations');
-      } else {
-        navigate('/admin/dashboard');
-      }
+      navigate('/admin/dashboard');
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.message || 'Login failed. Please try again.';
       setError(errorMessage);

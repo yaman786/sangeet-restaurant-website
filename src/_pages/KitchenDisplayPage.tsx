@@ -135,15 +135,16 @@ const KitchenDisplayPage = () => {
                 {soundEnabled ? '🔊' : '🔇'}
               </button>
 
-              {/* Navigation based on user type */}
-              {userType === 'admin' ? (
-                <button
-                  onClick={handleLogoutOrBack}
-                  className="px-3 py-1.5 bg-sangeet-400 text-sangeet-neutral-950 rounded-md text-sm font-medium hover:bg-sangeet-300 transition-colors"
-                >
-                  ← Go Back
-                </button>
-              ) : (
+              {/* Navigation */}
+              <button
+                onClick={() => {
+                  window.location.href = '/admin/dashboard';
+                }}
+                className="px-3 py-1.5 bg-sangeet-400 text-sangeet-neutral-950 rounded-md text-sm font-medium hover:bg-sangeet-300 transition-colors"
+              >
+                ← Go Back
+              </button>
+              {userType !== 'admin' && (
                 <button
                   onClick={handleLogoutOrBack}
                   className="px-3 py-1.5 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
