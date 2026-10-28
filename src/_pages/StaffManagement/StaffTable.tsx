@@ -11,6 +11,8 @@ export interface StaffTableProps {
   openEditModal: (user: UserInfo) => void;
   handleToggleStatus: (userId: number) => void;
   handleDeleteUser: (userId: number) => void;
+  handleRestoreUser?: (userId: number) => void;
+  handlePermanentDeleteUser?: (userId: number) => void;
 }
 
 const StaffTable: React.FC<StaffTableProps> = ({ 
@@ -19,7 +21,9 @@ const StaffTable: React.FC<StaffTableProps> = ({
   currentUser, 
   openEditModal, 
   handleToggleStatus, 
-  handleDeleteUser 
+  handleDeleteUser,
+  handleRestoreUser,
+  handlePermanentDeleteUser
 }) => {
   return (
     <div className="bg-sangeet-neutral-900 rounded-xl border border-sangeet-neutral-700 overflow-hidden shadow-xl">
@@ -115,13 +119,20 @@ const StaffTable: React.FC<StaffTableProps> = ({
                       </span>
                     </div>
                     <div>
-                      <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${user.is_active
-                          ? 'bg-green-400/20 text-green-400 border border-green-400/30'
-                          : 'bg-red-400/20 text-red-400 border border-red-400/30'
-                        }`}>
-                        <span className="mr-1">{user.is_active ? '✅' : '🚫'}</span>
-                        {user.is_active ? 'Active Account' : 'Disabled Account'}
-                      </span>
+                      {user.deleted_at ? (
+                        <span className="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                          <span className="mr-1">🗄️</span>
+                          Archived Account
+                        </span>
+                      ) : (
+                        <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${user.is_active
+                            ? 'bg-green-400/20 text-green-400 border border-green-400/30'
+                            : 'bg-red-400/20 text-red-400 border border-red-400/30'
+                          }`}>
+                          <span className="mr-1">{user.is_active ? '✅' : '🚫'}</span>
+                          {user.is_active ? 'Active Account' : 'Disabled Account'}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </td>
@@ -138,42 +149,67 @@ const StaffTable: React.FC<StaffTableProps> = ({
 
                 {/* Actions */}
                 <td className="px-6 py-5">
-                  <div className="flex items-center justify-end space-x-2">
-                    <button
-                      onClick={() => openEditModal(user)}
-                      data-testid={`staff-edit-${user.username}`}
-                      className="px-3 py-2 text-sangeet-400 hover:text-sangeet-300 hover:bg-sangeet-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium"
-                    >
-                      <span>✏️</span>
-                      Edit
-                    </button>
+                  {user.deleted_at ? (
+                    <div className="flex items-center justify-end space-x-2">
+                      {handleRestoreUser && (
+                        <button
+                          onClick={() => handleRestoreUser(user.id)}
+                          data-testid={`staff-restore-${user.username}`}
+                          className="px-3 py-2 text-green-400 hover:text-green-300 hover:bg-green-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium"
+                        >
+                          <span>♻️</span>
+                          Restore
+                        </button>
+                      )}
+                      {handlePermanentDeleteUser && (
+                        <button
+                          onClick={() => handlePermanentDeleteUser(user.id)}
+                          data-testid={`staff-permanent-delete-${user.username}`}
+                          className="px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium"
+                        >
+                          <span>🗑️</span>
+                          Delete Permanently
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-end space-x-2">
+                      <button
+                        onClick={() => openEditModal(user)}
+                        data-testid={`staff-edit-${user.username}`}
+                        className="px-3 py-2 text-sangeet-400 hover:text-sangeet-300 hover:bg-sangeet-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium"
+                      >
+                        <span>✏️</span>
+                        Edit
+                      </button>
 
-                    <button
-                      onClick={() => handleToggleStatus(user.id)}
-                      data-testid={`staff-toggle-${user.username}`}
-                      className={`px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium ${user.is_active
-                          ? 'text-red-400 hover:text-red-300 hover:bg-red-400/10'
-                          : 'text-green-400 hover:text-green-300 hover:bg-green-400/10'
-                        } ${user.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      disabled={user.id === currentUser?.id}
-                      title={user.id === currentUser?.id ? 'You cannot disable your own account' : undefined}
-                    >
-                      <span>{user.is_active ? '🚫' : '✅'}</span>
-                      {user.is_active ? 'Disable' : 'Enable'}
-                    </button>
+                      <button
+                        onClick={() => handleToggleStatus(user.id)}
+                        data-testid={`staff-toggle-${user.username}`}
+                        className={`px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium ${user.is_active
+                            ? 'text-red-400 hover:text-red-300 hover:bg-red-400/10'
+                            : 'text-green-400 hover:text-green-300 hover:bg-green-400/10'
+                          } ${user.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={user.id === currentUser?.id}
+                        title={user.id === currentUser?.id ? 'You cannot disable your own account' : undefined}
+                      >
+                        <span>{user.is_active ? '🚫' : '✅'}</span>
+                        {user.is_active ? 'Disable' : 'Enable'}
+                      </button>
 
-                    <button
-                      onClick={() => handleDeleteUser(user.id)}
-                      data-testid={`staff-delete-${user.username}`}
-                      className={`px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium ${user.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      disabled={user.id === currentUser?.id}
-                      title={user.id === currentUser?.id ? 'You cannot delete your own account' : undefined}
-                    >
-                      <span>🗑️</span>
-                      Delete
-                    </button>
-                  </div>
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        data-testid={`staff-delete-${user.username}`}
+                        className={`px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium ${user.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                        disabled={user.id === currentUser?.id}
+                        title={user.id === currentUser?.id ? 'You cannot delete your own account' : undefined}
+                      >
+                        <span>🗑️</span>
+                        Delete
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}

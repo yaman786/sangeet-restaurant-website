@@ -117,6 +117,14 @@ class AuthService {
     });
   }
 
+  private stripTombstoneUsername(username: string): string {
+    return username.replace(/(__del(?:_\d+)+)+$/, '');
+  }
+
+  private stripTombstoneEmail(email: string): string {
+    return email.replace(/^(del_(?:\d+_)+)+/, '');
+  }
+
   async getAllUsers(requesterRole: UserRole, query: PaginationQuery & { role?: string; search?: string; status?: string }): Promise<PaginatedResult<UserInfo>> {
     if (requesterRole !== 'admin') {
       throw new UnauthorizedError('Only administrators can view all users');
@@ -127,11 +135,14 @@ class AuthService {
     const take = Math.min(MAX_PAGE_SIZE, Math.max(1, Number.parseInt(String(query.limit ?? 10), 10) || 10));
     const skip = (page - 1) * take;
 
-    const where: any = { deleted_at: null };
+    const isArchivedView = status === 'archived';
+    const where: any = isArchivedView ? { deleted_at: { not: null } } : { deleted_at: null };
     
     if (role) where.role = role;
-    if (status === 'active') where.is_active = true;
-    else if (status === 'inactive') where.is_active = false;
+    if (!isArchivedView) {
+      if (status === 'active') where.is_active = true;
+      else if (status === 'inactive') where.is_active = false;
+    }
     
     if (search) {
       where.OR = [
@@ -148,16 +159,26 @@ class AuthService {
         select: {
           id: true, username: true, email: true, role: true,
           full_name: true, phone: true,
-          is_active: true, created_at: true, updated_at: true
+          is_active: true, created_at: true, updated_at: true, deleted_at: true
         },
-        orderBy: { created_at: 'desc' },
+        orderBy: isArchivedView ? { deleted_at: 'desc' } : { created_at: 'desc' },
         skip,
         take
       })
     ]);
 
+    const normalizedUsers = users.map((u) =>
+      u.deleted_at
+        ? {
+            ...u,
+            username: this.stripTombstoneUsername(u.username),
+            email: this.stripTombstoneEmail(u.email)
+          }
+        : u
+    );
+
     return {
-      data: users as any[],
+      data: normalizedUsers as any[],
       metadata: {
         total,
         page,
@@ -336,7 +357,7 @@ class AuthService {
     }
   }
 
-  async deleteUser(requesterId: number, requesterRole: UserRole, userId: string): Promise<void> {
+  async deleteUser(requesterId: number, requesterRole: UserRole, userId: string, permanent = false): Promise<void> {
     if (requesterRole !== 'admin') {
       throw new UnauthorizedError('Only administrators can delete users');
     }
@@ -345,6 +366,18 @@ class AuthService {
 
     if (requesterId === targetId) {
       throw new ConflictError('You cannot delete your own account');
+    }
+
+    if (permanent) {
+      const target = await prisma.users.findUnique({ where: { id: targetId } });
+      if (!target) {
+        throw new NotFoundError('User');
+      }
+      if (target.deleted_at === null && target.role === 'admin' && target.is_active !== false) {
+        await this.assertAnotherActiveAdminExists(targetId);
+      }
+      await prisma.users.delete({ where: { id: targetId } });
+      return;
     }
 
     const target = await prisma.users.findFirst({ where: { id: targetId, deleted_at: null } });
@@ -371,6 +404,57 @@ class AuthService {
     if (result.count === 0) {
       throw new NotFoundError('User');
     }
+  }
+
+  async restoreUser(requesterRole: UserRole, userId: string): Promise<UserInfo> {
+    if (requesterRole !== 'admin') {
+      throw new UnauthorizedError('Only administrators can restore users');
+    }
+
+    const targetId = this.parseUserId(userId);
+    const target = await prisma.users.findFirst({
+      where: { id: targetId, deleted_at: { not: null } }
+    });
+
+    if (!target) {
+      throw new NotFoundError('Archived user');
+    }
+
+    const restoredUsername = this.stripTombstoneUsername(target.username);
+    const restoredEmail = this.stripTombstoneEmail(target.email);
+
+    const conflict = await prisma.users.findFirst({
+      where: {
+        deleted_at: null,
+        NOT: { id: targetId },
+        OR: [
+          { username: { equals: restoredUsername, mode: 'insensitive' } },
+          { email: { equals: restoredEmail, mode: 'insensitive' } }
+        ]
+      }
+    });
+
+    if (conflict) {
+      throw new ConflictError('Cannot restore: username or email is already in use by an active account');
+    }
+
+    const restored = await prisma.users.update({
+      where: { id: targetId },
+      data: {
+        deleted_at: null,
+        is_active: true,
+        username: restoredUsername,
+        email: restoredEmail,
+        updated_at: new Date()
+      },
+      select: {
+        id: true, username: true, email: true, role: true,
+        full_name: true, phone: true,
+        is_active: true, created_at: true, updated_at: true, deleted_at: true
+      }
+    });
+
+    return restored as any;
   }
 
   async toggleUserStatus(requesterId: number, requesterRole: UserRole, userId: string): Promise<{ status: string, user: UserInfo }> {
@@ -413,10 +497,15 @@ class AuthService {
       throw new UnauthorizedError('Only administrators can view stats');
     }
 
-    const users = await prisma.users.findMany({
-      where: { deleted_at: null },
-      select: { is_active: true, role: true, created_at: true }
-    });
+    const [users, archived] = await prisma.$transaction([
+      prisma.users.findMany({
+        where: { deleted_at: null },
+        select: { is_active: true, role: true, created_at: true }
+      }),
+      prisma.users.count({
+        where: { deleted_at: { not: null } }
+      })
+    ]);
 
     const recentCutoff = Date.now() - RECENT_WINDOW_MS;
     const roles: Record<string, number> = {};
@@ -434,6 +523,7 @@ class AuthService {
       admins,
       staff: users.length - admins,
       recent: users.filter(u => u.created_at && u.created_at.getTime() >= recentCutoff).length,
+      archived,
       roles
     };
   }

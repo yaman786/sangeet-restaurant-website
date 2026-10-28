@@ -42,6 +42,8 @@ const StaffManagement = () => {
     handleCreateUser,
     handleUpdateUser,
     handleDeleteUser,
+    handlePermanentDeleteUser,
+    handleRestoreUser,
     handleToggleStatus,
     openEditModal,
     resetForm
@@ -115,6 +117,8 @@ const StaffManagement = () => {
               openEditModal={openEditModal}
               handleToggleStatus={handleToggleStatus}
               handleDeleteUser={handleDeleteUser}
+              handleRestoreUser={handleRestoreUser}
+              handlePermanentDeleteUser={handlePermanentDeleteUser}
             />
             {/* Pagination Controls */}
             {metadata && metadata.totalPages > 1 && (
@@ -290,11 +294,11 @@ const StaffManagement = () => {
                 {confirmAction.message}
               </p>
 
-              {confirmAction.type === 'delete' && (
+              {confirmAction.type === 'permanent_delete' && (
                 <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
                   <div className="flex items-center gap-2 text-red-400 text-sm font-medium">
                     <span>⚠️</span>
-                    Warning: This action cannot be undone
+                    Warning: This action permanently deletes the database record and cannot be undone
                   </div>
                 </div>
               )}

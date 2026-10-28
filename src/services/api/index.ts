@@ -39,7 +39,7 @@ export {
 // Auth & Users
 export {
   loginUser, getProfile, changePassword,
-  getAllUsers, createUser, updateUser, deleteUser,
+  getAllUsers, createUser, updateUser, deleteUser, restoreUser,
   toggleUserStatus, getUserStats, requestForgotPassword
 } from './authApi';
 

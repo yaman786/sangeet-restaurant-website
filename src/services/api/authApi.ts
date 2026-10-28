@@ -47,10 +47,18 @@ export const updateUser = async (id: string | number, userData: Partial<UserRow>
   }, 'updateUser', false);
 };
 
-export const deleteUser = async (id: string | number) => {
+export const deleteUser = async (id: string | number, permanent = false) => {
   return apiCallWrapper(async () => {
-    return await api.delete(`/auth/users/${encodeURIComponent(id)}`);
+    return await api.delete(`/auth/users/${encodeURIComponent(id)}`, {
+      params: permanent ? { permanent: 'true' } : undefined
+    });
   }, 'deleteUser', false);
+};
+
+export const restoreUser = async (id: string | number): Promise<{ message: string; user: UserInfo }> => {
+  return apiCallWrapper(async () => {
+    return await api.post(`/auth/users/${encodeURIComponent(id)}/restore`);
+  }, 'restoreUser', false);
 };
 
 export interface ToggleUserStatusResult {

@@ -6,6 +6,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  restoreUser,
   toggleUserStatus,
   getUserStats
 } from '../../../services/api';
@@ -20,7 +21,7 @@ const EMPTY_STATS: UserStats = {
 };
 
 export interface ConfirmAction {
-  type: 'delete' | 'toggle';
+  type: 'delete' | 'permanent_delete' | 'restore' | 'toggle';
   user: UserInfo;
   title: string;
   message: string;
@@ -162,12 +163,30 @@ export const useStaffManagement = () => {
   };
 
   const deleteMutation = useMutation({
-    mutationFn: (userId: number) => deleteUser(userId),
+    mutationFn: (userId: number) => deleteUser(userId, false),
     onSuccess: () => {
-      toast.success('User deleted successfully');
+      toast.success('User moved to archive');
       invalidateStaffData();
     },
-    onError: (err) => toast.error(getErrorMessage(err, 'Failed to delete user'))
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to archive user'))
+  });
+
+  const permanentDeleteMutation = useMutation({
+    mutationFn: (userId: number) => deleteUser(userId, true),
+    onSuccess: () => {
+      toast.success('User permanently deleted');
+      invalidateStaffData();
+    },
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to permanently delete user'))
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: (userId: number) => restoreUser(userId),
+    onSuccess: () => {
+      toast.success('User restored to active team');
+      invalidateStaffData();
+    },
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to restore user'))
   });
 
   const handleDeleteUser = (userId: number) => {
@@ -176,11 +195,41 @@ export const useStaffManagement = () => {
     setConfirmAction({
       type: 'delete',
       user,
-      title: 'Delete User Account',
-      message: `Are you sure you want to delete ${user.full_name || user.username}'s account? They will immediately lose access to the system.`,
-      confirmText: 'Delete Account',
+      title: 'Archive User Account',
+      message: `Are you sure you want to archive ${user.full_name || user.username}'s account? They will immediately lose access, and you can restore or permanently delete them from the Archived view.`,
+      confirmText: 'Archive Account',
       confirmStyle: 'bg-red-500 hover:bg-red-600',
       onConfirm: () => deleteMutation.mutateAsync(userId)
+    });
+    setShowConfirmModal(true);
+  };
+
+  const handlePermanentDeleteUser = (userId: number) => {
+    const user = users.find((u) => u.id === userId);
+    if (!user) return;
+    setConfirmAction({
+      type: 'permanent_delete',
+      user,
+      title: 'Permanently Delete User',
+      message: `Are you sure you want to permanently delete ${user.full_name || user.username}'s account from the database? This cannot be undone.`,
+      confirmText: 'Delete Permanently',
+      confirmStyle: 'bg-red-600 hover:bg-red-700',
+      onConfirm: () => permanentDeleteMutation.mutateAsync(userId)
+    });
+    setShowConfirmModal(true);
+  };
+
+  const handleRestoreUser = (userId: number) => {
+    const user = users.find((u) => u.id === userId);
+    if (!user) return;
+    setConfirmAction({
+      type: 'restore',
+      user,
+      title: 'Restore User Account',
+      message: `Restore ${user.full_name || user.username} (@${user.username}) back to the active team?`,
+      confirmText: 'Restore Account',
+      confirmStyle: 'bg-green-500 hover:bg-green-600',
+      onConfirm: () => restoreMutation.mutateAsync(userId)
     });
     setShowConfirmModal(true);
   };
@@ -233,8 +282,9 @@ export const useStaffManagement = () => {
         (user.full_name || '').toLowerCase().includes(term);
       const matchesRole = filterRole === 'all' || user.role === filterRole;
       const matchesStatus = filterStatus === 'all' ||
-        (filterStatus === 'active' && user.is_active) ||
-        (filterStatus === 'inactive' && !user.is_active);
+        (filterStatus === 'active' && user.is_active && !user.deleted_at) ||
+        (filterStatus === 'inactive' && !user.is_active && !user.deleted_at) ||
+        (filterStatus === 'archived' && Boolean(user.deleted_at));
       return matchesSearch && matchesRole && matchesStatus;
     });
   }, [users, searchTerm, filterRole, filterStatus]);
@@ -271,6 +321,8 @@ export const useStaffManagement = () => {
     handleCreateUser,
     handleUpdateUser,
     handleDeleteUser,
+    handlePermanentDeleteUser,
+    handleRestoreUser,
     handleToggleStatus,
     openEditModal,
     resetForm,

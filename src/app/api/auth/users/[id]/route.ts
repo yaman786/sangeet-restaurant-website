@@ -31,8 +31,11 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
     const { user, errorResponse } = await authorizeAdmin(req);
     if (errorResponse || !user) return errorResponse!;
 
-    await authService.deleteUser(user.id, user.role, params.id);
-    return NextResponse.json({ message: 'User deleted successfully' });
+    const permanent = req.nextUrl.searchParams.get('permanent') === 'true';
+    await authService.deleteUser(user.id, user.role, params.id, permanent);
+    return NextResponse.json({
+      message: permanent ? 'User permanently deleted' : 'User moved to archive'
+    });
   } catch (error) {
     return handleApiError(error);
   }

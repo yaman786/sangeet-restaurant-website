@@ -25,6 +25,7 @@ export interface UserStats {
   admins: number;
   staff: number;
   recent: number;
+  archived?: number;
   roles: Record<string, number>;
 }
 

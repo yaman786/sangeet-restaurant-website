@@ -170,11 +170,26 @@ const RoleFilter: React.FC<RoleFilterProps> = ({
                 <option value="all">📊 All Status</option>
                 <option value="active">✅ Active</option>
                 <option value="inactive">⏸️ Inactive</option>
+                <option value="archived">🗄️ Archived ({stats.archived || 0})</option>
               </select>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                 <span className="text-sangeet-neutral-400">▼</span>
               </div>
             </div>
+
+            <button
+              type="button"
+              data-testid="staff-archive-tab"
+              onClick={() => setFilterStatus(filterStatus === 'archived' ? 'all' : 'archived')}
+              className={`px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap border ${
+                filterStatus === 'archived'
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-400/50 shadow-md'
+                  : 'bg-sangeet-neutral-800 text-sangeet-neutral-300 border-sangeet-neutral-600 hover:border-amber-400/40 hover:text-amber-300'
+              }`}
+            >
+              <span>🗄️</span>
+              <span>{filterStatus === 'archived' ? 'Viewing Archive' : `Archive (${stats.archived || 0})`}</span>
+            </button>
           </div>
 
           {/* Add User Button */}
@@ -207,7 +222,7 @@ const RoleFilter: React.FC<RoleFilterProps> = ({
               )}
               {filterStatus !== 'all' && (
                 <span className="px-3 py-1 bg-blue-400/20 text-blue-400 rounded-full text-sm flex items-center gap-1">
-                  {filterStatus === 'active' ? '✅' : '⏸️'} {filterStatus}
+                  {filterStatus === 'active' ? '✅' : filterStatus === 'archived' ? '🗄️' : '⏸️'} {filterStatus}
                   <button onClick={() => setFilterStatus('all')} className="hover:text-blue-300">✕</button>
                 </span>
               )}
