@@ -30,6 +30,10 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
     const { name, description, price, category, image_url, is_vegetarian, is_spicy, is_popular, is_available, allergens, preparation_time } = body;
     
     try {
+      const matchedCategory = category
+        ? await prisma.categories.findFirst({ where: { name: category } })
+        : null;
+
       const item = await prisma.menu_items.update({
         where: { id },
         data: {
@@ -37,6 +41,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
           description, 
           price, 
           category, 
+          category_id: matchedCategory?.id ?? undefined,
           image_url: image_url || null, 
           is_vegetarian: is_vegetarian || false, 
           is_spicy: is_spicy || false, 

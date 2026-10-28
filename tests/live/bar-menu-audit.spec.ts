@@ -106,9 +106,11 @@ test.describe('Live Production Bar Menu Audit & End-to-End Guest QR Order Flow',
       return imgs.length >= 3 && imgs.every((img) => img.complete && img.naturalWidth > 0);
     }, { timeout: 15000 });
 
-    // Add Carlsberg (Draught) ($75) to order
+    // Add Carlsberg (Draught) ($75) to order and verify inline quantity stepper appears
     const carlsbergCard = page.locator('div.group').filter({ has: page.locator('h3', { hasText: 'Carlsberg (Draught)' }) }).first();
     await carlsbergCard.getByRole('button', { name: /Add to Order/i }).click();
+    await expect(carlsbergCard.locator('text=1 in Order')).toBeVisible({ timeout: 5000 });
+    await expect(carlsbergCard.locator('text=1 in order')).toBeVisible({ timeout: 5000 });
 
     // Filter to Cocktails subcategory and add Aperol Spritz ($125)
     await page.getByRole('button', { name: 'Cocktails', exact: true }).click();
@@ -121,7 +123,7 @@ test.describe('Live Production Bar Menu Audit & End-to-End Guest QR Order Flow',
     await expect(page.locator('text=2 Items').first()).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=$200.00').first()).toBeVisible();
 
-    // Scroll so the sticky category bar, drink cards with images, and floating cart bar are all visible
+    // Scroll so the sticky category bar, drink cards with images & inline stepper, and floating cart bar are all visible
     await page.evaluate(() => window.scrollTo({ top: 300, behavior: 'instant' }));
     await page.waitForFunction(() => {
       const cards = Array.from(document.querySelectorAll('div.group')).slice(0, 3) as HTMLElement[];
@@ -139,11 +141,21 @@ test.describe('Live Production Bar Menu Audit & End-to-End Guest QR Order Flow',
       fullPage: false
     });
 
+    // Switch back to Food Menu and add Butter Chicken so the cart has both Food (Kitchen) and Bar & Drinks items
+    await page.getByTestId('qr-menu-food').click();
+    const butterChickenCard = page.locator('div.group').filter({ has: page.locator('h3', { hasText: 'Butter Chicken' }) }).first();
+    await expect(butterChickenCard).toBeVisible({ timeout: 10000 });
+    await butterChickenCard.getByRole('button', { name: /Add to Order/i }).click();
+    await expect(page.locator('text=3 Items').first()).toBeVisible({ timeout: 10000 });
+
     // Click floating cart bar to proceed to checkout (/qr/table-1/cart)
     await page.locator('button').filter({ hasText: 'View your order details' }).click();
     await expect(page).toHaveURL(/\/qr\/table-1\/cart/, { timeout: 15000 });
 
-    // Verify both drinks are listed in cart
+    // Verify grouped sections: Food Menu (Kitchen) and Bar & Drinks
+    await expect(page.getByTestId('qr-cart-food-section')).toBeVisible();
+    await expect(page.getByTestId('qr-cart-drinks-section')).toBeVisible();
+    await expect(page.locator('h3', { hasText: 'Butter Chicken' })).toBeVisible();
     await expect(page.locator('h3', { hasText: 'Carlsberg (Draught)' })).toBeVisible();
     await expect(page.locator('h3', { hasText: 'Aperol Spritz' })).toBeVisible();
 

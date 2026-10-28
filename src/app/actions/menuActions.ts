@@ -40,12 +40,17 @@ export async function createMenuItemAction(data: z.infer<typeof menuItemSchema>)
     const { name, description, price, category, image_url, is_vegetarian, is_spicy, is_popular, preparation_time } = parsedData;
     const allergens = (data as any).allergens || null;
 
+    const matchedCategory = await prisma.categories.findFirst({
+      where: { name: category }
+    });
+
     const item = await prisma.menu_items.create({
       data: {
         name,
         description,
         price,
         category,
+        category_id: matchedCategory?.id ?? null,
         image_url: image_url || null,
         is_vegetarian: is_vegetarian || false,
         is_spicy: is_spicy || false,
@@ -57,6 +62,9 @@ export async function createMenuItemAction(data: z.infer<typeof menuItemSchema>)
 
     revalidatePath('/menu');
     revalidatePath('/admin/menu');
+    revalidatePath('/admin/menu-management');
+    revalidatePath('/qr/[qrCode]', 'page');
+    revalidatePath('/dashboard');
     return { success: true, item };
   } catch (error: any) {
     console.error('Error in createMenuItemAction:', error);
@@ -75,6 +83,10 @@ export async function updateMenuItemAction(id: number | string, data: z.infer<ty
     const { name, description, price, category, image_url, is_vegetarian, is_spicy, is_popular, preparation_time } = parsedData;
     const allergens = (data as any).allergens || null;
 
+    const matchedCategory = await prisma.categories.findFirst({
+      where: { name: category }
+    });
+
     const item = await prisma.menu_items.update({
       where: { id: typeof id === 'string' ? parseInt(id, 10) : id },
       data: {
@@ -82,6 +94,7 @@ export async function updateMenuItemAction(id: number | string, data: z.infer<ty
         description,
         price,
         category,
+        category_id: matchedCategory?.id ?? undefined,
         image_url: image_url || null,
         is_vegetarian: is_vegetarian || false,
         is_spicy: is_spicy || false,
@@ -94,6 +107,9 @@ export async function updateMenuItemAction(id: number | string, data: z.infer<ty
 
     revalidatePath('/menu');
     revalidatePath('/admin/menu');
+    revalidatePath('/admin/menu-management');
+    revalidatePath('/qr/[qrCode]', 'page');
+    revalidatePath('/dashboard');
     return { success: true, item };
   } catch (error: any) {
     console.error('Error in updateMenuItemAction:', error);

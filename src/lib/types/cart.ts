@@ -6,6 +6,9 @@ export interface CartItem {
   specialRequests?: string;
   image_url?: string | null;
   is_vegetarian?: boolean;
+  category?: string;
+  category_id?: number | null;
+  section?: 'food' | 'drinks';
 }
 
 export interface OrderSession {

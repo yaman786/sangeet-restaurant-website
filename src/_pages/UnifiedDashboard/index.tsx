@@ -441,8 +441,10 @@ const UnifiedDashboard = () => {
                       searchTerm={searchTerm}
                       setSearchTerm={setSearchTerm}
                       onAddToCart={addToCart}
+                      onUpdateQuantity={updateQuantity}
                       onViewCart={() => setCurrentView('cart')}
-                      cartLength={cart.length}
+                      cart={cart}
+                      cartLength={cart.reduce((sum: number, i: any) => sum + (Number(i.quantity) || 1), 0)}
                     />
                   </div>
 

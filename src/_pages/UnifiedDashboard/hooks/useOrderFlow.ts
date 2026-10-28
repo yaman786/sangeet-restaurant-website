@@ -3,6 +3,7 @@ import { createOrder, getTableByNumber, getTableByQRCode } from '../../../servic
 import toast from 'react-hot-toast';
 import { useCart } from '@/contexts/CartContext';
 import { saveTableSession } from '@/lib/utils/tableSession';
+import { isBarMenuItem } from '@/lib/utils/menuSection';
 
 export const useOrderFlow = (tableSession: any) => {
   const {
@@ -21,13 +22,17 @@ export const useOrderFlow = (tableSession: any) => {
   const [loading, setLoading] = useState(false);
 
   const addToCart = useCallback((item: any) => {
+    const isDrink = item.section === 'drinks' || isBarMenuItem(item);
     ctxAddToCart({
       id: item.id,
       name: item.name,
       price: item.price,
       quantity: 1,
       image_url: item.image_url,
-      is_vegetarian: item.is_vegetarian
+      is_vegetarian: item.is_vegetarian,
+      category: item.category_name || item.category,
+      category_id: item.category_id,
+      section: isDrink ? 'drinks' : 'food'
     });
     updateSessionTimestamp();
   }, [ctxAddToCart, updateSessionTimestamp]);

@@ -48,6 +48,16 @@ export function isBarCategory(category: any, categories: any[] = []): boolean {
 
 export function isBarMenuItem(item: any, categories: any[] = []): boolean {
   if (!item) return false;
+  if (item.section === 'drinks') return true;
+  if (item.section === 'food') return false;
+
+  const parentCatName = String(
+    item.parent_category_name || item.categories?.parent?.name || ''
+  ).toLowerCase();
+  if (parentCatName === BAR_PARENT_CATEGORY_NAME.toLowerCase()) {
+    return true;
+  }
+
   const barIds = getBarCategoryIds(categories);
   if (item.category_id && barIds.has(Number(item.category_id))) {
     return true;

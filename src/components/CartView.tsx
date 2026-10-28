@@ -2,7 +2,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { ShoppingCart, UtensilsCrossed, Trash2, Info } from 'lucide-react';
+import { ShoppingCart, UtensilsCrossed, Wine, Trash2, Info } from 'lucide-react';
+import { isBarMenuItem } from '@/lib/utils/menuSection';
 const CartView = ({ 
   cart, 
   onUpdateQuantity, 
@@ -57,7 +58,7 @@ const CartView = ({
                   {/* Item Image */}
                   <div className="relative flex-shrink-0 w-16 h-16">
                     <Image
-                      src={item.image_url || '/placeholder-food.jpg'}
+                      src={item.image_url || 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&h=600&fit=crop'}
                       alt={item.name}
                       fill
                       sizes="64px"
@@ -67,9 +68,24 @@ const CartView = ({
 
                   {/* Item Details */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-sangeet-neutral-200 truncate">
-                      {item.name}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-sangeet-neutral-200 truncate">
+                        {item.name}
+                      </h3>
+                      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-sangeet-400 shrink-0">
+                        {isBarMenuItem(item) ? (
+                          <>
+                            <Wine className="w-3 h-3" />
+                            <span>Bar</span>
+                          </>
+                        ) : (
+                          <>
+                            <UtensilsCrossed className="w-3 h-3" />
+                            <span>Kitchen</span>
+                          </>
+                        )}
+                      </span>
+                    </div>
                     <p className="text-sangeet-neutral-400 text-sm">
                       ${parseFloat(item.price).toFixed(2)} each
                     </p>

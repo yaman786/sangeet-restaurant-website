@@ -7,9 +7,10 @@ import { toast } from 'react-hot-toast';
 import { createOrder, getTableByQRCode } from '../services/api';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import { clearCartData } from '../utils/cartUtils';
-import { ChevronLeft, User, MessageSquare, Utensils, Minus, Plus, X, Receipt, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, User, MessageSquare, Utensils, Wine, Minus, Plus, X, Receipt, ShoppingBag } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { useCart } from '@/contexts/CartContext';
+import { isBarMenuItem } from '@/lib/utils/menuSection';
 
 const QRCartPage = () => {
   const { qrCode } = useParams();
@@ -115,6 +116,63 @@ const QRCartPage = () => {
   const getTotalAmount = () => {
     return getCartTotal();
   };
+
+  const foodCartItems = cart.filter((item: any) => !isBarMenuItem(item));
+  const drinkCartItems = cart.filter((item: any) => isBarMenuItem(item));
+  const totalCartQuantity = cart.reduce((total: number, item: any) => total + (Number(item.quantity) || 1), 0);
+
+  const renderCartItemRow = (item: any) => (
+    <div
+      key={item.id}
+      className="flex flex-col sm:flex-row sm:items-center justify-between bg-sangeet-neutral-900/30 rounded-2xl p-4 border border-white/5"
+    >
+      <div className="flex-1 mb-4 sm:mb-0">
+        <div className="flex items-center gap-2 mb-1">
+          <h3 className="font-display text-xl text-white">{item.name}</h3>
+          {item.category && (
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-sangeet-neutral-300">
+              {item.category}
+            </span>
+          )}
+        </div>
+        <p className="text-sangeet-400 text-sm font-medium">${parseFloat(item.price).toFixed(2)} each</p>
+      </div>
+      
+      <div className="flex items-center justify-between sm:justify-end gap-6">
+        <div className="flex items-center gap-4 bg-[#1C1917] rounded-full p-1 border border-white/10 shadow-inner">
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+            className="w-8 h-8 bg-white/5 text-sangeet-400 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer"
+          >
+            <Minus className="w-4 h-4" />
+          </motion.button>
+          <span className="text-white font-medium w-4 text-center">{item.quantity}</span>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+            className="w-8 h-8 bg-sangeet-400 text-sangeet-neutral-900 rounded-full flex items-center justify-center hover:bg-sangeet-300 transition-colors cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+          </motion.button>
+        </div>
+        
+        <div className="text-right min-w-[80px]">
+          <div className="font-display text-xl font-bold text-white">
+            ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+          </div>
+        </div>
+        
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => removeFromCart(item.id)}
+          className="w-10 h-10 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-all duration-300 ml-2 cursor-pointer"
+        >
+          <X className="w-4 h-4" />
+        </motion.button>
+      </div>
+    </div>
+  );
 
   const handleSubmitOrder = async () => {
     if (!customerName.trim()) {
@@ -240,7 +298,7 @@ const QRCartPage = () => {
               <div>
                 <h1 className="font-display text-2xl font-bold text-white tracking-tight">Your Order</h1>
                 <p className="text-sangeet-400 text-sm font-medium">
-                  Table {tableInfo?.table_number} • {cart.length} item{cart.length !== 1 ? 's' : ''}
+                  Table {tableInfo?.table_number} • {totalCartQuantity} item{totalCartQuantity !== 1 ? 's' : ''}
                 </p>
               </div>
             </div>
@@ -308,62 +366,44 @@ const QRCartPage = () => {
               </div>
             </motion.div>
 
-            {/* Cart Items List */}
-            <motion.div variants={itemVariants} className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/10 shadow-glass">
-              <h2 className="font-display text-2xl text-white mb-6 flex items-center">
-                <div className="w-8 h-8 bg-sangeet-400/20 rounded-full flex items-center justify-center mr-3 border border-sangeet-400/30">
-                  <Utensils className="w-4 h-4 text-sangeet-400" />
+            {/* Grouped Cart Items: Food Menu (Kitchen) & Bar & Drinks */}
+            {foodCartItems.length > 0 && (
+              <motion.div variants={itemVariants} data-testid="qr-cart-food-section" className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/10 shadow-glass">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-display text-2xl text-white flex items-center">
+                    <div className="w-8 h-8 bg-sangeet-400/20 rounded-full flex items-center justify-center mr-3 border border-sangeet-400/30">
+                      <Utensils className="w-4 h-4 text-sangeet-400" />
+                    </div>
+                    Food Menu (Kitchen)
+                  </h2>
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-sangeet-400/15 text-sangeet-400 border border-sangeet-400/30">
+                    {foodCartItems.reduce((sum: number, i: any) => sum + (Number(i.quantity) || 1), 0)} item{foodCartItems.reduce((sum: number, i: any) => sum + (Number(i.quantity) || 1), 0) !== 1 ? 's' : ''}
+                  </span>
                 </div>
-                Selected Items
-              </h2>
-              <div className="space-y-4">
-                {cart.map((item: any) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between bg-sangeet-neutral-900/30 rounded-2xl p-4 border border-white/5"
-                  >
-                    <div className="flex-1 mb-4 sm:mb-0">
-                      <h3 className="font-display text-xl text-white mb-1">{item.name}</h3>
-                      <p className="text-sangeet-400 text-sm font-medium">${parseFloat(item.price).toFixed(2)} each</p>
+                <div className="space-y-4">
+                  {foodCartItems.map(renderCartItemRow)}
+                </div>
+              </motion.div>
+            )}
+
+            {drinkCartItems.length > 0 && (
+              <motion.div variants={itemVariants} data-testid="qr-cart-drinks-section" className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/10 shadow-glass">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-display text-2xl text-white flex items-center">
+                    <div className="w-8 h-8 bg-sangeet-400/20 rounded-full flex items-center justify-center mr-3 border border-sangeet-400/30">
+                      <Wine className="w-4 h-4 text-sangeet-400" />
                     </div>
-                    
-                    <div className="flex items-center justify-between sm:justify-end gap-6">
-                      <div className="flex items-center gap-4 bg-[#1C1917] rounded-full p-1 border border-white/10 shadow-inner">
-                        <motion.button
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="w-8 h-8 bg-white/5 text-sangeet-400 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </motion.button>
-                        <span className="text-white font-medium w-4 text-center">{item.quantity}</span>
-                        <motion.button
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="w-8 h-8 bg-sangeet-400 text-sangeet-neutral-900 rounded-full flex items-center justify-center hover:bg-sangeet-300 transition-colors"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </motion.button>
-                      </div>
-                      
-                      <div className="text-right min-w-[80px]">
-                        <div className="font-display text-xl font-bold text-white">
-                          ${(parseFloat(item.price) * item.quantity).toFixed(2)}
-                        </div>
-                      </div>
-                      
-                      <motion.button
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => removeFromCart(item.id)}
-                        className="w-10 h-10 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-all duration-300 ml-2"
-                      >
-                        <X className="w-4 h-4" />
-                      </motion.button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+                    Bar &amp; Drinks
+                  </h2>
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-sangeet-400/15 text-sangeet-400 border border-sangeet-400/30">
+                    {drinkCartItems.reduce((sum: number, i: any) => sum + (Number(i.quantity) || 1), 0)} item{drinkCartItems.reduce((sum: number, i: any) => sum + (Number(i.quantity) || 1), 0) !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="space-y-4">
+                  {drinkCartItems.map(renderCartItemRow)}
+                </div>
+              </motion.div>
+            )}
 
             {/* Order Summary & Actions */}
             <motion.div variants={itemVariants} className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/10 shadow-glass">
@@ -375,8 +415,20 @@ const QRCartPage = () => {
               </h2>
               
               <div className="space-y-4 mb-8">
+                {foodCartItems.length > 0 && drinkCartItems.length > 0 && (
+                  <>
+                    <div className="flex justify-between items-center text-sangeet-neutral-400 text-base">
+                      <span>Food Menu ({foodCartItems.reduce((t: number, i: any) => t + i.quantity, 0)} items)</span>
+                      <span>${foodCartItems.reduce((t: number, i: any) => t + parseFloat(i.price) * i.quantity, 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sangeet-neutral-400 text-base">
+                      <span>Bar &amp; Drinks ({drinkCartItems.reduce((t: number, i: any) => t + i.quantity, 0)} items)</span>
+                      <span>${drinkCartItems.reduce((t: number, i: any) => t + parseFloat(i.price) * i.quantity, 0).toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
                 <div className="flex justify-between items-center text-sangeet-neutral-300 text-lg">
-                  <span>Subtotal ({cart.reduce((total, item: any) => total + item.quantity, 0)} items)</span>
+                  <span>Subtotal ({totalCartQuantity} items)</span>
                   <span className="font-medium">${getTotalAmount().toFixed(2)}</span>
                 </div>
                 <div className="border-t border-white/10 pt-4 flex justify-between items-end">

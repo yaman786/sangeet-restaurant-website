@@ -76,10 +76,11 @@ const MenuModals = ({
     } else if (showAddModal) {
       resetItem({
         name: '', price: 0, description: '', category: '', image_url: '',
-        preparation_time: 15, is_vegetarian: false, is_spicy: false, is_popular: false
+        preparation_time: menuSection === 'drinks' ? 5 : 15,
+        is_vegetarian: false, is_spicy: false, is_popular: false
       });
     }
-  }, [showAddModal, showEditModal, selectedItem, resetItem]);
+  }, [showAddModal, showEditModal, selectedItem, resetItem, menuSection]);
 
   // Category Form
   const {
@@ -99,10 +100,14 @@ const MenuModals = ({
       if (selectedCategory) {
         resetCategory({ ...selectedCategory, parent_id: selectedCategory.parent_id || '' });
       } else {
-        resetCategory({ name: '', description: '', display_order: 0, parent_id: '' } as any);
+        const barParent = categories.find(
+          (c: any) => !c.parent_id && String(c.name || '').toLowerCase() === 'bar & drinks'
+        );
+        const defaultParentId = menuSection === 'drinks' && barParent ? barParent.id : '';
+        resetCategory({ name: '', description: '', display_order: 0, parent_id: defaultParentId } as any);
       }
     }
-  }, [showCategoryModal, selectedCategory, resetCategory]);
+  }, [showCategoryModal, selectedCategory, resetCategory, menuSection, categories]);
 
   const activeModalCategories = showAddModal && sectionCategories.length > 0 ? sectionCategories : categories;
 

@@ -12,6 +12,7 @@ import { ShoppingBag, ChefHat, Sparkles, ChevronRight } from 'lucide-react';
 
 import { useCart } from '@/contexts/CartContext';
 import { getTableSession, saveTableSession, clearTableSession } from '@/lib/utils/tableSession';
+import { isBarMenuItem } from '@/lib/utils/menuSection';
 const QRMenuPage = () => {
   const params = useParams(); const qrCode = typeof params?.qrCode === "string" ? params.qrCode : (params?.qrCode ? params.qrCode[0] : "");
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const QRMenuPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [tableInfo, setTableInfo] = useState<any>(null);
-  const { cart, addToCart, clearCart, getCartTotal, initializeSession, isInitialized: cartInitialized } = useCart();
+  const { cart, addToCart, updateQuantity, clearCart, getCartTotal, initializeSession, isInitialized: cartInitialized } = useCart();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const hasRedirected = useRef(false);
 
@@ -184,15 +185,21 @@ const QRMenuPage = () => {
   }, [tableInfo, qrCode, cart.length]);
 
   const handleAddToCart = (item: any) => {
+    const isDrink = item.section === 'drinks' || isBarMenuItem(item, categories);
     addToCart({
       id: item.id,
       name: item.name,
       price: item.price,
       quantity: 1,
       image_url: item.image_url,
-      is_vegetarian: item.is_vegetarian
+      is_vegetarian: item.is_vegetarian,
+      category: item.category_name || item.category,
+      category_id: item.category_id,
+      section: isDrink ? 'drinks' : 'food'
     });
   };
+
+  const totalCartItems = cart.reduce((sum: number, item: any) => sum + (Number(item.quantity) || 1), 0);
 
   const handleViewCart = () => {
     navigate(`/qr/${qrCode}/cart`);
@@ -258,8 +265,10 @@ const QRMenuPage = () => {
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           onAddToCart={handleAddToCart}
+          onUpdateQuantity={updateQuantity}
           onViewCart={handleViewCart}
-          cartLength={cart.length}
+          cart={cart}
+          cartLength={totalCartItems}
         />
       </div>
 
@@ -276,7 +285,7 @@ const QRMenuPage = () => {
             <div className="max-w-2xl mx-auto pointer-events-auto">
               <button
                 onClick={handleViewCart}
-                className="w-full bg-[#1C1917]/90 backdrop-blur-xl border border-white/10 text-white p-4 rounded-2xl shadow-glass-lg hover:shadow-gold-glow-lg transition-all duration-300 flex items-center justify-between group overflow-hidden relative"
+                className="w-full bg-[#1C1917]/90 backdrop-blur-xl border border-white/10 text-white p-4 rounded-2xl shadow-glass-lg hover:shadow-gold-glow-lg transition-all duration-300 flex items-center justify-between group overflow-hidden relative cursor-pointer"
               >
                 {/* Shine effect */}
                 <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -286,7 +295,7 @@ const QRMenuPage = () => {
                     <ShoppingBag className="w-6 h-6 text-[#1C1917]" />
                   </div>
                   <div className="text-left">
-                    <p className="font-semibold text-lg leading-tight">{cart.length} Item{cart.length !== 1 ? 's' : ''}</p>
+                    <p className="font-semibold text-lg leading-tight">{totalCartItems} Item{totalCartItems !== 1 ? 's' : ''}</p>
                     <p className="text-sangeet-neutral-400 text-sm">View your order details</p>
                   </div>
                 </div>
