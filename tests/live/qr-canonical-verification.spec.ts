@@ -20,7 +20,7 @@ test.describe('QR Canonical Domain & UI Verification', () => {
 
   test('2. Admin QR Management: login, verify domain, capture screenshots', async ({ page }) => {
     // 1. Login via /login
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.goto('/login', { waitUntil: 'networkidle' });
     const usernameInput = page.locator('#username');
     await expect(usernameInput).toBeVisible({ timeout: 10000 });
     await usernameInput.fill('admin');
