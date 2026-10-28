@@ -27,7 +27,9 @@ export const changePassword = async (passwordData: Record<string, string>) => {
 };
 
 // User management API calls
-export const getAllUsers = async (params: { page?: number; limit?: number } = {}): Promise<PaginatedResult<UserInfo>> => {
+export const getAllUsers = async (
+  params: { page?: number; limit?: number; role?: string; status?: string; search?: string } = {}
+): Promise<PaginatedResult<UserInfo>> => {
   return apiCallWrapper(async () => {
     return await api.get('/auth/users', { params });
   }, 'getAllUsers');

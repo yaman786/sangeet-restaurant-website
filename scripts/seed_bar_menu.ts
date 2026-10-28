@@ -211,6 +211,13 @@ async function main() {
   let totalItemsCreated = 0;
   let totalItemsUpdated = 0;
 
+  const allSeedNames = BAR_CATEGORIES.flatMap((group) => group.items.map((item) => item.name));
+  const existingMenuItems = await prisma.menu_items.findMany({
+    where: { name: { in: allSeedNames } },
+    select: { id: true, name: true, is_popular: true }
+  });
+  const existingByName = new Map(existingMenuItems.map((item) => [item.name, item]));
+
   for (const group of BAR_CATEGORIES) {
     // 2. Create or update subcategory
     let subCat = await prisma.categories.findFirst({
@@ -250,46 +257,46 @@ async function main() {
       console.log(`ℹ️ Subcategory exists: ${subCat.name} (id: ${subCat.id})`);
     }
 
-    // 3. Upsert menu items under this subcategory
-    for (const item of group.items) {
-      const existing = await prisma.menu_items.findFirst({
-        where: { name: item.name }
-      });
+    // 3. Batch upsert menu items under this subcategory
+    const subCatId = subCat.id;
+    await Promise.all(
+      group.items.map(async (item) => {
+        const existing = existingByName.get(item.name);
+        const decimalPrice = new Prisma.Decimal(item.price);
 
-      const decimalPrice = new Prisma.Decimal(item.price);
-
-      if (!existing) {
-        await prisma.menu_items.create({
-          data: {
-            name: item.name,
-            description: item.description,
-            price: decimalPrice,
-            category: group.name,
-            category_id: subCat.id,
-            is_vegetarian: true,
-            is_spicy: false,
-            is_popular: item.isPopular ?? false,
-            is_active: true,
-            preparation_time: 5
-          }
-        });
-        totalItemsCreated++;
-      } else {
-        await prisma.menu_items.update({
-          where: { id: existing.id },
-          data: {
-            price: decimalPrice,
-            description: item.description,
-            category: group.name,
-            category_id: subCat.id,
-            is_vegetarian: true,
-            is_active: true,
-            is_popular: item.isPopular ?? existing.is_popular
-          }
-        });
-        totalItemsUpdated++;
-      }
-    }
+        if (!existing) {
+          await prisma.menu_items.create({
+            data: {
+              name: item.name,
+              description: item.description,
+              price: decimalPrice,
+              category: group.name,
+              category_id: subCatId,
+              is_vegetarian: true,
+              is_spicy: false,
+              is_popular: item.isPopular ?? false,
+              is_active: true,
+              preparation_time: 5
+            }
+          });
+          totalItemsCreated++;
+        } else {
+          await prisma.menu_items.update({
+            where: { id: existing.id },
+            data: {
+              price: decimalPrice,
+              description: item.description,
+              category: group.name,
+              category_id: subCatId,
+              is_vegetarian: true,
+              is_active: true,
+              is_popular: item.isPopular ?? existing.is_popular
+            }
+          });
+          totalItemsUpdated++;
+        }
+      })
+    );
   }
 
   console.log(`\n🎉 Bar & Drinks Seed Complete!`);

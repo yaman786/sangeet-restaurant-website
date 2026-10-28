@@ -1,9 +1,19 @@
 "use client";
 import React from 'react';
+import type { UserRole } from '@/lib/types';
+import { PASSWORD_HINT, ROLE_META, type StaffFormData } from './utils';
 
-import { PASSWORD_HINT, ROLE_META } from './utils';
+export interface StaffFormProps {
+  formData: StaffFormData;
+  setFormData: React.Dispatch<React.SetStateAction<StaffFormData>>;
+  isEditing: boolean;
+  handleSubmit: (e: React.FormEvent) => void;
+  onCancel: () => void;
+  isSaving?: boolean;
+  lockRole?: boolean;
+}
 
-const StaffForm = ({ formData, setFormData, isEditing, handleSubmit, onCancel, isSaving = false, lockRole = false }: any) => {
+const StaffForm: React.FC<StaffFormProps> = ({ formData, setFormData, isEditing, handleSubmit, onCancel, isSaving = false, lockRole = false }) => {
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-6 flex-1 overflow-y-auto" data-testid="staff-form">
       {/* Personal Information */}
@@ -108,7 +118,7 @@ const StaffForm = ({ formData, setFormData, isEditing, handleSubmit, onCancel, i
               <select
                 id="staff-role"
                 value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
                 disabled={lockRole}
                 title={lockRole ? 'You cannot change your own role' : undefined}
                 className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200 appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"

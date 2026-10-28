@@ -184,7 +184,13 @@ test.describe('Staff Management (admin)', () => {
     expect(profile).not.toHaveProperty('password_hash');
   });
 
-  test('deletes (soft) a staff member through the UI', async () => {
+  test('deletes (soft) a staff member through the UI and allows username/email reuse', async () => {
+    // Verify email-based login works before deletion
+    const anonBefore = await playwrightRequest.newContext({ baseURL: process.env.BASE_URL || 'http://localhost:3000' });
+    const emailLoginRes = await anonBefore.post('/api/auth/login', { data: { username: QA_EMAIL, password: QA_PASSWORD } });
+    expect(emailLoginRes.status()).toBe(200);
+    await anonBefore.dispose();
+
     await page.getByTestId(`staff-delete-${QA_USERNAME}`).click();
     await page.locator('#staff-confirm-action').click();
     await expect(row(page, QA_USERNAME)).toHaveCount(0, { timeout: 15000 });
@@ -194,6 +200,15 @@ test.describe('Staff Management (admin)', () => {
     const res = await anon.post('/api/auth/login', { data: { username: QA_USERNAME, password: QA_PASSWORD } });
     expect(res.status()).toBe(401);
     await anon.dispose();
+
+    // Soft-deleted username and email can be reused immediately, then cleaned up.
+    const recreate = await page.request.post('/api/auth/users', {
+      data: { username: QA_USERNAME, email: QA_EMAIL, role: 'waiter', password: QA_PASSWORD, full_name: 'Rehired Staff' }
+    });
+    expect(recreate.status()).toBe(201);
+    const recreatedBody = await recreate.json();
+    const cleanup = await page.request.delete(`/api/auth/users/${recreatedBody.id}`);
+    expect(cleanup.status()).toBe(200);
   });
 });
 

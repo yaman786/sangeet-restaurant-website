@@ -1,8 +1,20 @@
 "use client";
 import React from 'react';
+import type { UserStats } from '@/lib/types';
 import { ROLE_META } from './utils';
 
-const RoleFilter = ({
+export interface RoleFilterProps {
+  stats: UserStats;
+  searchTerm: string;
+  setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
+  filterRole: string;
+  setFilterRole: React.Dispatch<React.SetStateAction<string>>;
+  filterStatus: string;
+  setFilterStatus: React.Dispatch<React.SetStateAction<string>>;
+  setShowCreateModal: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const RoleFilter: React.FC<RoleFilterProps> = ({
   stats,
   searchTerm,
   setSearchTerm,
@@ -11,7 +23,7 @@ const RoleFilter = ({
   filterStatus,
   setFilterStatus,
   setShowCreateModal
-}: any) => {
+}) => {
   return (
     <>
       {/* Enhanced Stats Cards with Better Labels */}

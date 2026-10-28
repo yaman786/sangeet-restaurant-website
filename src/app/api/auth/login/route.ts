@@ -1,18 +1,9 @@
 export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { prisma } from '@/lib/db';
-import { handleApiError, UnauthorizedError } from '@/lib/errors';
-import { JwtPayload } from '@/lib/auth';
-import type { UserRole } from '@/lib/types';
+import { handleApiError } from '@/lib/errors';
 import { loginSchema } from '@/lib/validations';
 import { checkRateLimit } from '@/lib/utils/rateLimit';
-
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error('FATAL: JWT_SECRET environment variable is not set');
-}
+import authService from '@/lib/services/authService';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,49 +13,13 @@ export async function POST(req: NextRequest) {
     }
 
     const rawBody = await req.json();
-    // Validate with Zod
     const { username, password } = loginSchema.parse(rawBody);
 
-    const user = await prisma.users.findUnique({
-      where: { username }
-    });
-
-    if (!user) {
-      throw new UnauthorizedError('Invalid credentials');
-    }
-
-    if (!user.is_active) {
-      throw new UnauthorizedError('Account is disabled');
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password_hash);
-    if (!isMatch) {
-      throw new UnauthorizedError('Invalid credentials');
-    }
-
-    const payload: JwtPayload = {
-      id: user.id,
-      username: user.username,
-      role: user.role as UserRole,
-      email: user.email
-    };
-
-    if (!JWT_SECRET) {
-      throw new Error('JWT_SECRET is not defined');
-    }
-
-    const token = jwt.sign(
-      payload,
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-     
-    const { password_hash, ...userWithoutPassword } = user;
+    const { token, user } = await authService.login({ username, password });
 
     const response = NextResponse.json({
       message: 'Login successful',
-      user: userWithoutPassword
+      user
     });
 
     response.cookies.set({

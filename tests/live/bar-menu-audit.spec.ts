@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import * as path from 'path';
 
-const ARTIFACT_DIR = '/Users/amanrana/.gemini/antigravity-ide/brain/971458b1-a32c-443e-9c77-460cc930d2d5';
+const ARTIFACT_DIR = process.env.ARTIFACT_DIR || path.join(process.cwd(), 'test-results');
 
 test.describe('Live Production Bar Menu Audit', () => {
 

@@ -89,7 +89,20 @@ export async function checkRateLimit(req: NextRequest, type: RateLimitType): Pro
   try {
     const ip = getClientIp(req);
 
-    if (req.headers.get('x-playwright-test') === 'true' || process.env.NODE_ENV === 'test' || ip === '127.0.0.1' || ip === '::1') {
+    const host = req.headers.get('host') || '';
+    const isLocalNonVercel =
+      !process.env.VERCEL &&
+      (process.env.NODE_ENV !== 'production' ||
+        host.startsWith('localhost') ||
+        host.startsWith('127.0.0.1'));
+
+    if (
+      isLocalNonVercel &&
+      (req.headers.get('x-playwright-test') === 'true' ||
+        process.env.NODE_ENV === 'test' ||
+        ip === '127.0.0.1' ||
+        ip === '::1')
+    ) {
       return { success: true };
     }
 

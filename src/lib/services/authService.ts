@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/db';
 import config from '@/lib/utils/env';
+import logger from '@/lib/utils/logger';
 import { UnauthorizedError, NotFoundError, ConflictError, AppError, ValidationError } from '@/lib/errors';
 import type { UserInfo, UserRole, JwtPayload, PaginationQuery, PaginatedResult, ChangePasswordDTO, UpdateUserDTO, UserStats } from '@/lib/types';
 import { registerSchema, updateUserSchema, changePasswordSchema } from '@/lib/validations/auth';
@@ -18,13 +19,20 @@ interface LoginInput {
 class AuthService {
   async login(credentials: LoginInput) {
     const { email, username, password } = credentials;
+    const identifier = (username || email || '').trim();
 
-    if (!email && !username) {
+    if (!identifier) {
       throw new UnauthorizedError('Email or username is required');
     }
 
     const user = await prisma.users.findFirst({
-      where: email ? { email } : { username }
+      where: {
+        deleted_at: null,
+        OR: [
+          { username: { equals: identifier, mode: 'insensitive' } },
+          { email: { equals: identifier, mode: 'insensitive' } }
+        ]
+      }
     });
 
     if (!user) {
@@ -48,7 +56,7 @@ class AuthService {
     const payload: JwtPayload = {
       id: user.id,
       username: user.username,
-      role: user.role as any,
+      role: user.role as UserRole,
       email: user.email
     };
 
@@ -58,14 +66,14 @@ class AuthService {
       { expiresIn: '24h' }
     );
 
-    const { password_hash, ...userWithoutPassword } = user;
+    const { password_hash: _passwordHash, ...userWithoutPassword } = user;
 
     return { token, user: userWithoutPassword };
   }
 
   async getProfile(userId: number): Promise<UserInfo> {
-    const user = await prisma.users.findUnique({
-      where: { id: userId },
+    const user = await prisma.users.findFirst({
+      where: { id: userId, deleted_at: null },
       select: {
         id: true, username: true, email: true, role: true,
         full_name: true, phone: true,
@@ -77,7 +85,7 @@ class AuthService {
       throw new NotFoundError('User');
     }
 
-    return user as any;
+    return user as unknown as UserInfo;
   }
 
   async changePassword(userId: number, data: ChangePasswordDTO): Promise<void> {
@@ -169,15 +177,38 @@ class AuthService {
 
     const existing = await prisma.users.findFirst({
       where: {
+        deleted_at: null,
         OR: [
-          { username },
-          { email }
+          { username: { equals: username, mode: 'insensitive' } },
+          { email: { equals: email, mode: 'insensitive' } }
         ]
       }
     });
 
     if (existing) {
       throw new ConflictError('Username or email already exists');
+    }
+
+    // Free any legacy soft-deleted rows that still hold the unique username/email
+    const staleDeleted = await prisma.users.findMany({
+      where: {
+        deleted_at: { not: null },
+        OR: [
+          { username: { equals: username, mode: 'insensitive' } },
+          { email: { equals: email, mode: 'insensitive' } }
+        ]
+      },
+      select: { id: true, username: true, email: true }
+    });
+    for (const stale of staleDeleted) {
+      const suffix = `__del_${stale.id}_${Date.now()}`;
+      await prisma.users.update({
+        where: { id: stale.id },
+        data: {
+          username: `${stale.username}${suffix}`.slice(0, 50),
+          email: `del_${stale.id}_${Date.now()}_${stale.email}`
+        }
+      });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -260,12 +291,12 @@ class AuthService {
       await this.assertAnotherActiveAdminExists(targetId);
     }
 
-    const identityConditions: Array<{ username: string } | { email: string }> = [];
-    if (parsed.username) identityConditions.push({ username: parsed.username });
-    if (parsed.email) identityConditions.push({ email: parsed.email });
+    const identityConditions: Array<{ username: { equals: string; mode: 'insensitive' } } | { email: { equals: string; mode: 'insensitive' } }> = [];
+    if (parsed.username) identityConditions.push({ username: { equals: parsed.username, mode: 'insensitive' } });
+    if (parsed.email) identityConditions.push({ email: { equals: parsed.email, mode: 'insensitive' } });
     if (identityConditions.length > 0) {
       const conflict = await prisma.users.findFirst({
-        where: { OR: identityConditions, NOT: { id: targetId } }
+        where: { deleted_at: null, OR: identityConditions, NOT: { id: targetId } }
       });
       if (conflict) {
         throw new ConflictError('Username or email already exists');
@@ -325,9 +356,16 @@ class AuthService {
       await this.assertAnotherActiveAdminExists(targetId);
     }
 
+    const tombstone = `__del_${Date.now()}`;
     const result = await prisma.users.updateMany({
       where: { id: targetId, deleted_at: null },
-      data: { deleted_at: new Date(), is_active: false, updated_at: new Date() }
+      data: {
+        deleted_at: new Date(),
+        is_active: false,
+        username: `${target.username}${tombstone}`.slice(0, 50),
+        email: `del_${Date.now()}_${target.email}`,
+        updated_at: new Date()
+      }
     });
 
     if (result.count === 0) {
@@ -416,14 +454,12 @@ class AuthService {
       }
     });
 
-    if (!user) {
-      return {
-        message: 'If an account matches those details, password reset instructions have been recorded. Please contact your manager or admin.'
-      };
+    if (user) {
+      logger.info(`Password reset assistance requested for user ID ${user.id} (${user.username})`);
     }
 
     return {
-      message: `Password reset request received for ${user.username}. Please ask an on-duty Administrator to reset your password in Staff Management, or contact management at info@sangeet.hk.`
+      message: 'Password reset request received. If an account matches those details, it has been logged for the on-duty Administrator in Staff Management, or contact management at info@sangeet.hk.'
     };
   }
 }

@@ -1,15 +1,26 @@
 "use client";
 import React from 'react';
+import type { UserInfo } from '@/lib/types';
+import type { User } from '@/contexts/AuthContext';
 import { ROLE_META, getInitials } from './utils';
 
-const StaffTable = ({ 
+export interface StaffTableProps {
+  filteredUsers: UserInfo[];
+  users: UserInfo[];
+  currentUser: User | null;
+  openEditModal: (user: UserInfo) => void;
+  handleToggleStatus: (userId: number) => void;
+  handleDeleteUser: (userId: number) => void;
+}
+
+const StaffTable: React.FC<StaffTableProps> = ({ 
   filteredUsers, 
   users, 
   currentUser, 
   openEditModal, 
   handleToggleStatus, 
   handleDeleteUser 
-}: any) => {
+}) => {
   return (
     <div className="bg-sangeet-neutral-900 rounded-xl border border-sangeet-neutral-700 overflow-hidden shadow-xl">
       {/* Table Header */}
@@ -50,7 +61,7 @@ const StaffTable = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-sangeet-neutral-700/50">
-            {filteredUsers.map((user: any) => (
+            {filteredUsers.map((user: UserInfo) => (
               <tr
                 key={user.id}
                 data-testid={`staff-row-${user.username}`}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -40,9 +40,24 @@ export const useStaffManagement = () => {
 
   const [formData, setFormData] = useState<StaffFormData>(EMPTY_STAFF_FORM);
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterRole, setFilterRole] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm, setSearchTermState] = useState('');
+  const [filterRole, setFilterRoleState] = useState('all');
+  const [filterStatus, setFilterStatusState] = useState('all');
+
+  const setSearchTerm = useCallback((value: React.SetStateAction<string>) => {
+    setSearchTermState(value);
+    setPage(1);
+  }, []);
+
+  const setFilterRole = useCallback((value: React.SetStateAction<string>) => {
+    setFilterRoleState(value);
+    setPage(1);
+  }, []);
+
+  const setFilterStatus = useCallback((value: React.SetStateAction<string>) => {
+    setFilterStatusState(value);
+    setPage(1);
+  }, []);
 
   // Identity comes from AuthContext (verified against /api/auth/me). A failed data request
   // must never be treated as an expired session; real 401/403 responses are handled
@@ -52,8 +67,14 @@ export const useStaffManagement = () => {
   const queryClient = useQueryClient();
 
   const usersQuery = useQuery({
-    queryKey: ['users', page],
-    queryFn: () => getAllUsers({ page, limit: PAGE_SIZE }),
+    queryKey: ['users', page, filterRole, filterStatus],
+    queryFn: () =>
+      getAllUsers({
+        page,
+        limit: PAGE_SIZE,
+        role: filterRole !== 'all' ? filterRole : undefined,
+        status: filterStatus !== 'all' ? filterStatus : undefined
+      }),
     enabled: isAdmin,
     retry: 1,
     placeholderData: (previousData) => previousData
@@ -70,19 +91,13 @@ export const useStaffManagement = () => {
   const error = (usersQuery.error || statsQuery.error) as Error | null;
   const users: UserInfo[] = useMemo(() => usersQuery.data?.data ?? [], [usersQuery.data]);
   const metadata = usersQuery.data?.metadata ?? { total: 0, page: 1, totalPages: 1, limit: PAGE_SIZE };
+  const effectivePage = metadata.totalPages > 0 && page > metadata.totalPages ? metadata.totalPages : page;
   const stats: UserStats = statsQuery.data ?? EMPTY_STATS;
 
   const refetch = useCallback(() => {
     usersQuery.refetch();
     statsQuery.refetch();
   }, [usersQuery, statsQuery]);
-
-  // If the last user on the final page is removed, step back to a page that exists.
-  useEffect(() => {
-    if (metadata.totalPages > 0 && page > metadata.totalPages) {
-      setPage(metadata.totalPages);
-    }
-  }, [metadata.totalPages, page]);
 
   const resetForm = useCallback(() => {
     setFormData(EMPTY_STAFF_FORM);
@@ -227,7 +242,7 @@ export const useStaffManagement = () => {
   return {
     users,
     metadata,
-    page,
+    page: effectivePage,
     setPage,
     stats,
     loading,

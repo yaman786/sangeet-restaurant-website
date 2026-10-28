@@ -10,15 +10,15 @@ export async function GET(req: NextRequest) {
     if (errorResponse) return errorResponse;
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const dbUser = await prisma.users.findUnique({
-      where: { id: user.id }
+    const dbUser = await prisma.users.findFirst({
+      where: { id: user.id, deleted_at: null }
     });
 
     if (!dbUser || !dbUser.is_active) {
       return NextResponse.json({ error: 'User inactive or not found' }, { status: 401 });
     }
 
-    const { password_hash, ...userWithoutPassword } = dbUser;
+    const { password_hash: _passwordHash, ...userWithoutPassword } = dbUser;
     return NextResponse.json({ user: userWithoutPassword });
   } catch (error) {
     return handleApiError(error);
