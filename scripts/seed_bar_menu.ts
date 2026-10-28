@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { prisma } from '../src/lib/db';
 import { Prisma } from '@prisma/client';
 
@@ -6,6 +7,142 @@ interface SeedItem {
   price: number;
   description: string;
   isPopular?: boolean;
+  imageUrl?: string;
+}
+
+const DRINK_IMAGES = {
+  draughtLager: 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=800&h=600&fit=crop',
+  wheatBeer: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=800&h=600&fit=crop',
+  darkStout: 'https://images.unsplash.com/photo-1518176258769-f227c798150e?w=800&h=600&fit=crop',
+  bottledBeer: 'https://images.unsplash.com/photo-1618885472179-5e474019f2a9?w=800&h=600&fit=crop',
+  coronaBeer: 'https://images.unsplash.com/photo-1566633806327-68e152aaf26d?w=800&h=600&fit=crop',
+  craftIpa: 'https://images.unsplash.com/photo-1571613316887-6f8d5cbf7ef7?w=800&h=600&fit=crop',
+  appleCider: 'https://images.unsplash.com/photo-1567696911980-2eed69a46042?w=800&h=600&fit=crop',
+  whiskyShot: 'https://images.unsplash.com/photo-1527281400683-1aae777175f8?w=800&h=600&fit=crop',
+  whiskyBottle: 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=800&h=600&fit=crop',
+  bourbonShot: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&h=600&fit=crop',
+  singleMaltBottle: 'https://images.unsplash.com/photo-1582819509237-d5b75f20ff7a?w=800&h=600&fit=crop',
+  whiteRum: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=800&h=600&fit=crop',
+  darkRum: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800&h=600&fit=crop',
+  vodkaShot: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=800&h=600&fit=crop',
+  vodkaBottle: 'https://images.unsplash.com/photo-1598018553943-29ace5bf9867?w=800&h=600&fit=crop',
+  ginGlass: 'https://images.unsplash.com/photo-1541546006121-5c3bc5e8c7b9?w=800&h=600&fit=crop',
+  tequilaShot: 'https://images.unsplash.com/photo-1516535794938-6063878f08cc?w=800&h=600&fit=crop',
+  aperolSpritz: 'https://images.unsplash.com/photo-1560512823-829485b8bf24?w=800&h=600&fit=crop',
+  cosmopolitan: 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=800&h=600&fit=crop',
+  whiteRussian: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=800&h=600&fit=crop',
+  longIsland: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=800&h=600&fit=crop',
+  mojito: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=800&h=600&fit=crop',
+  margarita: 'https://images.unsplash.com/photo-1544145945-f90425340c7e?w=800&h=600&fit=crop',
+  strawberryDaiquiri: 'https://images.unsplash.com/photo-1497534446932-c925b458314e?w=800&h=600&fit=crop',
+  pinaColada: 'https://images.unsplash.com/photo-1582106245687-cbb466a9f07f?w=800&h=600&fit=crop',
+  champagneBrut: 'https://images.unsplash.com/photo-1594372365401-3b5ff14eaaed?w=800&h=600&fit=crop',
+  champagneRose: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&h=600&fit=crop',
+} as const;
+
+function getDrinkImageUrl(name: string, categoryName: string): string {
+  const lower = name.toLowerCase();
+
+  // 1. Draught Beers
+  if (categoryName === 'Draught Beers') {
+    if (lower.includes('guinness')) return DRINK_IMAGES.darkStout;
+    if (lower.includes('1664') || lower.includes('blanc')) return DRINK_IMAGES.wheatBeer;
+    return DRINK_IMAGES.draughtLager;
+  }
+
+  // 2. Bottled Beers & Cider
+  if (categoryName === 'Bottled Beers & Cider') {
+    if (lower.includes('cider') || lower.includes('thatcher') || lower.includes('somersby')) {
+      return DRINK_IMAGES.appleCider;
+    }
+    if (lower.includes('ipa') || lower.includes('ym pt')) {
+      return DRINK_IMAGES.craftIpa;
+    }
+    if (lower.includes('tetley')) {
+      return DRINK_IMAGES.wheatBeer;
+    }
+    if (lower.includes('corona') || lower.includes('00%') || lower.includes('zero') || lower.includes('afb') || lower.includes('light')) {
+      return DRINK_IMAGES.coronaBeer;
+    }
+    return DRINK_IMAGES.bottledBeer;
+  }
+
+  // 3. Whisky & Bourbon
+  if (categoryName === 'Whisky & Bourbon') {
+    const isBottle = lower.includes('(bottle)');
+    const isSingleMalt =
+      lower.includes('glenfiddich') ||
+      lower.includes('glenlivet') ||
+      lower.includes('macallan') ||
+      lower.includes('glenmorangie') ||
+      lower.includes('laphroaig');
+    const isBourbon =
+      lower.includes('jim beam') ||
+      lower.includes('jack daniels') ||
+      lower.includes("maker's mark");
+
+    if (isBottle) {
+      return isSingleMalt ? DRINK_IMAGES.singleMaltBottle : DRINK_IMAGES.whiskyBottle;
+    }
+    return isBourbon ? DRINK_IMAGES.bourbonShot : DRINK_IMAGES.whiskyShot;
+  }
+
+  // 4. Spirits (Rum, Vodka, Gin, Tequila)
+  if (categoryName === 'Spirits (Rum, Vodka, Gin, Tequila)') {
+    if (
+      lower.includes('rum') ||
+      lower.includes('bacardi') ||
+      lower.includes('captain morgan') ||
+      lower.includes('myers') ||
+      lower.includes('havana')
+    ) {
+      if (lower.includes('captain') || lower.includes('myers') || lower.includes('7yrs')) {
+        return DRINK_IMAGES.darkRum;
+      }
+      return DRINK_IMAGES.whiteRum;
+    }
+    if (
+      lower.includes('vodka') ||
+      lower.includes('grey goose') ||
+      lower.includes('absolut') ||
+      lower.includes('belvedere') ||
+      lower.includes('smirnoff') ||
+      lower.includes('coral')
+    ) {
+      return lower.includes('(bottle)') ? DRINK_IMAGES.vodkaBottle : DRINK_IMAGES.vodkaShot;
+    }
+    if (
+      lower.includes('gin') ||
+      lower.includes('bombay') ||
+      lower.includes('tanqueray') ||
+      lower.includes('hendrick') ||
+      lower.includes('monkey 47')
+    ) {
+      return DRINK_IMAGES.ginGlass;
+    }
+    return DRINK_IMAGES.tequilaShot;
+  }
+
+  // 5. Cocktails
+  if (categoryName === 'Cocktails') {
+    if (lower.includes('aperol')) return DRINK_IMAGES.aperolSpritz;
+    if (lower.includes('cosmopolitan')) return DRINK_IMAGES.cosmopolitan;
+    if (lower.includes('russian')) return DRINK_IMAGES.whiteRussian;
+    if (lower.includes('long island')) return DRINK_IMAGES.longIsland;
+    if (lower.includes('mojito')) return DRINK_IMAGES.mojito;
+    if (lower.includes('margarita')) return DRINK_IMAGES.margarita;
+    if (lower.includes('daiquiri')) return DRINK_IMAGES.strawberryDaiquiri;
+    if (lower.includes('colada')) return DRINK_IMAGES.pinaColada;
+    return DRINK_IMAGES.aperolSpritz;
+  }
+
+  // 6. Champagne
+  if (categoryName === 'Champagne') {
+    if (lower.includes('rosé') || lower.includes('rose')) return DRINK_IMAGES.champagneRose;
+    return DRINK_IMAGES.champagneBrut;
+  }
+
+  return DRINK_IMAGES.draughtLager;
 }
 
 interface CategoryGroup {
@@ -263,6 +400,7 @@ async function main() {
       group.items.map(async (item) => {
         const existing = existingByName.get(item.name);
         const decimalPrice = new Prisma.Decimal(item.price);
+        const imageUrl = item.imageUrl ?? getDrinkImageUrl(item.name, group.name);
 
         if (!existing) {
           await prisma.menu_items.create({
@@ -272,7 +410,8 @@ async function main() {
               price: decimalPrice,
               category: group.name,
               category_id: subCatId,
-              is_vegetarian: true,
+              image_url: imageUrl,
+              is_vegetarian: false,
               is_spicy: false,
               is_popular: item.isPopular ?? false,
               is_active: true,
@@ -288,7 +427,8 @@ async function main() {
               description: item.description,
               category: group.name,
               category_id: subCatId,
-              is_vegetarian: true,
+              image_url: imageUrl,
+              is_vegetarian: false,
               is_active: true,
               is_popular: item.isPopular ?? existing.is_popular
             }
@@ -313,4 +453,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    process.exit(0);
   });

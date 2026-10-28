@@ -85,7 +85,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=1920&h=1080&fit=crop"
+            src="https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=1920&h=1080&fit=crop"
             alt="Authentic South Asian cuisine"
             fill
             className="object-cover opacity-20"
@@ -248,7 +248,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
                   {/* Image Container */}
                   <div className="relative h-48 md:h-56 overflow-hidden flex-shrink-0">
                     <Image
-                      src={item.image_url || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop'}
+                      src={item.image_url || 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&h=600&fit=crop'}
                       alt={item.name}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
