@@ -29,10 +29,11 @@ const AdminDashboard = () => {
       }
 
       try {
-        // Try to get latest user data from API
+        // Try to get latest user data from API (supports both direct UserInfo and { user } wrapper)
         const userData = await getProfile();
-        setUser((userData as any).user);
-      } catch (error) {
+        const resolvedUser = (userData as any)?.user ?? userData;
+        setUser(resolvedUser?.role ? resolvedUser : authUser);
+      } catch {
         // Fallback to context user if API fails
         if (authUser) {
           setUser(authUser);

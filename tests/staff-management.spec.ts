@@ -44,6 +44,11 @@ test.describe('Staff Management (admin)', () => {
   });
 
   test('stays logged in on /admin/staff-management and lists the current admin', async () => {
+    await page.goto('/admin/dashboard', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('heading', { name: 'Order Management' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Menu Management' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Staff Management' })).toBeVisible();
+
     await openStaffManagement(page);
 
     // Regression: the page used to call /api/auth/profile (404) and then log the admin out.
