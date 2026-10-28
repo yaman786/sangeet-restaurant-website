@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Leaf, Flame, Star, UtensilsCrossed, ShieldCheck, Search } from 'lucide-react';
+import { Leaf, Flame, Star, UtensilsCrossed, Wine, ShieldCheck, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMenuItems, fetchMenuCategories } from '../services/api';
+import { isBarCategory, isBarMenuItem, type MenuSection } from '@/lib/utils/menuSection';
 
 const FALLBACK_MENU: any[] = [];
 
@@ -13,10 +14,10 @@ const FALLBACK_CATEGORIES: any[] = [];
 /**
  * MenuPage Component
  * Mobile-first menu display with 3-column grid layout
- * Features: Category filtering, dietary filters, responsive design
- * Optimized for touch interactions and mobile performance
+ * Features: Food vs Bar & Drinks two-way switcher, category filtering, dietary filters
  */
 const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: any[], initialCategories?: any[] }) => {
+  const [menuSection, setMenuSection] = useState<MenuSection>('food');
   const [activeTopCategory, setActiveTopCategory] = useState('all');
   const [activeSubCategory, setActiveSubCategory] = useState('all');
   const [filters, setFilters] = useState({
@@ -42,12 +43,27 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
     staleTime: 5 * 60 * 1000,
   });
 
-  // Split categories into top-level and subcategories
+  // Split categories into Food categories and Bar subcategories
   const topLevelCategories = categories.filter((cat: any) => !cat.parent_id);
   const subCategories = categories.filter((cat: any) => cat.parent_id);
+  const foodTopLevelCategories = topLevelCategories.filter((cat: any) => !isBarCategory(cat, categories));
+  const barSubCategories = subCategories.filter((cat: any) => isBarCategory(cat, categories));
 
-  // Filter items
+  const handleSectionSwitch = (section: MenuSection) => {
+    setMenuSection(section);
+    setActiveTopCategory(section === 'drinks' ? 'Bar & Drinks' : 'all');
+    setActiveSubCategory('all');
+    if (section === 'drinks') {
+      setFilters((prev) => ({ ...prev, vegetarian: false, spicy: false }));
+    }
+  };
+
+  // Filter items strictly by active section (Food vs Bar & Drinks)
   const filteredItems = menuItems.filter((item: any) => {
+    const itemIsBar = isBarMenuItem(item, categories);
+    if (menuSection === 'food' && itemIsBar) return false;
+    if (menuSection === 'drinks' && !itemIsBar) return false;
+
     const matchesSearch = !searchTerm || 
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -58,18 +74,21 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
       (!filters.popular || item.is_popular);
 
     let matchesCategory = true;
-    if (activeTopCategory !== 'all') {
-      const topCat = categories.find((c: any) => c.name === activeTopCategory && !c.parent_id);
-      if (topCat) {
-        const allowedCatIds = [topCat.id, ...subCategories.filter((c: any) => c.parent_id === topCat.id).map((c: any) => c.id)];
-        matchesCategory = allowedCatIds.includes(item.category_id);
+    if (menuSection === 'food') {
+      if (activeTopCategory !== 'all') {
+        const topCat = foodTopLevelCategories.find((c: any) => c.name === activeTopCategory);
+        if (topCat) {
+          const allowedCatIds = [topCat.id, ...subCategories.filter((c: any) => c.parent_id === topCat.id).map((c: any) => c.id)];
+          matchesCategory = allowedCatIds.includes(item.category_id) || item.category === activeTopCategory || item.category_name === activeTopCategory;
+        }
       }
-    }
-
-    if (matchesCategory && activeSubCategory !== 'all') {
-      const subCat = categories.find((c: any) => c.name === activeSubCategory && c.parent_id);
-      if (subCat) {
-        matchesCategory = item.category_id === subCat.id;
+    } else {
+      if (activeSubCategory !== 'all') {
+        const subCat = barSubCategories.find((c: any) => c.name === activeSubCategory);
+        matchesCategory =
+          (subCat && item.category_id === subCat.id) ||
+          item.category === activeSubCategory ||
+          item.category_name === activeSubCategory;
       }
     }
 
@@ -115,100 +134,141 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
 
           {/* Filter Controls - Mobile Optimized */}
           <div className="mb-6 md:mb-8">
+            {/* Two-Way Menu Switcher: Food Menu vs Bar & Drinks */}
+            <div className="flex justify-center mb-6">
+              <div
+                role="tablist"
+                aria-label="Menu section switcher"
+                className="inline-flex bg-sangeet-neutral-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-sangeet-400/30 shadow-glass"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={menuSection === 'food'}
+                  data-testid="public-menu-food"
+                  onClick={() => handleSectionSwitch('food')}
+                  className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm md:text-base font-semibold transition-all duration-200 cursor-pointer ${
+                    menuSection === 'food'
+                      ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-gold-glow'
+                      : 'text-sangeet-neutral-300 hover:text-white'
+                  }`}
+                >
+                  <UtensilsCrossed className="w-4 h-4" />
+                  <span>Food Menu</span>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={menuSection === 'drinks'}
+                  data-testid="public-menu-drinks"
+                  onClick={() => handleSectionSwitch('drinks')}
+                  className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm md:text-base font-semibold transition-all duration-200 cursor-pointer ${
+                    menuSection === 'drinks'
+                      ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-gold-glow'
+                      : 'text-sangeet-neutral-300 hover:text-white'
+                  }`}
+                >
+                  <Wine className="w-4 h-4" />
+                  <span>Bar &amp; Drinks</span>
+                </button>
+              </div>
+            </div>
+
             {/* Dietary Filters */}
             <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-4">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sangeet-neutral-900/90 border border-sangeet-400/30 text-sangeet-300 text-xs sm:text-sm font-medium shadow-sm">
-                <ShieldCheck className="w-4 h-4 text-sangeet-400" />
-                100% Halal Certified
-              </span>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setFilters(prev => ({ ...prev, vegetarian: !prev.vegetarian }))}
-                className={`filter-tab ${filters.vegetarian ? 'filter-tab-active' : 'filter-tab-inactive'}`}
-              >
-                <Leaf className="w-4 h-4" /> Vegetarian
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setFilters(prev => ({ ...prev, spicy: !prev.spicy }))}
-                className={`filter-tab ${filters.spicy ? 'filter-tab-active' : 'filter-tab-inactive'}`}
-              >
-                <Flame className="w-4 h-4" /> Spicy
-              </motion.button>
+              {menuSection === 'food' && (
+                <>
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sangeet-neutral-900/90 border border-sangeet-400/30 text-sangeet-300 text-xs sm:text-sm font-medium shadow-sm">
+                    <ShieldCheck className="w-4 h-4 text-sangeet-400" />
+                    100% Halal Certified
+                  </span>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setFilters(prev => ({ ...prev, vegetarian: !prev.vegetarian }))}
+                    className={`filter-tab ${filters.vegetarian ? 'filter-tab-active' : 'filter-tab-inactive'}`}
+                  >
+                    <Leaf className="w-4 h-4" /> Vegetarian
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setFilters(prev => ({ ...prev, spicy: !prev.spicy }))}
+                    className={`filter-tab ${filters.spicy ? 'filter-tab-active' : 'filter-tab-inactive'}`}
+                  >
+                    <Flame className="w-4 h-4" /> Spicy
+                  </motion.button>
+                </>
+              )}
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setFilters(prev => ({ ...prev, popular: !prev.popular }))}
                 className={`filter-tab ${filters.popular ? 'filter-tab-active' : 'filter-tab-inactive'}`}
               >
-                <Star className="w-4 h-4" /> Chef&apos;s Signature
+                <Star className="w-4 h-4" /> {menuSection === 'drinks' ? 'Bartender Signature' : "Chef's Signature"}
               </motion.button>
             </div>
 
-            {/* Primary Category Filter - Horizontal Scroll on Mobile */}
-            <div className="relative w-full mb-4">
-              <div className="flex overflow-x-auto gap-2 md:gap-4 pb-2 md:pb-0 scrollbar-hide max-w-full">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => { setActiveTopCategory('all'); setActiveSubCategory('all'); }}
-                  className={`filter-tab ${activeTopCategory === 'all' ? 'filter-tab-active' : 'filter-tab-inactive'}`}
-                >
-                  All Items
-                </motion.button>
-                {topLevelCategories.map((category: any) => (
+            {/* Category Pills scoped to active section */}
+            {menuSection === 'food' ? (
+              <div className="relative w-full mb-4">
+                <div className="flex overflow-x-auto gap-2 md:gap-4 pb-2 md:pb-0 scrollbar-hide max-w-full">
                   <motion.button
-                    key={category.id}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => { setActiveTopCategory(category.name); setActiveSubCategory('all'); }}
-                    className={`filter-tab ${activeTopCategory === category.name ? 'filter-tab-active' : 'filter-tab-inactive'}`}
+                    onClick={() => { setActiveTopCategory('all'); setActiveSubCategory('all'); }}
+                    className={`filter-tab ${activeTopCategory === 'all' ? 'filter-tab-active' : 'filter-tab-inactive'}`}
                   >
-                    {category.name}
+                    All Items
                   </motion.button>
-                ))}
+                  {foodTopLevelCategories.map((category: any) => (
+                    <motion.button
+                      key={category.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => { setActiveTopCategory(category.name); setActiveSubCategory('all'); }}
+                      className={`filter-tab ${activeTopCategory === category.name ? 'filter-tab-active' : 'filter-tab-inactive'}`}
+                    >
+                      {category.name}
+                    </motion.button>
+                  ))}
+                </div>
               </div>
-            </div>
-
-            {/* Secondary Category Filter (Subcategories) */}
-            {activeTopCategory !== 'all' && categories.filter((c: any) => c.parent_id === categories.find((p: any) => p.name === activeTopCategory)?.id).length > 0 && (
+            ) : (
               <motion.div 
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 className="relative w-full"
               >
-                <div className="flex overflow-x-auto gap-2 md:gap-3 pb-2 scrollbar-hide max-w-full">
+                <div className="flex overflow-x-auto gap-2 md:gap-3 pb-2 scrollbar-hide max-w-full justify-start md:justify-center">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setActiveSubCategory('all')}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border cursor-pointer ${
                       activeSubCategory === 'all'
                         ? 'bg-sangeet-400 text-sangeet-neutral-950 border-sangeet-400'
                         : 'bg-transparent text-sangeet-neutral-300 border-sangeet-neutral-600 hover:border-sangeet-400 hover:text-sangeet-400'
                     }`}
                   >
-                    All {activeTopCategory}
+                    All Bar &amp; Drinks
                   </motion.button>
-                  {categories
-                    .filter((c: any) => c.parent_id === categories.find((p: any) => p.name === activeTopCategory)?.id)
-                    .map((childCategory: any) => (
-                      <motion.button
-                        key={childCategory.id}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setActiveSubCategory(childCategory.name)}
-                        className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors border ${
-                          activeSubCategory === childCategory.name
-                            ? 'bg-sangeet-400 text-sangeet-neutral-950 border-sangeet-400'
-                            : 'bg-transparent text-sangeet-neutral-300 border-sangeet-neutral-600 hover:border-sangeet-400 hover:text-sangeet-400'
-                        }`}
-                      >
-                        {childCategory.name}
-                      </motion.button>
-                    ))}
+                  {barSubCategories.map((childCategory: any) => (
+                    <motion.button
+                      key={childCategory.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setActiveSubCategory(childCategory.name)}
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors border cursor-pointer ${
+                        activeSubCategory === childCategory.name
+                          ? 'bg-sangeet-400 text-sangeet-neutral-950 border-sangeet-400'
+                          : 'bg-transparent text-sangeet-neutral-300 border-sangeet-neutral-600 hover:border-sangeet-400 hover:text-sangeet-400'
+                      }`}
+                    >
+                      {childCategory.name}
+                    </motion.button>
+                  ))}
                 </div>
               </motion.div>
             )}

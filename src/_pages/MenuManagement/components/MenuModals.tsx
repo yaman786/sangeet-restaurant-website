@@ -26,6 +26,8 @@ const MenuModals = ({
   deleteType, deleteName,
   selectedItem, selectedCategory,
   categories,
+  sectionCategories = [],
+  menuSection = 'food',
   handleAddItem, handleEditItem,
   handleAddCategory, handleEditCategory,
   confirmDeleteItem, confirmDeleteCategory
@@ -102,10 +104,12 @@ const MenuModals = ({
     }
   }, [showCategoryModal, selectedCategory, resetCategory]);
 
-  const itemCategoryOptions = categories.flatMap((c: any) => {
+  const activeModalCategories = showAddModal && sectionCategories.length > 0 ? sectionCategories : categories;
+
+  const itemCategoryOptions = activeModalCategories.flatMap((c: any) => {
     if (c.parent_id) return []; // skip children, handled by parent
     
-    const children = categories.filter((child: any) => child.parent_id === c.id);
+    const children = activeModalCategories.filter((child: any) => child.parent_id === c.id);
     if (children.length > 0) {
       return children.map((child: any) => ({ label: `${c.name} > ${child.name}`, value: child.name }));
     }

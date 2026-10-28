@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { 
   fetchMenuItems, 
@@ -12,6 +12,7 @@ import {
   updateCategoryAction,
   deleteCategoryAction
 } from '@/app/actions/menuActions';
+import { isBarCategory, isBarMenuItem, type MenuSection } from '@/lib/utils/menuSection';
 
 export const useMenuManagement = () => {
   const [menuItems, setMenuItems] = useState<any[]>([]);
@@ -19,6 +20,7 @@ export const useMenuManagement = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('items');
+  const [menuSection, setMenuSection] = useState<MenuSection>('food');
   
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -62,25 +64,65 @@ export const useMenuManagement = () => {
     });
   }, [loadData]);
 
+  const foodItems = useMemo(
+    () => menuItems.filter((item: any) => !isBarMenuItem(item, categories)),
+    [menuItems, categories]
+  );
+
+  const drinkItems = useMemo(
+    () => menuItems.filter((item: any) => isBarMenuItem(item, categories)),
+    [menuItems, categories]
+  );
+
+  const sectionItems = useMemo(
+    () => (menuSection === 'drinks' ? drinkItems : foodItems),
+    [menuSection, drinkItems, foodItems]
+  );
+
+  const sectionCategories = useMemo(
+    () =>
+      categories.filter((c: any) =>
+        menuSection === 'drinks' ? isBarCategory(c, categories) : !isBarCategory(c, categories)
+      ),
+    [categories, menuSection]
+  );
+
+  const handleSectionChange = useCallback((section: MenuSection) => {
+    setMenuSection(section);
+    setFilters((prev) => ({
+      ...prev,
+      category: '',
+      tags: section === 'drinks' ? prev.tags.filter((t: string) => t === 'popular') : prev.tags,
+    }));
+  }, []);
+
   const applyFilters = useCallback(() => {
-    let filtered = [...menuItems];
+    let filtered = [...sectionItems];
 
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       filtered = filtered.filter((item: any) => 
         item.name.toLowerCase().includes(searchTerm) ||
         item.description?.toLowerCase().includes(searchTerm) ||
-        item.category_name?.toLowerCase().includes(searchTerm)
+        item.category_name?.toLowerCase().includes(searchTerm) ||
+        item.category?.toLowerCase().includes(searchTerm)
       );
     }
 
     if (filters.category) {
       const selectedCatObj = categories.find((c: any) => c.name === filters.category);
-      const childCategoryNames = selectedCatObj?.children?.map((c: any) => c.name) || [];
+      const childCats = categories.filter(
+        (c: any) => selectedCatObj && Number(c.parent_id) === Number(selectedCatObj.id)
+      );
+      const childCategoryNames = childCats.map((c: any) => c.name);
+      const childCategoryIds = childCats.map((c: any) => Number(c.id));
       const validCategoryNames = [filters.category, ...childCategoryNames];
+      const validCategoryIds = [selectedCatObj?.id, ...childCategoryIds].filter(Boolean).map(Number);
 
       filtered = filtered.filter((item: any) => 
-        validCategoryNames.includes(item.category_name) || validCategoryNames.includes(item.category)
+        validCategoryNames.includes(item.category_name) ||
+        validCategoryNames.includes(item.category) ||
+        validCategoryIds.includes(Number(item.category_id))
       );
     }
 
@@ -109,7 +151,7 @@ export const useMenuManagement = () => {
         case 'price':
           aValue = parseFloat(a.price); bValue = parseFloat(b.price); break;
         case 'category':
-          aValue = a.category_name || ''; bValue = b.category_name || ''; break;
+          aValue = a.category_name || a.category || ''; bValue = b.category_name || b.category || ''; break;
         default:
           aValue = a.name.toLowerCase(); bValue = b.name.toLowerCase();
       }
@@ -117,17 +159,17 @@ export const useMenuManagement = () => {
     });
 
     setFilteredItems(filtered);
-  }, [menuItems, filters]);
+  }, [sectionItems, categories, filters]);
 
   useEffect(() => {
     queueMicrotask(() => {
-      if (menuItems.length > 0) {
+      if (sectionItems.length > 0) {
         applyFilters();
       } else {
         setFilteredItems([]);
       }
     });
-  }, [menuItems, applyFilters]);
+  }, [sectionItems, applyFilters]);
 
   const handleFilterChange = (key: string, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -247,6 +289,9 @@ export const useMenuManagement = () => {
 
   return {
     menuItems, filteredItems, categories, loading, activeTab, setActiveTab,
+    menuSection, handleSectionChange,
+    foodCount: foodItems.length, drinkCount: drinkItems.length,
+    sectionItems, sectionCategories,
     showAddModal, setShowAddModal, showEditModal, setShowEditModal,
     showCategoryModal, setShowCategoryModal, showDeleteModal, setShowDeleteModal,
     deleteType, setDeleteType, deleteId, setDeleteId, deleteName, setDeleteName,

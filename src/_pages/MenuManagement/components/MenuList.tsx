@@ -1,11 +1,13 @@
 "use client";
 import React from 'react';
 import Image from 'next/image';
+import { UtensilsCrossed, Wine } from 'lucide-react';
 
 const MenuList = ({
   filteredItems,
   menuItems,
   categories = [],
+  menuSection = 'food',
   setShowAddModal,
   openEditModal,
   handleDeleteItem
@@ -24,21 +26,23 @@ const MenuList = ({
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-sangeet-400">
-          Menu Items ({filteredItems.length} of {menuItems.length})
+          {menuSection === 'drinks' ? 'Bar & Drinks Items' : 'Food Menu Items'} ({filteredItems.length} of {menuItems.length})
         </h2>
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-sangeet-400 text-sangeet-neutral-950 px-4 py-2 rounded-lg font-semibold hover:bg-sangeet-300 transition-colors"
+          className="bg-sangeet-400 text-sangeet-neutral-950 px-4 py-2 rounded-lg font-semibold hover:bg-sangeet-300 transition-colors cursor-pointer"
         >
-          + Add Menu Item
+          + Add {menuSection === 'drinks' ? 'Drink Item' : 'Food Item'}
         </button>
       </div>
 
       {filteredItems.length === 0 ? (
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">🍽️</div>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-sangeet-neutral-900 border border-sangeet-neutral-800 mb-4 text-sangeet-400">
+            {menuSection === 'drinks' ? <Wine className="w-8 h-8" /> : <UtensilsCrossed className="w-8 h-8" />}
+          </div>
           <h3 className="text-xl font-semibold text-sangeet-neutral-300 mb-2">No items found</h3>
-          <p className="text-sangeet-neutral-500">Try adjusting your filters or add a new menu item.</p>
+          <p className="text-sangeet-neutral-500">Try adjusting your filters or add a new {menuSection === 'drinks' ? 'drink' : 'food'} item.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -46,7 +50,7 @@ const MenuList = ({
             <div key={item.id} className="bg-sangeet-neutral-900 rounded-lg border border-sangeet-neutral-700 overflow-hidden">
               <div className="relative w-full h-48">
                 <Image
-                  src={item.image_url || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop'}
+                  src={item.image_url || 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&h=600&fit=crop'}
                   alt={item.name}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

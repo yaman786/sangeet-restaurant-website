@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Search, Plus, Leaf, X } from 'lucide-react';
+import { Search, Plus, Leaf, X, UtensilsCrossed, Wine } from 'lucide-react';
+import { isBarCategory, isBarMenuItem, type MenuSection } from '@/lib/utils/menuSection';
 
 const MenuView = ({ 
   menuItems, 
@@ -15,30 +16,42 @@ const MenuView = ({
   cartLength = 0
 }: any) => {
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [menuSection, setMenuSection] = useState<MenuSection>('food');
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>('all');
 
   const topLevelCategories = categories.filter((c: any) => !c.parent_id);
   const subCategories = categories.filter((c: any) => c.parent_id);
-  const activeTopCatObj = topLevelCategories.find((c: any) => c.name === selectedCategory);
-  const activeSubCategories = activeTopCatObj
-    ? subCategories.filter((c: any) => c.parent_id === activeTopCatObj.id)
-    : [];
+  const foodTopLevelCategories = topLevelCategories.filter((c: any) => !isBarCategory(c, categories));
+  const barSubCategories = subCategories.filter((c: any) => isBarCategory(c, categories));
 
-  // Filter menu items by category and search
+  const handleSectionSwitch = (section: MenuSection) => {
+    setMenuSection(section);
+    setSelectedCategory(section === 'drinks' ? 'Bar & Drinks' : 'all');
+    setSelectedSubCategory('all');
+  };
+
+  // Filter menu items strictly by active section (Food vs Bar & Drinks), category, and search
   const filteredItems = menuItems.filter((item: any) => {
-    let matchesCategory = selectedCategory === 'all';
-    if (!matchesCategory) {
-      const selectedCatObj = categories.find((c: any) => c.name === selectedCategory);
-      const childCats = subCategories.filter((c: any) => c.parent_id === selectedCatObj?.id);
-      const childCategoryNames = childCats.map((c: any) => c.name);
-      const childCategoryIds = childCats.map((c: any) => c.id);
-      const validCategoryNames = [selectedCategory, ...childCategoryNames];
-      const validCategoryIds = [selectedCatObj?.id, ...childCategoryIds].filter(Boolean);
-      const itemCat = item.category_name || item.category;
-      matchesCategory = validCategoryNames.includes(itemCat) || validCategoryIds.includes(item.category_id);
+    const itemIsBar = isBarMenuItem(item, categories);
+    if (menuSection === 'food' && itemIsBar) return false;
+    if (menuSection === 'drinks' && !itemIsBar) return false;
 
-      if (matchesCategory && selectedSubCategory !== 'all') {
-        const subCatObj = childCats.find((c: any) => c.name === selectedSubCategory);
+    let matchesCategory = true;
+    const itemCat = item.category_name || item.category;
+
+    if (menuSection === 'food') {
+      if (selectedCategory !== 'all') {
+        const selectedCatObj = foodTopLevelCategories.find((c: any) => c.name === selectedCategory);
+        const childCats = subCategories.filter((c: any) => c.parent_id === selectedCatObj?.id);
+        const childCategoryNames = childCats.map((c: any) => c.name);
+        const childCategoryIds = childCats.map((c: any) => c.id);
+        const validCategoryNames = [selectedCategory, ...childCategoryNames];
+        const validCategoryIds = [selectedCatObj?.id, ...childCategoryIds].filter(Boolean);
+        matchesCategory = validCategoryNames.includes(itemCat) || validCategoryIds.includes(item.category_id);
+      }
+    } else {
+      if (selectedSubCategory !== 'all') {
+        const subCatObj = barSubCategories.find((c: any) => c.name === selectedSubCategory);
         matchesCategory = itemCat === selectedSubCategory || Boolean(subCatObj && item.category_id === subCatObj.id);
       }
     }
@@ -85,74 +98,115 @@ const MenuView = ({
     >
       {/* Search and Filter - Liquid Glass Pill */}
       <div className="sticky top-4 z-40 bg-[#1C1917]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-glass">
+        {/* Two-Way Menu Switcher: Food Menu vs Bar & Drinks */}
+        <div
+          role="tablist"
+          aria-label="Menu section switcher"
+          className="grid grid-cols-2 gap-2 p-1 bg-black/40 border border-white/10 rounded-xl mb-3"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={menuSection === 'food'}
+            data-testid="qr-menu-food"
+            onClick={() => handleSectionSwitch('food')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              menuSection === 'food'
+                ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-gold-glow'
+                : 'text-sangeet-neutral-300 hover:bg-white/5'
+            }`}
+          >
+            <UtensilsCrossed className="w-4 h-4" />
+            <span>Food Menu</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={menuSection === 'drinks'}
+            data-testid="qr-menu-drinks"
+            onClick={() => handleSectionSwitch('drinks')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
+              menuSection === 'drinks'
+                ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-gold-glow'
+                : 'text-sangeet-neutral-300 hover:bg-white/5'
+            }`}
+          >
+            <Wine className="w-4 h-4" />
+            <span>Bar &amp; Drinks</span>
+          </button>
+        </div>
+
         {/* Search Bar */}
-        <div className="mb-4">
+        <div className="mb-3">
           <div className="relative group">
             <input
               type="text"
-              placeholder="Search our culinary offerings..."
+              placeholder={
+                menuSection === 'drinks'
+                  ? 'Search beers, whiskies, spirits, cocktails...'
+                  : 'Search our culinary offerings...'
+              }
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3.5 pl-12 bg-white/5 border border-white/10 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:border-sangeet-400 focus:bg-white/10 transition-all duration-300"
+              className="w-full px-4 py-3 pl-12 bg-white/5 border border-white/10 rounded-xl text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:border-sangeet-400 focus:bg-white/10 transition-all duration-300"
             />
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-sangeet-neutral-500 group-focus-within:text-sangeet-400 transition-colors duration-300 w-5 h-5" />
           </div>
         </div>
 
-        {/* Category Pills (Horizontal Scroll) */}
-        <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide -mx-2 px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <button
-            onClick={() => {
-              setSelectedCategory('all');
-              setSelectedSubCategory('all');
-            }}
-            className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 cursor-pointer ${
-              selectedCategory === 'all'
-                ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-gold-glow'
-                : 'bg-white/5 text-sangeet-neutral-300 hover:bg-white/10 border border-white/5'
-            }`}
-          >
-            All Offerings
-          </button>
-          {topLevelCategories.map((category: any) => (
+        {/* Category Pills scoped to active section */}
+        {menuSection === 'food' ? (
+          <div className="flex overflow-x-auto gap-2 pb-1 scrollbar-hide -mx-2 px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <button
-              key={category.id}
               onClick={() => {
-                setSelectedCategory(category.name);
+                setSelectedCategory('all');
                 setSelectedSubCategory('all');
               }}
-              className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 cursor-pointer ${
-                selectedCategory === category.name
+              className={`flex-shrink-0 px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 cursor-pointer ${
+                selectedCategory === 'all'
                   ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-gold-glow'
                   : 'bg-white/5 text-sangeet-neutral-300 hover:bg-white/10 border border-white/5'
               }`}
             >
-              {category.name}
+              All Offerings
             </button>
-          ))}
-        </div>
-
-        {/* Subcategory Pills (when a top-level category with children is selected) */}
-        {activeSubCategories.length > 0 && (
-          <div className="flex overflow-x-auto gap-2 pt-2 pb-1 mt-2 border-t border-white/10 scrollbar-hide -mx-2 px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {foodTopLevelCategories.map((category: any) => (
+              <button
+                key={category.id}
+                onClick={() => {
+                  setSelectedCategory(category.name);
+                  setSelectedSubCategory('all');
+                }}
+                className={`flex-shrink-0 px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 cursor-pointer ${
+                  selectedCategory === category.name
+                    ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-gold-glow'
+                    : 'bg-white/5 text-sangeet-neutral-300 hover:bg-white/10 border border-white/5'
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="flex overflow-x-auto gap-2 pb-1 scrollbar-hide -mx-2 px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <button
               onClick={() => setSelectedSubCategory('all')}
-              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer border ${
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border ${
                 selectedSubCategory === 'all'
-                  ? 'bg-sangeet-400/20 text-sangeet-400 border-sangeet-400'
-                  : 'bg-transparent text-sangeet-neutral-300 border-white/10 hover:border-sangeet-400/50 hover:text-sangeet-300'
+                  ? 'bg-sangeet-400 text-sangeet-neutral-950 border-sangeet-400 shadow-gold-glow'
+                  : 'bg-white/5 text-sangeet-neutral-300 border-white/10 hover:bg-white/10'
               }`}
             >
-              All {selectedCategory}
+              All Bar &amp; Drinks
             </button>
-            {activeSubCategories.map((subCat: any) => (
+            {barSubCategories.map((subCat: any) => (
               <button
                 key={subCat.id}
                 onClick={() => setSelectedSubCategory(subCat.name)}
-                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 cursor-pointer border ${
+                className={`flex-shrink-0 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer border ${
                   selectedSubCategory === subCat.name
-                    ? 'bg-sangeet-400/20 text-sangeet-400 border-sangeet-400'
-                    : 'bg-transparent text-sangeet-neutral-300 border-white/10 hover:border-sangeet-400/50 hover:text-sangeet-300'
+                    ? 'bg-sangeet-400 text-sangeet-neutral-950 border-sangeet-400 shadow-gold-glow'
+                    : 'bg-white/5 text-sangeet-neutral-300 border-white/10 hover:bg-white/10'
                 }`}
               >
                 {subCat.name}

@@ -1,14 +1,15 @@
 "use client";
 import React from 'react';
+import { Leaf, Flame, Star } from 'lucide-react';
 import CustomDropdown from '../../../components/CustomDropdown';
 
-const MenuFilters = ({ filters, handleFilterChange, categories, clearFilters }: any) => {
+const MenuFilters = ({ filters, handleFilterChange, categories, menuSection = 'food', clearFilters }: any) => {
   const priceRangeOptions = [
     { value: '', label: 'All Prices' },
-    { value: '0-10', label: 'Under $10' },
-    { value: '10-20', label: '$10 - $20' },
-    { value: '20-30', label: '$20 - $30' },
-    { value: '30-999', label: 'Over $30' }
+    { value: '0-100', label: 'Under $100' },
+    { value: '100-200', label: '$100 - $200' },
+    { value: '200-500', label: '$200 - $500' },
+    { value: '500-99999', label: 'Over $500' }
   ];
 
   const sortOptions = [
@@ -19,13 +20,27 @@ const MenuFilters = ({ filters, handleFilterChange, categories, clearFilters }: 
     { value: 'category-asc', label: 'Category (A-Z)' }
   ];
 
+  const filterableCategories =
+    menuSection === 'drinks'
+      ? categories.filter((c: any) => c.parent_id)
+      : categories;
+
+  const availableTags =
+    menuSection === 'drinks'
+      ? [{ key: 'popular', label: 'Popular / Signature', Icon: Star }]
+      : [
+          { key: 'vegetarian', label: 'Vegetarian', Icon: Leaf },
+          { key: 'spicy', label: 'Spicy', Icon: Flame },
+          { key: 'popular', label: 'Popular', Icon: Star }
+        ];
+
   return (
     <div className="bg-sangeet-neutral-900 rounded-lg p-6 border border-sangeet-neutral-700 mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-sangeet-neutral-100">Filters & Search</h3>
+        <h3 className="text-lg font-semibold text-sangeet-neutral-100">Filters &amp; Search</h3>
         <button
           onClick={clearFilters}
-          className="text-sangeet-neutral-400 hover:text-sangeet-neutral-200 text-sm"
+          className="text-sangeet-neutral-400 hover:text-sangeet-neutral-200 text-sm cursor-pointer"
         >
           Clear All Filters
         </button>
@@ -50,17 +65,17 @@ const MenuFilters = ({ filters, handleFilterChange, categories, clearFilters }: 
             )}
             {filters.priceRange && (
               <span className="bg-sangeet-400/20 text-sangeet-400 px-2 py-1 rounded-sm text-xs">
-                Price: {filters.priceRange === '0-10' ? 'Under $10' : 
-                       filters.priceRange === '10-20' ? '$10 - $20' :
-                       filters.priceRange === '20-30' ? '$20 - $30' :
-                       filters.priceRange === '30-999' ? 'Over $30' : filters.priceRange}
+                Price: {filters.priceRange === '0-100' ? 'Under $100' : 
+                       filters.priceRange === '100-200' ? '$100 - $200' :
+                       filters.priceRange === '200-500' ? '$200 - $500' :
+                       filters.priceRange === '500-99999' ? 'Over $500' : filters.priceRange}
               </span>
             )}
             {filters.tags.map((tag: any) => (
               <span key={tag} className="bg-sangeet-400/20 text-sangeet-400 px-2 py-1 rounded-sm text-xs">
-                {tag === 'vegetarian' ? '🥬 Vegetarian' :
-                 tag === 'spicy' ? '🌶️ Spicy' :
-                 tag === 'popular' ? '⭐ Popular' : tag}
+                {tag === 'vegetarian' ? 'Vegetarian' :
+                 tag === 'spicy' ? 'Spicy' :
+                 tag === 'popular' ? 'Popular' : tag}
               </span>
             ))}
           </div>
@@ -73,7 +88,7 @@ const MenuFilters = ({ filters, handleFilterChange, categories, clearFilters }: 
           <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Search</label>
           <input
             type="text"
-            placeholder="Search items..."
+            placeholder={menuSection === 'drinks' ? 'Search drinks...' : 'Search food items...'}
             value={filters.search}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFilterChange('search', e.target.value)}
             className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
@@ -82,16 +97,18 @@ const MenuFilters = ({ filters, handleFilterChange, categories, clearFilters }: 
 
         {/* Category Filter */}
         <div>
-          <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Category</label>
+          <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+            {menuSection === 'drinks' ? 'Bar Subcategory' : 'Food Category'}
+          </label>
           <CustomDropdown
             value={filters.category}
             onChange={(category: string) => handleFilterChange('category', category)}
             options={[
-              { value: '', label: 'All Categories' },
-              ...categories.map((category: { name: string; item_count?: number; parent?: any }) => ({
+              { value: '', label: menuSection === 'drinks' ? 'All Bar Subcategories' : 'All Food Categories' },
+              ...filterableCategories.map((category: { name: string; item_count?: number; parent?: any }) => ({
                 value: category.name,
                 label: category.item_count !== undefined
-                  ? `${category.parent ? '↳ ' : ''}${category.name} (${category.item_count})`
+                  ? `${category.name} (${category.item_count})`
                   : category.name
               }))
             ]}
@@ -130,28 +147,28 @@ const MenuFilters = ({ filters, handleFilterChange, categories, clearFilters }: 
       <div className="mt-4">
         <label className="block text-sm font-medium text-sangeet-neutral-300 mb-2">Tags</label>
         <div className="flex flex-wrap gap-2">
-          {[
-            { key: 'vegetarian', label: 'Vegetarian', icon: '🥬' },
-            { key: 'spicy', label: 'Spicy', icon: '🌶️' },
-            { key: 'popular', label: 'Popular', icon: '⭐' }
-          ].map((tag) => (
-            <button
-              key={tag.key}
-              onClick={() => {
-                const newTags = filters.tags.includes(tag.key)
-                  ? filters.tags.filter((t: any) => t !== tag.key)
-                  : [...filters.tags, tag.key];
-                handleFilterChange('tags', newTags);
-              }}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                filters.tags.includes(tag.key)
-                  ? 'bg-sangeet-400 text-sangeet-neutral-950'
-                  : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700'
-              }`}
-            >
-              {tag.icon} {tag.label}
-            </button>
-          ))}
+          {availableTags.map((tag) => {
+            const IconComponent = tag.Icon;
+            return (
+              <button
+                key={tag.key}
+                onClick={() => {
+                  const newTags = filters.tags.includes(tag.key)
+                    ? filters.tags.filter((t: any) => t !== tag.key)
+                    : [...filters.tags, tag.key];
+                  handleFilterChange('tags', newTags);
+                }}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer ${
+                  filters.tags.includes(tag.key)
+                    ? 'bg-sangeet-400 text-sangeet-neutral-950'
+                    : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 hover:bg-sangeet-neutral-700'
+                }`}
+              >
+                <IconComponent className="w-3.5 h-3.5" />
+                <span>{tag.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
