@@ -104,7 +104,10 @@ const handleApiError = (error: any): Promise<never> => {
     } else if (status !== null && status >= 400) {
       errorType = API_ERROR_TYPES.CLIENT;
 
-      if (status !== null && (status === 401 || status === 403)) {
+      if (
+        status !== null &&
+        (status === 401 || (status === 403 && /invalid or expired token/i.test(message)))
+      ) {
         const isLoginRequest = error.config && error.config.url && error.config.url.includes('/auth/login');
         if (!isLoginRequest) {
           handleAuthFailure();

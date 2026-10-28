@@ -5,10 +5,14 @@ import { motion } from 'framer-motion';
 // Real-time notifications temporarily disabled during socket reset
 // import RealTimeNotifications from './RealTimeNotifications';
 import { logout } from '../utils/auth';
+import { useAuth } from '../contexts/AuthContext';
 
 const AdminHeader = ({ title = 'Admin Dashboard', subtitle, showBackButton = true, onBackClick }: any) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const displayName = user?.full_name?.split(' ')[0] || user?.username || 'Admin';
+  const displayInitial = (displayName[0] || 'A').toUpperCase();
 
   const handleBackClick = () => {
     if (onBackClick) {
@@ -102,9 +106,9 @@ const AdminHeader = ({ title = 'Admin Dashboard', subtitle, showBackButton = tru
             <div className="relative group">
               <button className="flex items-center space-x-2 text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors">
                 <div className="w-8 h-8 bg-linear-to-br from-sangeet-400 to-sangeet-500 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold text-sangeet-neutral-950">A</span>
+                  <span className="text-sm font-bold text-sangeet-neutral-950">{displayInitial}</span>
                 </div>
-                <span className="hidden md:block">Admin</span>
+                <span className="hidden md:block">{displayName}</span>
                 <span className="text-xs">▼</span>
               </button>
               

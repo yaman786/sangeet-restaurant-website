@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <ProtectedRoute requiredRole={['admin', 'reception', 'waiter']}>
+    <ProtectedRoute requiredRole={['admin', 'reception', 'waiter', 'kitchen']}>
       <AdminDashboard />
     </ProtectedRoute>
   );

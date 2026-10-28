@@ -12,7 +12,7 @@ const protectedPaths = ['/admin', '/kitchen'];
 
 const ADMIN_ROUTE_ROLES: Array<{ prefix: string; roles: string[] }> = [
   { prefix: '/admin/orders', roles: ['admin', 'reception', 'waiter'] },
-  { prefix: '/admin/dashboard', roles: ['admin', 'reception', 'waiter'] },
+  { prefix: '/admin/dashboard', roles: ['admin', 'reception', 'waiter', 'kitchen'] },
   { prefix: '/admin/reservations', roles: ['admin', 'reception'] },
   { prefix: '/admin/history', roles: ['admin', 'reception'] },
   { prefix: '/admin/kitchen', roles: ['admin', 'kitchen'] },

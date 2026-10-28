@@ -15,6 +15,7 @@ async function cleanupUserByUsername(request: APIRequestContext, username: strin
 }
 
 test.describe('Live Staff Management Interactive Action Walkthrough', () => {
+  test.setTimeout(90000);
 
   test('Full Action Walkthrough: Admin creates Waiter Vikram, verifies table, and tests Waiter Login', async ({ page }) => {
     // ----------------------------------------------------
@@ -27,6 +28,15 @@ test.describe('Live Staff Management Interactive Action Walkthrough', () => {
 
     // Wait for Admin Dashboard
     await page.waitForURL(/.*admin\/dashboard/, { timeout: 20000 });
+    await expect(page.getByRole('heading', { name: 'Order Management' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Menu Management' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Staff Management' })).toBeVisible();
+
+    await page.screenshot({
+      path: path.join(ARTIFACT_DIR, 'live_admin_dashboard_cards.png'),
+      fullPage: false,
+    });
+    console.log('✅ Verified Admin Dashboard cards are visible & captured screenshot');
 
     // Pre-clean any leftover vikram_waiter from prior runs
     await cleanupUserByUsername(page.request, 'vikram_waiter');
