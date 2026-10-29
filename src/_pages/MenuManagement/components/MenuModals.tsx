@@ -83,7 +83,7 @@ const MenuModals = ({
         is_popular: selectedItem.is_popular ?? false,
       });
     } else if (showAddModal) {
-      setServingMode('single');
+      setServingMode(menuSection === 'drinks' ? 'shot_and_bottle' : 'single');
       setShotPrice('');
       setBottlePrice('');
       resetItem({
