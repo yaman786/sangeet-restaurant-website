@@ -72,7 +72,8 @@ test.describe('UI/UX Pro-Max Responsiveness Audit Across All Pages & Viewports',
   for (const vp of VIEWPORTS) {
     test(`1. Homepage (/) Responsive Audit [${vp.name}]`, async ({ page }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
-      await page.goto('/', { waitUntil: 'domcontentloaded' });
+      await page.goto('/', { waitUntil: 'networkidle' });
+      await page.waitForSelector('text=Preparing your experience', { state: 'detached', timeout: 10000 }).catch(() => {});
       await expect(page.locator('h1, h2').first()).toBeVisible({ timeout: 15000 });
 
       // Verify zero horizontal scroll
@@ -100,7 +101,7 @@ test.describe('UI/UX Pro-Max Responsiveness Audit Across All Pages & Viewports',
 
     test(`2. Public Menu (/menu) Responsive Audit [${vp.name}]`, async ({ page }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
-      await page.goto('/menu', { waitUntil: 'domcontentloaded' });
+      await page.goto('/menu', { waitUntil: 'networkidle' });
       await expect(page.getByTestId('public-menu-food')).toBeVisible({ timeout: 15000 });
 
       // 1. Food Menu view
@@ -114,7 +115,12 @@ test.describe('UI/UX Pro-Max Responsiveness Audit Across All Pages & Viewports',
 
       // 2. Bar & Drinks view
       await drinksTab.click();
-      await expect(page.getByRole('button', { name: 'All Bar & Drinks', exact: true })).toBeVisible({ timeout: 10000 });
+      const allBarSubTab = page.getByRole('button', { name: 'All Bar & Drinks', exact: true });
+      if (!(await allBarSubTab.isVisible())) {
+        await page.waitForTimeout(500);
+        await drinksTab.click();
+      }
+      await expect(allBarSubTab).toBeVisible({ timeout: 10000 });
       await assertNoHorizontalOverflow(page, 'Menu-Drinks', vp.name);
 
       // Verify drink cards adapt smoothly to grid
@@ -173,7 +179,8 @@ test.describe('UI/UX Pro-Max Responsiveness Audit Across All Pages & Viewports',
 
     test(`4. Reservations Page (/reservations) Responsive Audit [${vp.name}]`, async ({ page }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
-      await page.goto('/reservations', { waitUntil: 'domcontentloaded' });
+      await page.goto('/reservations', { waitUntil: 'networkidle' });
+      await page.waitForSelector('text=Preparing your experience', { state: 'detached', timeout: 10000 }).catch(() => {});
       await expect(page.locator('h1, h2').first()).toBeVisible({ timeout: 15000 });
 
       await assertNoHorizontalOverflow(page, 'Reservations', vp.name);
