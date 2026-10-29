@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import imageCompression from 'browser-image-compression';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '@/lib/utils/cropImage';
+import { defaultServingModeForCategory, type DrinkServingMode } from '@/lib/utils/menuSection';
 
 const IMAGE_COMPRESSION_OPTIONS = {
   maxSizeMB: 0.5,           // Target max 500KB per image
@@ -50,6 +51,9 @@ const MenuModals = ({
 
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [servingMode, setServingMode] = useState<DrinkServingMode>('single');
+  const [shotPrice, setShotPrice] = useState<string>('');
+  const [bottlePrice, setBottlePrice] = useState<string>('');
 
   // Cropper state
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -62,18 +66,26 @@ const MenuModals = ({
 
   useEffect(() => {
     if (showEditModal && selectedItem) {
+      const detectedMode: DrinkServingMode =
+        selectedItem.servingMode || defaultServingModeForCategory(selectedItem.category || selectedItem.category_name || '');
+      setServingMode(detectedMode);
+      setShotPrice(selectedItem.shotPrice ? String(selectedItem.shotPrice) : String(selectedItem.price || ''));
+      setBottlePrice(selectedItem.bottlePrice ? String(selectedItem.bottlePrice) : String(selectedItem.price || ''));
       resetItem({
-        name: selectedItem.name || '',
+        name: selectedItem.baseName || selectedItem.name || '',
         price: Number(selectedItem.price) || 0,
         description: selectedItem.description || '',
         category: selectedItem.category || selectedItem.category_name || '',
         image_url: selectedItem.image_url || '',
-        preparation_time: Number(selectedItem.preparation_time) || 15,
-        is_vegetarian: selectedItem.is_vegetarian ?? false,
-        is_spicy: selectedItem.is_spicy ?? false,
+        preparation_time: menuSection === 'drinks' ? 5 : Number(selectedItem.preparation_time) || 15,
+        is_vegetarian: menuSection === 'drinks' ? false : (selectedItem.is_vegetarian ?? false),
+        is_spicy: menuSection === 'drinks' ? false : (selectedItem.is_spicy ?? false),
         is_popular: selectedItem.is_popular ?? false,
       });
     } else if (showAddModal) {
+      setServingMode('single');
+      setShotPrice('');
+      setBottlePrice('');
       resetItem({
         name: '', price: 0, description: '', category: '', image_url: '',
         preparation_time: menuSection === 'drinks' ? 5 : 15,
@@ -133,39 +145,212 @@ const MenuModals = ({
       {/* Add/Edit Menu Item Modal */}
       {(showAddModal || showEditModal) && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-sangeet-neutral-900 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-sangeet-neutral-900 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-sangeet-neutral-700">
             <h2 className="text-2xl font-bold text-sangeet-400 mb-6">
-              {showAddModal ? 'Add Menu Item' : 'Edit Menu Item'}
+              {showAddModal
+                ? menuSection === 'drinks'
+                  ? 'Add Drink Item'
+                  : 'Add Food Item'
+                : menuSection === 'drinks'
+                ? 'Edit Drink Item'
+                : 'Edit Food Item'}
             </h2>
             <form onSubmit={handleSubmitItem(
-              showAddModal ? handleAddItem : handleEditItem,
+              (formData) => {
+                const payload =
+                  menuSection === 'drinks'
+                    ? {
+                        ...formData,
+                        serving_mode: servingMode,
+                        shot_price: Number(shotPrice) || 0,
+                        bottle_price: Number(bottlePrice) || 0,
+                        price:
+                          servingMode === 'shot_and_bottle'
+                            ? Number(shotPrice) || 0
+                            : servingMode === 'bottle_only'
+                            ? Number(bottlePrice) || 0
+                            : Number(formData.price) || 0,
+                        preparation_time: 5,
+                        is_vegetarian: false,
+                        is_spicy: false,
+                      }
+                    : formData;
+                return showAddModal ? handleAddItem(payload) : handleEditItem(payload);
+              },
               (errors) => {
                 console.error('Form validation errors:', errors);
                 const firstError = Object.values(errors)[0];
                 toast.error(`Validation: ${(firstError as any)?.message || 'Please check all fields'}`);
               }
             )} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Name</label>
-                  <input
-                    type="text"
-                    {...registerItem('name')}
-                    className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
-                  />
-                  {itemErrors.name && <p className="text-red-500 text-xs mt-1">{itemErrors.name.message}</p>}
+              {menuSection === 'drinks' ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Drink Name</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Chivas Regal 12yrs"
+                        {...registerItem('name')}
+                        className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
+                      />
+                      {itemErrors.name && <p className="text-red-500 text-xs mt-1">{itemErrors.name.message}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Category</label>
+                      <CustomDropdown
+                        label="Category"
+                        options={itemCategoryOptions}
+                        value={watchItem('category')}
+                        onChange={(val: any) => {
+                          setItemValue('category', val, { shouldValidate: true });
+                          if (showAddModal) {
+                            setServingMode(defaultServingModeForCategory(val));
+                          }
+                        }}
+                        error={itemErrors.category?.message}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Serving Format & Price Math Selector for Bar & Drinks */}
+                  <div className="p-4 rounded-xl bg-sangeet-neutral-950/60 border border-sangeet-neutral-800 space-y-3">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-sangeet-neutral-400">
+                      Serving Format &amp; Pricing
+                    </label>
+                    <div className="grid grid-cols-3 gap-2" data-testid="drink-serving-mode-selector">
+                      <button
+                        type="button"
+                        data-testid="serving-mode-shot-bottle"
+                        onClick={() => setServingMode('shot_and_bottle')}
+                        className={`py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold border transition-all cursor-pointer ${
+                          servingMode === 'shot_and_bottle'
+                            ? 'bg-sangeet-400 text-sangeet-neutral-950 border-sangeet-400'
+                            : 'bg-sangeet-neutral-800 text-sangeet-neutral-300 border-sangeet-neutral-700 hover:bg-sangeet-neutral-700'
+                        }`}
+                      >
+                        Shot &amp; Full Bottle
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="serving-mode-bottle-only"
+                        onClick={() => setServingMode('bottle_only')}
+                        className={`py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold border transition-all cursor-pointer ${
+                          servingMode === 'bottle_only'
+                            ? 'bg-sangeet-400 text-sangeet-neutral-950 border-sangeet-400'
+                            : 'bg-sangeet-neutral-800 text-sangeet-neutral-300 border-sangeet-neutral-700 hover:bg-sangeet-neutral-700'
+                        }`}
+                      >
+                        Full Bottle Only
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="serving-mode-single"
+                        onClick={() => setServingMode('single')}
+                        className={`py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold border transition-all cursor-pointer ${
+                          servingMode === 'single'
+                            ? 'bg-sangeet-400 text-sangeet-neutral-950 border-sangeet-400'
+                            : 'bg-sangeet-neutral-800 text-sangeet-neutral-300 border-sangeet-neutral-700 hover:bg-sangeet-neutral-700'
+                        }`}
+                      >
+                        Single Serving
+                      </button>
+                    </div>
+
+                    {servingMode === 'shot_and_bottle' ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                        <div>
+                          <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                            Shot Price ($)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            data-testid="input-shot-price"
+                            value={shotPrice}
+                            onChange={(e) => {
+                              setShotPrice(e.target.value);
+                              setItemValue('price', Number(e.target.value) || 0, { shouldValidate: true });
+                            }}
+                            placeholder="e.g. 88"
+                            className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                            Full Bottle Price ($)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            data-testid="input-bottle-price"
+                            value={bottlePrice}
+                            onChange={(e) => setBottlePrice(e.target.value)}
+                            placeholder="e.g. 1788"
+                            className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
+                          />
+                        </div>
+                      </div>
+                    ) : servingMode === 'bottle_only' ? (
+                      <div className="pt-1">
+                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                          Full Bottle Price ($)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          data-testid="input-bottle-only-price"
+                          value={bottlePrice}
+                          onChange={(e) => {
+                            setBottlePrice(e.target.value);
+                            setItemValue('price', Number(e.target.value) || 0, { shouldValidate: true });
+                          }}
+                          placeholder="e.g. 2130"
+                          className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
+                        />
+                      </div>
+                    ) : (
+                      <div className="pt-1">
+                        <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
+                          Price ($)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          {...registerItem('price')}
+                          placeholder="e.g. 75"
+                          className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
+                        />
+                        {itemErrors.price && <p className="text-red-500 text-xs mt-1">{itemErrors.price.message}</p>}
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Name</label>
+                    <input
+                      type="text"
+                      {...registerItem('name')}
+                      className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
+                    />
+                    {itemErrors.name && <p className="text-red-500 text-xs mt-1">{itemErrors.name.message}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Price</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      {...registerItem('price')}
+                      className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
+                    />
+                    {itemErrors.price && <p className="text-red-500 text-xs mt-1">{itemErrors.price.message}</p>}
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Price</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    {...registerItem('price')}
-                    className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
-                  />
-                  {itemErrors.price && <p className="text-red-500 text-xs mt-1">{itemErrors.price.message}</p>}
-                </div>
-              </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Description</label>
                 <textarea
@@ -174,18 +359,21 @@ const MenuModals = ({
                   className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Category</label>
-                  <CustomDropdown
-                    label="Category"
-                    options={itemCategoryOptions}
-                    value={watchItem('category')}
-                    onChange={(val: any) => setItemValue('category', val, { shouldValidate: true })}
-                    error={itemErrors.category?.message}
-                    className="w-full"
-                  />
-                </div>
+
+              <div className={menuSection === 'drinks' ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-1 md:grid-cols-2 gap-4'}>
+                {menuSection === 'food' && (
+                  <div>
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Category</label>
+                    <CustomDropdown
+                      label="Category"
+                      options={itemCategoryOptions}
+                      value={watchItem('category')}
+                      onChange={(val: any) => setItemValue('category', val, { shouldValidate: true })}
+                      error={itemErrors.category?.message}
+                      className="w-full"
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Image</label>
                   <div className="flex gap-2">
@@ -212,7 +400,6 @@ const MenuModals = ({
                         const file = e.target.files?.[0];
                         if (!file) return;
 
-                        // Instead of uploading directly, read the file and open cropper
                         const reader = new FileReader();
                         reader.addEventListener('load', () => {
                           setCropImageSrc(reader.result?.toString() || null);
@@ -220,7 +407,6 @@ const MenuModals = ({
                         });
                         reader.readAsDataURL(file);
 
-                        // Reset so same file can be re-selected
                         if (fileInputRef.current) fileInputRef.current.value = '';
                       }}
                     />
@@ -228,29 +414,40 @@ const MenuModals = ({
                   {itemErrors.image_url && <p className="text-red-500 text-xs mt-1">{itemErrors.image_url.message}</p>}
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Preparation Time (minutes)</label>
-                  <input
-                    type="number"
-                    {...registerItem('preparation_time')}
-                    className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
-                  />
-                  {itemErrors.preparation_time && <p className="text-red-500 text-xs mt-1">{itemErrors.preparation_time.message}</p>}
+
+              {/* Preparation Time, Vegetarian, and Spicy ONLY shown for Food Menu */}
+              {menuSection === 'food' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Preparation Time (minutes)</label>
+                    <input
+                      type="number"
+                      {...registerItem('preparation_time')}
+                      className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
+                    />
+                    {itemErrors.preparation_time && <p className="text-red-500 text-xs mt-1">{itemErrors.preparation_time.message}</p>}
+                  </div>
                 </div>
-              </div>
+              )}
+
               <div className="flex space-x-4">
-                <label className="flex items-center">
-                  <input type="checkbox" {...registerItem('is_vegetarian')} className="mr-2" />
-                  <span className="text-sangeet-neutral-300">Vegetarian</span>
-                </label>
-                <label className="flex items-center">
-                  <input type="checkbox" {...registerItem('is_spicy')} className="mr-2" />
-                  <span className="text-sangeet-neutral-300">Spicy</span>
-                </label>
+                {menuSection === 'food' && (
+                  <>
+                    <label className="flex items-center">
+                      <input type="checkbox" {...registerItem('is_vegetarian')} className="mr-2" />
+                      <span className="text-sangeet-neutral-300">Vegetarian</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input type="checkbox" {...registerItem('is_spicy')} className="mr-2" />
+                      <span className="text-sangeet-neutral-300">Spicy</span>
+                    </label>
+                  </>
+                )}
                 <label className="flex items-center">
                   <input type="checkbox" {...registerItem('is_popular')} className="mr-2" />
-                  <span className="text-sangeet-neutral-300">Popular</span>
+                  <span className="text-sangeet-neutral-300">
+                    {menuSection === 'drinks' ? 'Popular / Featured Drink' : 'Popular'}
+                  </span>
                 </label>
               </div>
               <div className="flex justify-end space-x-3 pt-4">

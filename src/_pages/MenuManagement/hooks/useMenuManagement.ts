@@ -12,7 +12,13 @@ import {
   updateCategoryAction,
   deleteCategoryAction
 } from '@/app/actions/menuActions';
-import { isBarCategory, isBarMenuItem, type MenuSection } from '@/lib/utils/menuSection';
+import { 
+  isBarCategory, 
+  isBarMenuItem, 
+  groupDrinkMenuItems, 
+  stripDrinkVariantSuffix, 
+  type MenuSection 
+} from '@/lib/utils/menuSection';
 
 export const useMenuManagement = () => {
   const [menuItems, setMenuItems] = useState<any[]>([]);
@@ -74,9 +80,14 @@ export const useMenuManagement = () => {
     [menuItems, categories]
   );
 
+  const groupedDrinkItems = useMemo(
+    () => groupDrinkMenuItems(drinkItems),
+    [drinkItems]
+  );
+
   const sectionItems = useMemo(
-    () => (menuSection === 'drinks' ? drinkItems : foodItems),
-    [menuSection, drinkItems, foodItems]
+    () => (menuSection === 'drinks' ? groupedDrinkItems : foodItems),
+    [menuSection, groupedDrinkItems, foodItems]
   );
 
   const sectionCategories = useMemo(
@@ -128,9 +139,13 @@ export const useMenuManagement = () => {
 
     if (filters.priceRange) {
       const [min, max] = filters.priceRange.split('-').map(Number);
+      const inRange = (p: number) => (max ? p >= min && p <= max : p >= min);
       filtered = filtered.filter((item: any) => {
+        if (item.servingMode === 'shot_and_bottle') {
+          return inRange(Number(item.shotPrice || 0)) || inRange(Number(item.bottlePrice || 0));
+        }
         const price = parseFloat(item.price);
-        return max ? (price >= min && price <= max) : (price >= min);
+        return inRange(price);
       });
     }
 
@@ -180,6 +195,89 @@ export const useMenuManagement = () => {
   };
 
   const handleAddItem = async (data: any) => {
+    if (menuSection === 'drinks') {
+      const servingMode = data.serving_mode || 'single';
+      const baseName = stripDrinkVariantSuffix(data.name);
+      const commonDrinkFields = {
+        description: data.description || '',
+        category: data.category,
+        image_url: data.image_url || '',
+        is_vegetarian: false,
+        is_spicy: false,
+        is_popular: Boolean(data.is_popular),
+        preparation_time: 5,
+      };
+
+      if (servingMode === 'shot_and_bottle') {
+        const shotPrice = Number(data.shot_price) || 0;
+        const bottlePrice = Number(data.bottle_price) || 0;
+        if (shotPrice <= 0 || bottlePrice <= 0) {
+          toast.error('Please enter valid Shot and Full Bottle prices');
+          return;
+        }
+        const [shotRes, bottleRes] = await Promise.all([
+          createMenuItemAction({
+            ...commonDrinkFields,
+            name: `${baseName} (Shot)`,
+            price: shotPrice,
+          }),
+          createMenuItemAction({
+            ...commonDrinkFields,
+            name: `${baseName} (Bottle)`,
+            price: bottlePrice,
+          }),
+        ]);
+        if (shotRes.success && bottleRes.success) {
+          toast.success(`${baseName} (Shot & Bottle) created successfully!`);
+          setShowAddModal(false);
+          loadData();
+        } else {
+          toast.error(shotRes.error || bottleRes.error || 'Failed to create drink item');
+        }
+        return;
+      }
+
+      if (servingMode === 'bottle_only') {
+        const bottlePrice = Number(data.bottle_price || data.price) || 0;
+        if (bottlePrice <= 0) {
+          toast.error('Please enter a valid Full Bottle price');
+          return;
+        }
+        const res = await createMenuItemAction({
+          ...commonDrinkFields,
+          name: `${baseName} (Bottle)`,
+          price: bottlePrice,
+        });
+        if (res.success) {
+          toast.success(`${baseName} (Bottle) created successfully!`);
+          setShowAddModal(false);
+          loadData();
+        } else {
+          toast.error(res.error || 'Failed to create drink item');
+        }
+        return;
+      }
+
+      const singlePrice = Number(data.price) || 0;
+      if (singlePrice <= 0) {
+        toast.error('Please enter a valid price');
+        return;
+      }
+      const res = await createMenuItemAction({
+        ...commonDrinkFields,
+        name: String(data.name || '').trim(),
+        price: singlePrice,
+      });
+      if (res.success) {
+        toast.success('Drink item created successfully!');
+        setShowAddModal(false);
+        loadData();
+      } else {
+        toast.error(res.error || 'Failed to create drink item');
+      }
+      return;
+    }
+
     const result = await createMenuItemAction(data);
     if (result.success) {
       toast.success('Menu item created successfully!');
@@ -192,6 +290,106 @@ export const useMenuManagement = () => {
   };
 
   const handleEditItem = async (data: any) => {
+    const current: any = selectedItem;
+    if (menuSection === 'drinks' && current) {
+      const servingMode = data.serving_mode || current.servingMode || 'single';
+      const baseName = stripDrinkVariantSuffix(data.name);
+      const commonDrinkFields = {
+        description: data.description || '',
+        category: data.category,
+        image_url: data.image_url || '',
+        is_vegetarian: false,
+        is_spicy: false,
+        is_popular: Boolean(data.is_popular),
+        preparation_time: 5,
+      };
+
+      if (servingMode === 'shot_and_bottle') {
+        const shotPrice = Number(data.shot_price) || 0;
+        const bottlePrice = Number(data.bottle_price) || 0;
+        if (shotPrice <= 0 || bottlePrice <= 0) {
+          toast.error('Please enter valid Shot and Full Bottle prices');
+          return;
+        }
+        const shotPayload = {
+          ...commonDrinkFields,
+          name: `${baseName} (Shot)`,
+          image_url: data.image_url || current.shotItem?.image_url || '',
+          price: shotPrice,
+        };
+        const bottlePayload = {
+          ...commonDrinkFields,
+          name: `${baseName} (Bottle)`,
+          image_url: data.image_url || current.bottleItem?.image_url || '',
+          price: bottlePrice,
+        };
+
+        const shotPromise = current.shotItem?.id
+          ? updateMenuItemAction(current.shotItem.id, shotPayload)
+          : createMenuItemAction(shotPayload);
+        const bottlePromise = current.bottleItem?.id
+          ? updateMenuItemAction(current.bottleItem.id, bottlePayload)
+          : createMenuItemAction(bottlePayload);
+
+        const [shotRes, bottleRes] = await Promise.all([shotPromise, bottlePromise]);
+        if (shotRes.success && bottleRes.success) {
+          toast.success(`${baseName} (Shot & Bottle) updated successfully!`);
+          setShowEditModal(false);
+          setSelectedItem(null);
+          loadData();
+        } else {
+          toast.error(shotRes.error || bottleRes.error || 'Failed to update drink item');
+        }
+        return;
+      }
+
+      if (servingMode === 'bottle_only') {
+        const bottlePrice = Number(data.bottle_price || data.price) || 0;
+        if (bottlePrice <= 0) {
+          toast.error('Please enter a valid Full Bottle price');
+          return;
+        }
+        const targetId = current.bottleItem?.id || current.id;
+        const res = await updateMenuItemAction(targetId, {
+          ...commonDrinkFields,
+          name: `${baseName} (Bottle)`,
+          price: bottlePrice,
+        });
+        if (current.shotItem?.id && current.shotItem.id !== targetId) {
+          await deleteMenuItemAction(current.shotItem.id);
+        }
+        if (res.success) {
+          toast.success(`${baseName} updated successfully!`);
+          setShowEditModal(false);
+          setSelectedItem(null);
+          loadData();
+        } else {
+          toast.error(res.error || 'Failed to update drink item');
+        }
+        return;
+      }
+
+      const singlePrice = Number(data.price) || 0;
+      const targetId = current.singleItem?.id || current.shotItem?.id || current.id;
+      const res = await updateMenuItemAction(targetId, {
+        ...commonDrinkFields,
+        name: String(data.name || '').trim(),
+        price: singlePrice,
+      });
+      if (current.bottleItem?.id && current.bottleItem.id !== targetId) {
+        await deleteMenuItemAction(current.bottleItem.id);
+      }
+      if (res.success) {
+        toast.success('Drink item updated successfully!');
+        setShowEditModal(false);
+        setSelectedItem(null);
+        loadData();
+      } else {
+        toast.error(res.error || 'Failed to update drink item');
+      }
+      return;
+    }
+
     const result = await updateMenuItemAction((selectedItem as any)?.id, data);
     if (result.success) {
       toast.success('Menu item updated successfully!');
@@ -205,18 +403,41 @@ export const useMenuManagement = () => {
   };
 
   const handleDeleteItem = async (id: string | number | null) => {
-    const item = menuItems.find((item: any) => item.id === id);
+    const item = sectionItems.find((i: any) => i.id === id) || menuItems.find((i: any) => i.id === id);
     setDeleteType('item');
     setDeleteId(id as any);
     setDeleteName(item?.name || 'this menu item');
+    setSelectedItem(item || null);
     setShowDeleteModal(true);
   };
 
   const confirmDeleteItem = async () => {
+    const targetItem: any =
+      sectionItems.find((i: any) => i.id === deleteId) ||
+      selectedItem ||
+      menuItems.find((i: any) => i.id === deleteId);
+
+    if (targetItem?.servingMode === 'shot_and_bottle' && targetItem.shotItem?.id && targetItem.bottleItem?.id) {
+      const [r1, r2] = await Promise.all([
+        deleteMenuItemAction(targetItem.shotItem.id),
+        deleteMenuItemAction(targetItem.bottleItem.id),
+      ]);
+      if (r1.success && r2.success) {
+        toast.success('Drink item (Shot & Bottle) deleted successfully!');
+        setShowDeleteModal(false);
+        setSelectedItem(null);
+        loadData();
+      } else {
+        toast.error(r1.error || r2.error || 'Failed to delete drink item');
+      }
+      return;
+    }
+
     const result = await deleteMenuItemAction(deleteId as any);
     if (result.success) {
       toast.success('Menu item deleted successfully!');
       setShowDeleteModal(false);
+      setSelectedItem(null);
       loadData();
     } else {
       console.error('Error deleting menu item:', result.error);
@@ -290,7 +511,7 @@ export const useMenuManagement = () => {
   return {
     menuItems, filteredItems, categories, loading, activeTab, setActiveTab,
     menuSection, handleSectionChange,
-    foodCount: foodItems.length, drinkCount: drinkItems.length,
+    foodCount: foodItems.length, drinkCount: groupedDrinkItems.length,
     sectionItems, sectionCategories,
     showAddModal, setShowAddModal, showEditModal, setShowEditModal,
     showCategoryModal, setShowCategoryModal, showDeleteModal, setShowDeleteModal,

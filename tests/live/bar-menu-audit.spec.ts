@@ -1,3 +1,4 @@
+
 import 'dotenv/config';
 import { test, expect } from '@playwright/test';
 import * as path from 'path';
@@ -56,6 +57,17 @@ test.describe('Live Production Bar Menu Audit & End-to-End Guest QR Order Flow',
     // Verify no "Veg" badges appear on Bar & Drinks items
     await expect(page.locator('.badge-veg')).toHaveCount(0);
 
+    // Filter to Whisky & Bourbon and verify Shot + Bottle are unified into 1 card with switcher
+    await page.getByRole('button', { name: 'Whisky & Bourbon', exact: true }).click();
+    const chivasCard = page.locator('div.group').filter({ has: page.locator('h3', { hasText: 'Chivas Regal 12yrs' }) });
+    await expect(chivasCard).toHaveCount(1);
+    await expect(chivasCard.locator('[data-testid^="public-serving-switcher-"]')).toBeVisible();
+    await expect(chivasCard.getByRole('button', { name: /Shot.*\$88/i })).toBeVisible();
+    await expect(chivasCard.getByRole('button', { name: /Bottle.*\$1788/i })).toBeVisible();
+
+    // Switch back to All Bar & Drinks for the overview screenshot
+    await page.getByRole('button', { name: 'All Bar & Drinks', exact: true }).click();
+
     // Scroll so both the category filter bar and the first row of drink cards are clearly visible
     await page.evaluate(() => window.scrollTo({ top: 320, behavior: 'instant' }));
 
@@ -109,8 +121,16 @@ test.describe('Live Production Bar Menu Audit & End-to-End Guest QR Order Flow',
     // Add Carlsberg (Draught) ($75) to order and verify inline quantity stepper appears
     const carlsbergCard = page.locator('div.group').filter({ has: page.locator('h3', { hasText: 'Carlsberg (Draught)' }) }).first();
     await carlsbergCard.getByRole('button', { name: /Add to Order/i }).click();
-    await expect(carlsbergCard.locator('text=1 in Order')).toBeVisible({ timeout: 5000 });
-    await expect(carlsbergCard.locator('text=1 in order')).toBeVisible({ timeout: 5000 });
+    await expect(carlsbergCard.locator('[data-testid^="qr-stepper-"]')).toBeVisible({ timeout: 5000 });
+    await expect(carlsbergCard.locator('[data-testid^="qr-card-qty-badge-"]')).toBeVisible({ timeout: 5000 });
+
+    // Filter to Whisky & Bourbon, verify unified Shot | Bottle card, and add 1 Shot of Chivas Regal 12yrs ($88)
+    await page.getByRole('button', { name: 'Whisky & Bourbon', exact: true }).click();
+    const qrChivasCard = page.locator('div.group').filter({ has: page.locator('h3', { hasText: 'Chivas Regal 12yrs' }) });
+    await expect(qrChivasCard).toHaveCount(1);
+    await expect(qrChivasCard.locator('[data-testid^="qr-serving-switcher-"]')).toBeVisible();
+    await expect(qrChivasCard.locator('[data-testid^="qr-serving-shot-"]')).toContainText('$88');
+    await expect(qrChivasCard.locator('[data-testid^="qr-serving-bottle-"]')).toContainText('$1788');
 
     // Filter to Cocktails subcategory and add Aperol Spritz ($125)
     await page.getByRole('button', { name: 'Cocktails', exact: true }).click();
@@ -158,6 +178,11 @@ test.describe('Live Production Bar Menu Audit & End-to-End Guest QR Order Flow',
     await expect(page.locator('h3', { hasText: 'Butter Chicken' })).toBeVisible();
     await expect(page.locator('h3', { hasText: 'Carlsberg (Draught)' })).toBeVisible();
     await expect(page.locator('h3', { hasText: 'Aperol Spritz' })).toBeVisible();
+
+    await page.screenshot({
+      path: path.join(ARTIFACT_DIR, 'live_qr_cart_grouped.png'),
+      fullPage: true
+    });
 
     // Fill guest name and submit order
     await page.locator('input[placeholder*="Jane Doe"]').fill('Bar Audit Guest');
@@ -225,6 +250,13 @@ test.describe('Live Production Bar Menu Audit & End-to-End Guest QR Order Flow',
     await expect(page.locator('h3', { hasText: '1664 Blanc (Draught)' }).first()).toBeVisible({ timeout: 15000 });
     await expect(page.locator('h3', { hasText: 'Aloo Gobi' })).toHaveCount(0);
 
+    // Filter to Whisky & Bourbon in Admin to verify unified card with Shot & Bottle badges
+    await page.locator('select').first().selectOption('Whisky & Bourbon');
+    const adminChivasCard = page.locator('div.bg-sangeet-neutral-900').filter({ has: page.locator('h3', { hasText: 'Chivas Regal 12yrs' }) }).first();
+    await expect(adminChivasCard).toBeVisible({ timeout: 10000 });
+    await expect(adminChivasCard.locator('text=Shot: $88')).toBeVisible();
+    await expect(adminChivasCard.locator('text=Bottle: $1788')).toBeVisible();
+
     // Wait for visible drink images in Admin Menu Management to finish loading
     await page.waitForFunction(() => {
       const imgs = Array.from(document.querySelectorAll('img')).slice(0, 3) as HTMLImageElement[];
@@ -233,6 +265,29 @@ test.describe('Live Production Bar Menu Audit & End-to-End Guest QR Order Flow',
 
     await page.screenshot({
       path: path.join(ARTIFACT_DIR, 'live_admin_menu_management_drinks.png'),
+      fullPage: false
+    });
+
+    // Click "+ Add Drink Item" and verify streamlined drink modal (Shot & Full Bottle pricing, no Prep Time / Veg / Spicy)
+    await page.getByRole('button', { name: /Add Drink Item/i }).click();
+    await expect(page.getByRole('heading', { name: /Add Drink Item/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('serving-mode-shot-and-bottle')).toBeVisible();
+    await expect(page.getByTestId('serving-mode-bottle-only')).toBeVisible();
+    await expect(page.getByTestId('serving-mode-single')).toBeVisible();
+
+    // Select Whisky & Bourbon in the modal to trigger Shot & Full Bottle side-by-side price inputs
+    const modalForm = page.locator('form');
+    await modalForm.locator('select').selectOption('Whisky & Bourbon');
+    await expect(page.getByTestId('drink-shot-price-input')).toBeVisible();
+    await expect(page.getByTestId('drink-bottle-price-input')).toBeVisible();
+
+    // Verify Preparation Time, Vegetarian, and Spicy are NOT rendered in the Add Drink Item modal
+    await expect(modalForm.locator('text=Preparation Time (minutes)')).toHaveCount(0);
+    await expect(modalForm.locator('span', { hasText: 'Vegetarian' })).toHaveCount(0);
+    await expect(modalForm.locator('span', { hasText: 'Spicy' })).toHaveCount(0);
+
+    await page.screenshot({
+      path: path.join(ARTIFACT_DIR, 'live_admin_add_drink_modal.png'),
       fullPage: false
     });
   });

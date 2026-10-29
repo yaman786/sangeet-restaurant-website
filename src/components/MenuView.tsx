@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Search, Plus, Minus, Leaf, Flame, Star, X, UtensilsCrossed, Wine } from 'lucide-react';
-import { isBarCategory, isBarMenuItem, type MenuSection } from '@/lib/utils/menuSection';
+import { isBarCategory, isBarMenuItem, groupDrinkMenuItems, type MenuSection } from '@/lib/utils/menuSection';
 
 const MenuView = ({ 
   menuItems = [], 
@@ -21,6 +21,7 @@ const MenuView = ({
   const [menuSection, setMenuSection] = useState<MenuSection>('food');
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>('all');
   const [quickFilter, setQuickFilter] = useState<'all' | 'veg' | 'spicy' | 'popular'>('all');
+  const [selectedServingMap, setSelectedServingMap] = useState<Record<number, 'shot' | 'bottle'>>({});
 
   const topLevelCategories = useMemo(
     () => categories.filter((c: any) => !c.parent_id),
@@ -57,7 +58,7 @@ const MenuView = ({
     [menuItems, categories]
   );
   const drinkCount = useMemo(
-    () => menuItems.filter((item: any) => isBarMenuItem(item, categories)).length,
+    () => groupDrinkMenuItems(menuItems.filter((item: any) => isBarMenuItem(item, categories))).length,
     [menuItems, categories]
   );
 
@@ -123,15 +124,27 @@ const MenuView = ({
     return matchesCategory && matchesQuickFilter && matchesSearch;
   });
 
-  // Group items by category
-  const itemsByCategory = filteredItems.reduce((acc: any, item: any) => {
-    const catName = item.category_name || item.category;
-    if (!acc[catName]) {
-      acc[catName] = [];
+  // Group items by category (and merge Shot + Bottle pairs when in Bar & Drinks mode)
+  const itemsByCategory = useMemo(() => {
+    const rawGrouped = filteredItems.reduce((acc: any, item: any) => {
+      const catName = item.category_name || item.category;
+      if (!acc[catName]) {
+        acc[catName] = [];
+      }
+      acc[catName].push(item);
+      return acc;
+    }, {});
+
+    if (menuSection === 'drinks') {
+      const merged: Record<string, any[]> = {};
+      for (const [catName, list] of Object.entries(rawGrouped)) {
+        merged[catName] = groupDrinkMenuItems(list as any[]);
+      }
+      return merged;
     }
-    acc[catName].push(item);
-    return acc;
-  }, {});
+
+    return rawGrouped;
+  }, [filteredItems, menuSection]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -446,7 +459,22 @@ const MenuView = ({
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               >
                 {(items as any[]).map((item: any) => {
-                  const quantityInCart = cartQuantityMap.get(Number(item.id)) || 0;
+                  const isDualServing = item.servingMode === 'shot_and_bottle' && item.shotItem && item.bottleItem;
+                  const isBottleOnly = item.servingMode === 'bottle_only' && item.bottleItem;
+                  const activeServing: 'shot' | 'bottle' = selectedServingMap[item.id] || 'shot';
+                  const activeVariant = isDualServing
+                    ? activeServing === 'bottle'
+                      ? item.bottleItem
+                      : item.shotItem
+                    : isBottleOnly
+                    ? item.bottleItem
+                    : item;
+
+                  const shotQty = isDualServing ? (cartQuantityMap.get(Number(item.shotItem.id)) || 0) : 0;
+                  const bottleQty = isDualServing ? (cartQuantityMap.get(Number(item.bottleItem.id)) || 0) : 0;
+                  const quantityInCart = cartQuantityMap.get(Number(activeVariant.id)) || 0;
+                  const totalGroupQty = isDualServing ? shotQty + bottleQty : quantityInCart;
+
                   return (
                     <motion.div
                       key={item.id}
@@ -454,7 +482,7 @@ const MenuView = ({
                       whileHover={{ y: -4, scale: 1.01 }}
                       onClick={() => setSelectedItem(item)}
                       className={`group bg-white/5 backdrop-blur-xl rounded-3xl p-4 border transition-all duration-400 shadow-glass overflow-hidden relative cursor-pointer flex flex-col h-full ${
-                        quantityInCart > 0
+                        totalGroupQty > 0
                           ? 'border-sangeet-400/60 ring-1 ring-sangeet-400/30'
                           : 'border-white/10 hover:border-sangeet-400/30'
                       }`}
@@ -463,7 +491,7 @@ const MenuView = ({
                       <div className="relative mb-5 overflow-hidden rounded-2xl aspect-4/3 shrink-0">
                         <div className="absolute inset-0 bg-linear-to-t from-[#1C1917]/80 to-transparent z-10"></div>
                         <Image
-                          src={item.image_url || 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&h=600&fit=crop'}
+                          src={activeVariant.image_url || item.image_url || 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&h=600&fit=crop'}
                           alt={item.name}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -471,12 +499,12 @@ const MenuView = ({
                         />
 
                         {/* Quantity in Order Badge (Top-Left) */}
-                        {quantityInCart > 0 && (
+                        {totalGroupQty > 0 && (
                           <div
                             data-testid={`qr-card-qty-badge-${item.id}`}
                             className="absolute top-3 left-3 z-20 bg-sangeet-400 text-sangeet-neutral-950 px-3 py-1 rounded-full text-xs font-bold shadow-lg"
                           >
-                            {quantityInCart} in order
+                            {totalGroupQty} in order
                           </div>
                         )}
 
@@ -499,10 +527,20 @@ const MenuView = ({
                           )}
                         </div>
 
-                        <div className="absolute bottom-3 left-3 z-20">
+                        <div className="absolute bottom-3 left-3 z-20 flex items-baseline gap-1.5">
                           <span className="font-display text-2xl font-bold text-white tracking-wide">
-                            ${parseFloat(item.price).toFixed(2)}
+                            ${parseFloat(activeVariant.price).toFixed(2)}
                           </span>
+                          {isDualServing && (
+                            <span className="text-xs font-medium text-sangeet-300/90 uppercase tracking-wider">
+                              / {activeServing === 'bottle' ? 'Bottle' : 'Shot'}
+                            </span>
+                          )}
+                          {isBottleOnly && (
+                            <span className="text-xs font-medium text-sangeet-300/90 uppercase tracking-wider">
+                              / Bottle
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -511,41 +549,103 @@ const MenuView = ({
                         <h3 className="font-display text-xl text-sangeet-neutral-100 mb-2 leading-tight">
                           {item.name}
                         </h3>
-                        <p className="text-sangeet-neutral-400 text-sm line-clamp-2 leading-relaxed mb-6 font-light flex-1">
+                        <p className="text-sangeet-neutral-400 text-sm line-clamp-2 leading-relaxed mb-4 font-light flex-1">
                           {item.description}
                         </p>
+
+                        {/* Two-Way Serving Toggle: Shot vs Full Bottle (for Spirits & Whiskies) */}
+                        {isDualServing && (
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            data-testid={`qr-serving-toggle-${item.id}`}
+                            className="grid grid-cols-2 gap-1.5 p-1 bg-black/40 border border-white/10 rounded-xl mb-3"
+                          >
+                            <button
+                              type="button"
+                              data-testid={`qr-select-shot-${item.id}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedServingMap((prev) => ({ ...prev, [item.id]: 'shot' }));
+                              }}
+                              className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                                activeServing === 'shot'
+                                  ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-xs'
+                                  : 'text-sangeet-neutral-300 hover:bg-white/5'
+                              }`}
+                            >
+                              <span>Shot · ${parseFloat(item.shotItem.price).toFixed(0)}</span>
+                              {shotQty > 0 && (
+                                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                                  activeServing === 'shot' ? 'bg-black/20 text-sangeet-neutral-950' : 'bg-sangeet-400/20 text-sangeet-400'
+                                }`}>
+                                  {shotQty}
+                                </span>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              data-testid={`qr-select-bottle-${item.id}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedServingMap((prev) => ({ ...prev, [item.id]: 'bottle' }));
+                              }}
+                              className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                                activeServing === 'bottle'
+                                  ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-xs'
+                                  : 'text-sangeet-neutral-300 hover:bg-white/5'
+                              }`}
+                            >
+                              <span>Bottle · ${parseFloat(item.bottleItem.price).toFixed(0)}</span>
+                              {bottleQty > 0 && (
+                                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                                  activeServing === 'bottle' ? 'bg-black/20 text-sangeet-neutral-950' : 'bg-sangeet-400/20 text-sangeet-400'
+                                }`}>
+                                  {bottleQty}
+                                </span>
+                              )}
+                            </button>
+                          </div>
+                        )}
+
+                        {isBottleOnly && (
+                          <div className="mb-3">
+                            <span className="inline-block text-xs font-semibold px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-sangeet-300">
+                              Full Bottle Service · ${parseFloat(activeVariant.price).toFixed(0)}
+                            </span>
+                          </div>
+                        )}
 
                         {/* Inline Quantity Stepper when in Cart, or Add to Order Button */}
                         {quantityInCart > 0 && onUpdateQuantity ? (
                           <div
                             onClick={(e) => e.stopPropagation()}
-                            data-testid={`qr-stepper-${item.id}`}
+                            data-testid={`qr-stepper-${activeVariant.id}`}
                             className="w-full bg-sangeet-400/15 border border-sangeet-400/50 rounded-xl p-1.5 flex items-center justify-between mt-auto"
                           >
                             <motion.button
                               type="button"
                               whileTap={{ scale: 0.9 }}
-                              data-testid={`qr-decrement-${item.id}`}
-                              aria-label={`Decrease ${item.name} quantity`}
+                              data-testid={`qr-decrement-${activeVariant.id}`}
+                              aria-label={`Decrease ${activeVariant.name} quantity`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                onUpdateQuantity(item.id, quantityInCart - 1);
+                                onUpdateQuantity(activeVariant.id, quantityInCart - 1);
                               }}
                               className="w-10 h-10 rounded-lg bg-black/40 border border-white/10 text-sangeet-400 flex items-center justify-center hover:bg-black/60 transition-colors cursor-pointer"
                             >
                               <Minus className="w-4 h-4" />
                             </motion.button>
                             <span className="font-semibold text-sm text-sangeet-300">
-                              {quantityInCart} in Order
+                              {quantityInCart} {isDualServing ? (activeServing === 'bottle' ? 'Bottle' : 'Shot') : ''} in Order
                             </span>
                             <motion.button
                               type="button"
                               whileTap={{ scale: 0.9 }}
-                              data-testid={`qr-increment-${item.id}`}
-                              aria-label={`Increase ${item.name} quantity`}
+                              data-testid={`qr-increment-${activeVariant.id}`}
+                              aria-label={`Increase ${activeVariant.name} quantity`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                onUpdateQuantity(item.id, quantityInCart + 1);
+                                onUpdateQuantity(activeVariant.id, quantityInCart + 1);
                               }}
                               className="w-10 h-10 rounded-lg bg-sangeet-400 text-sangeet-neutral-950 flex items-center justify-center hover:bg-sangeet-300 transition-colors cursor-pointer font-bold"
                             >
@@ -558,12 +658,16 @@ const MenuView = ({
                             whileTap={{ scale: 0.95 }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              onAddToCart(item);
+                              onAddToCart(activeVariant);
                             }}
                             className="w-full bg-white/5 border border-white/10 text-sangeet-400 py-3.5 px-4 rounded-xl font-semibold hover:bg-sangeet-400 hover:text-sangeet-neutral-950 transition-all duration-300 flex items-center justify-center space-x-2 shadow-xs mt-auto cursor-pointer"
                           >
                             <Plus className="w-5 h-5" />
-                            <span>Add to Order</span>
+                            <span>
+                              {isDualServing
+                                ? `Add ${activeServing === 'bottle' ? 'Bottle' : 'Shot'} to Order`
+                                : 'Add to Order'}
+                            </span>
                           </motion.button>
                         )}
                       </div>
@@ -578,83 +682,128 @@ const MenuView = ({
 
       {/* Item Details Modal */}
       <AnimatePresence>
-        {selectedItem && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedItem(null)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 cursor-pointer"
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 100, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 100, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed bottom-0 left-0 right-0 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 w-full md:max-w-lg bg-[#1C1917] md:rounded-3xl rounded-t-3xl border-t md:border border-white/10 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
-            >
-              <button
+        {selectedItem && (() => {
+          const isModalDual = selectedItem.servingMode === 'shot_and_bottle' && selectedItem.shotItem && selectedItem.bottleItem;
+          const modalServing = isModalDual ? (selectedServingMap[selectedItem.id] || 'shot') : 'single';
+          const modalVariant = isModalDual
+            ? (modalServing === 'bottle' ? selectedItem.bottleItem : selectedItem.shotItem)
+            : (selectedItem.singleItem || selectedItem.bottleItem || selectedItem);
+
+          return (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 onClick={() => setSelectedItem(null)}
-                className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors cursor-pointer"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 cursor-pointer"
+              />
+              <motion.div
+                initial={{ opacity: 0, y: 100, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 100, scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="fixed bottom-0 left-0 right-0 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-50 w-full md:max-w-lg bg-[#1C1917] md:rounded-3xl rounded-t-3xl border-t md:border border-white/10 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
               >
-                <X className="w-5 h-5" />
-              </button>
-              
-              <div className="relative w-full aspect-4/3 shrink-0">
-                <Image
-                  src={selectedItem.image_url || 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&h=600&fit=crop'}
-                  alt={selectedItem.name}
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-linear-to-t from-[#1C1917] to-transparent"></div>
-                {selectedItem.is_vegetarian && !isBarMenuItem(selectedItem, categories) && (
-                  <div className="absolute top-4 left-4 z-20 bg-green-500/90 backdrop-blur-md text-white p-2 rounded-full shadow-lg">
-                    <Leaf className="w-5 h-5" />
-                  </div>
-                )}
-              </div>
-              
-              <div className="p-6 overflow-y-auto">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <span className="inline-block text-xs uppercase tracking-wider font-semibold text-sangeet-400/90 mb-1">
-                      {selectedItem.category_name || selectedItem.category}
-                    </span>
-                    <h3 className="font-display text-3xl text-sangeet-neutral-100 leading-tight pr-4">
-                      {selectedItem.name}
-                    </h3>
-                  </div>
-                  <span className="font-display text-2xl font-bold text-sangeet-400 shrink-0">
-                    ${parseFloat(selectedItem.price).toFixed(2)}
-                  </span>
-                </div>
-                
-                <div className="mb-6">
-                  <h4 className="text-sangeet-neutral-100 font-semibold mb-2 text-sm uppercase tracking-wider">
-                    {isBarMenuItem(selectedItem, categories) ? 'About this drink' : 'About this dish'}
-                  </h4>
-                  <p className="text-sangeet-neutral-300 leading-relaxed font-light text-base">
-                    {selectedItem.description}
-                  </p>
-                </div>
-                
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    onAddToCart(selectedItem);
-                    setSelectedItem(null);
-                  }}
-                  className="w-full bg-sangeet-400 text-sangeet-neutral-950 py-4 px-4 rounded-xl font-bold text-lg hover:bg-sangeet-300 transition-all duration-300 flex items-center justify-center space-x-2 shadow-gold-glow cursor-pointer"
+                <button
+                  onClick={() => setSelectedItem(null)}
+                  className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors cursor-pointer"
                 >
-                  <Plus className="w-6 h-6" />
-                  <span>Add to Order - ${parseFloat(selectedItem.price).toFixed(2)}</span>
-                </motion.button>
-              </div>
-            </motion.div>
-          </>
-        )}
+                  <X className="w-5 h-5" />
+                </button>
+                
+                <div className="relative w-full aspect-4/3 shrink-0">
+                  <Image
+                    src={modalVariant.image_url || selectedItem.image_url || 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&h=600&fit=crop'}
+                    alt={selectedItem.name}
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-[#1C1917] to-transparent"></div>
+                  {selectedItem.is_vegetarian && !isBarMenuItem(selectedItem, categories) && (
+                    <div className="absolute top-4 left-4 z-20 bg-green-500/90 backdrop-blur-md text-white p-2 rounded-full shadow-lg">
+                      <Leaf className="w-5 h-5" />
+                    </div>
+                  )}
+                </div>
+                
+                <div className="p-6 overflow-y-auto">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <span className="inline-block text-xs uppercase tracking-wider font-semibold text-sangeet-400/90 mb-1">
+                        {selectedItem.category_name || selectedItem.category}
+                      </span>
+                      <h3 className="font-display text-3xl text-sangeet-neutral-100 leading-tight pr-4">
+                        {selectedItem.name}
+                      </h3>
+                    </div>
+                    <span className="font-display text-2xl font-bold text-sangeet-400 shrink-0">
+                      ${parseFloat(modalVariant.price).toFixed(2)}
+                    </span>
+                  </div>
+
+                  {isModalDual && (
+                    <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-black/50 border border-white/10 mb-5">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedServingMap((prev) => ({ ...prev, [selectedItem.id]: 'shot' }))
+                        }
+                        className={`py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-between ${
+                          modalServing === 'shot'
+                            ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-xs'
+                            : 'text-sangeet-neutral-300 hover:text-white'
+                        }`}
+                      >
+                        <span>Shot</span>
+                        <span className="font-bold">${Number(selectedItem.shotItem.price).toFixed(0)}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedServingMap((prev) => ({ ...prev, [selectedItem.id]: 'bottle' }))
+                        }
+                        className={`py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-between ${
+                          modalServing === 'bottle'
+                            ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-xs'
+                            : 'text-sangeet-neutral-300 hover:text-white'
+                        }`}
+                      >
+                        <span>Bottle</span>
+                        <span className="font-bold">${Number(selectedItem.bottleItem.price).toFixed(0)}</span>
+                      </button>
+                    </div>
+                  )}
+                  
+                  <div className="mb-6">
+                    <h4 className="text-sangeet-neutral-100 font-semibold mb-2 text-sm uppercase tracking-wider">
+                      {isBarMenuItem(selectedItem, categories) ? 'About this drink' : 'About this dish'}
+                    </h4>
+                    <p className="text-sangeet-neutral-300 leading-relaxed font-light text-base">
+                      {selectedItem.description}
+                    </p>
+                  </div>
+                  
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      onAddToCart(modalVariant);
+                      setSelectedItem(null);
+                    }}
+                    className="w-full bg-sangeet-400 text-sangeet-neutral-950 py-4 px-4 rounded-xl font-bold text-lg hover:bg-sangeet-300 transition-all duration-300 flex items-center justify-center space-x-2 shadow-gold-glow cursor-pointer"
+                  >
+                    <Plus className="w-6 h-6" />
+                    <span>
+                      {isModalDual
+                        ? `Add ${modalServing === 'bottle' ? 'Bottle' : 'Shot'} to Order - $${parseFloat(modalVariant.price).toFixed(2)}`
+                        : `Add to Order - $${parseFloat(modalVariant.price).toFixed(2)}`}
+                    </span>
+                  </motion.button>
+                </div>
+              </motion.div>
+            </>
+          );
+        })()}
       </AnimatePresence>
     </motion.div>
   );

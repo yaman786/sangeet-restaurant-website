@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Leaf, Flame, Star, UtensilsCrossed, Wine, ShieldCheck, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMenuItems, fetchMenuCategories } from '../services/api';
-import { isBarCategory, isBarMenuItem, type MenuSection } from '@/lib/utils/menuSection';
+import { isBarCategory, isBarMenuItem, groupDrinkMenuItems, type MenuSection } from '@/lib/utils/menuSection';
 
 const FALLBACK_MENU: any[] = [];
 
@@ -26,6 +26,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
     popular: false
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedServingMap, setSelectedServingMap] = useState<Record<number, 'shot' | 'bottle'>>({});
 
   // Fetch menu items with React Query
   const { data: menuItems = FALLBACK_MENU, isLoading: loading } = useQuery({
@@ -95,7 +96,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
     return matchesSearch && matchesDietary && matchesCategory;
   });
 
-  const filteredMenuItems = filteredItems;
+  const filteredMenuItems = menuSection === 'drinks' ? groupDrinkMenuItems(filteredItems) : filteredItems;
 
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
@@ -294,64 +295,115 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
         {!loading && (
           <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
             <AnimatePresence mode="popLayout">
-              {filteredMenuItems.map((item) => (
-                <motion.div
-                  layout
-                  key={item.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  whileHover={{ y: -4 }}
-                  className="group bg-sangeet-neutral-900 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border border-sangeet-neutral-800 hover:border-sangeet-400/30 flex flex-col h-full"
-                >
-                  {/* Image Container */}
-                  <div className="relative h-48 md:h-56 overflow-hidden flex-shrink-0">
-                    <Image
-                      src={item.image_url || 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&h=600&fit=crop'}
-                      alt={item.name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out-expo"
-                    />
-                    <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"></div>
-                    
-                    {/* Price Badge */}
-                    <div className="absolute top-3 right-3 bg-sangeet-neutral-950/80 backdrop-blur-md text-sangeet-400 border border-sangeet-400/20 px-3 py-1.5 rounded-full font-semibold text-sm shadow-glass">
-                      ${item.price}
+              {filteredMenuItems.map((item: any) => {
+                const isDualServing = item.servingMode === 'shot_and_bottle' && item.shotItem && item.bottleItem;
+                const activeServing = isDualServing ? (selectedServingMap[item.id] || 'shot') : 'single';
+                const activeVariant = isDualServing
+                  ? (activeServing === 'bottle' ? item.bottleItem : item.shotItem)
+                  : (item.singleItem || item.bottleItem || item);
+
+                return (
+                  <motion.div
+                    layout
+                    key={item.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    whileHover={{ y: -4 }}
+                    className="group bg-sangeet-neutral-900 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border border-sangeet-neutral-800 hover:border-sangeet-400/30 flex flex-col h-full"
+                  >
+                    {/* Image Container */}
+                    <div className="relative h-48 md:h-56 overflow-hidden flex-shrink-0">
+                      <Image
+                        src={activeVariant.image_url || item.image_url || 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&h=600&fit=crop'}
+                        alt={item.name}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out-expo"
+                      />
+                      <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent"></div>
+                      
+                      {/* Price Badge */}
+                      <div className="absolute top-3 right-3 bg-sangeet-neutral-950/80 backdrop-blur-md text-sangeet-400 border border-sangeet-400/20 px-3 py-1.5 rounded-full font-semibold text-sm shadow-glass">
+                        ${activeVariant.price}
+                      </div>
+                      
+                      {/* Premium Dietary Badges */}
+                      <div className="absolute bottom-3 left-3 flex gap-2 flex-wrap">
+                        {menuSection === 'food' && item.is_vegetarian && (
+                          <span className="badge-dietary badge-veg">
+                            <Leaf className="w-3 h-3" /> Veg
+                          </span>
+                        )}
+                        {menuSection === 'food' && item.is_spicy && (
+                          <span className="badge-dietary badge-spicy">
+                            <Flame className="w-3 h-3" /> Spicy
+                          </span>
+                        )}
+                        {item.is_popular && (
+                          <span className="badge-dietary badge-signature">
+                            <Star className="w-3 h-3" /> Signature
+                          </span>
+                        )}
+                      </div>
                     </div>
                     
-                    {/* Premium Dietary Badges */}
-                    <div className="absolute bottom-3 left-3 flex gap-2 flex-wrap">
-                      {item.is_vegetarian && (
-                        <span className="badge-dietary badge-veg">
-                          <Leaf className="w-3 h-3" /> Veg
-                        </span>
+                    {/* Content */}
+                    <div className="p-4 md:p-6 grow flex flex-col">
+                      <h3 className="text-lg md:text-xl font-display font-semibold text-sangeet-neutral-100 group-hover:text-sangeet-300 transition-colors mb-2">
+                        {item.name}
+                      </h3>
+                      <p className="text-sangeet-neutral-400 text-sm md:text-base leading-relaxed line-clamp-3 mb-4 grow">
+                        {item.description}
+                      </p>
+
+                      {isDualServing && (
+                        <div
+                          data-testid={`public-serving-switcher-${item.id}`}
+                          className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-black/50 border border-white/10 mt-auto"
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSelectedServingMap((prev) => ({ ...prev, [item.id]: 'shot' }))
+                            }
+                            className={`py-2 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-between ${
+                              activeServing === 'shot'
+                                ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-xs'
+                                : 'text-sangeet-neutral-300 hover:text-white'
+                            }`}
+                          >
+                            <span>Shot</span>
+                            <span className="font-bold">${Number(item.shotItem.price).toFixed(0)}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSelectedServingMap((prev) => ({ ...prev, [item.id]: 'bottle' }))
+                            }
+                            className={`py-2 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-between ${
+                              activeServing === 'bottle'
+                                ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-xs'
+                                : 'text-sangeet-neutral-300 hover:text-white'
+                            }`}
+                          >
+                            <span>Bottle</span>
+                            <span className="font-bold">${Number(item.bottleItem.price).toFixed(0)}</span>
+                          </button>
+                        </div>
                       )}
-                      {item.is_spicy && (
-                        <span className="badge-dietary badge-spicy">
-                          <Flame className="w-3 h-3" /> Spicy
-                        </span>
-                      )}
-                      {item.is_popular && (
-                        <span className="badge-dietary badge-signature">
-                          <Star className="w-3 h-3" /> Signature
-                        </span>
+
+                      {!isDualServing && item.servingMode === 'bottle_only' && (
+                        <div className="inline-flex items-center justify-between px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-sangeet-neutral-300 mt-auto">
+                          <span>Full Bottle Service</span>
+                          <span className="text-sangeet-400 font-bold">${Number(activeVariant.price).toFixed(0)}</span>
+                        </div>
                       )}
                     </div>
-                  </div>
-                  
-                  {/* Content (Removed fast-food prep time) */}
-                  <div className="p-4 md:p-6 grow flex flex-col">
-                    <h3 className="text-lg md:text-xl font-display font-semibold text-sangeet-neutral-100 group-hover:text-sangeet-300 transition-colors mb-2">
-                      {item.name}
-                    </h3>
-                    <p className="text-sangeet-neutral-400 text-sm md:text-base leading-relaxed line-clamp-3">
-                      {item.description}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </motion.div>
         )}

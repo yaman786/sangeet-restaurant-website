@@ -58,20 +58,45 @@ const MenuList = ({
                 />
               </div>
               <div className="p-4">
-                <div className="flex justify-between items-start mb-2">
+                <div className="flex justify-between items-start gap-2 mb-2">
                   <h3 className="text-lg font-semibold text-sangeet-neutral-100">{item.name}</h3>
-                  <span className="text-sangeet-400 font-bold">${item.price}</span>
+                  {item.servingMode === 'shot_and_bottle' ? (
+                    <div className="flex flex-col items-end shrink-0 gap-1" data-testid={`admin-drink-dual-price-${item.id}`}>
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sangeet-400/15 text-sangeet-400 border border-sangeet-400/30">
+                        Shot: ${item.shotPrice}
+                      </span>
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-white/10 text-sangeet-neutral-200 border border-white/15">
+                        Bottle: ${item.bottlePrice}
+                      </span>
+                    </div>
+                  ) : item.servingMode === 'bottle_only' ? (
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-sangeet-400/15 text-sangeet-400 border border-sangeet-400/30 shrink-0">
+                      Bottle: ${item.bottlePrice ?? item.price}
+                    </span>
+                  ) : (
+                    <span className="text-sangeet-400 font-bold shrink-0">${item.price}</span>
+                  )}
                 </div>
                 <p className="text-sangeet-neutral-400 text-sm mb-3">{item.description}</p>
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {item.is_vegetarian && (
+                  {menuSection === 'food' && item.is_vegetarian && (
                     <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded-sm text-xs">Vegetarian</span>
                   )}
-                  {item.is_spicy && (
+                  {menuSection === 'food' && item.is_spicy && (
                     <span className="bg-red-500/20 text-red-400 px-2 py-1 rounded-sm text-xs">Spicy</span>
                   )}
                   {item.is_popular && (
                     <span className="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-sm text-xs">Popular</span>
+                  )}
+                  {menuSection === 'drinks' && item.servingMode === 'shot_and_bottle' && (
+                    <span className="bg-sangeet-400/10 text-sangeet-300 border border-sangeet-400/20 px-2 py-1 rounded-sm text-xs">
+                      Shot &amp; Full Bottle
+                    </span>
+                  )}
+                  {menuSection === 'drinks' && item.servingMode === 'bottle_only' && (
+                    <span className="bg-sangeet-400/10 text-sangeet-300 border border-sangeet-400/20 px-2 py-1 rounded-sm text-xs">
+                      Full Bottle Service
+                    </span>
                   )}
                 </div>
                 <div className="flex justify-between items-center">
