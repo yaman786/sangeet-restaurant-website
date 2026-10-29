@@ -292,10 +292,9 @@ const PickupCartPage = () => {
             </button>
           </motion.div>
         ) : (
-          <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-8">
+          <div className="space-y-8">
             {/* Pick-Up Location & Payment Notice */}
-            <motion.div
-              variants={itemVariants}
+            <div
               className="bg-linear-to-r from-sangeet-400/15 via-sangeet-400/10 to-transparent rounded-3xl p-5 md:p-6 border border-sangeet-400/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
             >
               <div className="flex items-start gap-3.5">
@@ -320,11 +319,10 @@ const PickupCartPage = () => {
                   Pay at Counter (Cash / Card / Octopus / PayMe)
                 </span>
               </div>
-            </motion.div>
+            </div>
 
             {/* Pick-Up Customer & Time Details */}
-            <motion.div
-              variants={itemVariants}
+            <div
               className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/10 shadow-glass space-y-6"
             >
               <h2 className="font-display text-2xl text-white flex items-center">
@@ -487,12 +485,11 @@ const PickupCartPage = () => {
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Grouped Cart Items: Food Menu (Kitchen) & Bar & Drinks */}
             {foodCartItems.length > 0 && (
-              <motion.div
-                variants={itemVariants}
+              <div
                 data-testid="pickup-cart-food-section"
                 className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/10 shadow-glass"
               >
@@ -509,12 +506,11 @@ const PickupCartPage = () => {
                   </span>
                 </div>
                 <div className="space-y-4">{foodCartItems.map(renderCartItemRow)}</div>
-              </motion.div>
+              </div>
             )}
 
             {drinkCartItems.length > 0 && (
-              <motion.div
-                variants={itemVariants}
+              <div
                 data-testid="pickup-cart-drinks-section"
                 className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/10 shadow-glass"
               >
@@ -531,12 +527,11 @@ const PickupCartPage = () => {
                   </span>
                 </div>
                 <div className="space-y-4">{drinkCartItems.map(renderCartItemRow)}</div>
-              </motion.div>
+              </div>
             )}
 
             {/* Order Summary */}
-            <motion.div
-              variants={itemVariants}
+            <div
               className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/10 shadow-glass"
             >
               <h2 className="font-display text-2xl text-white mb-6 flex items-center">
@@ -577,8 +572,8 @@ const PickupCartPage = () => {
                   </span>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
       </div>
 
@@ -622,3 +617,4 @@ const PickupCartPage = () => {
 };
 
 export default PickupCartPage;
+

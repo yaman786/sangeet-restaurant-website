@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import path from 'path';
 
+const LIVE_URL = 'https://www.sangeet.hk';
 const ARTIFACT_DIR =
   '/Users/amanrana/.gemini/antigravity/brain/751c82c2-540c-4678-8e7d-b6f84eddb98a';
 
@@ -12,13 +13,16 @@ test.describe('Live Online Pick-Up Ordering E2E Flow', () => {
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
 
-    // 1. Verify Homepage Hero Pick-Up CTA
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    // 1. Verify Homepage Hero Pick-Up CTA & Public Menu Pick-Up CTA
+    await page.goto(LIVE_URL, { waitUntil: 'networkidle' });
     const heroPickupBtn = page.getByTestId('hero-pickup-cta');
     await expect(heroPickupBtn).toBeVisible({ timeout: 15000 });
 
-    // 2. Navigate to /pickup via Hero CTA
-    await heroPickupBtn.click();
+    await page.goto(`${LIVE_URL}/menu`, { waitUntil: 'domcontentloaded' });
+    await expect(page.getByTestId('menu-pickup-cta')).toBeVisible({ timeout: 15000 });
+
+    // 2. Navigate to /pickup via Public Menu Link CTA
+    await page.getByTestId('menu-pickup-cta').click();
     await page.waitForURL(/\/pickup/, { timeout: 15000 });
 
     await expect(page.locator('h1')).toContainText('Pick-Up');
@@ -30,29 +34,37 @@ test.describe('Live Online Pick-Up Ordering E2E Flow', () => {
     );
     expect(overflow).toBeLessThanOrEqual(1);
 
-    // 3. Add a Food item on /pickup
-    const foodAddButtons = page.locator('[data-testid^="qr-add-btn-"]');
-    await expect(foodAddButtons.first()).toBeVisible({ timeout: 15000 });
-    await foodAddButtons.first().click();
+    // 3. Add a Food item (Butter Chicken) on /pickup and test inline stepper
+    const butterChickenCard = page
+      .locator('div.group')
+      .filter({ has: page.locator('h3', { hasText: 'Butter Chicken' }) })
+      .first();
+    await expect(butterChickenCard).toBeVisible({ timeout: 15000 });
+    await butterChickenCard.getByRole('button', { name: /Add to Order/i }).click();
 
-    // 4. Switch to Bar & Drinks and add a Whisky item
-    const drinksTab = page.getByTestId('drinks-MenuView-tab');
+    const butterChickenStepper = butterChickenCard.locator('[data-testid^="qr-stepper-"]');
+    await expect(butterChickenStepper).toBeVisible({ timeout: 5000 });
+    await expect(butterChickenStepper).toContainText('1 in Order');
+
+    // 4. Switch to Bar & Drinks and add Whisky (Shot + Bottle)
+    const drinksTab = page.getByTestId('qr-menu-drinks');
     await expect(drinksTab).toBeVisible();
     await drinksTab.click();
 
-    const whiskyChip = page.locator('button', { hasText: /Whisky/i }).first();
-    if (await whiskyChip.isVisible()) {
-      await whiskyChip.click();
-    }
+    await page.getByRole('button', { name: /Whisk/i }).first().click();
+    const chivasCard = page
+      .locator('div.group')
+      .filter({ has: page.locator('h3', { hasText: 'Chivas Regal 12yrs' }) })
+      .first();
+    await expect(chivasCard).toBeVisible({ timeout: 10000 });
 
-    const bottleToggle = page.locator('[data-testid^="qr-bottle-btn-"]').first();
-    if (await bottleToggle.isVisible()) {
-      await bottleToggle.click();
-    }
+    const shotPill = chivasCard.locator('[data-testid^="qr-select-shot-"]');
+    const bottlePill = chivasCard.locator('[data-testid^="qr-select-bottle-"]');
+    await shotPill.click();
+    await chivasCard.getByRole('button', { name: /Add Shot to Order/i }).click();
 
-    const drinkAddButtons = page.locator('[data-testid^="qr-add-btn-"]');
-    await expect(drinkAddButtons.first()).toBeVisible({ timeout: 10000 });
-    await drinkAddButtons.first().click();
+    await bottlePill.click();
+    await chivasCard.getByRole('button', { name: /Add Bottle to Order/i }).click();
 
     await page.screenshot({
       path: path.join(ARTIFACT_DIR, 'pickup_flow_1_menu.png'),
@@ -109,3 +121,4 @@ test.describe('Live Online Pick-Up Ordering E2E Flow', () => {
     });
   });
 });
+
