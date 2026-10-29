@@ -567,7 +567,7 @@ const MenuView = ({
                                 e.stopPropagation();
                                 setSelectedServingMap((prev) => ({ ...prev, [item.id]: 'shot' }));
                               }}
-                              className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                              className={`py-2 px-2.5 min-h-[36px] rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
                                 activeServing === 'shot'
                                   ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-xs'
                                   : 'text-sangeet-neutral-300 hover:bg-white/5'
@@ -589,7 +589,7 @@ const MenuView = ({
                                 e.stopPropagation();
                                 setSelectedServingMap((prev) => ({ ...prev, [item.id]: 'bottle' }));
                               }}
-                              className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                              className={`py-2 px-2.5 min-h-[36px] rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
                                 activeServing === 'bottle'
                                   ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-xs'
                                   : 'text-sangeet-neutral-300 hover:bg-white/5'
