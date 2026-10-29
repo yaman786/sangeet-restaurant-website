@@ -60,15 +60,21 @@ const OrderTable = ({
   const groupedOrders = [...currentOrders]
     .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
     .reduce((acc: any[], order: any) => {
-      const tableNumberStr = String(order.table_number || 'Unknown').trim();
+      const isTakeaway =
+        order.order_type === 'takeaway' ||
+        String(order.table_number || '').toUpperCase() === 'PICKUP' ||
+        (!order.table_id && !order.table_number);
+      const tableNumberStr = isTakeaway
+        ? `PICKUP_${order.id}`
+        : String(order.table_number || 'Unknown').trim();
       const orderTime = new Date(order.created_at).getTime();
       
       // Check if we should group this order. 
-      // Rule: Completed and cancelled orders are ALWAYS distinct (never grouped).
+      // Rule: Completed, cancelled, and takeaway/pick-up orders are ALWAYS distinct (never merged across different guests).
       const isHistorical = order.status === 'completed' || order.status === 'cancelled';
       
       let sittingGroup;
-      if (!isHistorical) {
+      if (!isHistorical && !isTakeaway) {
         sittingGroup = acc.find(group => {
           if (group.table_number !== tableNumberStr) return false;
           // Don't group with historical standalone groups
@@ -83,7 +89,8 @@ const OrderTable = ({
       if (!sittingGroup) {
         sittingGroup = {
           key: `${tableNumberStr}_${orderTime}`,
-          table_number: tableNumberStr,
+          table_number: isTakeaway ? 'PICKUP' : tableNumberStr,
+          isTakeaway,
           customer_name: order.customer_name && order.customer_name !== 'Guest' ? order.customer_name : 'Guest',
           orders: [],
           total_amount: 0,
@@ -274,7 +281,18 @@ const OrderTable = ({
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-3">
-                            <span className="text-sangeet-400 font-bold text-lg">Table {group.table_number}</span>
+                            {group.isTakeaway ? (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sangeet-400/20 text-sangeet-400 border border-sangeet-400/40 font-bold text-sm">
+                                <span>🛍️ Pick-Up</span>
+                                {group.orders[0]?.order_number && (
+                                  <span className="text-xs font-normal text-sangeet-300">
+                                    #{group.orders[0].order_number}
+                                  </span>
+                                )}
+                              </span>
+                            ) : (
+                              <span className="text-sangeet-400 font-bold text-lg">Table {group.table_number}</span>
+                            )}
                             <span className="bg-sangeet-neutral-700 text-sangeet-neutral-300 px-2 py-0.5 rounded-sm text-xs">
                               {group.visibleTickets.length} Ticket{group.visibleTickets.length > 1 ? 's' : ''}
                             </span>

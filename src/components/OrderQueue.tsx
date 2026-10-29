@@ -396,7 +396,13 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
                     #{order.order_number}
                   </h3>
                   <p className="text-xs text-sangeet-neutral-400 flex items-center gap-1 mt-1">
-                    <span>Table {order.table_number}</span>
+                    {order.order_type === 'takeaway' || String(order.table_number).toUpperCase() === 'PICKUP' ? (
+                      <span className="px-2 py-0.5 rounded-full bg-sangeet-400/20 text-sangeet-400 border border-sangeet-400/40 font-semibold">
+                        🛍️ PICK-UP
+                      </span>
+                    ) : (
+                      <span>Table {order.table_number}</span>
+                    )}
                     <span className="text-sangeet-neutral-600">•</span>
                     <Clock size={12} className={getElapsedMinutes(order.created_at) >= 20 ? 'text-red-400 animate-pulse' : 'text-sangeet-neutral-500'} />
                     <span className={`font-medium ${getElapsedMinutes(order.created_at) >= 20 ? 'text-red-400' : getElapsedMinutes(order.created_at) >= 10 ? 'text-yellow-400' : 'text-sangeet-neutral-400'}`}>

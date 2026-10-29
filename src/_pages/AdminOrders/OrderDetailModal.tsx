@@ -37,7 +37,10 @@ const OrderDetailModal = ({ selectedOrderDetails, setShowOrderModal }: any) => {
               Order #{selectedOrderDetails.order_number}
             </h2>
             <p className="text-sangeet-neutral-400">
-              Table {selectedOrderDetails.table_number} • {selectedOrderDetails.customer_name}
+              {selectedOrderDetails.order_type === 'takeaway' || selectedOrderDetails.table_number === 'PICKUP'
+                ? '🛍️ Self Pick-Up'
+                : `Table ${selectedOrderDetails.table_number}`}{' '}
+              • {selectedOrderDetails.customer_name}
             </p>
           </div>
           <button

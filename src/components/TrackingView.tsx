@@ -73,7 +73,12 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
           <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-sangeet-400/10 border border-sangeet-400/30 rounded-lg">
             <p className="text-sangeet-400 font-medium text-sm sm:text-base">
               Welcome back, <span className="text-sangeet-300">{customerName}</span>! 
-              {tableNumber && <span className="text-sangeet-neutral-400"> (Table {tableNumber})</span>}
+              {tableNumber && (
+                <span className="text-sangeet-neutral-400">
+                  {' '}
+                  ({String(tableNumber).toUpperCase() === 'PICKUP' ? '🛍️ Self Pick-Up' : `Table ${tableNumber}`})
+                </span>
+              )}
             </p>
           </div>
         )}
@@ -477,11 +482,23 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
             </p>
           </div>
           <div>
-            <p className="text-sangeet-neutral-400">Table:</p>
+            <p className="text-sangeet-neutral-400">
+              {order.order_type === 'takeaway' || String(order.table_number).toUpperCase() === 'PICKUP'
+                ? 'Service Type:'
+                : 'Table:'}
+            </p>
             <p className="text-sangeet-neutral-200 font-medium">
-              {order.table_number || 'N/A'}
+              {order.order_type === 'takeaway' || String(order.table_number).toUpperCase() === 'PICKUP'
+                ? '🛍️ Self Pick-Up (17 Fenwick St, Wan Chai)'
+                : order.table_number || 'N/A'}
             </p>
           </div>
+          {order.special_instructions && (
+            <div className="col-span-2 pt-2 border-t border-sangeet-neutral-700/40">
+              <p className="text-sangeet-neutral-400">Pick-Up &amp; Order Notes:</p>
+              <p className="text-sangeet-300 font-medium">{order.special_instructions}</p>
+            </div>
+          )}
         </div>
       </div>
 

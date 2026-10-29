@@ -55,9 +55,10 @@ export const useOrderFlow = (tableSession: any) => {
 
     try {
       setLoading(true);
-      let tableId = tableInfo?.id;
+      const isPickup = String(tableNumber || '').toUpperCase() === 'PICKUP';
+      let tableId = isPickup ? null : tableInfo?.id;
       
-      if (!tableId) {
+      if (!isPickup && !tableId) {
         if (!tableNumber) {
           toast.error('Table information is missing. Please scan the QR code again.');
           setLoading(false);
@@ -85,8 +86,10 @@ export const useOrderFlow = (tableSession: any) => {
         }
       }
       
-      // Ensure tableId is an integer for the backend schema
-      tableId = typeof tableId === 'string' ? parseInt(tableId, 10) : tableId;
+      // Ensure tableId is an integer for the backend schema when dine-in
+      if (!isPickup && tableId) {
+        tableId = typeof tableId === 'string' ? parseInt(tableId, 10) : tableId;
+      }
       
       // Ensure customer_name is locked to the table session across secondary rounds
       let resolvedCustomerName = customerName;
@@ -98,7 +101,8 @@ export const useOrderFlow = (tableSession: any) => {
       }
       
       const orderData = {
-        table_id: tableId,
+        table_id: isPickup ? null : tableId,
+        order_type: (isPickup ? 'takeaway' : 'dine-in') as 'takeaway' | 'dine-in',
         customer_name: resolvedCustomerName || 'Guest',
         items: cart.map(item => ({
           menu_item_id: item.id,

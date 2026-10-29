@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { fetchMenuItems, fetchMenuCategories, getOrdersByTable, getTableByNumber, getTableByQRCode } from '../../services/api';
+import { fetchMenuItems, fetchMenuCategories, getOrdersByTable, getTableByNumber, getTableByQRCode, getOrderById } from '../../services/api';
 import { pusherClient as socketService } from '@/lib/services/pusherClient';
 import toast from 'react-hot-toast';
 
@@ -117,42 +117,73 @@ const UnifiedDashboard = () => {
 
       if (tableNumber) {
         try {
-          const fetchTable = async () => {
-            try {
-              return await getTableByNumber(tableNumber as string);
-            } catch {
-              return await getTableByQRCode(tableNumber as string);
+          const isPickup = String(tableNumber).toUpperCase() === 'PICKUP';
+          if (isPickup) {
+            let targetOrderId = orderId;
+            if (!targetOrderId) {
+              try {
+                targetOrderId = localStorage.getItem('orderId_PICKUP');
+              } catch (e) {}
             }
-          };
-
-          const [fetchedOrders, tableData] = await Promise.all([
-            getOrdersByTable(tableNumber as string),
-            fetchTable().catch(e => {
-              console.error("Failed to fetch table info:", e);
-              return null;
-            })
-          ]);
-
-          let activeOrders = Array.isArray(fetchedOrders) ? fetchedOrders : ((fetchedOrders as any)?.data || []);
-          // Filter out any abandoned orders older than 12 hours to prevent them from blocking redirects
-          activeOrders = activeOrders.filter((o: any) => {
-            const hoursSince = (Date.now() - new Date(o.created_at).getTime()) / (1000 * 60 * 60);
-            return hoursSince < 12;
-          });
-
-          if (activeOrders && activeOrders.length > 0) {
-            setOrders(activeOrders);
+            let activeOrders: any[] = [];
+            if (targetOrderId) {
+              try {
+                const singleOrder: any = await getOrderById(targetOrderId, 'PICKUP');
+                if (singleOrder && singleOrder.status !== 'completed' && singleOrder.status !== 'cancelled') {
+                  activeOrders = [singleOrder];
+                }
+              } catch (e) {
+                console.error("Failed to fetch pickup order:", e);
+              }
+            }
+            if (activeOrders.length > 0) {
+              setOrders(activeOrders);
+            } else {
+              setOrders([]);
+              if (orderId || orderNumber) {
+                clearSession();
+                toast.success('Pick-Up order completed! Redirecting to home...', { duration: 4000, icon: '🏠' });
+                setTimeout(() => { window.location.href = '/'; }, 2000);
+              }
+            }
           } else {
-            setOrders([]);
-            // Auto-redirect if they loaded the app with a stale session/URL
-            if (orderId || orderNumber) {
-              clearSession();
-              toast.success('All orders completed! Redirecting to home...', { duration: 4000, icon: '🏠' });
-              setTimeout(() => { window.location.href = '/'; }, 2000);
+            const fetchTable = async () => {
+              try {
+                return await getTableByNumber(tableNumber as string);
+              } catch {
+                return await getTableByQRCode(tableNumber as string);
+              }
+            };
+
+            const [fetchedOrders, tableData] = await Promise.all([
+              getOrdersByTable(tableNumber as string),
+              fetchTable().catch(e => {
+                console.error("Failed to fetch table info:", e);
+                return null;
+              })
+            ]);
+
+            let activeOrders = Array.isArray(fetchedOrders) ? fetchedOrders : ((fetchedOrders as any)?.data || []);
+            // Filter out any abandoned orders older than 12 hours to prevent them from blocking redirects
+            activeOrders = activeOrders.filter((o: any) => {
+              const hoursSince = (Date.now() - new Date(o.created_at).getTime()) / (1000 * 60 * 60);
+              return hoursSince < 12;
+            });
+
+            if (activeOrders && activeOrders.length > 0) {
+              setOrders(activeOrders);
+            } else {
+              setOrders([]);
+              // Auto-redirect if they loaded the app with a stale session/URL
+              if (orderId || orderNumber) {
+                clearSession();
+                toast.success('All orders completed! Redirecting to home...', { duration: 4000, icon: '🏠' });
+                setTimeout(() => { window.location.href = '/'; }, 2000);
+              }
             }
-          }
-          if (tableData) {
-            setTableInfo(tableData);
+            if (tableData) {
+              setTableInfo(tableData);
+            }
           }
         } catch (e) {
           console.error("Error fetching active orders or table info", e);
@@ -231,7 +262,7 @@ const UnifiedDashboard = () => {
     });
 
     const unsubscribeNew = socketService.onNewOrder((orderData: any) => {
-      if (orderData.table_number === tableNumber) {
+      if (orderData.table_number === tableNumber && String(tableNumber).toUpperCase() !== 'PICKUP') {
         setOrders(prevOrders => {
           const orderExists = prevOrders.some(order => order.id === orderData.id);
           if (orderExists) return prevOrders;
@@ -325,7 +356,10 @@ const UnifiedDashboard = () => {
               <div>
                 <h1 className="font-display text-2xl md:text-3xl font-bold text-white tracking-tight">Sangeet Restaurant</h1>
                 <p className="text-sangeet-400 text-sm md:text-base font-medium">
-                  Table {tableNumber} {customerName ? `• ${customerName}` : ''}
+                  {String(tableNumber).toUpperCase() === 'PICKUP'
+                    ? '🛍️ Self Pick-Up (17 Fenwick St, Wan Chai)'
+                    : `Table ${tableNumber}`}{' '}
+                  {customerName ? `• ${customerName}` : ''}
                   {orderId && ` • Order #${orderNumber || orderId}`}
                 </p>
               </div>

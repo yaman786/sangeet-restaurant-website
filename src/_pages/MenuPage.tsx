@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Leaf, Flame, Star, UtensilsCrossed, Wine, ShieldCheck, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -128,9 +129,21 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
             <h1 className="text-display-sm sm:text-display-md md:text-display-lg font-display text-white mb-4">
               South Asian Cuisine &amp; Specialties
             </h1>
-            <p className="text-sangeet-neutral-300 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+            <p className="text-sangeet-neutral-300 text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-6">
               Tandoori grills, slow-cooked regional curries, biryanis, and freshly baked breads. All meats are 100% Halal certified. Vegetarian and vegan selections available.
             </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/pickup"
+                data-testid="menu-pickup-cta"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-sangeet-400 text-sangeet-neutral-950 font-bold text-sm md:text-base hover:bg-sangeet-300 transition-all shadow-gold-glow cursor-pointer"
+              >
+                <span>🛍️ Order Online for Pick-Up</span>
+              </Link>
+              <span className="text-xs sm:text-sm text-sangeet-neutral-400 bg-sangeet-neutral-900/80 border border-white/10 px-3.5 py-2 rounded-xl">
+                Self Pick-Up • 17 Fenwick Street, Wan Chai (~20–25 mins)
+              </span>
+            </div>
           </motion.div>
 
           {/* Filter Controls - Mobile Optimized */}

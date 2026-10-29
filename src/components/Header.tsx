@@ -92,7 +92,14 @@ const Header = () => {
             </nav>
 
             {/* Right side — CTA (Desktop) */}
-            <div className="hidden md:flex items-center">
+            <div className="hidden md:flex items-center gap-2.5">
+              <Link href="/pickup"
+                data-testid="header-pickup-cta"
+                className="px-4 py-2 rounded-lg bg-sangeet-400 text-sangeet-neutral-950 text-body-sm font-bold
+                           hover:bg-sangeet-300 transition-all duration-200 whitespace-nowrap shrink-0 shadow-gold-glow"
+              >
+                Order Pick-Up
+              </Link>
               <Link href="/reservations"
                 className="px-4 py-2 rounded-lg bg-sangeet-400/10 text-sangeet-400 text-body-sm font-semibold
                            border border-sangeet-400/20 hover:bg-sangeet-400/20 hover:border-sangeet-400/30
@@ -186,12 +193,21 @@ const Header = () => {
                 <div className="h-px bg-sangeet-neutral-800 mb-6" />
 
                 {/* Mobile CTA */}
-                <Link href="/reservations"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="btn-primary w-full text-center block"
-                >
-                  Reserve a Table
-                </Link>
+                <div className="flex flex-col gap-3">
+                  <Link href="/pickup"
+                    data-testid="mobile-pickup-cta"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="btn-primary w-full text-center block"
+                  >
+                    Order Online for Pick-Up
+                  </Link>
+                  <Link href="/reservations"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="btn-secondary w-full text-center block"
+                  >
+                    Reserve a Table
+                  </Link>
+                </div>
               </div>
             </motion.nav>
           </>

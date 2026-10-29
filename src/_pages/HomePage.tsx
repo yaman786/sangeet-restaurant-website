@@ -163,18 +163,25 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
             {heroData.subtitle || "Tandoori grills, regional curries, and craft cocktails. Now open in Hong Kong."}
           </motion.p>
 
-          {/* Single Primary CTA + Ghost Secondary */}
+          {/* Single Primary CTA + Pick-Up CTA + Ghost Secondary */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.7, ease: [0.16, 1, 0.3, 1] as any}}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center items-center"
           >
             <button
               onClick={() => navigate(heroData.primary_cta_link || '/reservations')}
               className="btn-primary text-heading-sm px-10 py-4"
             >
               {heroData.primary_cta_text || "Reserve a Table"}
+            </button>
+            <button
+              onClick={() => navigate('/pickup')}
+              data-testid="hero-pickup-cta"
+              className="px-8 py-4 rounded-xl bg-sangeet-400/15 text-sangeet-400 font-bold border border-sangeet-400/40 hover:bg-sangeet-400 hover:text-sangeet-neutral-950 transition-all duration-300 shadow-gold-glow cursor-pointer"
+            >
+              Order Pick-Up
             </button>
             <button
               onClick={() => navigate(heroData.secondary_cta_link || '/menu')}

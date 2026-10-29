@@ -91,6 +91,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const initializeSession = useCallback((newSession: OrderSession) => {
     setSession(newSession);
     if (typeof window !== 'undefined') {
+      const existingSession = getTableSession(newSession.tableNumber);
+      if (existingSession?.cart && Array.isArray(existingSession.cart) && existingSession.cart.length > 0) {
+        setCart(existingSession.cart);
+        return;
+      }
       // Load cart for this new session if it exists
       const savedCart = localStorage.getItem(`cart_${newSession.tableNumber}`);
       if (savedCart) {

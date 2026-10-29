@@ -22,14 +22,44 @@ class OrderService {
   }
 
   async createOrder(data: CreateOrderInput) {
-    const { table_id, customer_name, items, special_instructions, order_type = 'dine-in', status } = data;
-    
-    // Validate table
-    const table = await prisma.tables.findFirst({
-      where: { id: table_id, is_active: true }
-    });
-    if (!table) throw new ValidationError('Invalid or inactive table selected');
-    const tableNumber = table.table_number;
+    const {
+      table_id,
+      customer_name,
+      customer_phone,
+      pickup_time,
+      items,
+      special_instructions,
+      order_type = 'dine-in',
+      status
+    } = data;
+
+    const isTakeaway = order_type === 'takeaway' || !table_id;
+    let tableNumber = 'PICKUP';
+    let resolvedTableId: number | null = null;
+
+    if (!isTakeaway && table_id) {
+      // Validate table for dine-in orders
+      const table = await prisma.tables.findFirst({
+        where: { id: table_id, is_active: true }
+      });
+      if (!table) throw new ValidationError('Invalid or inactive table selected');
+      tableNumber = table.table_number;
+      resolvedTableId = table.id;
+    }
+
+    // Build formatted special instructions with pickup details if takeaway
+    let finalSpecialInstructions = special_instructions ? special_instructions.trim() : '';
+    if (isTakeaway && (pickup_time || customer_phone)) {
+      const pickupMetaParts: string[] = [];
+      if (pickup_time) pickupMetaParts.push(`Pick-Up: ${pickup_time}`);
+      if (customer_phone) pickupMetaParts.push(`Tel: ${customer_phone}`);
+      const metaPrefix = `[${pickupMetaParts.join(' | ')}]`;
+      if (!finalSpecialInstructions.includes(metaPrefix)) {
+        finalSpecialInstructions = finalSpecialInstructions
+          ? `${metaPrefix} ${finalSpecialInstructions}`
+          : metaPrefix;
+      }
+    }
     
     // Validate and fetch menu items
     const menuItemIds = items.map(i => i.menu_item_id);
@@ -69,12 +99,14 @@ class OrderService {
     }
     
     // Check if the table already has an active, verified order (accepted by waiter or cooking/serving)
-    const verifiedSession = await prisma.orders.findFirst({
-      where: {
-        table_id,
-        status: { in: ['accepted', 'preparing', 'ready', 'served'] }
-      }
-    });
+    const verifiedSession = (!isTakeaway && resolvedTableId)
+      ? await prisma.orders.findFirst({
+          where: {
+            table_id: resolvedTableId,
+            status: { in: ['accepted', 'preparing', 'ready', 'served'] }
+          }
+        })
+      : null;
     
     // If the table is already verified by a waiter, auto-approve subsequent orders to 'accepted' (directly in kitchen)
     // If an explicit status was provided (e.g. from the admin dashboard), use that instead.
@@ -96,12 +128,12 @@ class OrderService {
         createdOrder = await prisma.orders.create({
           data: {
             order_number: orderNumber,
-            table_id,
+            table_id: resolvedTableId,
             customer_name,
             status: initialStatus,
-            special_instructions: special_instructions || null,
+            special_instructions: finalSpecialInstructions || null,
             total_amount: totalAmount,
-            order_type,
+            order_type: isTakeaway ? 'takeaway' : order_type,
             order_items: {
               create: orderItemCreates
             }
@@ -126,10 +158,11 @@ class OrderService {
   }
 
   private formatOrder = (order: any) => {
+    const isTakeaway = order.order_type === 'takeaway' || (!order.table_id && !order.tables?.table_number);
     return {
       ...order,
       total_amount: order.total_amount ? Number(order.total_amount) : 0,
-      table_number: order.tables?.table_number,
+      table_number: order.tables?.table_number || (isTakeaway ? 'PICKUP' : undefined),
       items: order.order_items?.map((item: any) => ({
         ...item,
         unit_price: item.unit_price ? Number(item.unit_price) : 0,
@@ -158,7 +191,11 @@ class OrderService {
 
   async getOrderById(id: string, tableNumber?: string) {
     const order = await this.getOrderWithItems(parseInt(id, 10));
-    if (tableNumber && order.table_number !== tableNumber) {
+    if (
+      tableNumber &&
+      order.table_number !== tableNumber &&
+      !(tableNumber.toUpperCase() === 'PICKUP' && (order.order_type === 'takeaway' || order.table_number === 'PICKUP'))
+    ) {
       throw new ValidationError('Table number does not match this order');
     }
     return order;

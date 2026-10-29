@@ -85,8 +85,10 @@ export interface OrderItemRow {
 }
 
 export interface CreateOrderInput {
-  table_id: number;
+  table_id?: number | null;
   customer_name: string;
+  customer_phone?: string | null;
+  pickup_time?: string | null;
   items: { menu_item_id: number; quantity: number; special_requests?: string | null }[];
   special_instructions?: string | null;
   order_type?: OrderType;

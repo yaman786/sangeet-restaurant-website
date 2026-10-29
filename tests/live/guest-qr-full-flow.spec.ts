@@ -196,3 +196,4 @@ test.describe('Complete Live Guest QR Ordering Flow: Scan -> Food -> Drinks (Sho
     console.log('🎉 Full guest journey verified 100% end-to-end on live production!');
   });
 });
+

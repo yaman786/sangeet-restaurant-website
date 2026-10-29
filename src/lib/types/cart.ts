@@ -12,9 +12,12 @@ export interface CartItem {
 }
 
 export interface OrderSession {
-  tableId: number;
+  tableId: number | null;
   tableNumber: string;
   customerName: string | null;
   orderId?: number | null;
   orderNumber?: string | null;
+  orderType?: 'dine-in' | 'takeaway';
+  customerPhone?: string | null;
+  pickupTime?: string | null;
 }
