@@ -46,10 +46,10 @@ test.describe('Live Online Pick-Up Ordering E2E Flow', () => {
     await expect(butterChickenStepper).toBeVisible({ timeout: 5000 });
     await expect(butterChickenStepper).toContainText('1 in Order');
 
-    // 4. Switch to Drinks tab: verify Alcoholic Drinks are excluded & Soft Drinks are available
+    // 4. Switch to Beverages tab: verify Alcoholic Drinks are excluded & Soft Drinks are available
     const drinksTab = page.getByTestId('qr-menu-drinks');
     await expect(drinksTab).toBeVisible();
-    await expect(drinksTab).toContainText('Drinks');
+    await expect(drinksTab).toContainText('Beverages');
     await drinksTab.click();
 
     await expect(page.getByTestId('pickup-drinks-licensing-note')).toBeVisible({ timeout: 10000 });

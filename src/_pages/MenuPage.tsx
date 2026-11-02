@@ -183,7 +183,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
                   }`}
                 >
                   <Wine className="w-4 h-4" />
-                  <span>Drinks</span>
+                  <span>Beverages</span>
                 </button>
               </div>
             </div>
@@ -266,7 +266,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
                         : 'bg-transparent text-sangeet-neutral-300 border-sangeet-neutral-600 hover:border-sangeet-400 hover:text-sangeet-400'
                     }`}
                   >
-                    All Bar &amp; Drinks
+                    All Beverages
                   </motion.button>
                   {barSubCategories.map((childCategory: any) => (
                     <motion.button

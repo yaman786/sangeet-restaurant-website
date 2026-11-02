@@ -435,7 +435,7 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
                         : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
                     }`}
                   >
-                    <span>🍷 Drinks (Bar):</span>
+                    <span>🍷 Beverages (Bar):</span>
                     <span className="uppercase tracking-wider">
                       {botSt === 'ready' ? 'Ready ✓' : botSt}
                     </span>

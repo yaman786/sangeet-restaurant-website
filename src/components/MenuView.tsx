@@ -229,7 +229,7 @@ const MenuView = ({
             }`}
           >
             <Wine className="w-4 h-4 shrink-0" />
-            <span>Drinks</span>
+            <span>Beverages</span>
             {drinkCount > 0 && (
               <span
                 className={`text-xs px-2 py-0.5 rounded-full font-bold ${
@@ -253,7 +253,7 @@ const MenuView = ({
                 menuSection === 'drinks'
                   ? pickupMode
                     ? 'Search soft drinks & non-alcoholic beverages...'
-                    : 'Search drinks, spirits, cocktails...'
+                    : 'Search beverages, spirits, cocktails...'
                   : 'Search our culinary offerings...'
               }
               value={searchTerm}
@@ -389,7 +389,7 @@ const MenuView = ({
                     : 'bg-white/5 text-sangeet-neutral-300 border-white/10 hover:bg-white/10'
                 }`}
               >
-                {pickupMode ? 'All Soft Drinks' : 'All Bar & Drinks'}
+                {pickupMode ? 'All Soft Drinks' : 'All Beverages'}
               </button>
               {barSubCategories.map((subCat: any) => (
                 <button

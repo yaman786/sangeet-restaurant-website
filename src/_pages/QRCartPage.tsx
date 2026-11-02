@@ -393,7 +393,7 @@ const QRCartPage = () => {
                     <div className="w-8 h-8 bg-sangeet-400/20 rounded-full flex items-center justify-center mr-3 border border-sangeet-400/30">
                       <Wine className="w-4 h-4 text-sangeet-400" />
                     </div>
-                    Bar &amp; Drinks
+                    Beverages
                   </h2>
                   <span className="text-xs font-semibold px-3 py-1 rounded-full bg-sangeet-400/15 text-sangeet-400 border border-sangeet-400/30">
                     {drinkCartItems.reduce((sum: number, i: any) => sum + (Number(i.quantity) || 1), 0)} item{drinkCartItems.reduce((sum: number, i: any) => sum + (Number(i.quantity) || 1), 0) !== 1 ? 's' : ''}
@@ -422,7 +422,7 @@ const QRCartPage = () => {
                       <span>${foodCartItems.reduce((t: number, i: any) => t + parseFloat(i.price) * i.quantity, 0).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center text-sangeet-neutral-400 text-base">
-                      <span>Bar &amp; Drinks ({drinkCartItems.reduce((t: number, i: any) => t + i.quantity, 0)} items)</span>
+                      <span>Beverages ({drinkCartItems.reduce((t: number, i: any) => t + i.quantity, 0)} items)</span>
                       <span>${drinkCartItems.reduce((t: number, i: any) => t + parseFloat(i.price) * i.quantity, 0).toFixed(2)}</span>
                     </div>
                   </>
