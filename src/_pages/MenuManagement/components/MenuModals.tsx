@@ -9,7 +9,12 @@ import toast from 'react-hot-toast';
 import imageCompression from 'browser-image-compression';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '@/lib/utils/cropImage';
-import { defaultServingModeForCategory, type DrinkServingMode } from '@/lib/utils/menuSection';
+import {
+  defaultServingModeForCategory,
+  defaultIsAlcoholicForCategory,
+  isAlcoholicDrink,
+  type DrinkServingMode,
+} from '@/lib/utils/menuSection';
 
 const IMAGE_COMPRESSION_OPTIONS = {
   maxSizeMB: 0.5,           // Target max 500KB per image
@@ -52,6 +57,7 @@ const MenuModals = ({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [servingMode, setServingMode] = useState<DrinkServingMode>('single');
+  const [isAlcoholic, setIsAlcoholic] = useState<boolean>(true);
   const [shotPrice, setShotPrice] = useState<string>('');
   const [bottlePrice, setBottlePrice] = useState<string>('');
 
@@ -68,7 +74,10 @@ const MenuModals = ({
     if (showEditModal && selectedItem) {
       const detectedMode: DrinkServingMode =
         selectedItem.servingMode || defaultServingModeForCategory(selectedItem.category || selectedItem.category_name || '');
+      const detectedAlcoholic =
+        menuSection === 'drinks' ? isAlcoholicDrink(selectedItem, categories) : false;
       setServingMode(detectedMode);
+      setIsAlcoholic(detectedAlcoholic);
       setShotPrice(selectedItem.shotPrice ? String(selectedItem.shotPrice) : String(selectedItem.price || ''));
       setBottlePrice(selectedItem.bottlePrice ? String(selectedItem.bottlePrice) : String(selectedItem.price || ''));
       resetItem({
@@ -84,6 +93,7 @@ const MenuModals = ({
       });
     } else if (showAddModal) {
       setServingMode(menuSection === 'drinks' ? 'shot_and_bottle' : 'single');
+      setIsAlcoholic(true);
       setShotPrice('');
       setBottlePrice('');
       resetItem({
@@ -92,7 +102,7 @@ const MenuModals = ({
         is_vegetarian: false, is_spicy: false, is_popular: false
       });
     }
-  }, [showAddModal, showEditModal, selectedItem, resetItem, menuSection]);
+  }, [showAddModal, showEditModal, selectedItem, resetItem, menuSection, categories]);
 
   // Category Form
   const {
@@ -161,6 +171,8 @@ const MenuModals = ({
                   menuSection === 'drinks'
                     ? {
                         ...formData,
+                        is_alcoholic: isAlcoholic,
+                        allergens: [isAlcoholic ? 'alcoholic' : 'non_alcoholic'],
                         serving_mode: servingMode,
                         shot_price: Number(shotPrice) || 0,
                         bottle_price: Number(bottlePrice) || 0,
@@ -204,13 +216,53 @@ const MenuModals = ({
                         value={watchItem('category')}
                         onChange={(val: any) => {
                           setItemValue('category', val, { shouldValidate: true });
-                          if (showAddModal) {
+                          const nextAlcoholic = defaultIsAlcoholicForCategory(val);
+                          setIsAlcoholic(nextAlcoholic);
+                          if (showAddModal || !nextAlcoholic) {
                             setServingMode(defaultServingModeForCategory(val));
                           }
                         }}
                         error={itemErrors.category?.message}
                         className="w-full"
                       />
+                    </div>
+                  </div>
+
+                  {/* Drink Classification (Alcoholic vs Non-Alcoholic / Soft Drink for Licensing & Pick-Up) */}
+                  <div className="p-4 rounded-xl bg-sangeet-neutral-950/60 border border-sangeet-neutral-800 space-y-2.5">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-sangeet-neutral-400">
+                      Drink Type &amp; Pick-Up Licensing
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5" data-testid="drink-alcohol-selector">
+                      <button
+                        type="button"
+                        data-testid="drink-type-alcoholic"
+                        onClick={() => setIsAlcoholic(true)}
+                        className={`py-2.5 px-3.5 rounded-lg text-xs sm:text-sm font-semibold border transition-all cursor-pointer text-left flex items-center justify-between ${
+                          isAlcoholic
+                            ? 'bg-sangeet-400/20 text-sangeet-300 border-sangeet-400'
+                            : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 border-sangeet-neutral-700 hover:bg-sangeet-neutral-700'
+                        }`}
+                      >
+                        <span>🍷 Alcoholic (Dine-In Only)</span>
+                        {isAlcoholic && <span className="text-[11px] font-bold text-sangeet-400">Selected</span>}
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="drink-type-non-alcoholic"
+                        onClick={() => {
+                          setIsAlcoholic(false);
+                          setServingMode('single');
+                        }}
+                        className={`py-2.5 px-3.5 rounded-lg text-xs sm:text-sm font-semibold border transition-all cursor-pointer text-left flex items-center justify-between ${
+                          !isAlcoholic
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/60'
+                            : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 border-sangeet-neutral-700 hover:bg-sangeet-neutral-700'
+                        }`}
+                      >
+                        <span>🥤 Soft Drink / Non-Alcoholic (Pick-Up Allowed)</span>
+                        {!isAlcoholic && <span className="text-[11px] font-bold text-emerald-400">Selected</span>}
+                      </button>
                     </div>
                   </div>
 

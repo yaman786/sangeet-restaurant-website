@@ -2,6 +2,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { UtensilsCrossed, Wine } from 'lucide-react';
+import { isAlcoholicDrink } from '@/lib/utils/menuSection';
 
 const MenuList = ({
   filteredItems,
@@ -87,6 +88,17 @@ const MenuList = ({
                   )}
                   {item.is_popular && (
                     <span className="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-sm text-xs">Popular</span>
+                  )}
+                  {menuSection === 'drinks' && (
+                    isAlcoholicDrink(item, categories) ? (
+                      <span className="bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2 py-1 rounded-sm text-xs">
+                        🍷 Alcoholic • Dine-In Only
+                      </span>
+                    ) : (
+                      <span className="bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded-sm text-xs">
+                        🥤 Soft Drink • Pick-Up Eligible
+                      </span>
+                    )
                   )}
                   {menuSection === 'drinks' && item.servingMode === 'shot_and_bottle' && (
                     <span className="bg-sangeet-400/10 text-sangeet-300 border border-sangeet-400/20 px-2 py-1 rounded-sm text-xs">

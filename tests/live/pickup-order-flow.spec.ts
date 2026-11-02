@@ -46,25 +46,46 @@ test.describe('Live Online Pick-Up Ordering E2E Flow', () => {
     await expect(butterChickenStepper).toBeVisible({ timeout: 5000 });
     await expect(butterChickenStepper).toContainText('1 in Order');
 
-    // 4. Switch to Bar & Drinks and add Whisky (Shot + Bottle)
+    // 4. Switch to Drinks tab: verify Alcoholic Drinks are excluded & Soft Drinks are available
     const drinksTab = page.getByTestId('qr-menu-drinks');
     await expect(drinksTab).toBeVisible();
+    await expect(drinksTab).toContainText('Drinks');
     await drinksTab.click();
 
-    await page.getByRole('button', { name: /Whisk/i }).first().click();
-    const chivasCard = page
+    await expect(page.getByTestId('pickup-drinks-licensing-note')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h3', { hasText: 'Chivas Regal 12yrs' })).toHaveCount(0);
+    await expect(page.locator('h3', { hasText: 'Carlsberg (Draught)' })).toHaveCount(0);
+
+    const cokeCard = page
       .locator('div.group')
-      .filter({ has: page.locator('h3', { hasText: 'Chivas Regal 12yrs' }) })
+      .filter({ has: page.locator('h3', { hasText: /^Coke$/i }) })
       .first();
-    await expect(chivasCard).toBeVisible({ timeout: 10000 });
+    await expect(cokeCard).toBeVisible({ timeout: 10000 });
+    await cokeCard.getByRole('button', { name: /Add to Order/i }).click();
 
-    const shotPill = chivasCard.locator('[data-testid^="qr-select-shot-"]');
-    const bottlePill = chivasCard.locator('[data-testid^="qr-select-bottle-"]');
-    await shotPill.click();
-    await chivasCard.getByRole('button', { name: /Add Shot to Order/i }).click();
+    const cokeStepper = cokeCard.locator('[data-testid^="qr-stepper-"]');
+    await expect(cokeStepper).toBeVisible({ timeout: 5000 });
 
-    await bottlePill.click();
-    await chivasCard.getByRole('button', { name: /Add Bottle to Order/i }).click();
+    // Verify backend guardrail blocks alcoholic drink IDs on takeaway orders
+    const blockedAlcoholRes = await page.request.post(`${LIVE_URL}/api/orders`, {
+      data: {
+        order_type: 'takeaway',
+        customer_name: 'Blocked Alcohol Test',
+        customer_phone: '+85291234567',
+        total_amount: 88,
+        items: [
+          {
+            menu_item_id: 96,
+            quantity: 1,
+            unit_price: 88,
+            total_price: 88,
+          },
+        ],
+      },
+    });
+    expect(blockedAlcoholRes.status()).toBe(400);
+    const blockedBody = await blockedAlcoholRes.json();
+    expect(blockedBody.error).toMatch(/Alcoholic beverages.*dine-in only/i);
 
     await page.screenshot({
       path: path.join(ARTIFACT_DIR, 'pickup_flow_1_menu.png'),

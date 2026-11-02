@@ -90,7 +90,7 @@ const MenuManagement = () => {
               }`}
             >
               <Wine className="w-4 h-4" />
-              <span>Bar &amp; Drinks</span>
+              <span>Drinks</span>
               <span
                 className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                   menuSection === 'drinks'

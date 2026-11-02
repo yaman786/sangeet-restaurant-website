@@ -15,7 +15,8 @@ const MenuView = ({
   onUpdateQuantity,
   onViewCart,
   cart = [],
-  cartLength = 0
+  cartLength = 0,
+  pickupMode = false
 }: any) => {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [menuSection, setMenuSection] = useState<MenuSection>('food');
@@ -36,8 +37,20 @@ const MenuView = ({
     [topLevelCategories, categories]
   );
   const barSubCategories = useMemo(
-    () => subCategories.filter((c: any) => isBarCategory(c, categories)),
-    [subCategories, categories]
+    () =>
+      subCategories.filter((c: any) => {
+        if (!isBarCategory(c, categories)) return false;
+        if (pickupMode) {
+          // On Pick-Up mode, only show drink subcategories that have eligible non-alcoholic items in menuItems
+          return menuItems.some(
+            (item: any) =>
+              (item.category_name || item.category) === c.name ||
+              Number(item.category_id) === Number(c.id)
+          );
+        }
+        return true;
+      }),
+    [subCategories, categories, pickupMode, menuItems]
   );
 
   // Food subcategories for currently selected top-level food category (if any)
@@ -216,7 +229,7 @@ const MenuView = ({
             }`}
           >
             <Wine className="w-4 h-4 shrink-0" />
-            <span>Bar &amp; Drinks</span>
+            <span>Drinks</span>
             {drinkCount > 0 && (
               <span
                 className={`text-xs px-2 py-0.5 rounded-full font-bold ${
@@ -238,7 +251,9 @@ const MenuView = ({
               type="text"
               placeholder={
                 menuSection === 'drinks'
-                  ? 'Search beers, whiskies, spirits, cocktails...'
+                  ? pickupMode
+                    ? 'Search soft drinks & non-alcoholic beverages...'
+                    : 'Search drinks, spirits, cocktails...'
                   : 'Search our culinary offerings...'
               }
               value={searchTerm}
@@ -374,7 +389,7 @@ const MenuView = ({
                     : 'bg-white/5 text-sangeet-neutral-300 border-white/10 hover:bg-white/10'
                 }`}
               >
-                All Bar &amp; Drinks
+                {pickupMode ? 'All Soft Drinks' : 'All Bar & Drinks'}
               </button>
               {barSubCategories.map((subCat: any) => (
                 <button
@@ -390,6 +405,15 @@ const MenuView = ({
                 </button>
               ))}
             </div>
+
+            {pickupMode && (
+              <p
+                data-testid="pickup-drinks-licensing-note"
+                className="text-xs text-sangeet-neutral-400 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2"
+              >
+                🥤 Non-alcoholic soft drinks &amp; beverages only for Self Pick-Up. Alcoholic beverages are served Dine-In only.
+              </p>
+            )}
 
             {/* Quick Signature / Popular Chip for Bar & Drinks */}
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pt-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>

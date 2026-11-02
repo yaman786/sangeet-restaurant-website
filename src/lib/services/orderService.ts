@@ -4,6 +4,7 @@ import { AppError, NotFoundError, ValidationError } from '@/lib/errors';
 import { generateQRCode } from '../utils/qrGenerator';
 import type { CreateOrderInput, OrderQueryDTO } from '@/lib/types';
 import { emitNewOrder, emitOrderStatusUpdate, emitOrderDeleted } from './pusherServer';
+import { isAlcoholicDrink } from '../utils/menuSection';
 
 class OrderService {
   async getAllTables() {
@@ -67,17 +68,24 @@ class OrderService {
       where: { id: { in: menuItemIds }, is_active: true }
     });
     
-    const menuItemMap = new Map<number, { price: number; name: string }>();
+    const menuItemMap = new Map<number, { price: number; name: string; row: any }>();
     for (const row of menuItemsCheck) {
       menuItemMap.set(row.id, {
         price: row.price ? Number(row.price) : 0,
-        name: row.name
+        name: row.name,
+        row
       });
     }
 
     for (const item of items) {
-      if (!menuItemMap.has(item.menu_item_id)) {
+      const found = menuItemMap.get(item.menu_item_id);
+      if (!found) {
         throw new ValidationError(`Menu item ${item.menu_item_id} not found or inactive`);
+      }
+      if (isTakeaway && isAlcoholicDrink(found.row)) {
+        throw new ValidationError(
+          `Alcoholic beverages (${found.name}) are available for dine-in only and cannot be ordered for pick-up.`
+        );
       }
     }
     

@@ -183,7 +183,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
                   }`}
                 >
                   <Wine className="w-4 h-4" />
-                  <span>Bar &amp; Drinks</span>
+                  <span>Drinks</span>
                 </button>
               </div>
             </div>

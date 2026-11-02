@@ -9,7 +9,7 @@ import MenuView from '../components/MenuView';
 import { ShoppingBag, MapPin, Clock, Sparkles, ChevronRight, ArrowLeft, ListOrdered } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { getTableSession, clearTableSession } from '@/lib/utils/tableSession';
-import { isBarMenuItem } from '@/lib/utils/menuSection';
+import { isBarMenuItem, isAlcoholicDrink } from '@/lib/utils/menuSection';
 
 const PickupMenuPage = () => {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ const PickupMenuPage = () => {
   const [loading, setLoading] = useState(true);
   const [activePickupOrder, setActivePickupOrder] = useState<any>(null);
 
-  const { cart, addToCart, updateQuantity, getCartTotal, initializeSession } = useCart();
+  const { cart, addToCart, removeFromCart, updateQuantity, getCartTotal, initializeSession } = useCart();
 
   useEffect(() => {
     const loadData = async () => {
@@ -62,8 +62,13 @@ const PickupMenuPage = () => {
           fetchMenuItems(),
           fetchMenuCategories()
         ]);
-        setMenuItems(menuData || []);
-        setCategories(categoriesData || []);
+        const resolvedCategories = categoriesData || [];
+        // Exclude alcoholic beverages from Online Self Pick-Up due to liquor licensing regulations
+        const pickupEligibleItems = (menuData || []).filter(
+          (item: any) => !isAlcoholicDrink(item, resolvedCategories)
+        );
+        setMenuItems(pickupEligibleItems);
+        setCategories(resolvedCategories);
       } catch (error) {
         console.error('Error loading pickup menu:', error);
         toast.error('Failed to load menu. Please try again.');
@@ -75,7 +80,22 @@ const PickupMenuPage = () => {
     loadData();
   }, [initializeSession]);
 
+  // Ensure any alcoholic item previously in cart is automatically removed on Pick-Up mode
+  useEffect(() => {
+    if (cart.length > 0 && categories.length > 0) {
+      for (const item of cart) {
+        if (isAlcoholicDrink(item, categories)) {
+          removeFromCart(item.id);
+        }
+      }
+    }
+  }, [cart, categories, removeFromCart]);
+
   const handleAddToCart = (item: any) => {
+    if (isAlcoholicDrink(item, categories)) {
+      toast.error('Alcoholic beverages are available for Dine-In only.');
+      return;
+    }
     const isDrink = item.section === 'drinks' || isBarMenuItem(item, categories);
     addToCart({
       id: item.id,
@@ -209,6 +229,7 @@ const PickupMenuPage = () => {
           onViewCart={handleViewCart}
           cart={cart}
           cartLength={totalCartItems}
+          pickupMode={true}
         />
       </div>
 
@@ -264,3 +285,4 @@ const PickupMenuPage = () => {
 };
 
 export default PickupMenuPage;
+

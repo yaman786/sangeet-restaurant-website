@@ -6,10 +6,84 @@ export const BAR_SUBCATEGORY_NAMES = [
   'Draught Beers',
   'Bottled Beers & Cider',
   'Whisky & Bourbon',
+  'Whiskey',
   'Spirits (Rum, Vodka, Gin, Tequila)',
+  'Wines',
   'Cocktails',
   'Champagne',
+  'Soft Drinks',
 ] as const;
+
+const NON_ALCOHOLIC_CATEGORY_KEYWORDS = [
+  'soft drink',
+  'mocktail',
+  'juice',
+  'lassi',
+  'water',
+  'tea',
+  'coffee',
+  'soda',
+  'non-alcoholic',
+  'non alcoholic',
+];
+
+export function defaultIsAlcoholicForCategory(categoryName: string): boolean {
+  const lower = String(categoryName || '').toLowerCase().trim();
+  if (!lower) return true;
+  if (NON_ALCOHOLIC_CATEGORY_KEYWORDS.some((kw) => lower.includes(kw))) {
+    return false;
+  }
+  return true;
+}
+
+export function parseItemAllergenTags(allergens: any): string[] {
+  if (!allergens) return [];
+  if (Array.isArray(allergens)) {
+    return allergens.map((a) => String(a).toLowerCase().trim());
+  }
+  if (typeof allergens === 'string') {
+    const trimmed = allergens.trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.map((a) => String(a).toLowerCase().trim());
+      }
+    } catch {
+      return trimmed
+        .split(',')
+        .map((a) => a.toLowerCase().trim())
+        .filter(Boolean);
+    }
+  }
+  return [];
+}
+
+export function isAlcoholicDrink(item: any, categories: any[] = []): boolean {
+  if (!item) return false;
+  if (!isBarMenuItem(item, categories)) return false;
+
+  if (typeof item.is_alcoholic === 'boolean') {
+    return item.is_alcoholic;
+  }
+
+  const tags = [
+    ...parseItemAllergenTags(item.allergens),
+    ...parseItemAllergenTags(item.shotItem?.allergens),
+    ...parseItemAllergenTags(item.bottleItem?.allergens),
+    ...parseItemAllergenTags(item.singleItem?.allergens),
+  ];
+
+  if (tags.includes('non_alcoholic') || tags.includes('soft_drink')) {
+    return false;
+  }
+  if (tags.includes('alcoholic')) {
+    return true;
+  }
+
+  const catName = String(item.category_name || item.category || '').trim();
+  return defaultIsAlcoholicForCategory(catName);
+}
 
 const BAR_CATEGORY_SET = new Set<string>([
   BAR_PARENT_CATEGORY_NAME.toLowerCase(),
@@ -83,6 +157,7 @@ export interface GroupedDrinkItem {
   is_vegetarian: boolean;
   is_spicy: boolean;
   is_popular: boolean;
+  is_alcoholic?: boolean;
   preparation_time?: number;
   servingMode: DrinkServingMode;
   shotItem?: any | null;
@@ -105,7 +180,10 @@ export function cleanDrinkDescription(description: string): string {
 
 export function defaultServingModeForCategory(categoryName: string): DrinkServingMode {
   const lower = String(categoryName || '').toLowerCase();
-  if (lower.includes('whisky') || lower.includes('bourbon') || lower.includes('spirit')) {
+  if (!defaultIsAlcoholicForCategory(categoryName)) {
+    return 'single';
+  }
+  if (lower.includes('whisky') || lower.includes('whiskey') || lower.includes('bourbon') || lower.includes('spirit')) {
     return 'shot_and_bottle';
   }
   if (lower.includes('champagne') || lower.includes('wine')) {
@@ -202,6 +280,7 @@ export function groupDrinkMenuItems(items: any[] = []): GroupedDrinkItem[] {
         is_vegetarian: false,
         is_spicy: false,
         is_popular: Boolean(shotItem.is_popular || bottleItem.is_popular),
+        is_alcoholic: isAlcoholicDrink(primary),
         servingMode: 'shot_and_bottle',
         shotItem,
         bottleItem,
@@ -224,6 +303,7 @@ export function groupDrinkMenuItems(items: any[] = []): GroupedDrinkItem[] {
         is_vegetarian: false,
         is_spicy: false,
         is_popular: Boolean(bottleItem.is_popular),
+        is_alcoholic: isAlcoholicDrink(bottleItem),
         servingMode: 'bottle_only',
         shotItem: null,
         bottleItem,
@@ -248,6 +328,7 @@ export function groupDrinkMenuItems(items: any[] = []): GroupedDrinkItem[] {
         is_vegetarian: false,
         is_spicy: false,
         is_popular: Boolean(item.is_popular),
+        is_alcoholic: isAlcoholicDrink(item),
         servingMode: 'single',
         shotItem: shotItem || null,
         bottleItem: null,

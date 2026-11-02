@@ -198,6 +198,9 @@ export const useMenuManagement = () => {
     if (menuSection === 'drinks') {
       const servingMode = data.serving_mode || 'single';
       const baseName = stripDrinkVariantSuffix(data.name);
+      const drinkAllergens = Array.isArray(data.allergens) && data.allergens.length > 0
+        ? data.allergens
+        : [data.is_alcoholic === false ? 'non_alcoholic' : 'alcoholic'];
       const commonDrinkFields = {
         description: data.description || '',
         category: data.category,
@@ -205,6 +208,7 @@ export const useMenuManagement = () => {
         is_vegetarian: false,
         is_spicy: false,
         is_popular: Boolean(data.is_popular),
+        allergens: drinkAllergens,
         preparation_time: 5,
       };
 
@@ -294,6 +298,9 @@ export const useMenuManagement = () => {
     if (menuSection === 'drinks' && current) {
       const servingMode = data.serving_mode || current.servingMode || 'single';
       const baseName = stripDrinkVariantSuffix(data.name);
+      const drinkAllergens = Array.isArray(data.allergens) && data.allergens.length > 0
+        ? data.allergens
+        : [data.is_alcoholic === false ? 'non_alcoholic' : 'alcoholic'];
       const commonDrinkFields = {
         description: data.description || '',
         category: data.category,
@@ -301,6 +308,7 @@ export const useMenuManagement = () => {
         is_vegetarian: false,
         is_spicy: false,
         is_popular: Boolean(data.is_popular),
+        allergens: drinkAllergens,
         preparation_time: 5,
       };
 
