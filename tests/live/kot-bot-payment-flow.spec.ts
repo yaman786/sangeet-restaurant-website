@@ -121,6 +121,21 @@ test.describe('KOT (Kitchen) + BOT (Bar) Station Routing & Unified Payment E2E',
       });
 
     // 4. Open Guest Live Tracking (/dashboard) -> verify BOT is Ready ✓ while KOT is Preparing
+    await page.evaluate(
+      ({ id, num }) => {
+        window.localStorage.setItem('orderId_PICKUP', String(id));
+        window.localStorage.setItem(
+          'orderSession',
+          JSON.stringify({
+            orderId: id,
+            orderNumber: num,
+            tableNumber: 'PICKUP',
+            customerName: 'KOT BOT E2E Guest',
+          })
+        );
+      },
+      { id: orderId, num: orderNumber }
+    );
     await page.goto(`${LIVE_URL}/dashboard?orderId=${orderId}&table=PICKUP`, {
       waitUntil: 'domcontentloaded',
     });
