@@ -4,7 +4,12 @@ import { AppError, NotFoundError, ValidationError } from '@/lib/errors';
 import { generateQRCode } from '../utils/qrGenerator';
 import type { CreateOrderInput, OrderQueryDTO } from '@/lib/types';
 import { emitNewOrder, emitOrderStatusUpdate, emitOrderDeleted } from './pusherServer';
-import { isAlcoholicDrink } from '../utils/menuSection';
+import {
+  isAlcoholicDrink,
+  getItemStation,
+  getStationTicketStatus,
+  type OrderStation,
+} from '../utils/menuSection';
 
 class OrderService {
   async getAllTables() {
@@ -167,18 +172,35 @@ class OrderService {
 
   private formatOrder = (order: any) => {
     const isTakeaway = order.order_type === 'takeaway' || (!order.table_id && !order.tables?.table_number);
-    return {
+    const formattedItems =
+      order.order_items?.map((item: any) => {
+        const station = getItemStation({
+          ...item,
+          category: item.menu_items?.category,
+          category_id: item.menu_items?.category_id,
+        });
+        return {
+          ...item,
+          unit_price: item.unit_price ? Number(item.unit_price) : 0,
+          total_price: item.total_price ? Number(item.total_price) : 0,
+          name: item.menu_items?.name,
+          image_url: item.menu_items?.image_url,
+          category: item.menu_items?.category,
+          station,
+        };
+      }) || [];
+
+    const baseFormatted = {
       ...order,
       total_amount: order.total_amount ? Number(order.total_amount) : 0,
       table_number: order.tables?.table_number || (isTakeaway ? 'PICKUP' : undefined),
-      items: order.order_items?.map((item: any) => ({
-        ...item,
-        unit_price: item.unit_price ? Number(item.unit_price) : 0,
-        total_price: item.total_price ? Number(item.total_price) : 0,
-        name: item.menu_items?.name,
-        image_url: item.menu_items?.image_url,
-        category: item.menu_items?.category
-      })) || []
+      items: formattedItems,
+    };
+
+    return {
+      ...baseFormatted,
+      kot_status: getStationTicketStatus(baseFormatted, 'kot'),
+      bot_status: getStationTicketStatus(baseFormatted, 'bot'),
     } as any;
   }
 
@@ -257,25 +279,115 @@ class OrderService {
     return this.getOrdersByTable(table.id.toString());
   }
 
-  async updateOrderStatus(id: string, status: string) {
+  async updateOrderStatus(
+    id: string,
+    status: string,
+    station?: OrderStation,
+    paymentMethod?: string
+  ) {
     const validStatuses = ['pending', 'accepted', 'preparing', 'ready', 'served', 'completed', 'cancelled'];
     if (!validStatuses.includes(status)) throw new ValidationError('Invalid status');
-    
-    try {
+
+    const orderId = parseInt(id, 10);
+    const existingOrder = await prisma.orders.findUnique({
+      where: { id: orderId },
+      include: {
+        tables: true,
+        order_items: { include: { menu_items: true } }
+      }
+    });
+
+    if (!existingOrder) throw new NotFoundError('Order');
+
+    let finalOrderStatus = status;
+
+    if (station === 'kot' || station === 'bot') {
+      const targetItemIds = existingOrder.order_items
+        .filter((oi: any) => oi.status !== 'cancelled')
+        .filter((oi: any) => {
+          const itemStation = getItemStation({
+            ...oi,
+            category: oi.menu_items?.category,
+            category_id: oi.menu_items?.category_id,
+          });
+          return itemStation === station;
+        })
+        .map((oi: any) => oi.id);
+
+      if (targetItemIds.length > 0) {
+        await prisma.order_items.updateMany({
+          where: { id: { in: targetItemIds } },
+          data: { status }
+        });
+      }
+
+      const updatedItems = existingOrder.order_items.map((oi: any) =>
+        targetItemIds.includes(oi.id) ? { ...oi, status } : oi
+      );
+      const activeItems = updatedItems.filter((oi: any) => oi.status !== 'cancelled');
+
+      if (activeItems.length === 0) {
+        finalOrderStatus = 'cancelled';
+      } else if (activeItems.every((oi: any) => oi.status === 'completed')) {
+        finalOrderStatus = 'completed';
+      } else if (
+        activeItems.every(
+          (oi: any) => oi.status === 'ready' || oi.status === 'served' || oi.status === 'completed'
+        )
+      ) {
+        finalOrderStatus = 'ready';
+      } else if (
+        activeItems.some(
+          (oi: any) => oi.status === 'preparing' || oi.status === 'ready' || oi.status === 'served'
+        )
+      ) {
+        finalOrderStatus = 'preparing';
+      } else {
+        finalOrderStatus =
+          existingOrder.status === 'pending' ? 'accepted' : existingOrder.status || 'preparing';
+      }
+
       await prisma.orders.update({
-        where: { id: parseInt(id, 10) },
-        data: { status, updated_at: new Date() }
+        where: { id: orderId },
+        data: { status: finalOrderStatus, updated_at: new Date() }
       });
-    } catch (e: any) {
-      if (e.code === 'P2025') throw new NotFoundError('Order');
-      throw e;
+    } else {
+      let updatedInstructions = existingOrder.special_instructions || null;
+      if (status === 'completed' && paymentMethod) {
+        const paymentTag = `[Paid: ${paymentMethod}]`;
+        if (!updatedInstructions?.includes('[Paid:')) {
+          updatedInstructions = updatedInstructions
+            ? `${paymentTag} ${updatedInstructions}`
+            : paymentTag;
+        }
+      }
+
+      await prisma.$transaction([
+        prisma.orders.update({
+          where: { id: orderId },
+          data: {
+            status,
+            ...(updatedInstructions !== existingOrder.special_instructions
+              ? { special_instructions: updatedInstructions }
+              : {}),
+            updated_at: new Date()
+          }
+        }),
+        prisma.order_items.updateMany({
+          where: { order_id: orderId, status: { not: 'cancelled' } },
+          data: { status }
+        })
+      ]);
     }
-    
-    const order = await this.getOrderWithItems(parseInt(id, 10));
+
+    const order = await this.getOrderWithItems(orderId);
     emitOrderStatusUpdate({ 
       type: 'status-update', 
-      orderId: parseInt(id, 10), 
-      status, 
+      orderId, 
+      status: order.status,
+      kot_status: order.kot_status,
+      bot_status: order.bot_status,
+      station: station || 'all',
       tableNumber: order.table_number, 
       estimatedTime: order.estimated_time, 
       timestamp: new Date().toISOString() 
@@ -459,14 +571,41 @@ class OrderService {
     return { order, tableNumber: order.tables?.table_number || null };
   }
 
-  async bulkUpdateOrderStatus(orderIds: number[], status: string) {
-    const validStatuses = ['pending', 'preparing', 'ready', 'served', 'completed', 'cancelled'];
+  async bulkUpdateOrderStatus(orderIds: number[], status: string, paymentMethod?: string) {
+    const validStatuses = ['pending', 'accepted', 'preparing', 'ready', 'served', 'completed', 'cancelled'];
     if (!validStatuses.includes(status)) throw new ValidationError('Invalid status');
     if (!Array.isArray(orderIds) || orderIds.length === 0) throw new ValidationError('No order IDs provided');
-    
-    await prisma.orders.updateMany({
-      where: { id: { in: orderIds } },
-      data: { status, updated_at: new Date() }
+
+    if (status === 'completed' && paymentMethod) {
+      const existingToComplete = await prisma.orders.findMany({
+        where: { id: { in: orderIds } },
+        select: { id: true, special_instructions: true }
+      });
+      const paymentTag = `[Paid: ${paymentMethod}]`;
+      await Promise.all(
+        existingToComplete.map((o) => {
+          const currentNotes = o.special_instructions || '';
+          const nextNotes = currentNotes.includes('[Paid:')
+            ? currentNotes
+            : currentNotes
+              ? `${paymentTag} ${currentNotes}`
+              : paymentTag;
+          return prisma.orders.update({
+            where: { id: o.id },
+            data: { status, special_instructions: nextNotes, updated_at: new Date() }
+          });
+        })
+      );
+    } else {
+      await prisma.orders.updateMany({
+        where: { id: { in: orderIds } },
+        data: { status, updated_at: new Date() }
+      });
+    }
+
+    await prisma.order_items.updateMany({
+      where: { order_id: { in: orderIds }, status: { not: 'cancelled' } },
+      data: { status }
     });
     
     const orders = await prisma.orders.findMany({

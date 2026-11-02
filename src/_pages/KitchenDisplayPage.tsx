@@ -6,8 +6,17 @@ import OrderQueue from '../components/OrderQueue';
 import { useAuth } from '../contexts/AuthContext';
 
 import { pusherClient } from '../lib/services/pusherClient';
+import type { OrderStation } from '../lib/utils/menuSection';
 
-const KitchenDisplayPage = () => {
+const KitchenDisplayPage = ({ defaultStation = 'kot' as OrderStation }: { defaultStation?: OrderStation }) => {
+  const [station, setStation] = useState<OrderStation>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('station');
+      if (q === 'kot' || q === 'bot' || q === 'all') return q;
+    }
+    return defaultStation;
+  });
   const [orderStats, setOrderStats] = useState({
     total: 0,
     pending: 0,
@@ -82,11 +91,15 @@ const KitchenDisplayPage = () => {
             {/* Logo and Title */}
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-sangeet-400/20 rounded-lg flex items-center justify-center">
-                <span className="text-lg">🍳</span>
+                <span className="text-lg">{station === 'bot' ? '🍷' : '🍳'}</span>
               </div>
               <div>
                 <h1 className="text-lg font-bold text-sangeet-neutral-100">
-                  {userType === 'admin' ? 'Kitchen Display (Admin View)' : 'Kitchen Display (Staff)'}
+                  {station === 'bot'
+                    ? 'Bar Display — BOT (Drinks)'
+                    : station === 'kot'
+                      ? 'Kitchen Display — KOT (Food)'
+                      : 'Master Station Display (KOT + BOT)'}
                 </h1>
                 <div className="flex items-center space-x-2">
                   <p className="text-xs text-sangeet-neutral-400">
@@ -158,16 +171,134 @@ const KitchenDisplayPage = () => {
       </header>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* Kitchen Status Metric */}
+        {/* Station Switcher (KOT vs BOT vs All) */}
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-xl p-3">
+          <div className="inline-flex rounded-lg bg-sangeet-neutral-950 p-1 border border-sangeet-neutral-800">
+            <button
+              type="button"
+              data-testid="station-tab-kot"
+              onClick={() => setStation('kot')}
+              className={`px-4 py-2 rounded-md text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                station === 'kot'
+                  ? 'bg-orange-500 text-white shadow-md'
+                  : 'text-sangeet-neutral-400 hover:text-white'
+              }`}
+            >
+              🍳 Kitchen (KOT)
+            </button>
+            <button
+              type="button"
+              data-testid="station-tab-bot"
+              onClick={() => setStation('bot')}
+              className={`px-4 py-2 rounded-md text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                station === 'bot'
+                  ? 'bg-purple-600 text-white shadow-md'
+                  : 'text-sangeet-neutral-400 hover:text-white'
+              }`}
+            >
+              🍷 Bar &amp; Drinks (BOT)
+            </button>
+            <button
+              type="button"
+              data-testid="station-tab-all"
+              onClick={() => setStation('all')}
+              className={`px-4 py-2 rounded-md text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                station === 'all'
+                  ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-md'
+                  : 'text-sangeet-neutral-400 hover:text-white'
+              }`}
+            >
+              📋 All Stations
+            </button>
+          </div>
+
+          {/* Queue Filter Pills */}
+          <div className="inline-flex rounded-lg bg-sangeet-neutral-950 p-1 border border-sangeet-neutral-800">
+            <button
+              type="button"
+              data-testid="station-filter-preparing"
+              onClick={() => setActiveFilter('preparing')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                activeFilter === 'preparing'
+                  ? 'bg-sangeet-neutral-800 text-orange-400 border border-orange-500/40'
+                  : 'text-sangeet-neutral-400 hover:text-white'
+              }`}
+            >
+              🔥 To Prepare ({orderStats.preparing})
+            </button>
+            <button
+              type="button"
+              data-testid="station-filter-ready"
+              onClick={() => setActiveFilter('ready')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                activeFilter === 'ready'
+                  ? 'bg-sangeet-neutral-800 text-green-400 border border-green-500/40'
+                  : 'text-sangeet-neutral-400 hover:text-white'
+              }`}
+            >
+              ✅ Ready ({orderStats.ready})
+            </button>
+            <button
+              type="button"
+              data-testid="station-filter-all"
+              onClick={() => setActiveFilter('all')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                activeFilter === 'all'
+                  ? 'bg-sangeet-neutral-800 text-sangeet-400 border border-sangeet-400/40'
+                  : 'text-sangeet-neutral-400 hover:text-white'
+              }`}
+            >
+              All Active ({orderStats.total})
+            </button>
+          </div>
+        </div>
+
+        {/* Station Status Metric */}
         <div className="mb-4">
-          <div className="bg-orange-900/20 border border-orange-500/30 rounded-lg p-4 flex items-center justify-between">
+          <div
+            className={`rounded-lg p-4 flex items-center justify-between border ${
+              station === 'bot'
+                ? 'bg-purple-900/20 border-purple-500/30'
+                : 'bg-orange-900/20 border-orange-500/30'
+            }`}
+          >
             <div>
-              <h2 className="text-orange-400 font-bold text-lg">Active Kitchen Queue</h2>
-              <p className="text-orange-300 text-sm">Orders currently being cooked</p>
+              <h2
+                className={`font-bold text-lg ${
+                  station === 'bot' ? 'text-purple-300' : 'text-orange-400'
+                }`}
+              >
+                {station === 'bot'
+                  ? 'Active Bar Queue (BOT)'
+                  : station === 'kot'
+                    ? 'Active Kitchen Queue (KOT)'
+                    : 'Active Master Queue (KOT + BOT)'}
+              </h2>
+              <p
+                className={`text-sm ${
+                  station === 'bot' ? 'text-purple-200/80' : 'text-orange-300'
+                }`}
+              >
+                {station === 'bot'
+                  ? 'Drink tickets currently waiting to be poured / packed'
+                  : 'Food tickets currently being cooked / packed'}
+              </p>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-black text-orange-400">{orderStats.preparing}</p>
-              <p className="text-orange-300 text-xs uppercase tracking-wider font-bold">To Cook</p>
+              <p
+                className={`text-3xl font-black ${
+                  station === 'bot' ? 'text-purple-300' : 'text-orange-400'
+                }`}
+              >
+                {orderStats.preparing}
+              </p>
+              <p
+                className={`text-xs uppercase tracking-wider font-bold ${
+                  station === 'bot' ? 'text-purple-200/80' : 'text-orange-300'
+                }`}
+              >
+                {station === 'bot' ? 'To Pour' : 'To Cook'}
+              </p>
             </div>
           </div>
         </div>
@@ -192,12 +323,13 @@ const KitchenDisplayPage = () => {
           </div>
         </div>
 
-        {/* Order Queue - Kitchen Optimized */}
+        {/* Order Queue - Station Optimized */}
         <div className="bg-sangeet-neutral-900 rounded-lg border border-sangeet-neutral-700">
           <OrderQueue 
             onStatsUpdate={handleStatsUpdate}
             soundEnabled={soundEnabled}
             kitchenMode={true}
+            station={station}
             activeFilter={activeFilter}
             sortBy="time-oldest"
             searchQuery={searchQuery}

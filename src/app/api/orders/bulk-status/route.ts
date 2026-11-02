@@ -9,6 +9,7 @@ import { orderStatusSchema } from '@/lib/validations/order';
 const bulkUpdateSchema = z.object({
   orderIds: z.array(z.number().or(z.string()).transform(val => Number(val))),
   status: orderStatusSchema,
+  paymentMethod: z.string().max(50).optional(),
 });
 
 export async function PATCH(req: NextRequest) {
@@ -23,7 +24,7 @@ export async function PATCH(req: NextRequest) {
     const rawBody = await req.json();
     const body = bulkUpdateSchema.parse(rawBody);
 
-    const result = await orderService.bulkUpdateOrderStatus(body.orderIds, body.status);
+    const result = await orderService.bulkUpdateOrderStatus(body.orderIds, body.status, body.paymentMethod);
     
     return NextResponse.json(result);
   } catch (error) {

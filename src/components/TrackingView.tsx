@@ -15,6 +15,7 @@ const StatusIcon = ({ status, className }: { status: string, className?: string 
   }
 };
 import { groupItemsBySession, getSessionTitle, hasMultipleSessions } from '../utils/itemUtils';
+import { getOrderStationSummary, getItemStation } from '@/lib/utils/menuSection';
 
 // Helper function to check if item is new (added within last 5 minutes)
 export const isNewItem = (createdAt: any) => {
@@ -392,6 +393,64 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
             </p>
           </div>
         </div>
+
+        {/* Live KOT (Kitchen) & BOT (Drinks) Station Status Breakdown */}
+        {(() => {
+          const summary = getOrderStationSummary(order);
+          const kotSt = order.kot_status || summary.kotStatus;
+          const botSt = order.bot_status || summary.botStatus;
+          const isPickup =
+            order.order_type === 'takeaway' ||
+            String(order.table_number || tableNumber || '').toUpperCase() === 'PICKUP';
+
+          if (!summary.hasKot && !summary.hasBot) return null;
+
+          return (
+            <div
+              data-testid="tracking-station-status"
+              className="mt-3 pt-3 border-t border-sangeet-neutral-700/60 space-y-2"
+            >
+              <div className="flex flex-wrap gap-2">
+                {summary.hasKot && (
+                  <div
+                    data-testid="tracking-kot-status"
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${
+                      kotSt === 'ready' || kotSt === 'completed'
+                        ? 'bg-green-500/15 text-green-300 border-green-500/30'
+                        : 'bg-orange-500/15 text-orange-300 border-orange-500/30'
+                    }`}
+                  >
+                    <span>🍳 Kitchen (Food):</span>
+                    <span className="uppercase tracking-wider">
+                      {kotSt === 'ready' ? 'Ready ✓' : kotSt}
+                    </span>
+                  </div>
+                )}
+                {summary.hasBot && (
+                  <div
+                    data-testid="tracking-bot-status"
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${
+                      botSt === 'ready' || botSt === 'completed'
+                        ? 'bg-green-500/15 text-green-300 border-green-500/30'
+                        : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+                    }`}
+                  >
+                    <span>🍷 Drinks (Bar):</span>
+                    <span className="uppercase tracking-wider">
+                      {botSt === 'ready' ? 'Ready ✓' : botSt}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {isPickup && summary.hasKot && summary.hasBot && botSt === 'ready' && kotSt !== 'ready' && (
+                <p className="text-xs text-sangeet-300 bg-sangeet-400/10 border border-sangeet-400/20 rounded-lg px-3 py-2">
+                  🥤 Your drinks are packed! Waiting for the kitchen to finish packing your hot food so you can collect everything together.
+                </p>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Order Items - Mobile Optimized */}
@@ -427,6 +486,15 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                          <span
+                            className={`text-[10px] px-1.5 py-0.5 rounded-sm font-bold ${
+                              getItemStation(item) === 'bot'
+                                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                : 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+                            }`}
+                          >
+                            {getItemStation(item) === 'bot' ? '🍷 Bar' : '🍳 Kitchen'}
+                          </span>
                           <p className={`font-medium tracking-wide ${item.status === 'cancelled' ? 'text-sangeet-neutral-500 line-through' : 'text-sangeet-neutral-200'}`}>
                             {item.name}
                           </p>

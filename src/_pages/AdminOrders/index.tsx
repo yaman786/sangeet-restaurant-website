@@ -8,6 +8,7 @@ import OrderTable from './OrderTable';
 import OrderDetailModal from './OrderDetailModal';
 import AdminAddOrderModal from './AdminAddOrderModal';
 import { useOrderManagement } from './hooks/useOrderManagement';
+import { getOrderStationSummary } from '@/lib/utils/menuSection';
 
 const AdminOrders = () => {
   const {
@@ -46,6 +47,14 @@ const AdminOrders = () => {
   } = useOrderManagement();
 
   const [showAddOrderModal, setShowAddOrderModal] = React.useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = React.useState<string>('Cash');
+
+  const PAYMENT_METHODS = [
+    { id: 'Cash', label: '💵 Cash', testId: 'payment-method-cash' },
+    { id: 'Card', label: '💳 Card', testId: 'payment-method-card' },
+    { id: 'Octopus', label: '🐙 Octopus', testId: 'payment-method-octopus' },
+    { id: 'PayMe / FPS', label: '📱 PayMe / FPS', testId: 'payment-method-payme' },
+  ];
 
   const getStatusColor = (status: any) => {
     const colors = {
@@ -137,40 +146,121 @@ const AdminOrders = () => {
                   ${activeOrdersModal.activeOrders.reduce((sum: any, order: any) => sum + Number(order.total_amount || 0), 0).toFixed(2)}
                 </div>
                 <div className="flex items-center justify-center space-x-2 text-sm text-white/60">
-                  <span>Table {activeOrdersModal.activeOrders[0]?.table_number}</span>
+                  <span>
+                    {activeOrdersModal.activeOrders[0]?.order_type === 'takeaway' ||
+                    String(activeOrdersModal.activeOrders[0]?.table_number || '').toUpperCase() === 'PICKUP'
+                      ? '🛍️ Self Pick-Up'
+                      : `Table ${activeOrdersModal.activeOrders[0]?.table_number}`}
+                  </span>
                   <span>•</span>
                   <span>{activeOrdersModal.customerName}</span>
                 </div>
               </div>
 
-              {/* Itemized List */}
-              <div className="p-6 overflow-y-auto flex-1">
-                <h3 className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-4">Itemized Tickets</h3>
-                <div className="space-y-4">
-                  {activeOrdersModal.activeOrders.map((order: any, idx: number) => {
-                    const isCooking = order.status === 'pending' || order.status === 'accepted' || order.status === 'preparing';
-                    return (
-                      <div key={order.id} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 text-xs font-medium">
-                            {idx + 1}
-                          </div>
-                          <div>
-                            <div className="text-white/90 text-sm font-medium flex items-center space-x-2">
-                              <span>Order #{order.order_number}</span>
-                              {isCooking && (
-                                <span className="text-[10px] bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded-sm font-semibold">Cooking</span>
-                              )}
-                            </div>
-                            <div className="text-white/40 text-xs">{formatDate(order.created_at)}</div>
-                          </div>
+              {/* Itemized List + Station Breakdown */}
+              <div className="p-6 overflow-y-auto flex-1 space-y-5">
+                {(() => {
+                  const totalKot = activeOrdersModal.activeOrders.reduce(
+                    (sum: number, o: any) => sum + getOrderStationSummary(o).kotTotal,
+                    0
+                  );
+                  const totalBot = activeOrdersModal.activeOrders.reduce(
+                    (sum: number, o: any) => sum + getOrderStationSummary(o).botTotal,
+                    0
+                  );
+                  return (
+                    <div className="grid grid-cols-2 gap-3 bg-white/5 border border-white/10 rounded-xl p-3">
+                      <div className="text-left">
+                        <div className="text-[11px] font-semibold text-orange-300 uppercase tracking-wider">
+                          🍳 Kitchen (KOT)
                         </div>
-                        <div className="text-white font-medium">
-                          ${Number(order.total_amount || 0).toFixed(2)}
+                        <div className="text-lg font-bold text-white mt-0.5">
+                          ${totalKot.toFixed(2)}
                         </div>
                       </div>
-                    );
-                  })}
+                      <div className="text-left border-l border-white/10 pl-3">
+                        <div className="text-[11px] font-semibold text-purple-300 uppercase tracking-wider">
+                          🍷 Drinks (BOT)
+                        </div>
+                        <div className="text-lg font-bold text-white mt-0.5">
+                          ${totalBot.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <div>
+                  <h3 className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3">
+                    Itemized Tickets (Combined Check)
+                  </h3>
+                  <div className="space-y-4">
+                    {activeOrdersModal.activeOrders.map((order: any, idx: number) => {
+                      const isCooking = order.status === 'pending' || order.status === 'accepted' || order.status === 'preparing';
+                      const summary = getOrderStationSummary(order);
+                      return (
+                        <div key={order.id} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 text-xs font-medium">
+                              {idx + 1}
+                            </div>
+                            <div>
+                              <div className="text-white/90 text-sm font-medium flex flex-wrap items-center gap-1.5">
+                                <span>Order #{order.order_number}</span>
+                                {summary.hasKot && (
+                                  <span className="text-[10px] bg-orange-500/20 text-orange-300 border border-orange-500/30 px-1.5 py-0.5 rounded-sm font-semibold">
+                                    🍳 KOT
+                                  </span>
+                                )}
+                                {summary.hasBot && (
+                                  <span className="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded-sm font-semibold">
+                                    🍷 BOT
+                                  </span>
+                                )}
+                                {isCooking && (
+                                  <span className="text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-1.5 py-0.5 rounded-sm font-semibold">
+                                    Preparing
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-white/40 text-xs">{formatDate(order.created_at)}</div>
+                            </div>
+                          </div>
+                          <div className="text-white font-medium">
+                            ${Number(order.total_amount || 0).toFixed(2)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Payment Method Selector */}
+                <div>
+                  <h3 className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-2.5">
+                    Select Payment Method
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {PAYMENT_METHODS.map((pm) => {
+                      const active = selectedPaymentMethod === pm.id;
+                      return (
+                        <button
+                          key={pm.id}
+                          type="button"
+                          data-testid={pm.testId}
+                          onClick={() => setSelectedPaymentMethod(pm.id)}
+                          className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer text-left flex items-center justify-between ${
+                            active
+                              ? 'bg-sangeet-400 text-black border-sangeet-400 shadow-md'
+                              : 'bg-white/5 text-white/80 border-white/10 hover:border-white/30'
+                          }`}
+                        >
+                          <span>{pm.label}</span>
+                          {active && <span>✓</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -179,23 +269,26 @@ const AdminOrders = () => {
                 {activeOrdersModal.activeOrders.some((o: any) => o.status === 'pending' || o.status === 'accepted' || o.status === 'preparing') ? (
                   <div className="space-y-3">
                     <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl text-xs text-orange-400 text-center font-medium">
-                      ⚠️ Kitchen is still preparing items for this table. Wait for kitchen to mark ready/served before collecting payment.
+                      ⚠️ Kitchen (KOT) or Bar (BOT) is still preparing items. Wait until all stations mark Ready before collecting payment.
                     </div>
                     <button
                       disabled
                       className="w-full bg-sangeet-neutral-800 text-sangeet-neutral-500 font-semibold text-lg py-4 rounded-xl cursor-not-allowed border border-sangeet-neutral-700 flex items-center justify-center space-x-2"
                     >
                       <CheckCircle size={20} />
-                      <span>Cannot Charge (Cooking in Progress)</span>
+                      <span>Cannot Charge (Preparation in Progress)</span>
                     </button>
                   </div>
                 ) : (
                   <button
-                    onClick={handleCompleteAllCustomerOrders}
+                    data-testid="confirm-payment-btn"
+                    onClick={() => handleCompleteAllCustomerOrders(selectedPaymentMethod)}
                     className="w-full bg-sangeet-400 hover:bg-[#B8972E] text-black font-semibold text-lg py-4 rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all flex items-center justify-center space-x-2 cursor-pointer"
                   >
                     <CheckCircle size={20} />
-                    <span>Charge ${activeOrdersModal.activeOrders.reduce((sum: any, order: any) => sum + Number(order.total_amount || 0), 0).toFixed(2)}</span>
+                    <span>
+                      Charge ${activeOrdersModal.activeOrders.reduce((sum: any, order: any) => sum + Number(order.total_amount || 0), 0).toFixed(2)} ({selectedPaymentMethod})
+                    </span>
                   </button>
                 )}
                 <button

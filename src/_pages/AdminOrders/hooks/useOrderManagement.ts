@@ -132,19 +132,22 @@ export const useOrderManagement = () => {
       };
 
       const handleStatusUpdateEvent = (data: any) => {
-        const { orderId, status } = data;
+        const { orderId, status, kot_status, bot_status } = data;
         
         // Update order in the active list
         setOrders(prevOrders => {
           const existingOrder = prevOrders.find(order => order.id === orderId);
           
-          // If the order is already at this status (from optimistic update), skip
-          if (existingOrder && existingOrder.status === status) return prevOrders;
-          
           if (status === 'completed' || status === 'cancelled') {
             // Move from active → completed
             if (existingOrder) {
-              const updatedOrder = { ...existingOrder, status, updated_at: new Date().toISOString() };
+              const updatedOrder = {
+                ...existingOrder,
+                status,
+                ...(kot_status !== undefined ? { kot_status } : {}),
+                ...(bot_status !== undefined ? { bot_status } : {}),
+                updated_at: new Date().toISOString()
+              };
               setCompletedOrders(prev => {
                 if (prev.some(o => o.id === orderId && o.status === status)) return prev;
                 return [updatedOrder, ...prev];
@@ -157,7 +160,13 @@ export const useOrderManagement = () => {
           // Otherwise update in-place
           return sortOrdersByTable(prevOrders.map(order =>
             order.id === orderId
-              ? { ...order, status, updated_at: new Date().toISOString() }
+              ? {
+                  ...order,
+                  status,
+                  ...(kot_status !== undefined ? { kot_status } : {}),
+                  ...(bot_status !== undefined ? { bot_status } : {}),
+                  updated_at: new Date().toISOString()
+                }
               : order
           ));
         });
@@ -207,8 +216,16 @@ export const useOrderManagement = () => {
   };
 
   const getOtherActiveOrders = (order: any) => {
+    const isTakeaway =
+      order.order_type === 'takeaway' ||
+      String(order.table_number || '').toUpperCase() === 'PICKUP' ||
+      (!order.table_id && !order.table_number);
+    if (isTakeaway) return [];
+
     return orders.filter(o =>
       o.id !== order.id &&
+      o.order_type !== 'takeaway' &&
+      String(o.table_number || '').toUpperCase() !== 'PICKUP' &&
       (String(o.table_number) === String(order.table_number) || String(o.table_id) === String(order.table_id)) &&
       o.status !== 'completed' &&
       o.status !== 'cancelled'
@@ -238,7 +255,7 @@ export const useOrderManagement = () => {
     });
   };
 
-  const handleCompleteAllCustomerOrders = async () => {
+  const handleCompleteAllCustomerOrders = async (paymentMethod = 'Cash') => {
     if (activeOrdersModal.activeOrders.length === 0) return;
     
     try {
@@ -248,14 +265,21 @@ export const useOrderManagement = () => {
       // Optimistic update — move all to completed immediately
       setOrders(prev => prev.filter(o => !allIdsToComplete.includes(o.id)));
       setCompletedOrders(prev => [
-        ...activeOrdersModal.activeOrders.map((o: any) => ({ ...o, status: 'completed', updated_at: new Date().toISOString() })),
+        ...activeOrdersModal.activeOrders.map((o: any) => ({
+          ...o,
+          status: 'completed',
+          special_instructions: o.special_instructions
+            ? `[Paid: ${paymentMethod}] ${o.special_instructions}`
+            : `[Paid: ${paymentMethod}]`,
+          updated_at: new Date().toISOString()
+        })),
         ...prev
       ]);
       
       closeActiveOrdersModal();
       
-      await bulkUpdateOrderStatus(allIdsToComplete, 'completed');
-      toast.success(`${allIdsToComplete.length} orders successfully consolidated and completed!`);
+      await bulkUpdateOrderStatus(allIdsToComplete, 'completed', paymentMethod);
+      toast.success(`Paid via ${paymentMethod} — ${allIdsToComplete.length} ticket(s) settled & completed!`);
     } catch (error) {
       console.error('Error completing all customer orders:', error);
       toast.error('Failed to complete consolidated orders. Please try again.');

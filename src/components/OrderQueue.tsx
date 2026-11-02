@@ -8,8 +8,22 @@ import toast from 'react-hot-toast';
 import CustomDropdown from './CustomDropdown';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  getItemStation,
+  getStationItems,
+  getStationTicketStatus,
+  type OrderStation,
+} from '@/lib/utils/menuSection';
 
-const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, activeFilter = 'all', sortBy = 'priority', searchQuery = '' }: any) => {
+const OrderQueue = ({
+  onStatsUpdate,
+  soundEnabled = true,
+  kitchenMode = false,
+  station = 'all' as OrderStation,
+  activeFilter = 'all',
+  sortBy = 'priority',
+  searchQuery = '',
+}: any) => {
   const queryClient = useQueryClient();
   const [now, setNow] = useState(() => Date.now());
   const [itemToCancel, setItemToCancel] = useState<{orderId: string, itemId: string, itemName: string} | null>(null);
@@ -124,35 +138,100 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     refetchInterval: 60000, // Background polling fallback
   });
 
-  const orders = sortOrders(allOrders.filter((order: any) => 
-    order.status !== 'completed' && order.status !== 'cancelled' && !(kitchenMode && order.status === 'pending')
-  ));
-  
-  const completedOrders = sortOrders(allOrders.filter((order: any) => 
-    order.status === 'completed' || order.status === 'cancelled'
-  ));
+  // Transform orders for the selected station ('kot', 'bot', or 'all')
+  const stationScopedOrders = allOrders
+    .map((order: any) => {
+      if (station === 'kot' || station === 'bot') {
+        const stationItems = getStationItems(order, station);
+        const ticketStatus = getStationTicketStatus(order, station);
+        return {
+          ...order,
+          stationItems,
+          ticketStatus: ticketStatus || order.status,
+        };
+      }
+      return {
+        ...order,
+        stationItems: order.items || [],
+        ticketStatus: order.status,
+      };
+    })
+    .filter((order: any) => {
+      if (station === 'kot' || station === 'bot') {
+        return order.stationItems.length > 0;
+      }
+      return true;
+    });
+
+  const orders = sortOrders(
+    stationScopedOrders.filter(
+      (order: any) =>
+        order.ticketStatus !== 'completed' &&
+        order.ticketStatus !== 'cancelled' &&
+        order.status !== 'completed' &&
+        order.status !== 'cancelled' &&
+        !(kitchenMode && order.status === 'pending')
+    )
+  );
+
+  const completedOrders = sortOrders(
+    stationScopedOrders.filter(
+      (order: any) =>
+        order.ticketStatus === 'completed' ||
+        order.ticketStatus === 'cancelled' ||
+        order.status === 'completed' ||
+        order.status === 'cancelled'
+    )
+  );
 
   const updateStatusMutation = useMutation({
-    mutationFn: (data: { id: string; status: string }) => updateOrderStatus(data.id, data.status),
+    mutationFn: (data: { id: string; status: string; station?: OrderStation }) =>
+      updateOrderStatus(data.id, data.status, data.station),
     onMutate: async (variables) => {
       await queryClient.cancelQueries({ queryKey: ['orders'] });
       const previousOrders = queryClient.getQueryData(['orders']);
       queryClient.setQueryData(['orders'], (old: any) => {
         if (!old) return old;
-        return old.map((order: any) => 
-          String(order.id) === String(variables.id) 
-            ? { ...order, status: variables.status }
-            : order
-        );
+        return old.map((order: any) => {
+          if (String(order.id) !== String(variables.id)) return order;
+          if (variables.station === 'kot' || variables.station === 'bot') {
+            const nextItems = (order.items || []).map((item: any) =>
+              getItemStation(item) === variables.station && item.status !== 'cancelled'
+                ? { ...item, status: variables.status }
+                : item
+            );
+            const activeItems = nextItems.filter((i: any) => i.status !== 'cancelled');
+            const allReady = activeItems.every(
+              (i: any) => i.status === 'ready' || i.status === 'served' || i.status === 'completed'
+            );
+            return {
+              ...order,
+              items: nextItems,
+              status: allReady ? 'ready' : order.status === 'pending' ? 'accepted' : 'preparing',
+              ...(variables.station === 'kot'
+                ? { kot_status: variables.status }
+                : { bot_status: variables.status }),
+            };
+          }
+          return { ...order, status: variables.status };
+        });
       });
       return { previousOrders };
+    },
+    onSuccess: (updatedOrder: any) => {
+      if (updatedOrder && updatedOrder.id) {
+        queryClient.setQueryData(['orders'], (old: any) => {
+          if (!old) return old;
+          return old.map((o: any) => (String(o.id) === String(updatedOrder.id) ? updatedOrder : o));
+        });
+      }
     },
     onError: (err, variables, context: any) => {
       if (context?.previousOrders) {
         queryClient.setQueryData(['orders'], context.previousOrders);
       }
       toast.error('Failed to update order status');
-    }
+    },
   });
 
   const cancelItemMutation = useMutation({
@@ -190,28 +269,33 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
   });
 
   const handleStatusUpdate = (orderId: string, newStatus: string) => {
-    const currentOrder = allOrders.find((order: any) => String(order.id) === String(orderId));
+    const currentOrder = stationScopedOrders.find((order: any) => String(order.id) === String(orderId));
     if (!currentOrder) {
       toast.error('Order not found');
       return;
     }
-    
+
+    const currentEffectiveStatus = currentOrder.ticketStatus || currentOrder.status;
+
     // Validate status transitions
     const statusFlow = {
-      'pending': ['accepted', 'preparing', 'cancelled'],
-      'accepted': ['preparing', 'cancelled'],
-      'preparing': ['ready', 'cancelled'],
-      'ready': ['completed', 'cancelled'],
-      'completed': [],
-      'cancelled': []
+      pending: ['accepted', 'preparing', 'cancelled'],
+      accepted: ['preparing', 'ready', 'cancelled'],
+      preparing: ['ready', 'cancelled'],
+      ready: ['completed', 'cancelled'],
+      completed: [],
+      cancelled: [],
     };
-    
-    if (!(statusFlow as any)[currentOrder.status]?.includes(newStatus)) {
-      toast.error(`Cannot change status from "${currentOrder.status}" to "${newStatus}". Invalid transition.`);
+
+    if (!(statusFlow as any)[currentEffectiveStatus]?.includes(newStatus)) {
+      toast.error(
+        `Cannot change status from "${currentEffectiveStatus}" to "${newStatus}". Invalid transition.`
+      );
       return;
     }
-    
-    updateStatusMutation.mutate({ id: orderId, status: newStatus });
+
+    const targetStation = station === 'kot' || station === 'bot' ? station : undefined;
+    updateStatusMutation.mutate({ id: orderId, status: newStatus, station: targetStation });
   };
 
   const handleItemCancel = (orderId: string, itemId: string, itemName: string) => {
@@ -322,13 +406,17 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
     }
   };
 
-  let baseOrders = activeFilter === 'all' 
-    ? [...orders] 
-    : activeFilter === 'completed' 
-      ? [...completedOrders]
-      : activeFilter === 'preparing'
-        ? orders.filter((order: any) => order.status === 'accepted' || order.status === 'preparing')
-        : orders.filter((order: any) => order.status === activeFilter);
+  let baseOrders =
+    activeFilter === 'all'
+      ? [...orders]
+      : activeFilter === 'completed'
+        ? [...completedOrders]
+        : activeFilter === 'preparing'
+          ? orders.filter(
+              (order: any) =>
+                order.ticketStatus === 'accepted' || order.ticketStatus === 'preparing'
+            )
+          : orders.filter((order: any) => order.ticketStatus === activeFilter);
       
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
@@ -344,10 +432,12 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
   useEffect(() => {
     const stats = {
       total: orders.length,
-      pending: orders.filter((order: any) => order.status === 'pending').length,
-      accepted: orders.filter((order: any) => order.status === 'accepted').length,
-      preparing: orders.filter((order: any) => order.status === 'accepted' || order.status === 'preparing').length,
-      ready: orders.filter((order: any) => order.status === 'ready').length,
+      pending: orders.filter((order: any) => order.ticketStatus === 'pending').length,
+      accepted: orders.filter((order: any) => order.ticketStatus === 'accepted').length,
+      preparing: orders.filter(
+        (order: any) => order.ticketStatus === 'accepted' || order.ticketStatus === 'preparing'
+      ).length,
+      ready: orders.filter((order: any) => order.ticketStatus === 'ready').length,
       completed: completedOrders.length
     };
     
@@ -366,16 +456,23 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
 
   return (
     <div className="p-4">
-      {/* Orders Grid - Optimized for Kitchen */}
+      {/* Orders Grid - Optimized for Kitchen & Bar Stations */}
       <motion.div 
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
         layout
         transition={{ duration: 0.3 }}
       >
         <AnimatePresence mode="wait">
-          {filteredOrders.map((order: any) => (
+          {filteredOrders.map((order: any) => {
+            const ticketStatus = order.ticketStatus || order.status;
+            const visibleItems = order.stationItems || order.items || [];
+            const ticketPrefix =
+              station === 'kot' ? '🍳 KOT' : station === 'bot' ? '🍷 BOT' : '';
+
+            return (
             <motion.div
-              key={order.id}
+              key={`${order.id}-${station}`}
+              data-testid={`station-ticket-${station}-${order.order_number}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -386,14 +483,25 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
                 damping: 30,
                 layout: { duration: 0.3 }
               }}
-              className={`bg-sangeet-neutral-800 rounded-lg p-4 border ${getTicketColorClasses(order.status, getElapsedMinutes(order.created_at))} flex flex-col h-full min-h-[320px]`}
+              className={`bg-sangeet-neutral-800 rounded-lg p-4 border ${getTicketColorClasses(ticketStatus, getElapsedMinutes(order.created_at))} flex flex-col h-full min-h-[320px]`}
             >
               {/* Order Header - Compact */}
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="text-base font-bold text-sangeet-neutral-100">
-                    {order.status === 'ready' && <span className="text-green-400 mr-1">🍽️</span>}
-                    #{order.order_number}
+                  <h3 className="text-base font-bold text-sangeet-neutral-100 flex items-center gap-1.5">
+                    {ticketStatus === 'ready' && <span className="text-green-400">✓</span>}
+                    {ticketPrefix && (
+                      <span
+                        className={`px-2 py-0.5 rounded-md text-xs font-extrabold tracking-wide ${
+                          station === 'bot'
+                            ? 'bg-purple-500/20 text-purple-300 border border-purple-400/40'
+                            : 'bg-orange-500/20 text-orange-300 border border-orange-400/40'
+                        }`}
+                      >
+                        {ticketPrefix}
+                      </span>
+                    )}
+                    <span>#{order.order_number}</span>
                   </h3>
                   <p className="text-xs text-sangeet-neutral-400 flex items-center gap-1 mt-1">
                     {order.order_type === 'takeaway' || String(order.table_number).toUpperCase() === 'PICKUP' ? (
@@ -410,9 +518,9 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
                     </span>
                   </p>
                 </div>
-                <div className={`flex items-center space-x-1 px-2 py-1 rounded-full border text-xs ${getStatusColor(order.status)}`}>
-                  {getStatusIcon(order.status)}
-                  <span className="font-medium">{order.status}</span>
+                <div className={`flex items-center space-x-1 px-2 py-1 rounded-full border text-xs ${getStatusColor(ticketStatus)}`}>
+                  {getStatusIcon(ticketStatus)}
+                  <span className="font-medium">{ticketStatus}</span>
                   {/* Live update indicator */}
                   <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
                 </div>
@@ -432,12 +540,31 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
 
               {/* Order Items - Compact */}
               <div className="mb-3 grow">
-                <h4 className="text-xs font-medium text-sangeet-neutral-400 mb-1">Items:</h4>
+                <h4 className="text-xs font-medium text-sangeet-neutral-400 mb-1">
+                  {station === 'kot'
+                    ? 'Kitchen Items (KOT):'
+                    : station === 'bot'
+                      ? 'Bar & Drinks Items (BOT):'
+                      : 'Items:'}
+                </h4>
                 
                 <div className="space-y-1">
-                  {order.items && order.items.map((item: any) => (
+                  {visibleItems.map((item: any) => {
+                    const itemStation = getItemStation(item);
+                    return (
                     <div key={item.id} className="flex justify-between items-center text-xs py-1 group">
                       <div className="flex items-center space-x-2 grow">
+                        {station === 'all' && (
+                          <span
+                            className={`text-[10px] px-1.5 py-0.5 rounded-sm font-bold ${
+                              itemStation === 'bot'
+                                ? 'bg-purple-500/20 text-purple-300'
+                                : 'bg-orange-500/20 text-orange-300'
+                            }`}
+                          >
+                            {itemStation === 'bot' ? 'BOT' : 'KOT'}
+                          </span>
+                        )}
                         <span className={`transition-all ${item.status === 'cancelled' ? 'text-red-500/70 line-through' : 'text-sangeet-neutral-300'}`}>
                           {item.quantity}x {item.menu_item_name || item.name}
                         </span>
@@ -451,48 +578,56 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
                         )}
                       </div>
                       
-                      {/* Cancel Item Button for Kitchen */}
-                      {kitchenMode && item.status !== 'cancelled' && order.status !== 'completed' && order.status !== 'cancelled' && (
+                      {/* Cancel Item Button for Kitchen/Bar */}
+                      {kitchenMode && item.status !== 'cancelled' && ticketStatus !== 'completed' && ticketStatus !== 'cancelled' && (
                         <button 
                           onClick={() => handleItemCancel(order.id, item.id, item.menu_item_name || item.name)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 text-sangeet-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 p-1 text-sangeet-neutral-500 hover:text-red-400 hover:bg-red-500/10 rounded-sm cursor-pointer"
                           title="Cancel this item"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         </button>
                       )}
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               </div>
 
               {/* Status Update Buttons - Smart Flow Logic */}
-              {order.status !== 'completed' && order.status !== 'cancelled' && (
+              {ticketStatus !== 'completed' && ticketStatus !== 'cancelled' && (
                 <div className="flex flex-wrap gap-1 mt-auto pt-3">
                   {kitchenMode ? (
-                    // Kitchen Mode: Smart touch-friendly buttons with logical flow
+                    // Kitchen / Bar Mode: Smart touch-friendly buttons with logical flow
                     <>
                       {/* Forward Progress Buttons */}
-                      {(order.status === 'pending' || order.status === 'accepted') && (
+                      {(ticketStatus === 'pending' || ticketStatus === 'accepted') && (
                         <button
+                          data-testid={`station-start-btn-${order.order_number}`}
                           onClick={() => handleStatusUpdate(order.id, 'preparing')}
-                          className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-md font-medium hover:bg-orange-700 transition-colors text-sm"
+                          className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-md font-medium hover:bg-orange-700 transition-colors text-sm cursor-pointer"
                         >
-                          🍳 Start Cooking
+                          {station === 'bot' ? '🍷 Start Pouring' : '🍳 Start Cooking'}
                         </button>
                       )}
-                      {order.status === 'preparing' && (
+                      {(ticketStatus === 'preparing' || ticketStatus === 'accepted') && (
                         <button
+                          data-testid={`station-ready-btn-${order.order_number}`}
                           onClick={() => handleStatusUpdate(order.id, 'ready')}
-                          className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors text-sm shadow-lg"
+                          className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors text-sm shadow-lg cursor-pointer"
                         >
-                          🍽️ Ready to Serve
+                          {station === 'bot'
+                            ? '🥂 Mark BOT Ready'
+                            : station === 'kot'
+                              ? '🍽️ Mark KOT Ready'
+                              : '🍽️ Ready to Serve'}
                         </button>
                       )}
-                      {order.status === 'ready' && (
+                      {ticketStatus === 'ready' && (
                         <button
+                          data-testid={`station-complete-btn-${order.order_number}`}
                           onClick={() => handleStatusUpdate(order.id, 'completed')}
-                          className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-md font-medium hover:bg-gray-700 transition-colors text-sm"
+                          className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-md font-medium hover:bg-gray-700 transition-colors text-sm cursor-pointer"
                         >
                           ✅ Mark Served
                         </button>
@@ -501,7 +636,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
                       {/* Cancel Button - Available at any stage */}
                       <button
                         onClick={() => handleStatusUpdate(order.id, 'cancelled')}
-                        className="px-3 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors text-sm"
+                        className="px-3 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors text-sm cursor-pointer"
                       >
                         ❌ Cancel
                       </button>
@@ -510,7 +645,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
                     // Admin Mode: Smart dropdown with logical restrictions
                     <div className="w-full space-y-2">
                       <CustomDropdown
-                        value={order.status}
+                        value={ticketStatus}
                         onChange={(newStatus: any) => handleStatusUpdate((order as any).id, newStatus)}
                         options={statusOptions}
                         className="w-full"
@@ -519,7 +654,7 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
                       {/* Cancel Button for Admin */}
                       <button
                         onClick={() => handleStatusUpdate(order.id, 'cancelled')}
-                        className="w-full px-2 py-1 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors text-sm"
+                        className="w-full px-2 py-1 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors text-sm cursor-pointer"
                       >
                         ❌ Cancel Order
                       </button>
@@ -529,21 +664,22 @@ const OrderQueue = ({ onStatsUpdate, soundEnabled = true, kitchenMode = false, a
               )}
               
               {/* Completed/Cancelled Order Actions */}
-              {(order.status === 'completed' || order.status === 'cancelled') && (
+              {(ticketStatus === 'completed' || ticketStatus === 'cancelled') && (
                 <div className="flex flex-wrap gap-1 mt-auto pt-3">
                   <div className="w-full text-center">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      order.status === 'completed' 
+                      ticketStatus === 'completed' 
                         ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
                         : 'bg-red-500/20 text-red-400 border border-red-500/30'
                     }`}>
-                      {order.status === 'completed' ? '✅ Order Completed' : '❌ Order Cancelled'}
+                      {ticketStatus === 'completed' ? '✅ Ticket Completed' : '❌ Ticket Cancelled'}
                     </span>
                   </div>
                 </div>
               )}
             </motion.div>
-          ))}
+          );
+          })}
         </AnimatePresence>
       </motion.div>
 

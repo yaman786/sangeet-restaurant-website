@@ -102,23 +102,45 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* Kitchen Access */}
+          {/* Kitchen Access (KOT) */}
           {(user?.role === 'admin' || user?.role === 'kitchen') && (
             <div className="bg-sangeet-neutral-900 rounded-xl p-6 border border-sangeet-neutral-700 hover:border-sangeet-400/50 transition-all duration-300 group">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-orange-400/20 rounded-lg flex items-center justify-center group-hover:bg-orange-400/30 transition-colors">
                   <span className="text-2xl">🍳</span>
                 </div>
-                <span className="text-sangeet-neutral-500 text-sm">Kitchen</span>
+                <span className="text-orange-400 text-xs font-semibold uppercase tracking-wider">KOT • Food</span>
               </div>
-              <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">Kitchen Display</h3>
+              <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">Kitchen Display (KOT)</h3>
               <p className="text-sangeet-neutral-400 text-sm mb-4">
-                Real-time kitchen operations: live order queue, touch-friendly interface for staff
+                Real-time Kitchen Order Tickets (KOT) for Starters, Curries, Tandoor, and Breads
               </p>
-              <Link href="/kitchen/display"
+              <Link href="/admin/kitchen"
                 className="inline-flex items-center text-sangeet-400 hover:text-sangeet-300 font-medium text-sm group-hover:underline"
               >
-                Open Kitchen Display
+                Open Kitchen KOT
+                <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
+              </Link>
+            </div>
+          )}
+
+          {/* Bar Display Access (BOT) */}
+          {(user?.role === 'admin' || user?.role === 'kitchen' || user?.role === 'waiter' || user?.role === 'reception') && (
+            <div className="bg-sangeet-neutral-900 rounded-xl p-6 border border-sangeet-neutral-700 hover:border-purple-400/50 transition-all duration-300 group">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">
+                  <span className="text-2xl">🍷</span>
+                </div>
+                <span className="text-purple-400 text-xs font-semibold uppercase tracking-wider">BOT • Drinks</span>
+              </div>
+              <h3 className="text-xl font-bold text-sangeet-neutral-100 mb-2">Bar Display (BOT)</h3>
+              <p className="text-sangeet-neutral-400 text-sm mb-4">
+                Real-time Bar Order Tickets (BOT) for Beers, Whisky, Spirits, Cocktails &amp; Soft Drinks
+              </p>
+              <Link href="/admin/bar"
+                className="inline-flex items-center text-sangeet-400 hover:text-sangeet-300 font-medium text-sm group-hover:underline"
+              >
+                Open Bar BOT
                 <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
               </Link>
             </div>

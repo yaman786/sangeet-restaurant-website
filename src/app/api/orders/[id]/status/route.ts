@@ -7,7 +7,9 @@ import { z } from 'zod';
 import { orderStatusSchema } from '@/lib/validations/order';
 
 const updateStatusSchema = z.object({
-  status: orderStatusSchema
+  status: orderStatusSchema,
+  station: z.enum(['kot', 'bot', 'all']).optional(),
+  paymentMethod: z.string().max(50).optional(),
 });
 
 export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
@@ -19,9 +21,9 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     if (roleError) return roleError;
 
     const rawBody = await req.json();
-    const { status } = updateStatusSchema.parse(rawBody);
+    const { status, station, paymentMethod } = updateStatusSchema.parse(rawBody);
     
-    const order = await orderService.updateOrderStatus(params.id, status);
+    const order = await orderService.updateOrderStatus(params.id, status, station, paymentMethod);
     
     return NextResponse.json({ message: 'Order status updated successfully', order });
   } catch (error) {

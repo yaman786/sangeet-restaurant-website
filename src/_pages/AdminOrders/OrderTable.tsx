@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getOrderStationSummary } from '@/lib/utils/menuSection';
 
 const OrderTable = ({
   orders,
@@ -356,9 +357,42 @@ const OrderTable = ({
                               />
                             </td>
                             <td className="px-6 py-3" colSpan={2}>
-                              <div className="flex items-center space-x-3 ml-4">
+                              <div className="flex flex-wrap items-center gap-2 ml-4">
                                 <span className="text-sangeet-neutral-400 text-sm font-semibold">Round {order.roundNumber || 1}</span>
                                 <span className="text-sangeet-neutral-500 text-xs">#{order.order_number}</span>
+                                {(() => {
+                                  const summary = getOrderStationSummary(order);
+                                  const kotSt = order.kot_status || summary.kotStatus;
+                                  const botSt = order.bot_status || summary.botStatus;
+                                  return (
+                                    <>
+                                      {summary.hasKot && (
+                                        <span
+                                          data-testid={`order-kot-badge-${order.order_number}`}
+                                          className={`text-[11px] px-2 py-0.5 rounded-md font-semibold border ${
+                                            kotSt === 'ready' || kotSt === 'completed'
+                                              ? 'bg-green-500/15 text-green-400 border-green-500/30'
+                                              : 'bg-orange-500/15 text-orange-300 border-orange-500/30'
+                                          }`}
+                                        >
+                                          🍳 KOT: {kotSt === 'ready' ? 'Ready ✓' : kotSt}
+                                        </span>
+                                      )}
+                                      {summary.hasBot && (
+                                        <span
+                                          data-testid={`order-bot-badge-${order.order_number}`}
+                                          className={`text-[11px] px-2 py-0.5 rounded-md font-semibold border ${
+                                            botSt === 'ready' || botSt === 'completed'
+                                              ? 'bg-green-500/15 text-green-400 border-green-500/30'
+                                              : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+                                          }`}
+                                        >
+                                          🍷 BOT: {botSt === 'ready' ? 'Ready ✓' : botSt}
+                                        </span>
+                                      )}
+                                    </>
+                                  );
+                                })()}
                               </div>
                             </td>
                             <td className="px-6 py-3 text-sangeet-neutral-400 text-sm">

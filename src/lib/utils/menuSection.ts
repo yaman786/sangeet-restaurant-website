@@ -122,22 +122,117 @@ export function isBarCategory(category: any, categories: any[] = []): boolean {
 
 export function isBarMenuItem(item: any, categories: any[] = []): boolean {
   if (!item) return false;
-  if (item.section === 'drinks') return true;
-  if (item.section === 'food') return false;
+  if (item.section === 'drinks' || item.station === 'bot') return true;
+  if (item.section === 'food' || item.station === 'kot') return false;
+
+  const target = item.menu_items ? { ...item.menu_items, ...item } : item;
 
   const parentCatName = String(
-    item.parent_category_name || item.categories?.parent?.name || ''
+    target.parent_category_name || target.categories?.parent?.name || ''
   ).toLowerCase();
   if (parentCatName === BAR_PARENT_CATEGORY_NAME.toLowerCase()) {
     return true;
   }
 
   const barIds = getBarCategoryIds(categories);
-  if (item.category_id && barIds.has(Number(item.category_id))) {
+  const catId = target.category_id ?? item.menu_items?.category_id;
+  if (catId && barIds.has(Number(catId))) {
     return true;
   }
-  const catName = String(item.category_name || item.category || '').toLowerCase();
+  const catName = String(
+    target.category_name || target.category || item.menu_items?.category || ''
+  ).toLowerCase();
   return BAR_CATEGORY_SET.has(catName);
+}
+
+export type OrderStation = 'kot' | 'bot' | 'all';
+
+export function getItemStation(item: any, categories: any[] = []): 'kot' | 'bot' {
+  return isBarMenuItem(item, categories) ? 'bot' : 'kot';
+}
+
+export function getStationItems(
+  order: any,
+  station: OrderStation,
+  categories: any[] = []
+): any[] {
+  const rawItems = order?.items || order?.order_items || [];
+  if (station === 'all') return rawItems;
+  return rawItems.filter((item: any) => getItemStation(item, categories) === station);
+}
+
+export function getStationTicketStatus(
+  order: any,
+  station: 'kot' | 'bot',
+  categories: any[] = []
+): string | null {
+  if (!order) return null;
+  const stationItems = getStationItems(order, station, categories);
+  if (stationItems.length === 0) return null;
+
+  const activeItems = stationItems.filter((i: any) => i.status !== 'cancelled');
+  if (activeItems.length === 0) return 'cancelled';
+
+  if (order.status === 'cancelled' || order.status === 'completed') {
+    return order.status;
+  }
+  if (order.status === 'pending') {
+    return 'pending';
+  }
+
+  // If the master order was already marked ready/served and items have default 'active' status
+  if (
+    (order.status === 'ready' || order.status === 'served') &&
+    activeItems.every((i: any) => !i.status || i.status === 'active' || i.status === 'ready' || i.status === 'served')
+  ) {
+    return 'ready';
+  }
+
+  if (activeItems.every((i: any) => i.status === 'completed')) {
+    return 'completed';
+  }
+  if (
+    activeItems.every(
+      (i: any) => i.status === 'ready' || i.status === 'served' || i.status === 'completed'
+    )
+  ) {
+    return 'ready';
+  }
+  if (
+    activeItems.some(
+      (i: any) => i.status === 'preparing' || i.status === 'ready' || i.status === 'served'
+    )
+  ) {
+    return 'preparing';
+  }
+
+  return order.status === 'accepted' ? 'accepted' : 'preparing';
+}
+
+export function getOrderStationSummary(order: any, categories: any[] = []) {
+  const kotItems = getStationItems(order, 'kot', categories);
+  const botItems = getStationItems(order, 'bot', categories);
+  const kotStatus = getStationTicketStatus(order, 'kot', categories);
+  const botStatus = getStationTicketStatus(order, 'bot', categories);
+
+  const kotTotal = kotItems
+    .filter((i: any) => i.status !== 'cancelled')
+    .reduce((sum: number, i: any) => sum + Number(i.total_price || Number(i.unit_price || 0) * Number(i.quantity || 1)), 0);
+
+  const botTotal = botItems
+    .filter((i: any) => i.status !== 'cancelled')
+    .reduce((sum: number, i: any) => sum + Number(i.total_price || Number(i.unit_price || 0) * Number(i.quantity || 1)), 0);
+
+  return {
+    hasKot: kotItems.length > 0 && kotStatus !== 'cancelled',
+    hasBot: botItems.length > 0 && botStatus !== 'cancelled',
+    kotItems,
+    botItems,
+    kotStatus,
+    botStatus,
+    kotTotal,
+    botTotal,
+  };
 }
 
 export type DrinkServingMode = 'shot_and_bottle' | 'bottle_only' | 'single';

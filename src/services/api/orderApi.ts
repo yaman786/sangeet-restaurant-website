@@ -52,9 +52,18 @@ export const fetchOrdersByTable = async (tableId: string | number): Promise<Orde
   }, 'fetchOrdersByTable');
 };
 
-export const updateOrderStatus = async (orderId: string | number, status: string) => {
+export const updateOrderStatus = async (
+  orderId: string | number,
+  status: string,
+  station?: 'kot' | 'bot' | 'all',
+  paymentMethod?: string
+) => {
   return apiCallWrapper(async () => {
-    return await api.patch(`/orders/${encodeURIComponent(orderId)}/status`, { status });
+    return await api.patch(`/orders/${encodeURIComponent(orderId)}/status`, {
+      status,
+      ...(station ? { station } : {}),
+      ...(paymentMethod ? { paymentMethod } : {}),
+    });
   }, 'updateOrderStatus', false);
 };
 
@@ -76,9 +85,17 @@ export const deleteOrder = async (orderId: string | number) => {
   }, 'deleteOrder', false);
 };
 
-export const bulkUpdateOrderStatus = async (orderIds: (string | number)[], status: string) => {
+export const bulkUpdateOrderStatus = async (
+  orderIds: (string | number)[],
+  status: string,
+  paymentMethod?: string
+) => {
   return apiCallWrapper(async () => {
-    return await api.patch('/orders/bulk-status', { orderIds, status });
+    return await api.patch('/orders/bulk-status', {
+      orderIds,
+      status,
+      ...(paymentMethod ? { paymentMethod } : {}),
+    });
   }, 'bulkUpdateOrderStatus', false);
 };
 
