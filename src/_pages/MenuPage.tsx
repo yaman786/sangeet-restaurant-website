@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Leaf, Flame, Star, UtensilsCrossed, Wine, ShieldCheck, Search } from 'lucide-react';
+import { Leaf, Flame, Star, UtensilsCrossed, Wine, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMenuItems, fetchMenuCategories } from '../services/api';
 import { isBarCategory, isBarMenuItem, groupDrinkMenuItems, type MenuSection } from '@/lib/utils/menuSection';
@@ -130,7 +130,7 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
               South Asian Cuisine &amp; Specialties
             </h1>
             <p className="text-sangeet-neutral-300 text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-6">
-              Tandoori grills, slow-cooked regional curries, biryanis, and freshly baked breads. All meats are 100% Halal certified. Vegetarian and vegan selections available.
+              Tandoori grills, slow-cooked regional curries, biryanis, Nepali specialties, and freshly baked breads. Dedicated vegetarian selections available.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <Link
@@ -192,10 +192,6 @@ const MenuPage = ({ initialMenuItems, initialCategories }: { initialMenuItems?: 
             <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-4">
               {menuSection === 'food' && (
                 <>
-                  <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sangeet-neutral-900/90 border border-sangeet-400/30 text-sangeet-300 text-xs sm:text-sm font-medium shadow-sm">
-                    <ShieldCheck className="w-4 h-4 text-sangeet-400" />
-                    100% Halal Certified
-                  </span>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}

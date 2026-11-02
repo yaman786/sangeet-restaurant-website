@@ -10,8 +10,8 @@ import type { Metadata } from 'next';
 export async function generateMetadata(): Promise<Metadata> {
   let seoConfig = {
     title: 'Sangeet | South Asian Fine Dining | Wan Chai, Hong Kong',
-    description: 'Sangeet is a South Asian fine-dining restaurant in Wan Chai, Hong Kong. Tandoori grills, slow-cooked regional curries, craft cocktails, and 100% Halal certified meats.',
-    keywords: 'Sangeet restaurant, Wan Chai Indian food, South Asian fine dining, Hong Kong tandoor, Halal restaurant Hong Kong, authentic curries, private dining Wan Chai',
+    description: 'Sangeet is a South Asian & Nepali fine-dining restaurant in Wan Chai, Hong Kong. Tandoori grills, slow-cooked regional curries, Himalayan specialties, and craft cocktails.',
+    keywords: 'Sangeet restaurant, Wan Chai Indian food, Nepali food Hong Kong, South Asian fine dining, Hong Kong tandoor, authentic curries, private dining Wan Chai',
     og_image: '/images/hero-interior.jpg'
   };
 

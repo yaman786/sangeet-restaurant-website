@@ -91,7 +91,7 @@ const PrivacyPolicyPage = () => {
           <ul className="list-disc list-inside space-y-2 text-body-sm text-sangeet-neutral-300">
             <li>To process, confirm, and manage your table reservation and assign appropriate seating.</li>
             <li>To send automated email confirmation tickets and critical dining notices.</li>
-            <li>To communicate with our kitchen team regarding food allergies and dietary preferences (e.g. Halal, Vegetarian, Vegan, Nut allergies).</li>
+            <li>To communicate with our kitchen team regarding food allergies and dietary preferences (e.g. Vegetarian, Gluten-free, Nut allergies).</li>
             <li>To respond to your inquiries, private event requests, and guest feedback.</li>
             <li>To comply with statutory legal, safety, and accounting obligations in the Hong Kong SAR.</li>
           </ul>

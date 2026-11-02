@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useNavigate } from '@/utils/router-mock';
-import { Building2, UtensilsCrossed, Sparkles, Award, ChefHat, ShieldCheck, Leaf, Wine, ArrowRight } from 'lucide-react';
+import { Building2, UtensilsCrossed, Sparkles, Award, ChefHat, Leaf, Wine, ArrowRight } from 'lucide-react';
 import { AboutGallery } from '@/components/client/AboutGallery';
 
 /**
@@ -13,7 +13,7 @@ import { AboutGallery } from '@/components/client/AboutGallery';
  * Design decisions:
  * - Direct, honest culinary prose (no purple prose / no "symphony" fluff)
  * - Authentic venue photography
- * - Authoritative Halal & dietary certification
+ * - Authentic regional & Himalayan culinary heritage
  * - Clean storytelling & full visual gallery
  */
 
@@ -56,9 +56,9 @@ const AboutPage = () => {
   // Kitchen Standards & Commitments
   const culinaryCommitments = [
     {
-      icon: ShieldCheck,
-      title: "100% Halal Certified Meats",
-      description: "All chicken, lamb, and meats served at Sangeet are 100% Halal certified and prepared to the highest culinary standards."
+      icon: ChefHat,
+      title: "Authentic Regional & Nepali Specialties",
+      description: "From traditional Indian curries and biryanis to authentic Nepali momos, sukuti, and spiced grilled specialties prepared to the highest culinary standards."
     },
     {
       icon: UtensilsCrossed,
@@ -73,7 +73,7 @@ const AboutPage = () => {
     {
       icon: Leaf,
       title: "Dedicated Vegetarian Selections",
-      description: "Authentic, rich plant-based curries and starters crafted from scratch with full flavor, texture, and care."
+      description: "Authentic, rich vegetarian curries and starters crafted from scratch with full flavor, texture, and care."
     },
     {
       icon: Wine,
@@ -211,7 +211,7 @@ const AboutPage = () => {
 
 
       {/* ───────────────────────────────────────────────────────
-          KITCHEN STANDARDS & COMMITMENTS (including Halal certification)
+          KITCHEN STANDARDS & COMMITMENTS
       ─────────────────────────────────────────────────────── */}
       <section className="section-padding bg-linear-to-b from-sangeet-neutral-950 via-sangeet-neutral-900 to-sangeet-neutral-950">
         <div className="max-w-6xl mx-auto container-padding">

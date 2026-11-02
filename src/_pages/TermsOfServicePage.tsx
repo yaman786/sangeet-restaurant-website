@@ -60,7 +60,7 @@ const TermsOfServicePage = () => {
           </h2>
           <div className="space-y-3 text-body-sm text-sangeet-neutral-300">
             <p>
-              • <strong>Halal Certification:</strong> All chicken, lamb, and meat products served at Sangeet are 100% Halal certified.
+              • <strong>Vegetarian &amp; Dietary Options:</strong> We offer a wide selection of dedicated vegetarian dishes alongside our non-vegetarian Indian and Nepali specialties.
             </p>
             <p>
               • <strong>Allergies:</strong> While we take extreme care to accommodate allergies and dietary restrictions, our kitchen handles nuts, dairy, gluten, and various regional spices. Please inform your server of any severe food allergies prior to ordering.

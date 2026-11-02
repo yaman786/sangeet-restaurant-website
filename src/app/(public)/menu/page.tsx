@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Menu | Sangeet Restaurant Wan Chai',
-  description: 'Explore the South Asian menu at Sangeet in Wan Chai, Hong Kong. Tandoori grills, slow-cooked curries, biryanis, and fresh breads. 100% Halal certified meats.',
+  description: 'Explore the South Asian & Nepali menu at Sangeet in Wan Chai, Hong Kong. Tandoori grills, slow-cooked curries, biryanis, fresh breads, and vegetarian specialties.',
 };
 
 export const dynamic = 'force-dynamic';

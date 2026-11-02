@@ -35,7 +35,7 @@ const restaurantJsonLd = {
     "addressCountry": "HK"
   },
   "telephone": "+85223456789",
-  "servesCuisine": ["South Asian", "Indian", "Tandoori", "Halal"],
+  "servesCuisine": ["South Asian", "Indian", "Nepali", "Tandoori"],
   "priceRange": "HK$$",
   "acceptsReservations": "True",
   "currenciesAccepted": "HKD"

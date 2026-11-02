@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Reservations | Sangeet Restaurant Wan Chai',
-  description: 'Reserve a table at Sangeet Restaurant in Wan Chai, Hong Kong. Online reservations with instant email confirmation. Halal certified South Asian fine dining.',
+  description: 'Reserve a table at Sangeet Restaurant in Wan Chai, Hong Kong. Online reservations with instant email confirmation. Authentic South Asian & Nepali fine dining.',
 };
 
 export default function Page() {
