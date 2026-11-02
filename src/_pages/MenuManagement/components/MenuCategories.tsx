@@ -9,10 +9,15 @@ const MenuCategories = ({
   const topLevelCategories = categories.filter((c: any) => !c.parent_id);
   const getChildren = (parentId: number) => categories.filter((c: any) => c.parent_id === parentId);
 
-  const renderCategoryCard = (category: any, isChild: boolean = false) => (
-    <div key={category.id} className={`bg-sangeet-neutral-800 rounded-lg border ${isChild ? 'border-sangeet-neutral-600' : 'border-sangeet-neutral-700'} p-5`}>
-      <div className="flex justify-between items-start mb-3">
-        <h3 className={`${isChild ? 'text-lg' : 'text-xl'} font-semibold text-sangeet-neutral-100`}>{category.name}</h3>
+  const renderCategoryCard = (category: any, isChild: boolean = false) => {
+    const displayName =
+      !isChild && (category.name === 'Bar & Drinks' || category.name === 'Drinks')
+        ? 'Beverages'
+        : category.name;
+    return (
+      <div key={category.id} className={`bg-sangeet-neutral-800 rounded-lg border ${isChild ? 'border-sangeet-neutral-600' : 'border-sangeet-neutral-700'} p-5`}>
+        <div className="flex justify-between items-start mb-3">
+          <h3 className={`${isChild ? 'text-lg' : 'text-xl'} font-semibold text-sangeet-neutral-100`}>{displayName}</h3>
         <span className="text-sangeet-400 font-bold text-sm">{category.item_count} items</span>
       </div>
       <p className="text-sangeet-neutral-400 mb-4 text-sm">{category.description}</p>
@@ -35,8 +40,9 @@ const MenuCategories = ({
           </button>
         </div>
       </div>
-    </div>
-  );
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -53,12 +59,14 @@ const MenuCategories = ({
       <div className="space-y-6">
         {topLevelCategories.map((parent: any) => {
           const children = getChildren(parent.id);
+          const parentDisplayName =
+            parent.name === 'Bar & Drinks' || parent.name === 'Drinks' ? 'Beverages' : parent.name;
           
           return (
             <div key={parent.id} className="bg-sangeet-neutral-900 rounded-xl border border-sangeet-neutral-700 p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-2xl font-bold text-sangeet-neutral-100 mb-1">{parent.name}</h3>
+                  <h3 className="text-2xl font-bold text-sangeet-neutral-100 mb-1">{parentDisplayName}</h3>
                   <p className="text-sangeet-neutral-400">{parent.description}</p>
                 </div>
                 <div className="flex flex-col items-end space-y-2">

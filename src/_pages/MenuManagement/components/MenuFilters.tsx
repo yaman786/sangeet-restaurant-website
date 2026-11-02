@@ -88,7 +88,7 @@ const MenuFilters = ({ filters, handleFilterChange, categories, menuSection = 'f
           <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">Search</label>
           <input
             type="text"
-            placeholder={menuSection === 'drinks' ? 'Search drinks...' : 'Search food items...'}
+            placeholder={menuSection === 'drinks' ? 'Search beverages...' : 'Search food items...'}
             value={filters.search}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFilterChange('search', e.target.value)}
             className="w-full px-3 py-2 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100"
@@ -98,13 +98,13 @@ const MenuFilters = ({ filters, handleFilterChange, categories, menuSection = 'f
         {/* Category Filter */}
         <div>
           <label className="block text-sm font-medium text-sangeet-neutral-300 mb-1">
-            {menuSection === 'drinks' ? 'Bar Subcategory' : 'Food Category'}
+            {menuSection === 'drinks' ? 'Beverage Subcategory' : 'Food Category'}
           </label>
           <CustomDropdown
             value={filters.category}
             onChange={(category: string) => handleFilterChange('category', category)}
             options={[
-              { value: '', label: menuSection === 'drinks' ? 'All Bar Subcategories' : 'All Food Categories' },
+              { value: '', label: menuSection === 'drinks' ? 'All Beverage Subcategories' : 'All Food Categories' },
               ...filterableCategories.map((category: { name: string; item_count?: number; parent?: any }) => ({
                 value: category.name,
                 label: category.item_count !== undefined

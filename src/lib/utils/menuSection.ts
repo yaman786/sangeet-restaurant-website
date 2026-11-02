@@ -157,15 +157,22 @@ export function isAlcoholicDrink(item: any, categories: any[] = []): boolean {
   return defaultIsAlcoholicForCategory(catName);
 }
 
-const BAR_CATEGORY_SET = new Set<string>([
+const BAR_PARENT_CATEGORY_NAMES = new Set<string>([
   BAR_PARENT_CATEGORY_NAME.toLowerCase(),
+  'drinks',
+  'beverages',
+  'bar & beverages',
+]);
+
+const BAR_CATEGORY_SET = new Set<string>([
+  ...BAR_PARENT_CATEGORY_NAMES,
   ...BAR_SUBCATEGORY_NAMES.map((n) => n.toLowerCase()),
 ]);
 
 export function getBarCategoryIds(categories: any[] = []): Set<number> {
   const ids = new Set<number>();
   const barParent = categories.find(
-    (c: any) => !c.parent_id && c.name?.toLowerCase() === BAR_PARENT_CATEGORY_NAME.toLowerCase()
+    (c: any) => !c.parent_id && BAR_PARENT_CATEGORY_NAMES.has(String(c.name || '').toLowerCase())
   );
   if (barParent?.id) {
     ids.add(Number(barParent.id));
@@ -202,7 +209,7 @@ export function isBarMenuItem(item: any, categories: any[] = []): boolean {
   const parentCatName = String(
     target.parent_category_name || target.categories?.parent?.name || ''
   ).toLowerCase();
-  if (parentCatName === BAR_PARENT_CATEGORY_NAME.toLowerCase()) {
+  if (BAR_PARENT_CATEGORY_NAMES.has(parentCatName)) {
     return true;
   }
 

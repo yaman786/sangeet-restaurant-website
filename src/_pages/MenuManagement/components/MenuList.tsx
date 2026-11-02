@@ -18,7 +18,11 @@ const MenuList = ({
     const cat = categories.find((c: any) => c.id === categoryId);
     if (cat && cat.parent_id) {
       const parent = categories.find((p: any) => p.id === cat.parent_id);
-      if (parent) return `${cat.name} (${parent.name})`;
+      if (parent) {
+        const parentLabel =
+          parent.name === 'Bar & Drinks' || parent.name === 'Drinks' ? 'Beverages' : parent.name;
+        return `${cat.name} (${parentLabel})`;
+      }
     }
     return categoryName || 'Uncategorized';
   };
@@ -27,13 +31,13 @@ const MenuList = ({
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-sangeet-400">
-          {menuSection === 'drinks' ? 'Bar & Drinks Items' : 'Food Menu Items'} ({filteredItems.length} of {menuItems.length})
+          {menuSection === 'drinks' ? 'Beverage Items' : 'Food Menu Items'} ({filteredItems.length} of {menuItems.length})
         </h2>
         <button
           onClick={() => setShowAddModal(true)}
           className="bg-sangeet-400 text-sangeet-neutral-950 px-4 py-2 rounded-lg font-semibold hover:bg-sangeet-300 transition-colors cursor-pointer"
         >
-          + Add {menuSection === 'drinks' ? 'Drink Item' : 'Food Item'}
+          + Add {menuSection === 'drinks' ? 'Beverage Item' : 'Food Item'}
         </button>
       </div>
 
@@ -43,7 +47,7 @@ const MenuList = ({
             {menuSection === 'drinks' ? <Wine className="w-8 h-8" /> : <UtensilsCrossed className="w-8 h-8" />}
           </div>
           <h3 className="text-xl font-semibold text-sangeet-neutral-300 mb-2">No items found</h3>
-          <p className="text-sangeet-neutral-500">Try adjusting your filters or add a new {menuSection === 'drinks' ? 'drink' : 'food'} item.</p>
+          <p className="text-sangeet-neutral-500">Try adjusting your filters or add a new {menuSection === 'drinks' ? 'beverage' : 'food'} item.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

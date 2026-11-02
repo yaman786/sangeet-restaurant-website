@@ -33,19 +33,19 @@ const MenuManagement = () => {
 
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
-      <AdminHeader title="Menu Management" subtitle="Manage your restaurant food and bar menus" />
+      <AdminHeader title="Menu Management" subtitle="Manage your restaurant food and beverage menus" />
       
       <div className="max-w-7xl mx-auto p-6">
-        {/* Top-Level Two-Way Menu Switcher: Food Menu vs Bar & Drinks */}
+        {/* Top-Level Two-Way Menu Switcher: Food Menu vs Beverages */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-sangeet-neutral-900 border border-sangeet-neutral-800 rounded-xl p-4 mb-6">
           <div>
             <h2 className="text-lg font-semibold text-sangeet-neutral-100">
-              {menuSection === 'food' ? 'Kitchen & Culinary Menu' : 'Bar & Beverage Menu'}
+              {menuSection === 'food' ? 'Kitchen & Culinary Menu' : 'Beverages Menu'}
             </h2>
             <p className="text-sm text-sangeet-neutral-400">
               {menuSection === 'food'
                 ? 'Manage starters, mains, breads, biryanis, and desserts'
-                : 'Manage draught beers, bottled beers, whiskies, spirits, cocktails, and champagne'}
+                : 'Manage soft drinks, draught beers, bottled beers, whiskies, spirits, cocktails, and champagne'}
             </p>
           </div>
           <div
@@ -90,7 +90,7 @@ const MenuManagement = () => {
               }`}
             >
               <Wine className="w-4 h-4" />
-              <span>Drinks</span>
+              <span>Beverages</span>
               <span
                 className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                   menuSection === 'drinks'
@@ -114,7 +114,7 @@ const MenuManagement = () => {
                 : 'text-sangeet-neutral-400 hover:text-sangeet-neutral-200'
             }`}
           >
-            {menuSection === 'food' ? 'Food Items' : 'Drink Items'} ({filteredItems.length})
+            {menuSection === 'food' ? 'Food Items' : 'Beverage Items'} ({filteredItems.length})
           </button>
           <button
             onClick={() => setActiveTab('categories')}
@@ -124,7 +124,7 @@ const MenuManagement = () => {
                 : 'text-sangeet-neutral-400 hover:text-sangeet-neutral-200'
             }`}
           >
-            {menuSection === 'food' ? 'Food Categories' : 'Bar Categories'} ({sectionCategories.length})
+            {menuSection === 'food' ? 'Food Categories' : 'Beverage Categories'} ({sectionCategories.length})
           </button>
         </div>
 

@@ -136,19 +136,23 @@ const MenuModals = ({
 
   const itemCategoryOptions = activeModalCategories.flatMap((c: any) => {
     if (c.parent_id) return []; // skip children, handled by parent
-    
+    const parentLabel =
+      c.name === 'Bar & Drinks' || c.name === 'Drinks' ? 'Beverages' : c.name;
     const children = activeModalCategories.filter((child: any) => child.parent_id === c.id);
     if (children.length > 0) {
-      return children.map((child: any) => ({ label: `${c.name} > ${child.name}`, value: child.name }));
+      return children.map((child: any) => ({ label: `${parentLabel} > ${child.name}`, value: child.name }));
     }
-    return [{ label: c.name, value: c.name }];
+    return [{ label: parentLabel, value: c.name }];
   });
 
   const parentCategoryOptions = [
     { label: 'None (Top Level)', value: '' },
     ...categories
       .filter((c: any) => !c.parent_id && (!selectedCategory || c.id !== selectedCategory.id))
-      .map((c: any) => ({ label: c.name, value: c.id }))
+      .map((c: any) => ({
+        label: c.name === 'Bar & Drinks' || c.name === 'Drinks' ? 'Beverages' : c.name,
+        value: c.id,
+      }))
   ];
 
   return (
@@ -160,10 +164,10 @@ const MenuModals = ({
             <h2 className="text-2xl font-bold text-sangeet-400 mb-6">
               {showAddModal
                 ? menuSection === 'drinks'
-                  ? 'Add Drink Item'
+                  ? 'Add Beverage Item'
                   : 'Add Food Item'
                 : menuSection === 'drinks'
-                ? 'Edit Drink Item'
+                ? 'Edit Beverage Item'
                 : 'Edit Food Item'}
             </h2>
             <form onSubmit={handleSubmitItem(
