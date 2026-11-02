@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
-import logo from '../assets/images/logo.png';
 import { sanitizePhoneNumber } from '../utils/sanitizePhone';
 
 /**
@@ -129,26 +128,23 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
           style={{ opacity: heroOpacity }}
           className="relative z-20 text-center px-5 max-w-4xl mx-auto"
         >
-          {/* Logo */}
+          {/* Eyebrow Badge — Highlighting Authentic Fine Dining & Location */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] as any}}
-            className="mb-8"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] as any }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sangeet-neutral-900/80 backdrop-blur-md border border-sangeet-400/30 text-sangeet-300 text-xs sm:text-sm font-semibold tracking-wider uppercase mb-6 shadow-glass"
           >
-            <Image
-              src={logo}
-              alt="Sangeet Restaurant"
-              className="h-24 sm:h-32 md:h-36 w-auto mx-auto logo-navbar-dark drop-shadow-2xl"
-            />
+            <span className="w-2 h-2 rounded-full bg-sangeet-400 animate-pulse" />
+            <span>Wan Chai, Hong Kong • South Asian &amp; Nepali Fine Dining</span>
           </motion.div>
 
           {/* Headline — Playfair Display via CSS base layer */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] as any}}
-            className="text-display-sm sm:text-display-md md:text-display-lg text-white mb-6"
+            transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] as any }}
+            className="text-display-md sm:text-display-lg md:text-display-xl lg:text-[3.75rem] text-white mb-6 font-display tracking-tight leading-tight max-w-4xl mx-auto"
           >
             {heroData.title || "South Asian Fine Dining in Wan Chai"}
           </motion.h1>
@@ -157,8 +153,8 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] as any}}
-            className="text-body-lg sm:text-heading-sm text-sangeet-neutral-300 mb-10 max-w-2xl mx-auto font-sans"
+            transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] as any }}
+            className="text-body-lg sm:text-heading-sm text-sangeet-neutral-200 mb-8 sm:mb-10 max-w-2xl mx-auto font-sans leading-relaxed"
           >
             {heroData.subtitle || "Tandoori grills, regional curries, and craft cocktails. Now open in Hong Kong."}
           </motion.p>
@@ -167,12 +163,12 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.7, ease: [0.16, 1, 0.3, 1] as any}}
+            transition={{ duration: 0.8, delay: 0.45, ease: [0.16, 1, 0.3, 1] as any }}
             className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center items-center"
           >
             <button
               onClick={() => navigate(heroData.primary_cta_link || '/reservations')}
-              className="btn-primary text-heading-sm px-10 py-4"
+              className="btn-primary text-heading-sm px-9 py-4 shadow-gold-glow cursor-pointer"
             >
               {heroData.primary_cta_text || "Reserve a Table"}
             </button>
@@ -185,10 +181,31 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
             </button>
             <button
               onClick={() => navigate(heroData.secondary_cta_link || '/menu')}
-              className="btn-secondary px-8 py-4"
+              className="btn-secondary px-8 py-4 cursor-pointer"
             >
               {heroData.secondary_cta_text || "View Menu"}
             </button>
+          </motion.div>
+
+          {/* Elegant Highlights — Thoughtful Space Utilization */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-white/10 flex flex-wrap items-center justify-center gap-5 sm:gap-8 text-xs sm:text-sm text-sangeet-neutral-300 font-medium"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-sangeet-400 text-sm">✦</span>
+              <span>Clay Tandoor Grills</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sangeet-400 text-sm">✦</span>
+              <span>Authentic Curries &amp; Momos</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sangeet-400 text-sm">✦</span>
+              <span>Cocktail Bar &amp; Private Dining</span>
+            </div>
           </motion.div>
         </motion.div>
 
@@ -196,7 +213,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20"
+          className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-20"
         >
           <div className="w-6 h-10 border border-sangeet-neutral-500/40 rounded-full flex justify-center">
             <motion.div
