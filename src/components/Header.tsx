@@ -83,7 +83,7 @@ const Header = () => {
               {NAVIGATION_ITEMS.map((item) => (
                 <Link key={item.path}
                   href={item.path}
-                  className={`relative px-2.5 lg:px-3.5 py-2 rounded-lg text-body-sm font-medium transition-colors duration-200 whitespace-nowrap
+                  className={`relative px-2 lg:px-3.5 py-2 rounded-lg text-xs lg:text-body-sm font-medium transition-colors duration-200 whitespace-nowrap
                     focus:outline-hidden focus:ring-2 focus:ring-sangeet-400/30 focus:ring-offset-2 focus:ring-offset-transparent
                     ${isActive(item.path)
                       ? 'text-sangeet-400'
@@ -95,7 +95,7 @@ const Header = () => {
                   {isActive(item.path) && (
                     <motion.div
                       layoutId="nav-indicator"
-                      className="absolute bottom-0 left-3 right-3 h-0.5 bg-sangeet-400 rounded-full"
+                      className="absolute bottom-0 left-2.5 right-2.5 h-0.5 bg-sangeet-400 rounded-full"
                       initial={false}
                       transition={{ type: "spring", stiffness: 500, damping: 35 }}
                     />
@@ -105,16 +105,16 @@ const Header = () => {
             </nav>
 
             {/* Right side — CTA (Desktop) */}
-            <div className="hidden md:flex items-center gap-2.5">
+            <div className="hidden md:flex items-center gap-2 lg:gap-2.5 shrink-0">
               <Link href="/pickup"
                 data-testid="header-pickup-cta"
-                className="px-4 py-2 rounded-lg bg-sangeet-400 text-sangeet-neutral-950 text-body-sm font-bold
+                className="px-3 lg:px-4 py-2 rounded-lg bg-sangeet-400 text-sangeet-neutral-950 text-xs lg:text-body-sm font-bold
                            hover:bg-sangeet-300 transition-all duration-200 whitespace-nowrap shrink-0 shadow-gold-glow"
               >
                 Order Pick-Up
               </Link>
               <Link href="/reservations"
-                className="px-4 py-2 rounded-lg bg-sangeet-400/10 text-sangeet-400 text-body-sm font-semibold
+                className="hidden lg:inline-flex px-4 py-2 rounded-lg bg-sangeet-400/10 text-sangeet-400 text-body-sm font-semibold
                            border border-sangeet-400/20 hover:bg-sangeet-400/20 hover:border-sangeet-400/30
                            transition-all duration-200 whitespace-nowrap shrink-0"
               >

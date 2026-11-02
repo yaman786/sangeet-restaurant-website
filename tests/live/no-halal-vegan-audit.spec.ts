@@ -83,3 +83,4 @@ test.describe('Deep Website Audit: Zero Halal & Zero Vegan References (Vegetaria
     await expect(page.getByRole('button', { name: /Vegetarian/i }).first()).toBeVisible({ timeout: 10000 });
   });
 });
+

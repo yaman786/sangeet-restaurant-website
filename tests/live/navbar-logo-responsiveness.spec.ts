@@ -34,13 +34,17 @@ test.describe('Navbar Logo Clarity, Size & Responsive Layout Verification', () =
       clip: { x: 0, y: 0, width: 1440, height: 220 },
     });
 
-    // 2. Tablet (768x1024) — check zero collision between logo, nav, and CTA buttons
+    // 2. Tablet (768x1024) — check zero collision/clipping between logo, nav, and CTA buttons
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.waitForTimeout(300);
 
     const tabletBox = await logoImg.boundingBox();
     expect(tabletBox).not.toBeNull();
     expect(tabletBox!.height).toBeGreaterThanOrEqual(44);
+
+    const pickupBtnTabletBox = await page.getByTestId('header-pickup-cta').boundingBox();
+    expect(pickupBtnTabletBox).not.toBeNull();
+    expect(pickupBtnTabletBox!.x + pickupBtnTabletBox!.width).toBeLessThanOrEqual(768);
 
     const tabletOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth
@@ -71,3 +75,4 @@ test.describe('Navbar Logo Clarity, Size & Responsive Layout Verification', () =
     });
   });
 });
+
