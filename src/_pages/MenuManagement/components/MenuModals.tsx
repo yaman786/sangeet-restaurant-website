@@ -13,6 +13,7 @@ import {
   defaultServingModeForCategory,
   defaultIsAlcoholicForCategory,
   isAlcoholicDrink,
+  detectAlcoholSignals,
   type DrinkServingMode,
 } from '@/lib/utils/menuSection';
 
@@ -167,6 +168,32 @@ const MenuModals = ({
             </h2>
             <form onSubmit={handleSubmitItem(
               (formData) => {
+                if (menuSection === 'drinks') {
+                  const isSoftCat = !defaultIsAlcoholicForCategory(formData.category);
+                  const signal = detectAlcoholSignals(
+                    formData.name,
+                    formData.description,
+                    servingMode
+                  );
+                  const effectiveAlcoholic = signal.hasAlcoholSignal ? true : isAlcoholic;
+
+                  if (isSoftCat && effectiveAlcoholic) {
+                    toast.error(
+                      signal.reason
+                        ? `Liquor Guardrail: ${signal.reason} Move this item out of "${formData.category}" into an alcoholic category (e.g. Cocktails, Spirits, Beers, Wines).`
+                        : `Liquor Guardrail: Alcoholic drinks cannot be filed under "${formData.category}". Please choose an alcoholic category or switch to Non-Alcoholic.`
+                    );
+                    return;
+                  }
+
+                  if (!effectiveAlcoholic && signal.hasAlcoholSignal) {
+                    toast.error(
+                      `Liquor Guardrail: ${signal.reason} This item must be marked as Alcoholic (Dine-In Only).`
+                    );
+                    return;
+                  }
+                }
+
                 const payload =
                   menuSection === 'drinks'
                     ? {
@@ -229,42 +256,72 @@ const MenuModals = ({
                   </div>
 
                   {/* Drink Classification (Alcoholic vs Non-Alcoholic / Soft Drink for Licensing & Pick-Up) */}
-                  <div className="p-4 rounded-xl bg-sangeet-neutral-950/60 border border-sangeet-neutral-800 space-y-2.5">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-sangeet-neutral-400">
-                      Drink Type &amp; Pick-Up Licensing
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5" data-testid="drink-alcohol-selector">
-                      <button
-                        type="button"
-                        data-testid="drink-type-alcoholic"
-                        onClick={() => setIsAlcoholic(true)}
-                        className={`py-2.5 px-3.5 rounded-lg text-xs sm:text-sm font-semibold border transition-all cursor-pointer text-left flex items-center justify-between ${
-                          isAlcoholic
-                            ? 'bg-sangeet-400/20 text-sangeet-300 border-sangeet-400'
-                            : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 border-sangeet-neutral-700 hover:bg-sangeet-neutral-700'
-                        }`}
-                      >
-                        <span>🍷 Alcoholic (Dine-In Only)</span>
-                        {isAlcoholic && <span className="text-[11px] font-bold text-sangeet-400">Selected</span>}
-                      </button>
-                      <button
-                        type="button"
-                        data-testid="drink-type-non-alcoholic"
-                        onClick={() => {
-                          setIsAlcoholic(false);
-                          setServingMode('single');
-                        }}
-                        className={`py-2.5 px-3.5 rounded-lg text-xs sm:text-sm font-semibold border transition-all cursor-pointer text-left flex items-center justify-between ${
-                          !isAlcoholic
-                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/60'
-                            : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 border-sangeet-neutral-700 hover:bg-sangeet-neutral-700'
-                        }`}
-                      >
-                        <span>🥤 Soft Drink / Non-Alcoholic (Pick-Up Allowed)</span>
-                        {!isAlcoholic && <span className="text-[11px] font-bold text-emerald-400">Selected</span>}
-                      </button>
-                    </div>
-                  </div>
+                  {(() => {
+                    const currentCat = String(watchItem('category') || '');
+                    const isSoftCat = !defaultIsAlcoholicForCategory(currentCat);
+                    const signal = detectAlcoholSignals(
+                      String(watchItem('name') || ''),
+                      String(watchItem('description') || ''),
+                      servingMode
+                    );
+                    const hasConflict = isSoftCat && (isAlcoholic || signal.hasAlcoholSignal);
+
+                    return (
+                      <div className="p-4 rounded-xl bg-sangeet-neutral-950/60 border border-sangeet-neutral-800 space-y-2.5">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-sangeet-neutral-400">
+                          Drink Type &amp; Pick-Up Licensing
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5" data-testid="drink-alcohol-selector">
+                          <button
+                            type="button"
+                            data-testid="drink-type-alcoholic"
+                            onClick={() => setIsAlcoholic(true)}
+                            className={`py-2.5 px-3.5 rounded-lg text-xs sm:text-sm font-semibold border transition-all cursor-pointer text-left flex items-center justify-between ${
+                              isAlcoholic
+                                ? 'bg-sangeet-400/20 text-sangeet-300 border-sangeet-400'
+                                : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 border-sangeet-neutral-700 hover:bg-sangeet-neutral-700'
+                            }`}
+                          >
+                            <span>🍷 Alcoholic (Dine-In Only)</span>
+                            {isAlcoholic && <span className="text-[11px] font-bold text-sangeet-400">Selected</span>}
+                          </button>
+                          <button
+                            type="button"
+                            data-testid="drink-type-non-alcoholic"
+                            onClick={() => {
+                              if (signal.hasAlcoholSignal) {
+                                toast.error(
+                                  `Liquor Guardrail: ${signal.reason} Remove alcohol terms or use Single Serving before marking as Non-Alcoholic.`
+                                );
+                                return;
+                              }
+                              setIsAlcoholic(false);
+                              setServingMode('single');
+                            }}
+                            className={`py-2.5 px-3.5 rounded-lg text-xs sm:text-sm font-semibold border transition-all cursor-pointer text-left flex items-center justify-between ${
+                              !isAlcoholic
+                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/60'
+                                : 'bg-sangeet-neutral-800 text-sangeet-neutral-400 border-sangeet-neutral-700 hover:bg-sangeet-neutral-700'
+                            }`}
+                          >
+                            <span>🥤 Soft Drink / Non-Alcoholic (Pick-Up Allowed)</span>
+                            {!isAlcoholic && <span className="text-[11px] font-bold text-emerald-400">Selected</span>}
+                          </button>
+                        </div>
+
+                        {hasConflict && (
+                          <div
+                            data-testid="drink-compliance-guardrail"
+                            className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-xs text-red-300 font-medium"
+                          >
+                            🛡️ <strong>Liquor Licensing Guardrail:</strong>{' '}
+                            {signal.reason || 'This item is marked as Alcoholic.'} Alcoholic drinks cannot be saved under{' '}
+                            <strong>{currentCat}</strong> (which is exposed on Online Pick-Up). Please move it to an alcoholic category (e.g. Cocktails, Spirits, Beers, Wines) or switch to Non-Alcoholic.
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Serving Format & Price Math Selector for Bar & Drinks */}
                   <div className="p-4 rounded-xl bg-sangeet-neutral-950/60 border border-sangeet-neutral-800 space-y-3">
@@ -275,7 +332,10 @@ const MenuModals = ({
                       <button
                         type="button"
                         data-testid="serving-mode-shot-bottle"
-                        onClick={() => setServingMode('shot_and_bottle')}
+                        onClick={() => {
+                          setServingMode('shot_and_bottle');
+                          setIsAlcoholic(true);
+                        }}
                         className={`py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold border transition-all cursor-pointer ${
                           servingMode === 'shot_and_bottle'
                             ? 'bg-sangeet-400 text-sangeet-neutral-950 border-sangeet-400'
@@ -287,7 +347,10 @@ const MenuModals = ({
                       <button
                         type="button"
                         data-testid="serving-mode-bottle-only"
-                        onClick={() => setServingMode('bottle_only')}
+                        onClick={() => {
+                          setServingMode('bottle_only');
+                          setIsAlcoholic(true);
+                        }}
                         className={`py-2 px-3 rounded-lg text-xs sm:text-sm font-semibold border transition-all cursor-pointer ${
                           servingMode === 'bottle_only'
                             ? 'bg-sangeet-400 text-sangeet-neutral-950 border-sangeet-400'

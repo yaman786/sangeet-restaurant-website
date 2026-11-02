@@ -16,7 +16,8 @@ import {
   isBarCategory, 
   isBarMenuItem, 
   groupDrinkMenuItems, 
-  stripDrinkVariantSuffix, 
+  stripDrinkVariantSuffix,
+  detectAlcoholSignals,
   type MenuSection 
 } from '@/lib/utils/menuSection';
 
@@ -198,9 +199,9 @@ export const useMenuManagement = () => {
     if (menuSection === 'drinks') {
       const servingMode = data.serving_mode || 'single';
       const baseName = stripDrinkVariantSuffix(data.name);
-      const drinkAllergens = Array.isArray(data.allergens) && data.allergens.length > 0
-        ? data.allergens
-        : [data.is_alcoholic === false ? 'non_alcoholic' : 'alcoholic'];
+      const signals = detectAlcoholSignals(baseName, data.description, servingMode);
+      const effectiveIsAlcoholic = signals.hasAlcoholSignal ? true : data.is_alcoholic !== false;
+      const drinkAllergens = [effectiveIsAlcoholic ? 'alcoholic' : 'non_alcoholic'];
       const commonDrinkFields = {
         description: data.description || '',
         category: data.category,
@@ -298,9 +299,9 @@ export const useMenuManagement = () => {
     if (menuSection === 'drinks' && current) {
       const servingMode = data.serving_mode || current.servingMode || 'single';
       const baseName = stripDrinkVariantSuffix(data.name);
-      const drinkAllergens = Array.isArray(data.allergens) && data.allergens.length > 0
-        ? data.allergens
-        : [data.is_alcoholic === false ? 'non_alcoholic' : 'alcoholic'];
+      const signals = detectAlcoholSignals(baseName, data.description, servingMode);
+      const effectiveIsAlcoholic = signals.hasAlcoholSignal ? true : data.is_alcoholic !== false;
+      const drinkAllergens = [effectiveIsAlcoholic ? 'alcoholic' : 'non_alcoholic'];
       const commonDrinkFields = {
         description: data.description || '',
         category: data.category,

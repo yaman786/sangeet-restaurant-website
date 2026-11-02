@@ -59,10 +59,81 @@ export function parseItemAllergenTags(allergens: any): string[] {
   return [];
 }
 
+const ZERO_ALCOHOL_QUALIFIER_REGEX =
+  /\b(0\.0%|00%|alcohol[\s-]free|non[\s-]alcoholic|zero\s+alcohol|virgin|mocktail|afb)\b/i;
+
+const HARD_ALCOHOL_KEYWORD_REGEX =
+  /\b(whisky|whiskey|bourbon|scotch|single\s+malt|vodka|rum|gin|tequila|mezcal|cognac|brandy|wine|champagne|prosecco|cava|merlot|cabernet|chardonnay|sauvignon|pinot|shiraz|malbec|draught|stout|ipa|lager|pilsner|ale|cider|liqueur|baileys|kahlua|aperol|campari|vermouth|absinthe|sake|soju|abv)\b/i;
+
+export function detectAlcoholSignals(
+  name?: string,
+  description?: string,
+  servingMode?: string
+): { hasAlcoholSignal: boolean; isExplicitZeroAlcohol: boolean; reason: string | null } {
+  const combined = `${String(name || '')} ${String(description || '')}`.trim();
+  const isExplicitZeroAlcohol = ZERO_ALCOHOL_QUALIFIER_REGEX.test(combined);
+
+  if (
+    servingMode === 'shot_and_bottle' ||
+    /\((shot)\)/i.test(String(name || ''))
+  ) {
+    return {
+      hasAlcoholSignal: true,
+      isExplicitZeroAlcohol: false,
+      reason: 'Spirit shot / bottle service is strictly Alcoholic (Dine-In Only).',
+    };
+  }
+
+  if (isExplicitZeroAlcohol) {
+    return {
+      hasAlcoholSignal: false,
+      isExplicitZeroAlcohol: true,
+      reason: null,
+    };
+  }
+
+  if (servingMode === 'bottle_only' || /\((bottle)\)/i.test(String(name || ''))) {
+    return {
+      hasAlcoholSignal: true,
+      isExplicitZeroAlcohol: false,
+      reason: 'Full bottle service is restricted to Alcoholic beverages (Dine-In Only).',
+    };
+  }
+
+  const keywordMatch = combined.match(HARD_ALCOHOL_KEYWORD_REGEX);
+  if (keywordMatch) {
+    return {
+      hasAlcoholSignal: true,
+      isExplicitZeroAlcohol: false,
+      reason: `Detected alcohol term "${keywordMatch[0]}" in name or description.`,
+    };
+  }
+
+  return {
+    hasAlcoholSignal: false,
+    isExplicitZeroAlcohol: false,
+    reason: null,
+  };
+}
+
 export function isAlcoholicDrink(item: any, categories: any[] = []): boolean {
   if (!item) return false;
   if (!isBarMenuItem(item, categories)) return false;
 
+  // Fail-Closed Guardrail 1: Shot/Bottle format or hard alcohol keyword in name/description
+  const signal = detectAlcoholSignals(
+    item.name || item.baseName,
+    item.description,
+    item.servingMode
+  );
+  if (signal.hasAlcoholSignal) {
+    return true;
+  }
+  if (signal.isExplicitZeroAlcohol) {
+    return false;
+  }
+
+  // Guardrail 2: Explicit item-level override flag
   if (typeof item.is_alcoholic === 'boolean') {
     return item.is_alcoholic;
   }
@@ -74,13 +145,14 @@ export function isAlcoholicDrink(item: any, categories: any[] = []): boolean {
     ...parseItemAllergenTags(item.singleItem?.allergens),
   ];
 
-  if (tags.includes('non_alcoholic') || tags.includes('soft_drink')) {
-    return false;
-  }
   if (tags.includes('alcoholic')) {
     return true;
   }
+  if (tags.includes('non_alcoholic') || tags.includes('soft_drink')) {
+    return false;
+  }
 
+  // Guardrail 3: Smart Category Default
   const catName = String(item.category_name || item.category || '').trim();
   return defaultIsAlcoholicForCategory(catName);
 }
