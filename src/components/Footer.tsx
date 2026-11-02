@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { sanitizePhoneNumber } from '../utils/sanitizePhone';
 
-import logo from '../assets/images/logo.png';
+import logo from '../assets/images/logo-trimmed.png';
 
 /**
  * Footer Component

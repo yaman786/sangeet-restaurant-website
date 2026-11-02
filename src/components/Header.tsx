@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useLocation } from '@/utils/router-mock';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import logo from '../assets/images/logo.png';
+import logo from '../assets/images/logo-trimmed.png';
 
 /**
  * Header Component — Premium Navigation
@@ -57,24 +57,37 @@ const Header = () => {
             : 'bg-transparent border-b border-transparent'
         }`}
       >
-        <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 md:h-18">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16 md:h-20">
 
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5" aria-label="Sangeet Restaurant Home">
-              <Image src={logo} alt="Sangeet Logo" className="h-8 w-auto logo-image-header" />
+            <Link
+              href="/"
+              data-testid="header-logo-link"
+              className="relative flex items-center gap-2.5 shrink-0 py-1 group"
+              aria-label="Sangeet Restaurant Home"
+            >
+              <div className="absolute -inset-2 bg-linear-to-r from-sangeet-400/15 via-sangeet-red-500/10 to-transparent rounded-full blur-xl opacity-80 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              <Image
+                src={logo}
+                alt="Sangeet Logo"
+                priority
+                unoptimized
+                data-testid="header-logo-img"
+                className="relative h-10 sm:h-11 md:h-12 lg:h-14 w-auto logo-image-header"
+              />
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-0.5 lg:gap-1.5">
               {NAVIGATION_ITEMS.map((item) => (
                 <Link key={item.path}
                   href={item.path}
-                  className={`relative px-3.5 py-2 rounded-lg text-body-sm font-medium transition-colors duration-200
+                  className={`relative px-2.5 lg:px-3.5 py-2 rounded-lg text-body-sm font-medium transition-colors duration-200 whitespace-nowrap
                     focus:outline-hidden focus:ring-2 focus:ring-sangeet-400/30 focus:ring-offset-2 focus:ring-offset-transparent
                     ${isActive(item.path)
                       ? 'text-sangeet-400'
-                      : 'text-sangeet-neutral-400 hover:text-sangeet-neutral-100'
+                      : 'text-sangeet-neutral-300 hover:text-sangeet-neutral-100'
                     }`}
                   aria-current={isActive(item.path) ? 'page' : undefined}
                 >
@@ -140,7 +153,7 @@ const Header = () => {
       </header>
 
       {/* Spacer for fixed header */}
-      <div className="h-16 md:h-18" />
+      <div className="h-16 md:h-20" />
 
       {/* ── Mobile Menu Overlay ── */}
       <AnimatePresence>

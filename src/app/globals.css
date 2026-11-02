@@ -257,7 +257,8 @@
 }
 
 @utility logo-image-header {
-  @apply transition-all duration-300 hover:scale-105 opacity-95;
+  @apply transition-all duration-300 hover:scale-105 opacity-100;
+  filter: brightness(1.18) contrast(1.12) saturate(1.18) drop-shadow(0 2px 10px rgba(212, 175, 55, 0.22));
 }
 
 @utility logo-navbar {
