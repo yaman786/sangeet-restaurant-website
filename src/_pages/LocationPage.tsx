@@ -57,25 +57,25 @@ const LocationPage = () => {
             mode: "MTR",
             icon: Train,
             title: "Wan Chai Station",
-            details: "Exit A3 (Johnston Road)",
+            details: "Exit C or C1 · Lockhart Road",
             highlight: "3 min walk",
-            description: "Head left just out of the exit. Centrally located on the main street."
+            description: "Take Exit C or C1, turn left, and walk straight along Lockhart Road. We are located on the right, immediately after the second traffic light at Fenwick Street."
         },
         {
             mode: "Tram",
             icon: Navigation,
-            title: "The 'Ding Ding'",
-            details: "Fleming Road Stop",
-            highlight: "Doorstep Access",
-            description: "Experience HK's iconic tramway. Hop off at Fleming Road and look for our signage."
+            title: "Southorn Playground Stop",
+            details: "Via Luard Road & Lockhart Road",
+            highlight: "2 min walk",
+            description: "Alight at Southorn Playground, walk along Luard Road, and turn left onto Lockhart Road. We are located on the right, immediately after the first traffic light at Fenwick Street."
         },
         {
             mode: "Taxi / Car",
             icon: Car,
-            title: "Drop-off Point",
-            details: "Tai Yau Plaza",
-            highlight: "Parking Nearby",
-            description: "Convenient drop-off on Johnston Road. Parking available at Hopewell Centre or Wu Chung House."
+            title: "17 Fenwick Street",
+            details: "Direct Drop-Off & Parking",
+            highlight: "Doorstep Access",
+            description: "Direct curbside drop-off available right at 17 Fenwick Street. Street-level metered parking and nearby hourly parking lots are available."
         }
     ];
 
@@ -170,23 +170,24 @@ const LocationPage = () => {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6" data-testid="transit-options-grid">
                         {TRANSIT_OPTIONS.map((transit, index) => (
                             <motion.div
                                 key={index}
                                 variants={itemVariants}
-                                className="bg-sangeet-neutral-900 p-8 rounded-xl border border-sangeet-neutral-800 hover:border-sangeet-400/50 transition-colors group"
+                                data-testid={`transit-${transit.mode.toLowerCase().replace(/[^a-z]/g, '')}`}
+                                className="bg-sangeet-neutral-900 p-8 rounded-xl border border-sangeet-neutral-800 hover:border-sangeet-400/50 transition-colors group flex flex-col"
                             >
                                 <div className="w-12 h-12 rounded-xl bg-sangeet-400/10 border border-sangeet-400/20 flex items-center justify-center text-sangeet-400 mb-4 group-hover:scale-110 transition-transform duration-300">
                                     <transit.icon className="w-6 h-6" />
                                 </div>
                                 <h3 className="text-xl font-bold text-white mb-2">{transit.mode}</h3>
-                                <div className="bg-sangeet-neutral-800 inline-block px-3 py-1 rounded-sm text-sangeet-400 text-sm font-semibold mb-4">
+                                <div className="bg-sangeet-neutral-800/80 border border-sangeet-neutral-700/60 inline-block self-start px-3 py-1 rounded-md text-sangeet-400 text-xs font-semibold mb-4">
                                     {transit.highlight}
                                 </div>
                                 <h4 className="text-lg font-semibold text-sangeet-300 mb-1">{transit.title}</h4>
-                                <p className="text-sangeet-neutral-400 text-sm font-mono mb-3">{transit.details}</p>
-                                <p className="text-sangeet-neutral-500 text-sm leading-relaxed">{transit.description}</p>
+                                <p className="text-sangeet-neutral-300 text-xs sm:text-sm font-medium mb-3">{transit.details}</p>
+                                <p className="text-sangeet-neutral-400 text-sm leading-relaxed mt-auto">{transit.description}</p>
                             </motion.div>
                         ))}
                     </div>
