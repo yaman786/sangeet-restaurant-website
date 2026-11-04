@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from '@/utils/router-mock';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 
 import { sanitizePhoneNumber } from '../utils/sanitizePhone';
 
@@ -34,10 +34,21 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
     secondary_cta_link: "/menu"
   };
 
-  // Scroll-driven parallax for hero
+  // Scroll-driven parallax for the hero background only.
+  // Hero content is never faded on scroll: on short viewports (small phones, landscape)
+  // the hero can be taller than the screen, and fading would hide the CTAs while the
+  // guest scrolls down to reach them. Parallax is disabled for prefers-reduced-motion.
+  const prefersReducedMotion = useReducedMotion();
   const { scrollY } = useScroll();
-  const heroY = useTransform(scrollY, [0, 500], [0, 150]);
-  const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
+  const heroY = useTransform(scrollY, [0, 500], [0, prefersReducedMotion ? 0 : 150]);
+  const scrollCueOpacity = useTransform(scrollY, [0, 120], [1, 0]);
+
+  // Hero highlights — short labels on phones keep the row to a single line
+  const HERO_HIGHLIGHTS = [
+    { short: 'Tandoor Grills', full: 'Clay Tandoor Grills' },
+    { short: 'Curries & Momos', full: 'Authentic Curries & Momos' },
+    { short: 'Cocktail Bar', full: 'Cocktail Bar & Private Dining' },
+  ];
 
   // ── Data ──────────────────────────────────────────────────
   const UPCOMING_EVENTS = events || [];
@@ -95,8 +106,18 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
       {/* ───────────────────────────────────────────────────────
           HERO SECTION — Full-bleed cinematic, single CTA
           Benchmarked: Apple product pages, Airbnb homepage
+
+          Responsive layout rules (ui-ux-pro-max):
+          - min-h-dvh (not h-screen/100vh): the hero grows when content is taller
+            than the viewport and respects mobile browser chrome.
+          - Top padding clears the fixed navbar (h-16 / md:h-20) so no content is
+            ever hidden behind it; no centred overflow, no clipping.
+          - Short viewports (landscape phones, max-height 560px) get tighter spacing.
       ─────────────────────────────────────────────────────── */}
-      <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
+      <section
+        data-testid="home-hero"
+        className="relative min-h-dvh w-full flex flex-col overflow-hidden"
+      >
         {/* Background Image or Video with Parallax */}
         <motion.div className="absolute inset-0" style={{ y: heroY }}>
           {heroData.image_url && heroData.image_url.match(/\.(mp4|webm)$/i) ? (
@@ -121,22 +142,25 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
         </motion.div>
 
         {/* Cinematic Overlay — warm fine-dining vignette */}
-        <div className="absolute inset-0 bg-linear-to-b from-sangeet-neutral-950/60 via-sangeet-neutral-950/25 to-sangeet-neutral-950/85 z-10" />
+        <div className="absolute inset-0 bg-linear-to-b from-sangeet-neutral-950/70 via-sangeet-neutral-950/35 to-sangeet-neutral-950/90 z-10" />
 
-        {/* Hero Content */}
-        <motion.div
-          style={{ opacity: heroOpacity }}
-          className="relative z-20 text-center px-5 max-w-4xl mx-auto"
+        {/* Hero Content — in normal flow; vertically centred only when space allows */}
+        <div
+          data-testid="home-hero-content"
+          className="relative z-20 flex-1 flex items-center justify-center w-full px-5 sm:px-6 pt-24 pb-14 sm:pt-28 sm:pb-20 md:pt-32 md:pb-24 [@media(max-height:560px)]:pt-24 [@media(max-height:560px)]:pb-10"
         >
-          {/* Eyebrow Badge — Highlighting Authentic Fine Dining & Location */}
+          <div className="w-full max-w-4xl mx-auto text-center">
+          {/* Eyebrow Badge — short label on phones so it stays on one line */}
           <motion.div
+            data-testid="hero-eyebrow"
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] as any }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sangeet-neutral-900/80 backdrop-blur-md border border-sangeet-400/30 text-sangeet-300 text-xs sm:text-sm font-semibold tracking-wider uppercase mb-6 shadow-glass"
+            className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full bg-sangeet-neutral-900/80 backdrop-blur-md border border-sangeet-400/30 text-sangeet-300 text-[11px] sm:text-sm font-semibold tracking-[0.12em] sm:tracking-wider uppercase whitespace-nowrap mb-5 sm:mb-6 shadow-glass [@media(max-height:560px)]:mb-3"
           >
-            <span className="w-2 h-2 rounded-full bg-sangeet-400 animate-pulse" />
-            <span>Wan Chai, Hong Kong • South Asian &amp; Nepali Fine Dining</span>
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-sangeet-400 motion-safe:animate-pulse shrink-0" aria-hidden="true" />
+            <span className="sm:hidden">Wan Chai · Nepali &amp; South Asian</span>
+            <span className="hidden sm:inline">Wan Chai, Hong Kong • South Asian &amp; Nepali Fine Dining</span>
           </motion.div>
 
           {/* Headline — Playfair Display via CSS base layer */}
@@ -144,7 +168,7 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] as any }}
-            className="text-display-md sm:text-display-lg md:text-display-xl lg:text-[3.75rem] text-white mb-6 font-display tracking-tight leading-tight max-w-4xl mx-auto"
+            className="text-[2rem] leading-[1.15] sm:text-display-md md:text-display-lg lg:text-[3.75rem] text-white mb-4 sm:mb-6 font-display tracking-tight text-balance max-w-4xl mx-auto [@media(max-height:560px)]:text-[2.25rem] [@media(max-height:560px)]:mb-3"
           >
             {heroData.title || "South Asian Fine Dining in Wan Chai"}
           </motion.h1>
@@ -154,74 +178,80 @@ const HomePage = ({ menuItems, reviews, events, cmsConfig }: any) => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] as any }}
-            className="text-body-lg sm:text-heading-sm text-sangeet-neutral-200 mb-8 sm:mb-10 max-w-2xl mx-auto font-sans leading-relaxed"
+            className="text-[0.9375rem] leading-relaxed sm:text-body-lg text-sangeet-neutral-200 mb-7 sm:mb-10 max-w-2xl mx-auto font-sans text-pretty [@media(max-height:560px)]:mb-5 [@media(max-height:560px)]:text-[0.9375rem]"
           >
             {heroData.subtitle || "Tandoori grills, regional curries, and craft cocktails. Now open in Hong Kong."}
           </motion.p>
 
-          {/* Single Primary CTA + Pick-Up CTA + Ghost Secondary */}
+          {/* CTAs — phones: full-width primary + two secondaries side by side (2 rows);
+              sm+: single centred row */}
           <motion.div
+            data-testid="hero-cta-group"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.45, ease: [0.16, 1, 0.3, 1] as any }}
-            className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center items-center"
+            className="grid grid-cols-2 gap-3 w-full max-w-sm mx-auto sm:flex sm:flex-row sm:flex-wrap sm:justify-center sm:items-center sm:gap-4 sm:max-w-none"
           >
             <button
+              type="button"
               onClick={() => navigate(heroData.primary_cta_link || '/reservations')}
-              className="btn-primary text-heading-sm px-9 py-4 shadow-gold-glow cursor-pointer"
+              className="btn-primary col-span-2 w-full sm:w-auto min-h-12 inline-flex items-center justify-center text-base sm:text-heading-sm sm:px-9 sm:py-4 shadow-gold-glow cursor-pointer"
             >
               {heroData.primary_cta_text || "Reserve a Table"}
             </button>
             <button
+              type="button"
               onClick={() => navigate('/pickup')}
               data-testid="hero-pickup-cta"
-              className="px-8 py-4 rounded-xl bg-sangeet-400/15 text-sangeet-400 font-bold border border-sangeet-400/40 hover:bg-sangeet-400 hover:text-sangeet-neutral-950 transition-all duration-300 shadow-gold-glow cursor-pointer"
+              className="w-full sm:w-auto min-h-12 inline-flex items-center justify-center px-3 sm:px-8 py-3 sm:py-4 rounded-xl bg-sangeet-400/15 text-sangeet-400 text-sm sm:text-base font-bold border border-sangeet-400/40 backdrop-blur-sm hover:bg-sangeet-400 hover:text-sangeet-neutral-950 transition-colors duration-200 cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-sangeet-400/50"
             >
               Order Pick-Up
             </button>
             <button
+              type="button"
               onClick={() => navigate(heroData.secondary_cta_link || '/menu')}
-              className="btn-secondary px-8 py-4 cursor-pointer"
+              className="btn-secondary w-full sm:w-auto min-h-12 inline-flex items-center justify-center px-3 py-3 text-sm sm:text-base sm:px-8 sm:py-4 backdrop-blur-sm cursor-pointer"
             >
               {heroData.secondary_cta_text || "View Menu"}
             </button>
           </motion.div>
 
-          {/* Elegant Highlights — Thoughtful Space Utilization */}
-          <motion.div
+          {/* Highlights — one compact line on phones, hidden on very short landscape screens */}
+          <motion.ul
+            data-testid="hero-highlights"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-white/10 flex flex-wrap items-center justify-center gap-5 sm:gap-8 text-xs sm:text-sm text-sangeet-neutral-300 font-medium"
+            className="mt-7 pt-5 sm:mt-10 sm:pt-8 border-t border-white/10 flex flex-wrap items-center justify-center gap-x-3.5 gap-y-2 sm:gap-x-8 text-[11px] sm:text-sm text-sangeet-neutral-300 font-medium [@media(max-height:560px)]:hidden"
           >
-            <div className="flex items-center gap-2">
-              <span className="text-sangeet-400 text-sm">✦</span>
-              <span>Clay Tandoor Grills</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sangeet-400 text-sm">✦</span>
-              <span>Authentic Curries &amp; Momos</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sangeet-400 text-sm">✦</span>
-              <span>Cocktail Bar &amp; Private Dining</span>
-            </div>
-          </motion.div>
-        </motion.div>
+            {HERO_HIGHLIGHTS.map((item) => (
+              <li key={item.full} className="flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
+                <span className="text-sangeet-400 text-xs sm:text-sm" aria-hidden="true">✦</span>
+                <span className="sm:hidden">{item.short}</span>
+                <span className="hidden sm:inline">{item.full}</span>
+              </li>
+            ))}
+          </motion.ul>
+          </div>
+        </div>
 
-        {/* Scroll Indicator */}
+        {/* Scroll Indicator — tablet/desktop with enough height only (never overlaps CTAs) */}
         <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-20"
+          aria-hidden="true"
+          style={{ opacity: scrollCueOpacity }}
+          className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-20 hidden md:block [@media(max-height:820px)]:hidden"
         >
-          <div className="w-6 h-10 border border-sangeet-neutral-500/40 rounded-full flex justify-center">
+          <motion.div
+            animate={prefersReducedMotion ? undefined : { y: [0, 8, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            className="w-6 h-10 border border-sangeet-neutral-500/40 rounded-full flex justify-center"
+          >
             <motion.div
-              animate={{ y: [2, 14, 2] }}
+              animate={prefersReducedMotion ? undefined : { y: [2, 14, 2] }}
               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
               className="w-1 h-3 bg-sangeet-400/60 rounded-full mt-2"
             />
-          </div>
+          </motion.div>
         </motion.div>
       </section>
 
