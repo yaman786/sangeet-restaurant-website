@@ -110,6 +110,18 @@ export const getPublicWebsiteConfig = async (): Promise<Record<string, any>> => 
   }, 'getPublicWebsiteConfig');
 };
 
+export const getSocialLinks = async (): Promise<Record<string, string>> => {
+  return apiCallWrapper(async () => {
+    return await api.get('/website/social');
+  }, 'getSocialLinks');
+};
+
+export const updateSocialLinks = async (links: Record<string, string>) => {
+  return apiCallWrapper(async () => {
+    return await api.put('/website/social', links);
+  }, 'updateSocialLinks', false);
+};
+
 // SERVER COMPONENT FETCHERS
 export const serverFetchEvents = async (): Promise<EventRow[]> => {
   return serverFetch<EventRow[]>('/events', { next: { revalidate: 3600 } });

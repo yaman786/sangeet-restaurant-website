@@ -46,6 +46,8 @@ import {
   updateTimeSlot,
   deleteTimeSlot,
   getPublicWebsiteConfig,
+  getSocialLinks,
+  updateSocialLinks,
   fetchEvents,
   createEvent,
   updateEvent,
@@ -102,9 +104,10 @@ const RestaurantWebsiteManagementPage = () => {
   });
 
   const [socialForm, setSocialForm] = useState({
-    facebook: "https://facebook.com",
-    instagram: "https://instagram.com"
+    facebook: "https://www.facebook.com/sangeetrestaurant",
+    instagram: "https://www.instagram.com/sangeet_wanchai/"
   });
+  const [savingSocial, setSavingSocial] = useState(false);
 
   const [seoForm, setSeoForm] = useState({
     title: "Sangeet | Fine-Dining South Asian Cuisine & Clay Tandoor | Wan Chai, Hong Kong",
@@ -189,7 +192,8 @@ const RestaurantWebsiteManagementPage = () => {
         updateWebsiteContent({
           hero_title: { title: 'Hero Title', content: heroForm.title, content_type: 'text' },
           hero_subtitle: { title: 'Hero Subtitle', content: heroForm.subtitle, content_type: 'text' }
-        } as any)
+        } as any),
+        updateSocialLinks(socialForm)
       ]);
 
       toast.success('🎉 All Website CMS settings saved successfully!');
@@ -198,6 +202,20 @@ const RestaurantWebsiteManagementPage = () => {
       toast.error('Failed to save website settings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Dedicated Social Links Save Handler
+  const handleSaveSocial = async () => {
+    try {
+      setSavingSocial(true);
+      await updateSocialLinks(socialForm);
+      toast.success('🎉 Social media channels updated successfully!');
+    } catch (error) {
+      console.error('Error saving social links:', error);
+      toast.error('Failed to save social media channels');
+    } finally {
+      setSavingSocial(false);
     }
   };
   // Media Handlers
@@ -684,23 +702,91 @@ const RestaurantWebsiteManagementPage = () => {
                   </div>
                 </div>
 
-                <div className="bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800 space-y-4">
-                  <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
-                    <Share2 className="w-5 h-5" /> Social Media Channels
-                  </h3>
+                <div className="bg-sangeet-neutral-950 p-6 rounded-xl border border-sangeet-neutral-800 space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-sangeet-neutral-800">
+                    <div>
+                      <h3 className="text-lg font-bold text-amber-400 flex items-center gap-2">
+                        <Share2 className="w-5 h-5 text-amber-400" /> Social Media Channels
+                      </h3>
+                      <p className="text-xs text-sangeet-neutral-400 mt-1">
+                        Connect Sangeet&apos;s official Instagram &amp; Facebook. These links appear in the footer, contact page, and mobile navigation drawer.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSaveSocial}
+                      disabled={savingSocial}
+                      className="self-start sm:self-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-400 text-black hover:bg-amber-300 font-semibold text-xs transition-colors shadow-sm cursor-pointer disabled:opacity-50 shrink-0"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      {savingSocial ? 'Saving...' : 'Save Channels'}
+                    </button>
+                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.keys(socialForm).map((net) => (
-                      <div key={net}>
-                        <label className="block text-xs font-semibold text-sangeet-neutral-300 capitalize mb-1">{net} Profile URL</label>
-                        <input
-                          type="text"
-                          value={(socialForm as any)[net]}
-                          onChange={(e) => setSocialForm({ ...socialForm, [net]: e.target.value })}
-                          className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-4 py-2.5 text-sm text-white focus:border-amber-400 focus:outline-none"
-                        />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Instagram */}
+                    <div className="bg-sangeet-neutral-900/60 p-4 rounded-lg border border-sangeet-neutral-800 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-semibold text-sangeet-neutral-200 flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-md bg-linear-to-tr from-amber-500 via-rose-500 to-purple-600 flex items-center justify-center text-white shrink-0 shadow-xs">
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                          </span>
+                          Instagram Profile URL
+                        </label>
+                        {socialForm.instagram && (
+                          <a
+                            href={socialForm.instagram}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] text-amber-400 hover:text-amber-300 font-medium transition-colors"
+                          >
+                            Test Link <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
                       </div>
-                    ))}
+                      <input
+                        type="url"
+                        value={socialForm.instagram || ''}
+                        onChange={(e) => setSocialForm({ ...socialForm, instagram: e.target.value })}
+                        placeholder="https://www.instagram.com/sangeet_wanchai/"
+                        className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-3.5 py-2 text-sm text-white placeholder-sangeet-neutral-500 focus:border-amber-400 focus:outline-none"
+                      />
+                      <p className="text-[11px] text-sangeet-neutral-400">e.g. https://www.instagram.com/sangeet_wanchai/</p>
+                    </div>
+
+                    {/* Facebook */}
+                    <div className="bg-sangeet-neutral-900/60 p-4 rounded-lg border border-sangeet-neutral-800 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-semibold text-sangeet-neutral-200 flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-md bg-[#1877F2] flex items-center justify-center text-white shrink-0 shadow-xs">
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                          </span>
+                          Facebook Page URL
+                        </label>
+                        {socialForm.facebook && (
+                          <a
+                            href={socialForm.facebook}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] text-amber-400 hover:text-amber-300 font-medium transition-colors"
+                          >
+                            Test Link <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                      <input
+                        type="url"
+                        value={socialForm.facebook || ''}
+                        onChange={(e) => setSocialForm({ ...socialForm, facebook: e.target.value })}
+                        placeholder="https://www.facebook.com/sangeetrestaurant"
+                        className="w-full bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg px-3.5 py-2 text-sm text-white placeholder-sangeet-neutral-500 focus:border-amber-400 focus:outline-none"
+                      />
+                      <p className="text-[11px] text-sangeet-neutral-400">e.g. https://www.facebook.com/sangeetrestaurant</p>
+                    </div>
                   </div>
                 </div>
               </motion.div>

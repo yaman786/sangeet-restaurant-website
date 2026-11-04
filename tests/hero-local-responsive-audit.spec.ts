@@ -40,7 +40,7 @@ test.describe('Local Hero Responsive Audit & Visual Verification', () => {
         const ctas = heroSection?.querySelectorAll('button');
         const highlights = document.querySelector('[data-testid="hero-highlights"]');
 
-        const rect = (el: Element | null) => (el ? el.getBoundingClientRect() : null);
+        const rect = (el: Element | null | undefined) => (el ? el.getBoundingClientRect() : null);
 
         const navRect = rect(header);
         const eyeRect = rect(eyebrow);

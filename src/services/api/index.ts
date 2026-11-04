@@ -64,6 +64,7 @@ export {
   getWebsiteContent, updateWebsiteContent,
   getWebsiteMedia, uploadWebsiteMedia, updateWebsiteMedia, deleteWebsiteMedia,
   getWebsiteStats, getPublicWebsiteConfig,
+  getSocialLinks, updateSocialLinks,
   fetchEvents, fetchFeaturedEvents, fetchUpcomingEvents, fetchEventById,
   createEvent, updateEvent, deleteEvent
 } from './websiteApi';

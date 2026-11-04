@@ -293,10 +293,15 @@ class WebsiteService {
       where: { setting_key: { startsWith: 'social_' } },
       orderBy: { setting_key: 'asc' }
     });
-    const links: Record<string, string> = {};
+    const links: Record<string, string> = {
+      instagram: 'https://www.instagram.com/sangeet_wanchai/',
+      facebook: 'https://www.facebook.com/sangeetrestaurant',
+    };
     for (const row of rows) {
       const key = row.setting_key.replace('social_', '');
-      links[key] = row.setting_value || '';
+      if (row.setting_value && row.setting_value.trim().length > 0) {
+        links[key] = row.setting_value.trim();
+      }
     }
     return links;
   }
@@ -304,15 +309,19 @@ class WebsiteService {
   async updateSocialLinks(data: SocialLinksDTO): Promise<Record<string, string>> {
     const upserts = [];
     for (const [key, value] of Object.entries(data)) {
+      if (value === undefined) continue;
       const settingKey = `social_${key}`;
+      const trimmedValue = typeof value === 'string' ? value.trim() : String(value);
       upserts.push(prisma.restaurant_settings.upsert({
         where: { setting_key: settingKey },
-        update: { setting_value: String(value), updated_at: new Date() },
-        create: { setting_key: settingKey, setting_value: String(value), setting_type: 'text', description: 'Social media link' }
+        update: { setting_value: trimmedValue, updated_at: new Date() },
+        create: { setting_key: settingKey, setting_value: trimmedValue, setting_type: 'text', description: 'Social media link' }
       }));
     }
-    await prisma.$transaction(upserts);
-    return data as Record<string, string>;
+    if (upserts.length > 0) {
+      await prisma.$transaction(upserts);
+    }
+    return await this.getSocialLinks();
   }
   // --- Public Website Dynamic Config Aggregator ---
   async getPublicWebsiteConfig(): Promise<Record<string, any>> {
