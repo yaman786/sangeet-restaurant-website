@@ -25,7 +25,7 @@ export {
   searchOrders, fetchOrderStats, fetchTables,
   cancelOrderItemApi,
   getTableByQRCode, getTableById, getTableByNumber, archiveCompletedOrders,
-  restoreOrder
+  restoreOrder, trackPublicOrders
 } from './orderApi';
 
 // Reservations

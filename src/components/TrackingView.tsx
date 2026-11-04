@@ -261,6 +261,7 @@ const TrackingView = ({ orders, orderStatuses, getStatusStep, formatTime, format
 const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate, tableNumber, onReviewClick, reviewedOrders, showReviewOption = false, onCancelClick }: any) => {
   const currentStatus = orderStatuses[order.status] || orderStatuses.pending;
   const statusStep = getStatusStep(order.status);
+  const isTakeaway = order.order_type === 'takeaway' || String(order.table_number || tableNumber || '').toUpperCase() === 'PICKUP';
 
   return (
     <div className="bg-linear-to-r from-sangeet-neutral-900/80 to-sangeet-neutral-800/80 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-2xl border border-sangeet-neutral-700/50 backdrop-blur-xl transition-all duration-500">
@@ -282,6 +283,26 @@ const OrderCard = ({ order, orderStatuses, getStatusStep, formatTime, formatDate
                 </span>
               )}
             </p>
+            {isTakeaway && (
+              <div className="mt-2.5 flex items-center gap-2">
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(
+                    `Track my Sangeet Restaurant Pick-Up Order #${order.order_number || order.id}:\n${
+                      typeof window !== 'undefined'
+                        ? `${window.location.origin}/track-order?orderNumber=${encodeURIComponent(order.order_number || order.id)}`
+                        : `https://www.sangeet.hk/track-order?orderNumber=${order.order_number || order.id}`
+                    }`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid="whatsapp-track-share-btn"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-semibold transition-all shadow-xs"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Save to WhatsApp</span>
+                </a>
+              </div>
+            )}
           </div>
         </div>
         <div className="flex flex-row sm:flex-col items-center sm:items-end space-x-3 sm:space-x-0 sm:space-y-2">

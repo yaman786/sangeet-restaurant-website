@@ -22,6 +22,7 @@ const NAVIGATION_ITEMS = [
   { path: '/', label: 'Home' },
   { path: '/menu', label: 'Menu' },
   { path: '/reservations', label: 'Reservations' },
+  { path: '/track-order', label: 'Track Order' },
   { path: '/location', label: 'Location' },
   { path: '/about', label: 'About' },
   { path: '/contact', label: 'Contact' },

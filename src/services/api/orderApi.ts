@@ -157,3 +157,9 @@ export const cancelOrderItemApi = async (orderId: string | number, itemId: strin
     return await api.post(`/orders/${orderId}/items/${itemId}/cancel`, {});
   }, 'cancelOrderItemApi');
 };
+
+export const trackPublicOrders = async (query: { phone?: string; orderNumber?: string }): Promise<{ success: boolean; count: number; orders: OrderRow[] }> => {
+  return apiCallWrapper(async () => {
+    return await api.post('/orders/track', query);
+  }, 'trackPublicOrders', false);
+};

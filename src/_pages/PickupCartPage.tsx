@@ -208,7 +208,9 @@ const PickupCartPage = () => {
       try {
         localStorage.setItem('orderSession', JSON.stringify(sessionData));
         localStorage.setItem('orderId_PICKUP', String(orderId));
+        localStorage.setItem('orderNumber_PICKUP', String(orderNumber || ''));
         localStorage.setItem('customer_PICKUP', customerName.trim());
+        localStorage.setItem('phone_PICKUP', customerPhone.trim());
         localStorage.removeItem('instructions_PICKUP');
       } catch (e) {
         console.error('Failed to write pickup orderSession to localStorage:', e);

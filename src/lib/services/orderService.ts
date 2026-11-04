@@ -660,6 +660,62 @@ class OrderService {
     
     return orders.map(this.formatOrder);
   }
+
+  async trackPublicOrder(query: { phone?: string; orderNumber?: string }) {
+    const phone = query.phone?.trim();
+    const orderNumber = query.orderNumber?.trim();
+
+    if (!phone && !orderNumber) {
+      throw new ValidationError('Please enter your mobile phone number or order number');
+    }
+
+    const orConditions: any[] = [];
+
+    if (orderNumber) {
+      const cleanOrderNumber = orderNumber.replace(/^#/i, '').trim();
+      if (cleanOrderNumber.length >= 3) {
+        orConditions.push({ order_number: { equals: cleanOrderNumber, mode: 'insensitive' } });
+        orConditions.push({ order_number: { contains: cleanOrderNumber, mode: 'insensitive' } });
+        const numericId = parseInt(cleanOrderNumber, 10);
+        if (!isNaN(numericId) && String(numericId) === cleanOrderNumber) {
+          orConditions.push({ id: numericId });
+        }
+      }
+    }
+
+    if (phone) {
+      const cleanPhone = phone.replace(/[^0-9]/g, '');
+      if (cleanPhone.length >= 4) {
+        orConditions.push({ special_instructions: { contains: cleanPhone } });
+        if (cleanPhone.length >= 8) {
+          const last8 = cleanPhone.slice(-8);
+          orConditions.push({ special_instructions: { contains: last8 } });
+        }
+      }
+    }
+
+    if (orConditions.length === 0) {
+      throw new ValidationError('Invalid order number or phone search term');
+    }
+
+    // Look for orders within the last 48 hours that are not archived
+    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const orders = await prisma.orders.findMany({
+      where: {
+        OR: orConditions,
+        is_archived: false,
+        created_at: { gte: twoDaysAgo }
+      },
+      include: {
+        tables: true,
+        order_items: { include: { menu_items: true } }
+      },
+      orderBy: { created_at: 'desc' },
+      take: 10
+    });
+
+    return orders.map(this.formatOrder);
+  }
 }
 
 export default new OrderService();

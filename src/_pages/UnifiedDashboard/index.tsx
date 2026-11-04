@@ -76,6 +76,28 @@ const UnifiedDashboard = () => {
       } catch (e) {}
       
       if (!deviceOrderId || String(deviceOrderId) !== String(orderId)) {
+        // If this is a PICKUP order, allow cross-device tracking and adopt it to this device
+        const isPickup = String(tableNumber || '').toUpperCase() === 'PICKUP';
+        const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        const isPickupParam = urlParams?.get('table')?.toUpperCase() === 'PICKUP';
+
+        if (isPickup || isPickupParam) {
+          try {
+            localStorage.setItem('orderId_PICKUP', String(orderId));
+            localStorage.setItem(
+              'orderSession',
+              JSON.stringify({
+                orderId: Number(orderId),
+                tableNumber: 'PICKUP',
+                orderType: 'takeaway',
+                customerName: urlParams?.get('customerName') || 'Guest',
+                orderNumber: urlParams?.get('orderNumber') || ''
+              })
+            );
+          } catch (e) {}
+          return;
+        }
+
         toast.error('Access Denied. This tracking link belongs to a different device.', { duration: 5000 });
         setTimeout(() => {
           window.location.href = '/';

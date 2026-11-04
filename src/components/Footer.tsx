@@ -121,6 +121,18 @@ const Footer = () => {
               <h4 className="text-lg md:text-xl font-bold text-sangeet-400 mb-4 md:mb-6">Quick Links</h4>
               <ul className="space-y-2 md:space-y-3">
                 <li>
+                  <Link href="/pickup" className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 flex items-center group text-sm md:text-base touch-manipulation py-1">
+                    <span className="mr-2 text-sangeet-400 group-hover:translate-x-1 transition-transform duration-300">→</span>
+                    Order Pick-Up
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/track-order" className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 flex items-center group text-sm md:text-base touch-manipulation py-1">
+                    <span className="mr-2 text-sangeet-400 group-hover:translate-x-1 transition-transform duration-300">→</span>
+                    Track Order
+                  </Link>
+                </li>
+                <li>
                   <Link href="/menu" className="text-sangeet-neutral-300 hover:text-sangeet-400 transition-colors duration-300 flex items-center group text-sm md:text-base touch-manipulation py-1">
                     <span className="mr-2 text-sangeet-400 group-hover:translate-x-1 transition-transform duration-300">→</span>
                     Our Menu

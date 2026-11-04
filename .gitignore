@@ -51,3 +51,6 @@ tables.json
 test-pg.js
 regenerate_qrs.ts
 graphify-out/
+
+__pycache__/
+*.pyc
