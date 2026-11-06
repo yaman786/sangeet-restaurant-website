@@ -1,7 +1,13 @@
 "use client";
 import React from 'react';
 import type { UserRole } from '@/lib/types';
-import { PASSWORD_HINT, ROLE_META, type StaffFormData } from './utils';
+import {
+  ADMIN_MODULES,
+  DEFAULT_SYSTEM_ROLES,
+  resolveRolePermissions,
+  type RoleDefinition,
+} from '@/lib/rbac';
+import { getRoleMeta, PASSWORD_HINT, type StaffFormData } from './utils';
 
 export interface StaffFormProps {
   formData: StaffFormData;
@@ -11,9 +17,31 @@ export interface StaffFormProps {
   onCancel: () => void;
   isSaving?: boolean;
   lockRole?: boolean;
+  rolesCatalog?: Record<string, RoleDefinition>;
+  isSuperAdmin?: boolean;
 }
 
-const StaffForm: React.FC<StaffFormProps> = ({ formData, setFormData, isEditing, handleSubmit, onCancel, isSaving = false, lockRole = false }) => {
+const StaffForm: React.FC<StaffFormProps> = ({
+  formData,
+  setFormData,
+  isEditing,
+  handleSubmit,
+  onCancel,
+  isSaving = false,
+  lockRole = false,
+  rolesCatalog = DEFAULT_SYSTEM_ROLES,
+  isSuperAdmin = true,
+}) => {
+  const availableRoleKeys = Object.keys(rolesCatalog).filter((roleKey) => {
+    if (roleKey === 'admin' && !isSuperAdmin && formData.role !== 'admin') {
+      return false;
+    }
+    return true;
+  });
+
+  const selectedRolePerms = resolveRolePermissions(formData.role, rolesCatalog);
+  const selectedRoleMeta = getRoleMeta(formData.role, rolesCatalog);
+
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-6 flex-1 overflow-y-auto" data-testid="staff-form">
       {/* Personal Information */}
@@ -92,7 +120,7 @@ const StaffForm: React.FC<StaffFormProps> = ({ formData, setFormData, isEditing,
             />
           </div>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="staff-password" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
@@ -124,9 +152,14 @@ const StaffForm: React.FC<StaffFormProps> = ({ formData, setFormData, isEditing,
                 className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200 appearance-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 required
               >
-                {(Object.keys(ROLE_META) as Array<keyof typeof ROLE_META>).map((role) => (
-                  <option key={role} value={role}>{ROLE_META[role].icon} {ROLE_META[role].label}</option>
-                ))}
+                {availableRoleKeys.map((roleKey) => {
+                  const meta = getRoleMeta(roleKey, rolesCatalog);
+                  return (
+                    <option key={roleKey} value={roleKey}>
+                      {meta.icon} {meta.label}
+                    </option>
+                  );
+                })}
               </select>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                 <span className="text-sangeet-neutral-400">▼</span>
@@ -135,6 +168,30 @@ const StaffForm: React.FC<StaffFormProps> = ({ formData, setFormData, isEditing,
           </div>
         </div>
         <p className="text-xs text-sangeet-neutral-500">{PASSWORD_HINT}</p>
+
+        {/* Live Role Dashboard Cards Preview */}
+        <div className="bg-sangeet-neutral-950/70 border border-sangeet-neutral-700/80 rounded-xl p-3.5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-sangeet-300 flex items-center gap-1.5">
+              <span>{selectedRoleMeta.icon}</span>
+              <span>{selectedRoleMeta.label} — Dashboard Access</span>
+            </span>
+            <span className="text-[11px] text-sangeet-neutral-400">
+              {selectedRolePerms.length} {selectedRolePerms.length === 1 ? 'card' : 'cards'} unlocked
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {ADMIN_MODULES.filter((m) => selectedRolePerms.includes(m.key)).map((mod) => (
+              <span
+                key={mod.key}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sangeet-neutral-800 border border-sangeet-neutral-700 text-[11px] text-sangeet-neutral-200"
+              >
+                <span>{mod.icon}</span>
+                <span>{mod.shortLabel}</span>
+              </span>
+            ))}
+          </div>
+        </div>
 
         {isEditing && (
           <div>

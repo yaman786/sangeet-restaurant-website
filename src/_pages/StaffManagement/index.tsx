@@ -5,6 +5,7 @@ import AdminHeader from '../../components/AdminHeader';
 import StaffTable from './StaffTable';
 import StaffForm from './StaffForm';
 import RoleFilter from './RoleFilter';
+import RolesPermissionsMatrix from './RolesPermissionsMatrix';
 import { useStaffManagement } from './hooks/useStaffManagement';
 import { getInitials } from './utils';
 
@@ -21,6 +22,11 @@ const StaffManagement = () => {
     refetch,
     isSaving,
     currentUser,
+    isSuperAdmin,
+    activeTab,
+    setActiveTab,
+    rolesCatalog,
+    modules,
     showCreateModal,
     setShowCreateModal,
     showEditModal,
@@ -46,7 +52,12 @@ const StaffManagement = () => {
     handleRestoreUser,
     handleToggleStatus,
     openEditModal,
-    resetForm
+    resetForm,
+    upsertRoleMutation,
+    updatePermissionsMutation,
+    deleteRoleMutation,
+    resetRolesMutation,
+    handleToggleRoleModule,
   } = useStaffManagement();
 
   if (loading) {
@@ -63,11 +74,22 @@ const StaffManagement = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-sangeet-neutral-950">
-        <AdminHeader title="Staff Management" subtitle="Manage admin and staff accounts" showBackButton={true} onBackClick={() => navigate('/admin/dashboard')} />
+        <AdminHeader
+          title="Staff Management"
+          subtitle="Manage admin and staff accounts"
+          showBackButton={true}
+          onBackClick={() => navigate('/admin/dashboard')}
+        />
         <main className="max-w-3xl mx-auto px-4 py-16">
-          <div className="bg-sangeet-neutral-900 rounded-xl border border-red-500/30 p-10 text-center" role="alert" data-testid="staff-error">
+          <div
+            className="bg-sangeet-neutral-900 rounded-xl border border-red-500/30 p-10 text-center"
+            role="alert"
+            data-testid="staff-error"
+          >
             <div className="text-5xl mb-4">⚠️</div>
-            <h2 className="text-xl font-semibold text-sangeet-neutral-100 mb-2">We couldn&apos;t load your team</h2>
+            <h2 className="text-xl font-semibold text-sangeet-neutral-100 mb-2">
+              We couldn&apos;t load your team
+            </h2>
             <p className="text-sangeet-neutral-400 mb-6">
               {error.message || 'Something went wrong while contacting the server.'} Your session is still active.
             </p>
@@ -84,113 +106,179 @@ const StaffManagement = () => {
     );
   }
 
+  const totalRolesCount = Object.keys(rolesCatalog).length;
+
   return (
     <div className="min-h-screen bg-sangeet-neutral-950">
-      <AdminHeader title="Staff Management" subtitle="Manage admin and staff accounts" showBackButton={true} onBackClick={() => navigate('/admin/dashboard')} />
+      <AdminHeader
+        title="Staff Management"
+        subtitle="Manage admin and staff accounts"
+        showBackButton={true}
+        onBackClick={() => navigate('/admin/dashboard')}
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-sangeet-400 mb-2">Staff Management</h1>
-          <p className="text-sangeet-neutral-400">
-            Manage admin and staff accounts, roles, and permissions
-          </p>
+        {/* Header & Tab Switcher */}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-sangeet-400 mb-2">Staff Management</h1>
+            <p className="text-sangeet-neutral-400">
+              Manage hospitality roles (GM, Operations Manager, Manager, Assistant Manager, Bar, Floor &amp; Kitchen), custom roles, and module permissions
+            </p>
+          </div>
+
+          <div
+            className="inline-flex bg-sangeet-neutral-900 p-1.5 rounded-xl border border-sangeet-neutral-700 self-start md:self-auto"
+            role="tablist"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'team'}
+              data-testid="tab-team-directory"
+              onClick={() => setActiveTab('team')}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                activeTab === 'team'
+                  ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-md'
+                  : 'text-sangeet-neutral-300 hover:text-sangeet-neutral-100'
+              }`}
+            >
+              <span>👥</span>
+              <span>Team Directory ({stats.total || 0})</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'roles'}
+              data-testid="tab-roles-permissions"
+              onClick={() => setActiveTab('roles')}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                activeTab === 'roles'
+                  ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-md'
+                  : 'text-sangeet-neutral-300 hover:text-sangeet-neutral-100'
+              }`}
+            >
+              <span>🛡️</span>
+              <span>Roles &amp; Permissions ({totalRolesCount})</span>
+            </button>
+          </div>
         </div>
 
-        <RoleFilter 
-          stats={stats}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          filterRole={filterRole}
-          setFilterRole={setFilterRole}
-          filterStatus={filterStatus}
-          setFilterStatus={setFilterStatus}
-          setShowCreateModal={setShowCreateModal}
-        />
-
-        {filteredUsers.length > 0 ? (
+        {activeTab === 'roles' ? (
+          <RolesPermissionsMatrix
+            rolesCatalog={rolesCatalog}
+            modules={modules}
+            userCountsByRole={stats.roles || {}}
+            isSuperAdmin={isSuperAdmin}
+            isUpdating={
+              upsertRoleMutation.isPending ||
+              updatePermissionsMutation.isPending ||
+              deleteRoleMutation.isPending ||
+              resetRolesMutation.isPending
+            }
+            onToggleModule={handleToggleRoleModule}
+            onSaveRole={(data) => upsertRoleMutation.mutateAsync(data)}
+            onDeleteCustomRole={(roleKey) => deleteRoleMutation.mutateAsync(roleKey)}
+            onResetDefaults={() => resetRolesMutation.mutateAsync()}
+          />
+        ) : (
           <>
-            <StaffTable 
-              filteredUsers={filteredUsers}
-              users={users}
-              currentUser={currentUser}
-              openEditModal={openEditModal}
-              handleToggleStatus={handleToggleStatus}
-              handleDeleteUser={handleDeleteUser}
-              handleRestoreUser={handleRestoreUser}
-              handlePermanentDeleteUser={handlePermanentDeleteUser}
+            <RoleFilter
+              stats={stats}
+              rolesCatalog={rolesCatalog}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              filterRole={filterRole}
+              setFilterRole={setFilterRole}
+              filterStatus={filterStatus}
+              setFilterStatus={setFilterStatus}
+              setShowCreateModal={setShowCreateModal}
             />
-            {/* Pagination Controls */}
-            {metadata && metadata.totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-between border-t border-sangeet-neutral-800 pt-4">
-                <div className="text-sm text-sangeet-neutral-400">
-                  Showing page {metadata.page} of {metadata.totalPages} ({metadata.total} total users)
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setPage(Math.max(1, page - 1))}
-                    disabled={page === 1}
-                    className="px-4 py-2 bg-sangeet-neutral-800 text-sangeet-neutral-300 rounded-sm hover:bg-sangeet-neutral-700 disabled:opacity-50"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => setPage(Math.min(metadata.totalPages, page + 1))}
-                    disabled={page === metadata.totalPages}
-                    className="px-4 py-2 bg-sangeet-neutral-800 text-sangeet-neutral-300 rounded-sm hover:bg-sangeet-neutral-700 disabled:opacity-50"
-                  >
-                    Next
-                  </button>
+
+            {filteredUsers.length > 0 ? (
+              <>
+                <StaffTable
+                  filteredUsers={filteredUsers}
+                  users={users}
+                  currentUser={currentUser}
+                  rolesCatalog={rolesCatalog}
+                  openEditModal={openEditModal}
+                  handleToggleStatus={handleToggleStatus}
+                  handleDeleteUser={handleDeleteUser}
+                  handleRestoreUser={handleRestoreUser}
+                  handlePermanentDeleteUser={handlePermanentDeleteUser}
+                />
+                {/* Pagination Controls */}
+                {metadata && metadata.totalPages > 1 && (
+                  <div className="mt-6 flex items-center justify-between border-t border-sangeet-neutral-800 pt-4">
+                    <div className="text-sm text-sangeet-neutral-400">
+                      Showing page {metadata.page} of {metadata.totalPages} ({metadata.total} total users)
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setPage(Math.max(1, page - 1))}
+                        disabled={page === 1}
+                        className="px-4 py-2 bg-sangeet-neutral-800 text-sangeet-neutral-300 rounded-sm hover:bg-sangeet-neutral-700 disabled:opacity-50"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        onClick={() => setPage(Math.min(metadata.totalPages, page + 1))}
+                        disabled={page === metadata.totalPages}
+                        className="px-4 py-2 bg-sangeet-neutral-800 text-sangeet-neutral-300 rounded-sm hover:bg-sangeet-neutral-700 disabled:opacity-50"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-sangeet-neutral-900 rounded-xl border border-sangeet-neutral-700 overflow-hidden shadow-xl p-8">
+                <div className="text-center py-16">
+                  <div className="text-6xl mb-6">
+                    {searchTerm || filterRole !== 'all' || filterStatus !== 'all' ? '🔍' : '👥'}
+                  </div>
+                  <h3 className="text-xl font-semibold text-sangeet-neutral-200 mb-3">
+                    {searchTerm || filterRole !== 'all' || filterStatus !== 'all'
+                      ? 'No matching users found'
+                      : 'No team members yet'}
+                  </h3>
+                  <p className="text-sangeet-neutral-400 mb-6 max-w-md mx-auto">
+                    {searchTerm || filterRole !== 'all' || filterStatus !== 'all'
+                      ? "Try adjusting your search terms or filters to find the team member you're looking for."
+                      : 'Start building your team by adding administrators and staff members who will help manage your restaurant operations.'}
+                  </p>
+                  {!searchTerm && filterRole === 'all' && filterStatus === 'all' ? (
+                    <div className="space-y-4">
+                      <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="px-8 py-3 bg-linear-to-r from-sangeet-400 to-sangeet-300 text-sangeet-neutral-950 font-semibold rounded-lg hover:from-sangeet-300 hover:to-sangeet-200 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center gap-2 mx-auto"
+                      >
+                        <span>➕</span>
+                        Add Your First Team Member
+                      </button>
+                      <div className="text-xs text-sangeet-neutral-500 max-w-sm mx-auto">
+                        You can add GM, Operations Manager, Manager, Assistant Manager, Bar Staff, Floor Staff, or Kitchen Staff
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setSearchTerm('');
+                        setFilterRole('all');
+                        setFilterStatus('all');
+                      }}
+                      className="px-6 py-2 bg-sangeet-neutral-700 text-sangeet-neutral-300 rounded-lg hover:bg-sangeet-neutral-600 transition-colors flex items-center gap-2 mx-auto"
+                    >
+                      <span>🔄</span>
+                      Clear All Filters
+                    </button>
+                  )}
                 </div>
               </div>
             )}
           </>
-        ) : (
-          <div className="bg-sangeet-neutral-900 rounded-xl border border-sangeet-neutral-700 overflow-hidden shadow-xl p-8">
-            <div className="text-center py-16">
-              <div className="text-6xl mb-6">
-                {searchTerm || filterRole !== 'all' || filterStatus !== 'all' ? '🔍' : '👥'}
-              </div>
-              <h3 className="text-xl font-semibold text-sangeet-neutral-200 mb-3">
-                {searchTerm || filterRole !== 'all' || filterStatus !== 'all'
-                  ? 'No matching users found'
-                  : 'No team members yet'
-                }
-              </h3>
-              <p className="text-sangeet-neutral-400 mb-6 max-w-md mx-auto">
-                {searchTerm || filterRole !== 'all' || filterStatus !== 'all'
-                  ? 'Try adjusting your search terms or filters to find the team member you\'re looking for.'
-                  : 'Start building your team by adding administrators and staff members who will help manage your restaurant operations.'
-                }
-              </p>
-              {(!searchTerm && filterRole === 'all' && filterStatus === 'all') ? (
-                <div className="space-y-4">
-                  <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="px-8 py-3 bg-linear-to-r from-sangeet-400 to-sangeet-300 text-sangeet-neutral-950 font-semibold rounded-lg hover:from-sangeet-300 hover:to-sangeet-200 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center gap-2 mx-auto"
-                  >
-                    <span>➕</span>
-                    Add Your First Team Member
-                  </button>
-                  <div className="text-xs text-sangeet-neutral-500 max-w-sm mx-auto">
-                    You can add administrators (full access), kitchen staff, reception or waiters
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setFilterRole('all');
-                    setFilterStatus('all');
-                  }}
-                  className="px-6 py-2 bg-sangeet-neutral-700 text-sangeet-neutral-300 rounded-lg hover:bg-sangeet-neutral-600 transition-colors flex items-center gap-2 mx-auto"
-                >
-                  <span>🔄</span>
-                  Clear All Filters
-                </button>
-              )}
-            </div>
-          </div>
         )}
       </main>
 
@@ -218,13 +306,18 @@ const StaffManagement = () => {
                 ✕
               </button>
             </div>
-            <StaffForm 
-              formData={formData} 
-              setFormData={setFormData} 
-              isEditing={false} 
-              handleSubmit={handleCreateUser} 
+            <StaffForm
+              formData={formData}
+              setFormData={setFormData}
+              isEditing={false}
+              handleSubmit={handleCreateUser}
               isSaving={isSaving}
-              onCancel={() => { setShowCreateModal(false); resetForm(); }} 
+              rolesCatalog={rolesCatalog}
+              isSuperAdmin={isSuperAdmin}
+              onCancel={() => {
+                setShowCreateModal(false);
+                resetForm();
+              }}
             />
           </div>
         </div>
@@ -243,7 +336,9 @@ const StaffManagement = () => {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-sangeet-400">Edit User</h2>
-                  <p className="text-sm text-sangeet-neutral-400">Update {editingUser.full_name || editingUser.username}&apos;s information</p>
+                  <p className="text-sm text-sangeet-neutral-400">
+                    Update {editingUser.full_name || editingUser.username}&apos;s information
+                  </p>
                 </div>
               </div>
               <button
@@ -256,14 +351,19 @@ const StaffManagement = () => {
                 ✕
               </button>
             </div>
-            <StaffForm 
-              formData={formData} 
-              setFormData={setFormData} 
-              isEditing={true} 
-              handleSubmit={handleUpdateUser} 
+            <StaffForm
+              formData={formData}
+              setFormData={setFormData}
+              isEditing={true}
+              handleSubmit={handleUpdateUser}
               isSaving={isSaving}
               lockRole={editingUser.id === currentUser?.id}
-              onCancel={() => { setShowEditModal(false); resetForm(); }} 
+              rolesCatalog={rolesCatalog}
+              isSuperAdmin={isSuperAdmin}
+              onCancel={() => {
+                setShowEditModal(false);
+                resetForm();
+              }}
             />
           </div>
         </div>
@@ -290,9 +390,7 @@ const StaffManagement = () => {
             </div>
 
             <div className="p-6">
-              <p className="text-sangeet-neutral-300 leading-relaxed">
-                {confirmAction.message}
-              </p>
+              <p className="text-sangeet-neutral-300 leading-relaxed">{confirmAction.message}</p>
 
               {confirmAction.type === 'permanent_delete' && (
                 <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">

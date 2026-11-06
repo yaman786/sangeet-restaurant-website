@@ -1,13 +1,27 @@
 // ── User & Auth ─────────────────────────────────────────────
 export * from './dtos';
 export * from './cart';
-export type UserRole = 'admin' | 'kitchen' | 'reception' | 'waiter';
+export type SystemUserRole =
+  | 'admin'
+  | 'gm'
+  | 'operations_manager'
+  | 'manager'
+  | 'assistant_manager'
+  | 'bar_staff'
+  | 'floor_staff'
+  | 'kitchen'
+  | 'reception'
+  | 'waiter';
+
+export type UserRole = SystemUserRole | (string & {});
 
 export interface JwtPayload {
   id: number;
   username: string;
   role: UserRole;
   email: string;
+  permissions?: string[];
+  is_super_admin?: boolean;
   iat?: number;
   exp?: number;
 }
@@ -21,6 +35,8 @@ export interface UserRow {
   full_name: string | null;
   phone: string | null;
   is_active: boolean;
+  permissions?: string[];
+  is_super_admin?: boolean;
   created_at: string;
   updated_at: string | null;
   deleted_at: string | null;

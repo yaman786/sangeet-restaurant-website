@@ -8,16 +8,36 @@ import {
   deleteUser,
   restoreUser,
   toggleUserStatus,
-  getUserStats
+  getUserStats,
+  getRolesCatalog,
+  upsertRole,
+  updateRolePermissions,
+  resetRolePermissions,
+  deleteCustomRole,
 } from '../../../services/api';
 import { useAuth } from '../../../contexts/AuthContext';
 import type { UserInfo, UserStats } from '@/lib/types';
+import {
+  ADMIN_MODULES,
+  DEFAULT_SYSTEM_ROLES,
+  hasModulePermission,
+  type AdminModuleKey,
+  type AdminModuleMeta,
+  type RoleDefinition,
+  type RoleTier,
+} from '@/lib/rbac';
 import { EMPTY_STAFF_FORM, getErrorMessage, type StaffFormData } from '../utils';
 
 const PAGE_SIZE = 50;
 
 const EMPTY_STATS: UserStats = {
-  total: 0, active: 0, inactive: 0, admins: 0, staff: 0, recent: 0, roles: {}
+  total: 0,
+  active: 0,
+  inactive: 0,
+  admins: 0,
+  staff: 0,
+  recent: 0,
+  roles: {},
 };
 
 export interface ConfirmAction {
@@ -32,6 +52,7 @@ export interface ConfirmAction {
 
 export const useStaffManagement = () => {
   const [page, setPage] = useState(1);
+  const [activeTab, setActiveTab] = useState<'team' | 'roles'>('team');
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -60,12 +81,27 @@ export const useStaffManagement = () => {
     setPage(1);
   }, []);
 
-  // Identity comes from AuthContext (verified against /api/auth/me). A failed data request
-  // must never be treated as an expired session; real 401/403 responses are handled
-  // centrally by the API client interceptor.
   const { user: currentUser } = useAuth();
-  const isAdmin = currentUser?.role === 'admin';
+  const isSuperAdmin = currentUser?.role === 'admin';
+  const canManageStaff = isSuperAdmin || hasModulePermission(currentUser, 'staff');
   const queryClient = useQueryClient();
+
+  const rolesQuery = useQuery({
+    queryKey: ['rolesCatalog'],
+    queryFn: () => getRolesCatalog(),
+    enabled: Boolean(currentUser),
+    retry: 1,
+  });
+
+  const rolesCatalog: Record<string, RoleDefinition> = useMemo(
+    () => rolesQuery.data?.roles ?? DEFAULT_SYSTEM_ROLES,
+    [rolesQuery.data]
+  );
+
+  const modules: AdminModuleMeta[] = useMemo(
+    () => rolesQuery.data?.modules ?? ADMIN_MODULES,
+    [rolesQuery.data]
+  );
 
   const usersQuery = useQuery({
     queryKey: ['users', page, filterRole, filterStatus],
@@ -74,18 +110,18 @@ export const useStaffManagement = () => {
         page,
         limit: PAGE_SIZE,
         role: filterRole !== 'all' ? filterRole : undefined,
-        status: filterStatus !== 'all' ? filterStatus : undefined
+        status: filterStatus !== 'all' ? filterStatus : undefined,
       }),
-    enabled: isAdmin,
+    enabled: canManageStaff,
     retry: 1,
-    placeholderData: (previousData) => previousData
+    placeholderData: (previousData) => previousData,
   });
 
   const statsQuery = useQuery({
     queryKey: ['usersStats'],
     queryFn: () => getUserStats(),
-    enabled: isAdmin,
-    retry: 1
+    enabled: canManageStaff,
+    retry: 1,
   });
 
   const loading = usersQuery.isLoading || statsQuery.isLoading;
@@ -98,7 +134,8 @@ export const useStaffManagement = () => {
   const refetch = useCallback(() => {
     usersQuery.refetch();
     statsQuery.refetch();
-  }, [usersQuery, statsQuery]);
+    rolesQuery.refetch();
+  }, [usersQuery, statsQuery, rolesQuery]);
 
   const resetForm = useCallback(() => {
     setFormData(EMPTY_STAFF_FORM);
@@ -107,6 +144,7 @@ export const useStaffManagement = () => {
   const invalidateStaffData = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['users'] });
     queryClient.invalidateQueries({ queryKey: ['usersStats'] });
+    queryClient.invalidateQueries({ queryKey: ['rolesCatalog'] });
   }, [queryClient]);
 
   const createMutation = useMutation({
@@ -117,7 +155,7 @@ export const useStaffManagement = () => {
       resetForm();
       invalidateStaffData();
     },
-    onError: (err) => toast.error(getErrorMessage(err, 'Failed to create user'))
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to create user')),
   });
 
   const handleCreateUser = (e: React.FormEvent) => {
@@ -131,7 +169,7 @@ export const useStaffManagement = () => {
       username: formData.username.trim(),
       email: formData.email.trim(),
       full_name: formData.full_name.trim(),
-      phone: formData.phone.trim()
+      phone: formData.phone.trim(),
     });
   };
 
@@ -144,7 +182,7 @@ export const useStaffManagement = () => {
       resetForm();
       invalidateStaffData();
     },
-    onError: (err) => toast.error(getErrorMessage(err, 'Failed to update user'))
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to update user')),
   });
 
   const handleUpdateUser = (e: React.FormEvent) => {
@@ -156,7 +194,7 @@ export const useStaffManagement = () => {
       username: rest.username.trim(),
       email: rest.email.trim(),
       full_name: rest.full_name.trim(),
-      phone: rest.phone.trim()
+      phone: rest.phone.trim(),
     };
     if (password) updateData.password = password;
     updateMutation.mutate({ id: editingUser.id, data: updateData });
@@ -168,7 +206,7 @@ export const useStaffManagement = () => {
       toast.success('User moved to archive');
       invalidateStaffData();
     },
-    onError: (err) => toast.error(getErrorMessage(err, 'Failed to archive user'))
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to archive user')),
   });
 
   const permanentDeleteMutation = useMutation({
@@ -177,7 +215,7 @@ export const useStaffManagement = () => {
       toast.success('User permanently deleted');
       invalidateStaffData();
     },
-    onError: (err) => toast.error(getErrorMessage(err, 'Failed to permanently delete user'))
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to permanently delete user')),
   });
 
   const restoreMutation = useMutation({
@@ -186,7 +224,7 @@ export const useStaffManagement = () => {
       toast.success('User restored to active team');
       invalidateStaffData();
     },
-    onError: (err) => toast.error(getErrorMessage(err, 'Failed to restore user'))
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to restore user')),
   });
 
   const handleDeleteUser = (userId: number) => {
@@ -199,7 +237,7 @@ export const useStaffManagement = () => {
       message: `Are you sure you want to archive ${user.full_name || user.username}'s account? They will immediately lose access, and you can restore or permanently delete them from the Archived view.`,
       confirmText: 'Archive Account',
       confirmStyle: 'bg-red-500 hover:bg-red-600',
-      onConfirm: () => deleteMutation.mutateAsync(userId)
+      onConfirm: () => deleteMutation.mutateAsync(userId),
     });
     setShowConfirmModal(true);
   };
@@ -214,7 +252,7 @@ export const useStaffManagement = () => {
       message: `Are you sure you want to permanently delete ${user.full_name || user.username}'s account from the database? This cannot be undone.`,
       confirmText: 'Delete Permanently',
       confirmStyle: 'bg-red-600 hover:bg-red-700',
-      onConfirm: () => permanentDeleteMutation.mutateAsync(userId)
+      onConfirm: () => permanentDeleteMutation.mutateAsync(userId),
     });
     setShowConfirmModal(true);
   };
@@ -229,7 +267,7 @@ export const useStaffManagement = () => {
       message: `Restore ${user.full_name || user.username} (@${user.username}) back to the active team?`,
       confirmText: 'Restore Account',
       confirmStyle: 'bg-green-500 hover:bg-green-600',
-      onConfirm: () => restoreMutation.mutateAsync(userId)
+      onConfirm: () => restoreMutation.mutateAsync(userId),
     });
     setShowConfirmModal(true);
   };
@@ -240,7 +278,7 @@ export const useStaffManagement = () => {
       toast.success(`User ${result.status} successfully`);
       invalidateStaffData();
     },
-    onError: (err) => toast.error(getErrorMessage(err, 'Failed to update user status'))
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to update user status')),
   });
 
   const handleToggleStatus = (userId: number) => {
@@ -254,7 +292,7 @@ export const useStaffManagement = () => {
       message: `Are you sure you want to ${action} ${user.full_name || user.username}'s account?`,
       confirmText: `${action === 'disable' ? 'Disable' : 'Enable'} Account`,
       confirmStyle: user.is_active ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600',
-      onConfirm: () => toggleStatusMutation.mutateAsync(userId)
+      onConfirm: () => toggleStatusMutation.mutateAsync(userId),
     });
     setShowConfirmModal(true);
   };
@@ -268,20 +306,82 @@ export const useStaffManagement = () => {
       role: user.role,
       full_name: user.full_name || '',
       phone: user.phone || '',
-      is_active: user.is_active
+      is_active: user.is_active,
     });
     setShowEditModal(true);
   };
 
+  // RBAC Role & Permission Mutations (Super Admin)
+  const upsertRoleMutation = useMutation({
+    mutationFn: (data: {
+      key?: string;
+      label: string;
+      icon?: string;
+      description?: string;
+      tier?: RoleTier;
+      badgeColor?: string;
+      permissions: string[];
+    }) => upsertRole(data),
+    onSuccess: (res) => {
+      toast.success(`Role "${res.role.label}" saved successfully`);
+      queryClient.invalidateQueries({ queryKey: ['rolesCatalog'] });
+    },
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to save role')),
+  });
+
+  const updatePermissionsMutation = useMutation({
+    mutationFn: ({ roleKey, permissions }: { roleKey: string; permissions: string[] }) =>
+      updateRolePermissions(roleKey, permissions),
+    onSuccess: (res) => {
+      toast.success(`Updated permissions for ${res.role.label}`);
+      queryClient.invalidateQueries({ queryKey: ['rolesCatalog'] });
+    },
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to update permissions')),
+  });
+
+  const deleteRoleMutation = useMutation({
+    mutationFn: (roleKey: string) => deleteCustomRole(roleKey),
+    onSuccess: () => {
+      toast.success('Custom role deleted');
+      queryClient.invalidateQueries({ queryKey: ['rolesCatalog'] });
+    },
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to delete custom role')),
+  });
+
+  const resetRolesMutation = useMutation({
+    mutationFn: () => resetRolePermissions(),
+    onSuccess: () => {
+      toast.success('System role permissions reset to factory defaults');
+      queryClient.invalidateQueries({ queryKey: ['rolesCatalog'] });
+    },
+    onError: (err) => toast.error(getErrorMessage(err, 'Failed to reset permissions')),
+  });
+
+  const handleToggleRoleModule = useCallback(
+    (roleKey: string, moduleKey: AdminModuleKey) => {
+      if (!isSuperAdmin || roleKey === 'admin') return;
+      const roleDef = rolesCatalog[roleKey];
+      if (!roleDef) return;
+      const currentPerms = roleDef.permissions || [];
+      const nextPerms = currentPerms.includes(moduleKey)
+        ? currentPerms.filter((p) => p !== moduleKey)
+        : [...currentPerms, moduleKey];
+      updatePermissionsMutation.mutate({ roleKey, permissions: nextPerms });
+    },
+    [isSuperAdmin, rolesCatalog, updatePermissionsMutation]
+  );
+
   const filteredUsers = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     return users.filter((user) => {
-      const matchesSearch = !term ||
+      const matchesSearch =
+        !term ||
         user.username.toLowerCase().includes(term) ||
         user.email.toLowerCase().includes(term) ||
         (user.full_name || '').toLowerCase().includes(term);
       const matchesRole = filterRole === 'all' || user.role === filterRole;
-      const matchesStatus = filterStatus === 'all' ||
+      const matchesStatus =
+        filterStatus === 'all' ||
         (filterStatus === 'active' && user.is_active && !user.deleted_at) ||
         (filterStatus === 'inactive' && !user.is_active && !user.deleted_at) ||
         (filterStatus === 'archived' && Boolean(user.deleted_at));
@@ -299,6 +399,11 @@ export const useStaffManagement = () => {
     error,
     refetch,
     currentUser,
+    isSuperAdmin,
+    activeTab,
+    setActiveTab,
+    rolesCatalog,
+    modules,
     showCreateModal,
     setShowCreateModal,
     showEditModal,
@@ -326,6 +431,12 @@ export const useStaffManagement = () => {
     handleToggleStatus,
     openEditModal,
     resetForm,
-    isSaving: createMutation.isPending || updateMutation.isPending
+    isSaving: createMutation.isPending || updateMutation.isPending,
+    // RBAC controls
+    upsertRoleMutation,
+    updatePermissionsMutation,
+    deleteRoleMutation,
+    resetRolesMutation,
+    handleToggleRoleModule,
   };
 };

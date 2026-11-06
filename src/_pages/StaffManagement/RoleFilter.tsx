@@ -1,10 +1,12 @@
 "use client";
 import React from 'react';
 import type { UserStats } from '@/lib/types';
-import { ROLE_META } from './utils';
+import type { RoleDefinition } from '@/lib/rbac';
+import { getRoleMeta, ROLE_META } from './utils';
 
 export interface RoleFilterProps {
   stats: UserStats;
+  rolesCatalog?: Record<string, RoleDefinition>;
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
   filterRole: string;
@@ -16,14 +18,17 @@ export interface RoleFilterProps {
 
 const RoleFilter: React.FC<RoleFilterProps> = ({
   stats,
+  rolesCatalog,
   searchTerm,
   setSearchTerm,
   filterRole,
   setFilterRole,
   filterStatus,
   setFilterStatus,
-  setShowCreateModal
+  setShowCreateModal,
 }) => {
+  const roleKeys = rolesCatalog ? Object.keys(rolesCatalog) : Object.keys(ROLE_META);
+
   return (
     <>
       {/* Enhanced Stats Cards with Better Labels */}
@@ -77,11 +82,11 @@ const RoleFilter: React.FC<RoleFilterProps> = ({
             </div>
             <div>
               <div className="text-2xl font-bold text-purple-400">{stats.admins || 0}</div>
-              <div className="text-xs text-purple-300">Admins</div>
+              <div className="text-xs text-purple-300">Super Admins</div>
             </div>
           </div>
-          <div className="text-sm text-sangeet-neutral-200 font-medium">Administrators</div>
-          <div className="text-xs text-sangeet-neutral-400 mt-1">Full system access</div>
+          <div className="text-sm text-sangeet-neutral-200 font-medium">Super Admins</div>
+          <div className="text-xs text-sangeet-neutral-400 mt-1">Full system authority</div>
         </div>
 
         <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-blue-400/30 transition-all duration-300 group">
@@ -94,8 +99,8 @@ const RoleFilter: React.FC<RoleFilterProps> = ({
               <div className="text-xs text-blue-300">Staff</div>
             </div>
           </div>
-          <div className="text-sm text-sangeet-neutral-200 font-medium">Staff Members</div>
-          <div className="text-xs text-sangeet-neutral-400 mt-1">Kitchen & service access</div>
+          <div className="text-sm text-sangeet-neutral-200 font-medium">Staff &amp; Managers</div>
+          <div className="text-xs text-sangeet-neutral-400 mt-1">GM, Managers &amp; Station staff</div>
         </div>
 
         <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-orange-400/30 transition-all duration-300 group">
@@ -142,7 +147,7 @@ const RoleFilter: React.FC<RoleFilterProps> = ({
           </div>
 
           {/* Filters */}
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <div className="relative">
               <select
                 id="staff-filter-role"
@@ -151,9 +156,14 @@ const RoleFilter: React.FC<RoleFilterProps> = ({
                 className="appearance-none px-4 py-3 pr-8 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200 cursor-pointer"
               >
                 <option value="all">👥 All Roles</option>
-                {(Object.keys(ROLE_META) as Array<keyof typeof ROLE_META>).map((role) => (
-                  <option key={role} value={role}>{ROLE_META[role].icon} {ROLE_META[role].label}</option>
-                ))}
+                {roleKeys.map((roleKey) => {
+                  const meta = getRoleMeta(roleKey, rolesCatalog);
+                  return (
+                    <option key={roleKey} value={roleKey}>
+                      {meta.icon} {meta.label}
+                    </option>
+                  );
+                })}
               </select>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                 <span className="text-sangeet-neutral-400">▼</span>
@@ -211,19 +221,25 @@ const RoleFilter: React.FC<RoleFilterProps> = ({
               {searchTerm && (
                 <span className="px-3 py-1 bg-sangeet-400/20 text-sangeet-400 rounded-full text-sm flex items-center gap-1">
                   🔍 &quot;{searchTerm}&quot;
-                  <button onClick={() => setSearchTerm('')} className="hover:text-sangeet-300">✕</button>
+                  <button onClick={() => setSearchTerm('')} className="hover:text-sangeet-300">
+                    ✕
+                  </button>
                 </span>
               )}
               {filterRole !== 'all' && (
                 <span className="px-3 py-1 bg-purple-400/20 text-purple-400 rounded-full text-sm flex items-center gap-1">
-                  {filterRole === 'admin' ? '👑' : '👤'} {filterRole}
-                  <button onClick={() => setFilterRole('all')} className="hover:text-purple-300">✕</button>
+                  {getRoleMeta(filterRole, rolesCatalog).icon} {getRoleMeta(filterRole, rolesCatalog).label}
+                  <button onClick={() => setFilterRole('all')} className="hover:text-purple-300">
+                    ✕
+                  </button>
                 </span>
               )}
               {filterStatus !== 'all' && (
                 <span className="px-3 py-1 bg-blue-400/20 text-blue-400 rounded-full text-sm flex items-center gap-1">
                   {filterStatus === 'active' ? '✅' : filterStatus === 'archived' ? '🗄️' : '⏸️'} {filterStatus}
-                  <button onClick={() => setFilterStatus('all')} className="hover:text-blue-300">✕</button>
+                  <button onClick={() => setFilterStatus('all')} className="hover:text-blue-300">
+                    ✕
+                  </button>
                 </span>
               )}
               <button

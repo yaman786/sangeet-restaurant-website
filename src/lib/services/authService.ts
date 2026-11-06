@@ -6,6 +6,7 @@ import logger from '@/lib/utils/logger';
 import { UnauthorizedError, NotFoundError, ConflictError, AppError, ValidationError } from '@/lib/errors';
 import type { UserInfo, UserRole, JwtPayload, PaginationQuery, PaginatedResult, ChangePasswordDTO, UpdateUserDTO, UserStats } from '@/lib/types';
 import { registerSchema, updateUserSchema, changePasswordSchema } from '@/lib/validations/auth';
+import rbacService from '@/lib/services/rbacService';
 
 const MAX_PAGE_SIZE = 100;
 const RECENT_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
@@ -17,6 +18,21 @@ interface LoginInput {
 }
 
 class AuthService {
+  private async assertCanManageStaff(requesterRole: UserRole): Promise<void> {
+    if (requesterRole === 'admin') return;
+    const perms = await rbacService.getPermissionsForRole(requesterRole);
+    if (!perms.includes('staff')) {
+      throw new UnauthorizedError('Only administrators or authorized managers can manage staff');
+    }
+  }
+
+  private async assertValidRoleKey(roleKey: string): Promise<void> {
+    const catalog = await rbacService.getRolesCatalog();
+    if (!catalog[roleKey]) {
+      throw new ValidationError('Invalid role');
+    }
+  }
+
   async login(credentials: LoginInput) {
     const { email, username, password } = credentials;
     const identifier = (username || email || '').trim();
@@ -53,11 +69,16 @@ class AuthService {
       throw new AppError('JWT_SECRET is not configured', 500);
     }
 
+    const permissions = await rbacService.getPermissionsForRole(user.role);
+    const isSuperAdmin = user.role === 'admin';
+
     const payload: JwtPayload = {
       id: user.id,
       username: user.username,
       role: user.role as UserRole,
-      email: user.email
+      email: user.email,
+      permissions,
+      is_super_admin: isSuperAdmin
     };
 
     const token = jwt.sign(
@@ -68,7 +89,14 @@ class AuthService {
 
     const { password_hash: _passwordHash, ...userWithoutPassword } = user;
 
-    return { token, user: userWithoutPassword };
+    return {
+      token,
+      user: {
+        ...userWithoutPassword,
+        permissions,
+        is_super_admin: isSuperAdmin
+      }
+    };
   }
 
   async getProfile(userId: number): Promise<UserInfo> {
@@ -85,7 +113,13 @@ class AuthService {
       throw new NotFoundError('User');
     }
 
-    return user as unknown as UserInfo;
+    const permissions = await rbacService.getPermissionsForRole(user.role);
+
+    return {
+      ...user,
+      permissions,
+      is_super_admin: user.role === 'admin'
+    } as unknown as UserInfo;
   }
 
   async changePassword(userId: number, data: ChangePasswordDTO): Promise<void> {
@@ -126,9 +160,7 @@ class AuthService {
   }
 
   async getAllUsers(requesterRole: UserRole, query: PaginationQuery & { role?: string; search?: string; status?: string }): Promise<PaginatedResult<UserInfo>> {
-    if (requesterRole !== 'admin') {
-      throw new UnauthorizedError('Only administrators can view all users');
-    }
+    await this.assertCanManageStaff(requesterRole);
 
     const { role, search, status } = query;
     const page = Math.max(1, Number.parseInt(String(query.page ?? 1), 10) || 1);
@@ -189,12 +221,16 @@ class AuthService {
   }
 
   async createUser(requesterRole: UserRole, data: any): Promise<UserInfo> {
-    if (requesterRole !== 'admin') {
-      throw new UnauthorizedError('Only administrators can create users');
-    }
+    await this.assertCanManageStaff(requesterRole);
 
     const validatedData = registerSchema.parse(data);
     const { username, email, password, role = 'waiter', full_name, phone } = validatedData;
+
+    await this.assertValidRoleKey(role);
+
+    if (role === 'admin' && requesterRole !== 'admin') {
+      throw new UnauthorizedError('Only Super Admin can create another Super Admin account');
+    }
 
     const existing = await prisma.users.findFirst({
       where: {
@@ -276,9 +312,7 @@ class AuthService {
   }
 
   async updateUser(requesterId: number, requesterRole: UserRole, userId: string, data: UpdateUserDTO): Promise<UserInfo> {
-    if (requesterRole !== 'admin') {
-      throw new UnauthorizedError('Only administrators can update users');
-    }
+    await this.assertCanManageStaff(requesterRole);
 
     const targetId = this.parseUserId(userId);
 
@@ -293,9 +327,17 @@ class AuthService {
       password: rest.password && rest.password.trim() !== '' ? rest.password : undefined
     });
 
+    if (parsed.role) {
+      await this.assertValidRoleKey(parsed.role);
+    }
+
     const target = await prisma.users.findFirst({ where: { id: targetId, deleted_at: null } });
     if (!target) {
       throw new NotFoundError('User');
+    }
+
+    if ((target.role === 'admin' || parsed.role === 'admin') && requesterRole !== 'admin') {
+      throw new UnauthorizedError('Only Super Admin can modify or assign Super Admin accounts');
     }
 
     const isSelf = requesterId === targetId;
@@ -358,9 +400,7 @@ class AuthService {
   }
 
   async deleteUser(requesterId: number, requesterRole: UserRole, userId: string, permanent = false): Promise<void> {
-    if (requesterRole !== 'admin') {
-      throw new UnauthorizedError('Only administrators can delete users');
-    }
+    await this.assertCanManageStaff(requesterRole);
 
     const targetId = this.parseUserId(userId);
 
@@ -373,6 +413,9 @@ class AuthService {
       if (!target) {
         throw new NotFoundError('User');
       }
+      if (target.role === 'admin' && requesterRole !== 'admin') {
+        throw new UnauthorizedError('Only Super Admin can delete a Super Admin account');
+      }
       if (target.deleted_at === null && target.role === 'admin' && target.is_active !== false) {
         await this.assertAnotherActiveAdminExists(targetId);
       }
@@ -383,6 +426,10 @@ class AuthService {
     const target = await prisma.users.findFirst({ where: { id: targetId, deleted_at: null } });
     if (!target) {
       throw new NotFoundError('User');
+    }
+
+    if (target.role === 'admin' && requesterRole !== 'admin') {
+      throw new UnauthorizedError('Only Super Admin can archive a Super Admin account');
     }
 
     if (target.role === 'admin' && target.is_active !== false) {
@@ -407,9 +454,7 @@ class AuthService {
   }
 
   async restoreUser(requesterRole: UserRole, userId: string): Promise<UserInfo> {
-    if (requesterRole !== 'admin') {
-      throw new UnauthorizedError('Only administrators can restore users');
-    }
+    await this.assertCanManageStaff(requesterRole);
 
     const targetId = this.parseUserId(userId);
     const target = await prisma.users.findFirst({
@@ -418,6 +463,10 @@ class AuthService {
 
     if (!target) {
       throw new NotFoundError('Archived user');
+    }
+
+    if (target.role === 'admin' && requesterRole !== 'admin') {
+      throw new UnauthorizedError('Only Super Admin can restore a Super Admin account');
     }
 
     const restoredUsername = this.stripTombstoneUsername(target.username);
@@ -458,9 +507,7 @@ class AuthService {
   }
 
   async toggleUserStatus(requesterId: number, requesterRole: UserRole, userId: string): Promise<{ status: string, user: UserInfo }> {
-    if (requesterRole !== 'admin') {
-      throw new UnauthorizedError('Only administrators can update users');
-    }
+    await this.assertCanManageStaff(requesterRole);
 
     const targetId = this.parseUserId(userId);
 
@@ -474,6 +521,10 @@ class AuthService {
 
     if (!existing) {
       throw new NotFoundError('User');
+    }
+
+    if (existing.role === 'admin' && requesterRole !== 'admin') {
+      throw new UnauthorizedError('Only Super Admin can enable or disable a Super Admin account');
     }
 
     if (existing.role === 'admin' && existing.is_active !== false) {
@@ -493,9 +544,7 @@ class AuthService {
   }
 
   async getUserStats(requesterRole: UserRole): Promise<UserStats> {
-    if (requesterRole !== 'admin') {
-      throw new UnauthorizedError('Only administrators can view stats');
-    }
+    await this.assertCanManageStaff(requesterRole);
 
     const [users, archived] = await prisma.$transaction([
       prisma.users.findMany({

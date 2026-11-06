@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-const USER_ROLES = ['admin', 'waiter', 'kitchen', 'reception'] as const;
+const roleKeySchema = z
+  .string()
+  .trim()
+  .min(2, 'Invalid role')
+  .max(50, 'Invalid role')
+  .regex(/^[a-z0-9_]+$/, 'Invalid role');
 
 export const passwordSchema = z.string()
   .min(8, 'Password must be at least 8 characters')
@@ -23,9 +28,7 @@ export const loginSchema = z.object({
 export const registerSchema = z.object({
   username: usernameSchema,
   email: z.string().email('Invalid email address').toLowerCase(),
-  role: z.enum(USER_ROLES, {
-    message: 'Invalid role'
-  }),
+  role: roleKeySchema,
   password: passwordSchema,
   full_name: z.string().trim().min(1, 'Name is required').max(100),
   phone: z.string().trim().max(20, 'Phone must be at most 20 characters').optional()
@@ -34,7 +37,7 @@ export const registerSchema = z.object({
 export const updateUserSchema = z.object({
   username: usernameSchema.optional(),
   email: z.string().email('Invalid email address').toLowerCase().optional(),
-  role: z.enum(USER_ROLES, { message: 'Invalid role' }).optional(),
+  role: roleKeySchema.optional(),
   password: passwordSchema.optional(),
   full_name: z.string().trim().min(1, 'Name is required').max(100).optional(),
   phone: z.string().trim().max(20, 'Phone must be at most 20 characters').nullish(),

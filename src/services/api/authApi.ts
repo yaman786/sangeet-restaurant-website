@@ -1,5 +1,6 @@
 import api, { apiCallWrapper } from './client';
 import { UserInfo, UserRow, UserStats, PaginatedResult } from '@/lib/types';
+import type { AdminModuleMeta, RoleDefinition, RoleTier } from '@/lib/rbac';
 
 export const loginUser = async (credentials: Record<string, string>) => {
   try {
@@ -82,4 +83,56 @@ export const requestForgotPassword = async (identifier: string): Promise<{ messa
   return apiCallWrapper(async () => {
     return await api.post('/auth/forgot-password', { identifier });
   }, 'requestForgotPassword', false);
+};
+
+// RBAC Role & Permission Management API calls
+export interface RolesCatalogResponse {
+  roles: Record<string, RoleDefinition>;
+  modules: AdminModuleMeta[];
+}
+
+export const getRolesCatalog = async (): Promise<RolesCatalogResponse> => {
+  return apiCallWrapper(async () => {
+    return await api.get('/auth/roles');
+  }, 'getRolesCatalog');
+};
+
+export const upsertRole = async (data: {
+  key?: string;
+  label: string;
+  icon?: string;
+  description?: string;
+  tier?: RoleTier;
+  badgeColor?: string;
+  permissions: string[];
+}): Promise<{ role: RoleDefinition; roles: Record<string, RoleDefinition> }> => {
+  return apiCallWrapper(async () => {
+    return await api.post('/auth/roles', data);
+  }, 'upsertRole', false);
+};
+
+export const updateRolePermissions = async (
+  roleKey: string,
+  permissions: string[]
+): Promise<{ role: RoleDefinition; roles: Record<string, RoleDefinition> }> => {
+  return apiCallWrapper(async () => {
+    return await api.patch('/auth/roles', { roleKey, permissions });
+  }, 'updateRolePermissions', false);
+};
+
+export const resetRolePermissions = async (): Promise<{
+  message: string;
+  roles: Record<string, RoleDefinition>;
+}> => {
+  return apiCallWrapper(async () => {
+    return await api.patch('/auth/roles', { action: 'reset_defaults' });
+  }, 'resetRolePermissions', false);
+};
+
+export const deleteCustomRole = async (
+  roleKey: string
+): Promise<{ message: string; roles: Record<string, RoleDefinition> }> => {
+  return apiCallWrapper(async () => {
+    return await api.delete('/auth/roles', { params: { key: roleKey } });
+  }, 'deleteCustomRole', false);
 };

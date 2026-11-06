@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import * as jose from 'jose';
+import { getRequiredModuleForPathname, resolveRolePermissions } from '@/lib/rbac';
 
 if (!process.env.JWT_SECRET) {
   throw new Error('FATAL: JWT_SECRET environment variable is not set');
@@ -9,14 +10,6 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 // Define protected paths
 const protectedPaths = ['/admin', '/kitchen'];
-
-const ADMIN_ROUTE_ROLES: Array<{ prefix: string; roles: string[] }> = [
-  { prefix: '/admin/orders', roles: ['admin', 'reception', 'waiter'] },
-  { prefix: '/admin/dashboard', roles: ['admin', 'reception', 'waiter', 'kitchen'] },
-  { prefix: '/admin/reservations', roles: ['admin', 'reception'] },
-  { prefix: '/admin/history', roles: ['admin', 'reception'] },
-  { prefix: '/admin/kitchen', roles: ['admin', 'kitchen'] },
-];
 
 export async function middleware(request: NextRequest) {
   // 1. Permanent redirect for *.vercel.app traffic to canonical domain
@@ -49,21 +42,35 @@ export async function middleware(request: NextRequest) {
       const { payload } = await jose.jwtVerify(token, JWT_SECRET);
       const userRole = String(payload.role || '');
 
-      // Role Checks based on pathname aligned with page-level ProtectedRoute rules
-      if (pathname.startsWith('/admin')) {
-        const matchedRoute = ADMIN_ROUTE_ROLES.find(route => pathname.startsWith(route.prefix));
-        const allowedRoles = matchedRoute ? matchedRoute.roles : ['admin'];
-        if (!allowedRoles.includes(userRole)) {
-          return NextResponse.redirect(new URL('/login', request.url));
+      if (!userRole || userRole.length < 2) {
+        return NextResponse.redirect(new URL('/login', request.url));
+      }
+
+      // Super Admin ('admin') always has access to all protected routes
+      if (userRole === 'admin') {
+        return NextResponse.next();
+      }
+
+      const tokenPermissions = Array.isArray(payload.permissions)
+        ? payload.permissions.map(String)
+        : resolveRolePermissions(userRole);
+
+      const requiredModule = getRequiredModuleForPathname(pathname);
+
+      // Every authenticated staff role can access /admin/dashboard (cards are filtered by role permissions)
+      if (requiredModule === 'dashboard') {
+        return NextResponse.next();
+      }
+
+      if (requiredModule) {
+        if (!tokenPermissions.includes(requiredModule)) {
+          return NextResponse.redirect(new URL('/admin/dashboard', request.url));
         }
+        return NextResponse.next();
       }
 
-      if (pathname.startsWith('/kitchen') && userRole !== 'admin' && userRole !== 'kitchen') {
-         return NextResponse.redirect(new URL('/login', request.url));
-      }
-
-      // If valid, continue
-      return NextResponse.next();
+      // Default fallback for unknown /admin/* routes: require Super Admin
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url));
     } catch {
       // Invalid token
       return NextResponse.redirect(new URL('/login', request.url));

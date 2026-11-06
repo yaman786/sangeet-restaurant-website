@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticateToken } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { handleApiError } from '@/lib/errors';
+import rbacService from '@/lib/services/rbacService';
 
 export async function GET(req: NextRequest) {
   try {
@@ -18,8 +19,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User inactive or not found' }, { status: 401 });
     }
 
+    const permissions = await rbacService.getPermissionsForRole(dbUser.role);
     const { password_hash: _passwordHash, ...userWithoutPassword } = dbUser;
-    return NextResponse.json({ user: userWithoutPassword });
+
+    return NextResponse.json({
+      user: {
+        ...userWithoutPassword,
+        permissions,
+        is_super_admin: dbUser.role === 'admin'
+      }
+    });
   } catch (error) {
     return handleApiError(error);
   }

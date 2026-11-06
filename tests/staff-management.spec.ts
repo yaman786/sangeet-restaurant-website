@@ -235,6 +235,86 @@ test.describe('Staff Management (admin)', () => {
     await page.getByTestId(`staff-permanent-delete-${QA_USERNAME}`).click();
     await page.locator('#staff-confirm-action').click();
     await expect(row(page, QA_USERNAME)).toHaveCount(0, { timeout: 15000 });
+    // Return to active view for subsequent tests
+    await page.getByTestId('staff-archive-tab').click();
+  });
+
+  test('manages hospitality roles, creates custom role, and enforces role-based dashboard cards', async ({ browser }) => {
+    const customRoleName = `Sommelier ${suffix}`;
+    const customRoleKey = `sommelier_${suffix}`;
+    const barStaffUser = `qa_bar_${suffix}`;
+
+    // 1. Open Roles & Permissions Matrix tab
+    await page.getByTestId('tab-roles-permissions').click();
+    await expect(page.getByTestId('roles-permissions-matrix')).toBeVisible({ timeout: 10000 });
+
+    // Verify all core hospitality roles exist in the matrix
+    for (const roleKey of [
+      'admin',
+      'gm',
+      'operations_manager',
+      'manager',
+      'assistant_manager',
+      'bar_staff',
+      'floor_staff',
+      'kitchen',
+    ]) {
+      await expect(page.getByTestId(`role-matrix-row-${roleKey}`)).toBeVisible();
+    }
+
+    // 2. Create a Custom Role via the UI modal
+    await page.getByTestId('create-custom-role-btn').click();
+    await expect(page.getByTestId('custom-role-modal')).toBeVisible();
+    await page.locator('#custom-role-label').fill(customRoleName);
+    await page.locator('#custom-role-description').fill('Wine & Beverage pairing specialist');
+    await page.getByTestId('modal-perm-bar').click();
+    await page.getByTestId('save-custom-role-btn').click();
+
+    await expect(page.getByTestId(`role-matrix-row-${customRoleKey}`)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId(`role-matrix-row-${customRoleKey}`)).toContainText('Custom');
+
+    // 3. Switch back to Team Directory and create a Bar Staff user
+    await page.getByTestId('tab-team-directory').click();
+    await page.locator('#staff-add-user').click();
+    await page.locator('#staff-full-name').fill('QA Bar Specialist');
+    await page.locator('#staff-username').fill(barStaffUser);
+    await page.locator('#staff-email').fill(`${barStaffUser}@sangeet.hk`);
+    await page.locator('#staff-password').fill(QA_PASSWORD);
+    await page.locator('#staff-role').selectOption('bar_staff');
+    await page.locator('#staff-form-submit').click();
+
+    const barRow = row(page, barStaffUser);
+    await expect(barRow).toBeVisible({ timeout: 15000 });
+    await expect(barRow).toContainText('Bar Staff');
+
+    // 4. Sign in as the Bar Staff user in an isolated browser context and verify Dashboard Cards
+    const barContext = await browser.newContext();
+    const barPage = await barContext.newPage();
+    await barPage.goto('/login', { waitUntil: 'domcontentloaded' });
+    await barPage.locator('#username').fill(barStaffUser);
+    await barPage.locator('#password').fill(QA_PASSWORD);
+    await barPage.click('button[type="submit"]');
+    await expect(barPage).toHaveURL(/\/admin\/dashboard/, { timeout: 20000 });
+
+    // Bar Staff sees their Role Badge and only 'orders' and 'bar' cards (not 'staff' or 'website')
+    await expect(barPage.getByTestId('dashboard-role-badge')).toContainText('Bar Staff');
+    await expect(barPage.getByTestId('dashboard-card-bar')).toBeVisible();
+    await expect(barPage.getByTestId('dashboard-card-orders')).toBeVisible();
+    await expect(barPage.getByTestId('dashboard-card-staff')).toHaveCount(0);
+    await expect(barPage.getByTestId('dashboard-card-website')).toHaveCount(0);
+    await barContext.close();
+
+    // 5. Clean up: permanently delete the Bar Staff user and delete the Custom Role
+    const usersRes = await page.request.get(`/api/auth/users?search=${barStaffUser}`);
+    const usersPayload = await usersRes.json();
+    const createdBarUser = usersPayload.data?.find((u: { username: string }) => u.username === barStaffUser);
+    if (createdBarUser) {
+      await page.request.delete(`/api/auth/users/${createdBarUser.id}?permanent=true`);
+    }
+
+    await page.getByTestId('tab-roles-permissions').click();
+    await page.getByTestId(`delete-role-${customRoleKey}`).click();
+    await expect(page.getByTestId(`role-matrix-row-${customRoleKey}`)).toHaveCount(0, { timeout: 10000 });
   });
 });
 

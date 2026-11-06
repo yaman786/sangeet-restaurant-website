@@ -2,12 +2,14 @@
 import React from 'react';
 import type { UserInfo } from '@/lib/types';
 import type { User } from '@/contexts/AuthContext';
-import { ROLE_META, getInitials } from './utils';
+import { resolveRolePermissions, type RoleDefinition } from '@/lib/rbac';
+import { getRoleMeta, getInitials } from './utils';
 
 export interface StaffTableProps {
   filteredUsers: UserInfo[];
   users: UserInfo[];
   currentUser: User | null;
+  rolesCatalog?: Record<string, RoleDefinition>;
   openEditModal: (user: UserInfo) => void;
   handleToggleStatus: (userId: number) => void;
   handleDeleteUser: (userId: number) => void;
@@ -15,16 +17,19 @@ export interface StaffTableProps {
   handlePermanentDeleteUser?: (userId: number) => void;
 }
 
-const StaffTable: React.FC<StaffTableProps> = ({ 
-  filteredUsers, 
-  users, 
-  currentUser, 
-  openEditModal, 
-  handleToggleStatus, 
+const StaffTable: React.FC<StaffTableProps> = ({
+  filteredUsers,
+  users,
+  currentUser,
+  rolesCatalog,
+  openEditModal,
+  handleToggleStatus,
   handleDeleteUser,
   handleRestoreUser,
-  handlePermanentDeleteUser
+  handlePermanentDeleteUser,
 }) => {
+  const isCallerSuperAdmin = currentUser?.role === 'admin';
+
   return (
     <div className="bg-sangeet-neutral-900 rounded-xl border border-sangeet-neutral-700 overflow-hidden shadow-xl">
       {/* Table Header */}
@@ -54,7 +59,7 @@ const StaffTable: React.FC<StaffTableProps> = ({
                 User Details
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-sangeet-neutral-300 uppercase tracking-wider">
-                Role & Status
+                Role &amp; Status
               </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-sangeet-neutral-300 uppercase tracking-wider">
                 Created
@@ -65,154 +70,169 @@ const StaffTable: React.FC<StaffTableProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-sangeet-neutral-700/50">
-            {filteredUsers.map((user: UserInfo) => (
-              <tr
-                key={user.id}
-                data-testid={`staff-row-${user.username}`}
-                className="hover:bg-sangeet-neutral-800/30 transition-colors duration-200 group"
-              >
-                {/* User Details */}
-                <td className="px-6 py-5">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-linear-to-br from-sangeet-400/20 to-sangeet-400/10 rounded-full flex items-center justify-center border border-sangeet-400/20">
-                        <span className="text-lg font-semibold text-sangeet-400">
-                          {getInitials(user.full_name || user.username)}
-                        </span>
+            {filteredUsers.map((user: UserInfo) => {
+              const roleMeta = getRoleMeta(user.role, rolesCatalog);
+              const rolePerms = resolveRolePermissions(user.role, rolesCatalog);
+              const isSelf = user.id === currentUser?.id;
+              const isTargetProtectedRoot = user.role === 'admin' && !isCallerSuperAdmin;
+
+              return (
+                <tr
+                  key={user.id}
+                  data-testid={`staff-row-${user.username}`}
+                  className="hover:bg-sangeet-neutral-800/30 transition-colors duration-200 group"
+                >
+                  {/* User Details */}
+                  <td className="px-6 py-5">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-12 h-12 bg-linear-to-br from-sangeet-400/20 to-sangeet-400/10 rounded-full flex items-center justify-center border border-sangeet-400/20">
+                          <span className="text-lg font-semibold text-sangeet-400">
+                            {getInitials(user.full_name || user.username)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm font-semibold text-sangeet-neutral-100 truncate">
+                            {user.full_name || user.username}
+                          </p>
+                          {isSelf && (
+                            <span className="px-2 py-0.5 text-xs bg-sangeet-400/20 text-sangeet-400 rounded-full">
+                              You
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-sangeet-neutral-400 truncate">
+                          @{user.username} • {user.email}
+                        </p>
+                        {user.phone && (
+                          <p className="text-xs text-sangeet-neutral-500 mt-1 flex items-center gap-1">
+                            <span>📞</span> {user.phone}
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="text-sm font-semibold text-sangeet-neutral-100 truncate">
-                          {user.full_name || user.username}
-                        </p>
-                        {user.id === currentUser?.id && (
-                          <span className="px-2 py-0.5 text-xs bg-sangeet-400/20 text-sangeet-400 rounded-full">
-                            You
+                  </td>
+
+                  {/* Role & Status */}
+                  <td className="px-6 py-5">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${roleMeta.badgeClass}`}
+                        >
+                          <span className="mr-1">{roleMeta.icon}</span>
+                          {roleMeta.label}
+                        </span>
+                        <span className="text-[11px] text-sangeet-neutral-500">
+                          ({rolePerms.length} {rolePerms.length === 1 ? 'module' : 'modules'})
+                        </span>
+                      </div>
+                      <div>
+                        {user.deleted_at ? (
+                          <span className="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                            <span className="mr-1">🗄️</span>
+                            Archived Account
+                          </span>
+                        ) : (
+                          <span
+                            className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
+                              user.is_active
+                                ? 'bg-green-400/20 text-green-400 border border-green-400/30'
+                                : 'bg-red-400/20 text-red-400 border border-red-400/30'
+                            }`}
+                          >
+                            <span className="mr-1">{user.is_active ? '✅' : '🚫'}</span>
+                            {user.is_active ? 'Active Account' : 'Disabled Account'}
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-sangeet-neutral-400 truncate">
-                        @{user.username} • {user.email}
-                      </p>
-                      {user.phone && (
-                        <p className="text-xs text-sangeet-neutral-500 mt-1 flex items-center gap-1">
-                          <span>📞</span> {user.phone}
-                        </p>
-                      )}
                     </div>
-                  </div>
-                </td>
+                  </td>
 
-                {/* Role & Status */}
-                <td className="px-6 py-5">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${user.role === 'admin'
-                          ? 'bg-purple-400/20 text-purple-400 border border-purple-400/30'
-                          : 'bg-blue-400/20 text-blue-400 border border-blue-400/30'
-                        }`}>
-                        <span className="mr-1">
-                          {ROLE_META[user.role as keyof typeof ROLE_META]?.icon ?? '👤'}
-                        </span>
-                        {ROLE_META[user.role as keyof typeof ROLE_META]?.label ?? user.role}
-                      </span>
+                  {/* Created Date */}
+                  <td className="px-6 py-5">
+                    <div className="text-sm text-sangeet-neutral-400">
+                      <div>{new Date(user.created_at).toLocaleDateString()}</div>
+                      <div className="text-xs text-sangeet-neutral-500 mt-1">
+                        {new Date(user.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
                     </div>
-                    <div>
-                      {user.deleted_at ? (
-                        <span className="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                          <span className="mr-1">🗄️</span>
-                          Archived Account
-                        </span>
-                      ) : (
-                        <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${user.is_active
-                            ? 'bg-green-400/20 text-green-400 border border-green-400/30'
-                            : 'bg-red-400/20 text-red-400 border border-red-400/30'
-                          }`}>
-                          <span className="mr-1">{user.is_active ? '✅' : '🚫'}</span>
-                          {user.is_active ? 'Active Account' : 'Disabled Account'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </td>
+                  </td>
 
-                {/* Created Date */}
-                <td className="px-6 py-5">
-                  <div className="text-sm text-sangeet-neutral-400">
-                    <div>{new Date(user.created_at).toLocaleDateString()}</div>
-                    <div className="text-xs text-sangeet-neutral-500 mt-1">
-                      {new Date(user.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  </div>
-                </td>
-
-                {/* Actions */}
-                <td className="px-6 py-5">
-                  {user.deleted_at ? (
-                    <div className="flex items-center justify-end space-x-2">
-                      {handleRestoreUser && (
+                  {/* Actions */}
+                  <td className="px-6 py-5">
+                    {user.deleted_at ? (
+                      <div className="flex items-center justify-end space-x-2">
+                        {handleRestoreUser && (
+                          <button
+                            onClick={() => handleRestoreUser(user.id)}
+                            data-testid={`staff-restore-${user.username}`}
+                            disabled={isTargetProtectedRoot}
+                            className="px-3 py-2 text-green-400 hover:text-green-300 hover:bg-green-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium disabled:opacity-50"
+                          >
+                            <span>♻️</span>
+                            Restore
+                          </button>
+                        )}
+                        {handlePermanentDeleteUser && (
+                          <button
+                            onClick={() => handlePermanentDeleteUser(user.id)}
+                            data-testid={`staff-permanent-delete-${user.username}`}
+                            disabled={isTargetProtectedRoot}
+                            className="px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium disabled:opacity-50"
+                          >
+                            <span>🗑️</span>
+                            Delete Permanently
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-end space-x-2">
                         <button
-                          onClick={() => handleRestoreUser(user.id)}
-                          data-testid={`staff-restore-${user.username}`}
-                          className="px-3 py-2 text-green-400 hover:text-green-300 hover:bg-green-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium"
+                          onClick={() => openEditModal(user)}
+                          data-testid={`staff-edit-${user.username}`}
+                          disabled={isTargetProtectedRoot}
+                          className="px-3 py-2 text-sangeet-400 hover:text-sangeet-300 hover:bg-sangeet-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <span>♻️</span>
-                          Restore
+                          <span>✏️</span>
+                          Edit
                         </button>
-                      )}
-                      {handlePermanentDeleteUser && (
+
                         <button
-                          onClick={() => handlePermanentDeleteUser(user.id)}
-                          data-testid={`staff-permanent-delete-${user.username}`}
-                          className="px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium"
+                          onClick={() => handleToggleStatus(user.id)}
+                          data-testid={`staff-toggle-${user.username}`}
+                          className={`px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium ${
+                            user.is_active
+                              ? 'text-red-400 hover:text-red-300 hover:bg-red-400/10'
+                              : 'text-green-400 hover:text-green-300 hover:bg-green-400/10'
+                          } ${isSelf || isTargetProtectedRoot ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          disabled={isSelf || isTargetProtectedRoot}
+                          title={isSelf ? 'You cannot disable your own account' : undefined}
+                        >
+                          <span>{user.is_active ? '🚫' : '✅'}</span>
+                          {user.is_active ? 'Disable' : 'Enable'}
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
+                          data-testid={`staff-delete-${user.username}`}
+                          className={`px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium ${
+                            isSelf || isTargetProtectedRoot ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          disabled={isSelf || isTargetProtectedRoot}
+                          title={isSelf ? 'You cannot delete your own account' : undefined}
                         >
                           <span>🗑️</span>
-                          Delete Permanently
+                          Delete
                         </button>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-end space-x-2">
-                      <button
-                        onClick={() => openEditModal(user)}
-                        data-testid={`staff-edit-${user.username}`}
-                        className="px-3 py-2 text-sangeet-400 hover:text-sangeet-300 hover:bg-sangeet-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium"
-                      >
-                        <span>✏️</span>
-                        Edit
-                      </button>
-
-                      <button
-                        onClick={() => handleToggleStatus(user.id)}
-                        data-testid={`staff-toggle-${user.username}`}
-                        className={`px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium ${user.is_active
-                            ? 'text-red-400 hover:text-red-300 hover:bg-red-400/10'
-                            : 'text-green-400 hover:text-green-300 hover:bg-green-400/10'
-                          } ${user.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        disabled={user.id === currentUser?.id}
-                        title={user.id === currentUser?.id ? 'You cannot disable your own account' : undefined}
-                      >
-                        <span>{user.is_active ? '🚫' : '✅'}</span>
-                        {user.is_active ? 'Disable' : 'Enable'}
-                      </button>
-
-                      <button
-                        onClick={() => handleDeleteUser(user.id)}
-                        data-testid={`staff-delete-${user.username}`}
-                        className={`px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-all duration-200 flex items-center gap-2 text-sm font-medium ${user.id === currentUser?.id ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                        disabled={user.id === currentUser?.id}
-                        title={user.id === currentUser?.id ? 'You cannot delete your own account' : undefined}
-                      >
-                        <span>🗑️</span>
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
