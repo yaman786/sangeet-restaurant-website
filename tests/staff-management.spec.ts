@@ -11,11 +11,13 @@ const QA_PASSWORD = 'QaStaff!2026x';
 const row = (page: Page, username: string) => page.getByTestId(`staff-row-${username}`);
 
 async function loginAsAdmin(page: Page) {
-  await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  await page.goto('/admin/login', { waitUntil: 'networkidle' });
   await page.locator('#username').fill(ADMIN_USERNAME);
+  await expect(page.locator('#username')).toHaveValue(ADMIN_USERNAME);
   await page.locator('#password').fill(ADMIN_PASSWORD);
+  await expect(page.locator('#password')).toHaveValue(ADMIN_PASSWORD);
   await page.click('button[type="submit"]');
-  await expect(page).toHaveURL(/.*admin.*/, { timeout: 20000 });
+  await expect(page).toHaveURL(/.*admin\/dashboard.*/, { timeout: 20000 });
 }
 
 async function openStaffManagement(page: Page) {
@@ -145,6 +147,12 @@ test.describe('Staff Management (admin)', () => {
     const selfDemote = await api.put(`/api/auth/users/${adminId}`, { data: { role: 'waiter' } });
     expect(selfDemote.status()).toBe(409);
 
+    // Strictly ONE Super Admin: creating a second 'admin' (Super Admin) is blocked with 409 Conflict
+    const secondSuperAdmin = await api.post('/api/auth/users', {
+      data: { username: `${QA_USERNAME}_sa`, email: `sa_${QA_EMAIL}`, role: 'admin', password: QA_PASSWORD, full_name: 'Second Super Admin' }
+    });
+    expect(secondSuperAdmin.status()).toBe(409);
+
     const weak = await api.post('/api/auth/users', {
       data: { username: `${QA_USERNAME}_w`, email: `w_${QA_EMAIL}`, role: 'waiter', password: 'weak', full_name: 'Weak Pass' }
     });
@@ -244,6 +252,8 @@ test.describe('Staff Management (admin)', () => {
     const customRoleKey = `sommelier_${suffix}`;
     const barStaffUser = `qa_bar_${suffix}`;
 
+    await openStaffManagement(page);
+
     // 1. Open Roles & Permissions Matrix tab
     await page.getByTestId('tab-roles-permissions').click();
     await expect(page.getByTestId('roles-permissions-matrix')).toBeVisible({ timeout: 10000 });
@@ -273,6 +283,13 @@ test.describe('Staff Management (admin)', () => {
     await expect(page.getByTestId(`role-matrix-row-${customRoleKey}`)).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId(`role-matrix-row-${customRoleKey}`)).toContainText('Custom');
 
+    if (process.env.CAPTURE_LIVE_RBAC_SCREENSHOTS === '1') {
+      await page.screenshot({
+        path: '/Users/amanrana/.gemini/antigravity/brain/751c82c2-540c-4678-8e7d-b6f84eddb98a/live_staff_roles_matrix.png',
+        fullPage: true,
+      });
+    }
+
     // 3. Switch back to Team Directory and create a Bar Staff user
     await page.getByTestId('tab-team-directory').click();
     await page.locator('#staff-add-user').click();
@@ -287,12 +304,21 @@ test.describe('Staff Management (admin)', () => {
     await expect(barRow).toBeVisible({ timeout: 15000 });
     await expect(barRow).toContainText('Bar Staff');
 
+    if (process.env.CAPTURE_LIVE_RBAC_SCREENSHOTS === '1') {
+      await page.screenshot({
+        path: '/Users/amanrana/.gemini/antigravity/brain/751c82c2-540c-4678-8e7d-b6f84eddb98a/live_staff_directory.png',
+        fullPage: false,
+      });
+    }
+
     // 4. Sign in as the Bar Staff user in an isolated browser context and verify Dashboard Cards
-    const barContext = await browser.newContext();
+    const barContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const barPage = await barContext.newPage();
-    await barPage.goto('/login', { waitUntil: 'domcontentloaded' });
+    await barPage.goto('/admin/login', { waitUntil: 'networkidle' });
     await barPage.locator('#username').fill(barStaffUser);
+    await expect(barPage.locator('#username')).toHaveValue(barStaffUser);
     await barPage.locator('#password').fill(QA_PASSWORD);
+    await expect(barPage.locator('#password')).toHaveValue(QA_PASSWORD);
     await barPage.click('button[type="submit"]');
     await expect(barPage).toHaveURL(/\/admin\/dashboard/, { timeout: 20000 });
 
@@ -302,9 +328,52 @@ test.describe('Staff Management (admin)', () => {
     await expect(barPage.getByTestId('dashboard-card-orders')).toBeVisible();
     await expect(barPage.getByTestId('dashboard-card-staff')).toHaveCount(0);
     await expect(barPage.getByTestId('dashboard-card-website')).toHaveCount(0);
+
+    if (process.env.CAPTURE_LIVE_RBAC_SCREENSHOTS === '1') {
+      await barPage.screenshot({
+        path: '/Users/amanrana/.gemini/antigravity/brain/751c82c2-540c-4678-8e7d-b6f84eddb98a/live_bar_staff_dashboard.png',
+        fullPage: false,
+      });
+    }
     await barContext.close();
 
-    // 5. Clean up: permanently delete the Bar Staff user and delete the Custom Role
+    // 5. Verify Stealth Root Mode: create a GM account, verify Super Admin & Roles Tab are 100% invisible to GM
+    const gmUsername = `qa_gm_${suffix}`;
+    const createGmRes = await page.request.post('/api/auth/users', {
+      data: {
+        username: gmUsername,
+        email: `${gmUsername}@sangeet.hk`,
+        role: 'gm',
+        password: QA_PASSWORD,
+        full_name: 'QA General Manager',
+      },
+    });
+    expect(createGmRes.status()).toBe(201);
+    const createdGm = await createGmRes.json();
+
+    const gmContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const gmPage = await gmContext.newPage();
+    await gmPage.goto('/admin/login', { waitUntil: 'networkidle' });
+    await gmPage.locator('#username').fill(gmUsername);
+    await expect(gmPage.locator('#username')).toHaveValue(gmUsername);
+    await gmPage.locator('#password').fill(QA_PASSWORD);
+    await expect(gmPage.locator('#password')).toHaveValue(QA_PASSWORD);
+    await gmPage.click('button[type="submit"]');
+    await expect(gmPage).toHaveURL(/\/admin\/dashboard/, { timeout: 20000 });
+
+    // GM sees Staff Management card on Dashboard
+    await expect(gmPage.getByTestId('dashboard-card-staff')).toBeVisible();
+
+    // Open Staff Management as GM: Super Admin row is invisible and Roles & Permissions tab is hidden
+    await gmPage.goto('/admin/staff-management', { waitUntil: 'domcontentloaded' });
+    await expect(gmPage.getByRole('heading', { name: 'Staff Management', level: 1 }).first()).toBeVisible({ timeout: 20000 });
+    await expect(row(gmPage, gmUsername)).toBeVisible({ timeout: 15000 });
+    await expect(row(gmPage, ADMIN_USERNAME)).toHaveCount(0);
+    await expect(gmPage.getByTestId('tab-roles-permissions')).toHaveCount(0);
+    await gmContext.close();
+
+    // 6. Clean up: permanently delete the GM user, Bar Staff user, and Custom Role
+    await page.request.delete(`/api/auth/users/${createdGm.id}?permanent=true`);
     const usersRes = await page.request.get(`/api/auth/users?search=${barStaffUser}`);
     const usersPayload = await usersRes.json();
     const createdBarUser = usersPayload.data?.find((u: { username: string }) => u.username === barStaffUser);

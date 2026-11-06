@@ -123,48 +123,52 @@ const StaffManagement = () => {
           <div>
             <h1 className="text-3xl font-bold text-sangeet-400 mb-2">Staff Management</h1>
             <p className="text-sangeet-neutral-400">
-              Manage hospitality roles (GM, Operations Manager, Manager, Assistant Manager, Bar, Floor &amp; Kitchen), custom roles, and module permissions
+              {isSuperAdmin
+                ? 'Manage hospitality roles (GM, Operations Manager, Manager, Assistant Manager, Bar, Floor & Kitchen), custom roles, and module permissions'
+                : 'Manage restaurant team members, operational stations, and account status'}
             </p>
           </div>
 
-          <div
-            className="inline-flex bg-sangeet-neutral-900 p-1.5 rounded-xl border border-sangeet-neutral-700 self-start md:self-auto"
-            role="tablist"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'team'}
-              data-testid="tab-team-directory"
-              onClick={() => setActiveTab('team')}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
-                activeTab === 'team'
-                  ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-md'
-                  : 'text-sangeet-neutral-300 hover:text-sangeet-neutral-100'
-              }`}
+          {isSuperAdmin && (
+            <div
+              className="inline-flex bg-sangeet-neutral-900 p-1.5 rounded-xl border border-sangeet-neutral-700 self-start md:self-auto"
+              role="tablist"
             >
-              <span>👥</span>
-              <span>Team Directory ({stats.total || 0})</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'roles'}
-              data-testid="tab-roles-permissions"
-              onClick={() => setActiveTab('roles')}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
-                activeTab === 'roles'
-                  ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-md'
-                  : 'text-sangeet-neutral-300 hover:text-sangeet-neutral-100'
-              }`}
-            >
-              <span>🛡️</span>
-              <span>Roles &amp; Permissions ({totalRolesCount})</span>
-            </button>
-          </div>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'team'}
+                data-testid="tab-team-directory"
+                onClick={() => setActiveTab('team')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                  activeTab === 'team'
+                    ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-md'
+                    : 'text-sangeet-neutral-300 hover:text-sangeet-neutral-100'
+                }`}
+              >
+                <span>👥</span>
+                <span>Team Directory ({stats.total || 0})</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'roles'}
+                data-testid="tab-roles-permissions"
+                onClick={() => setActiveTab('roles')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                  activeTab === 'roles'
+                    ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-md'
+                    : 'text-sangeet-neutral-300 hover:text-sangeet-neutral-100'
+                }`}
+              >
+                <span>🛡️</span>
+                <span>Roles &amp; Permissions ({totalRolesCount})</span>
+              </button>
+            </div>
+          )}
         </div>
 
-        {activeTab === 'roles' ? (
+        {isSuperAdmin && activeTab === 'roles' ? (
           <RolesPermissionsMatrix
             rolesCatalog={rolesCatalog}
             modules={modules}
@@ -186,6 +190,7 @@ const StaffManagement = () => {
             <RoleFilter
               stats={stats}
               rolesCatalog={rolesCatalog}
+              isSuperAdmin={isSuperAdmin}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               filterRole={filterRole}

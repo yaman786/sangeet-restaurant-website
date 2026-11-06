@@ -32,9 +32,10 @@ const StaffForm: React.FC<StaffFormProps> = ({
   rolesCatalog = DEFAULT_SYSTEM_ROLES,
   isSuperAdmin = true,
 }) => {
+  // Strictly ONE Super Admin: 'admin' is only shown when viewing/editing the existing Super Admin's own locked role
   const availableRoleKeys = Object.keys(rolesCatalog).filter((roleKey) => {
-    if (roleKey === 'admin' && !isSuperAdmin && formData.role !== 'admin') {
-      return false;
+    if (roleKey === 'admin') {
+      return isEditing && formData.role === 'admin' && isSuperAdmin;
     }
     return true;
   });

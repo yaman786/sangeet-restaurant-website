@@ -169,7 +169,18 @@ class AuthService {
 
     const isArchivedView = status === 'archived';
     const where: any = isArchivedView ? { deleted_at: { not: null } } : { deleted_at: null };
-    
+
+    // Stealth Root Mode: Non-Super Admins (e.g. GM, Operations Manager) never see Super Admin accounts
+    if (requesterRole !== 'admin') {
+      if (role === 'admin') {
+        return {
+          data: [],
+          metadata: { total: 0, page, totalPages: 0, limit: take }
+        };
+      }
+      where.NOT = { role: 'admin' };
+    }
+
     if (role) where.role = role;
     if (!isArchivedView) {
       if (status === 'active') where.is_active = true;
@@ -228,8 +239,8 @@ class AuthService {
 
     await this.assertValidRoleKey(role);
 
-    if (role === 'admin' && requesterRole !== 'admin') {
-      throw new UnauthorizedError('Only Super Admin can create another Super Admin account');
+    if (role === 'admin') {
+      throw new ConflictError('Only one Super Admin is permitted in the system. Assign General Manager (GM) for executive access.');
     }
 
     const existing = await prisma.users.findFirst({
@@ -336,8 +347,12 @@ class AuthService {
       throw new NotFoundError('User');
     }
 
-    if ((target.role === 'admin' || parsed.role === 'admin') && requesterRole !== 'admin') {
-      throw new UnauthorizedError('Only Super Admin can modify or assign Super Admin accounts');
+    if (target.role === 'admin' && requesterRole !== 'admin') {
+      throw new UnauthorizedError('Only Super Admin can modify a Super Admin account');
+    }
+
+    if (parsed.role === 'admin' && target.role !== 'admin') {
+      throw new ConflictError('Cannot promote another account to Super Admin. Only one Super Admin is permitted.');
     }
 
     const isSelf = requesterId === targetId;
@@ -546,13 +561,16 @@ class AuthService {
   async getUserStats(requesterRole: UserRole): Promise<UserStats> {
     await this.assertCanManageStaff(requesterRole);
 
+    const hideSuperAdmin = requesterRole !== 'admin';
+    const baseFilter = hideSuperAdmin ? { NOT: { role: 'admin' } } : {};
+
     const [users, archived] = await prisma.$transaction([
       prisma.users.findMany({
-        where: { deleted_at: null },
+        where: { deleted_at: null, ...baseFilter },
         select: { is_active: true, role: true, created_at: true }
       }),
       prisma.users.count({
-        where: { deleted_at: { not: null } }
+        where: { deleted_at: { not: null }, ...baseFilter }
       })
     ]);
 

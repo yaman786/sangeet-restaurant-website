@@ -10,7 +10,12 @@ export async function GET(req: NextRequest) {
     const { user, errorResponse } = await authorizeActiveUser(req);
     if (errorResponse || !user) return errorResponse!;
 
-    const roles = await rbacService.getRolesCatalog();
+    const allRoles = await rbacService.getRolesCatalog();
+    const roles = { ...allRoles };
+    if (user.role !== 'admin') {
+      delete roles.admin;
+    }
+
     return NextResponse.json({
       roles,
       modules: ADMIN_MODULES,

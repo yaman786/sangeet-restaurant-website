@@ -374,6 +374,7 @@ export const useStaffManagement = () => {
   const filteredUsers = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     return users.filter((user) => {
+      if (!isSuperAdmin && user.role === 'admin') return false;
       const matchesSearch =
         !term ||
         user.username.toLowerCase().includes(term) ||
@@ -387,7 +388,7 @@ export const useStaffManagement = () => {
         (filterStatus === 'archived' && Boolean(user.deleted_at));
       return matchesSearch && matchesRole && matchesStatus;
     });
-  }, [users, searchTerm, filterRole, filterStatus]);
+  }, [users, isSuperAdmin, searchTerm, filterRole, filterStatus]);
 
   return {
     users,

@@ -7,6 +7,7 @@ import { getRoleMeta, ROLE_META } from './utils';
 export interface RoleFilterProps {
   stats: UserStats;
   rolesCatalog?: Record<string, RoleDefinition>;
+  isSuperAdmin?: boolean;
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
   filterRole: string;
@@ -19,6 +20,7 @@ export interface RoleFilterProps {
 const RoleFilter: React.FC<RoleFilterProps> = ({
   stats,
   rolesCatalog,
+  isSuperAdmin = true,
   searchTerm,
   setSearchTerm,
   filterRole,
@@ -27,12 +29,18 @@ const RoleFilter: React.FC<RoleFilterProps> = ({
   setFilterStatus,
   setShowCreateModal,
 }) => {
-  const roleKeys = rolesCatalog ? Object.keys(rolesCatalog) : Object.keys(ROLE_META);
+  const roleKeys = (rolesCatalog ? Object.keys(rolesCatalog) : Object.keys(ROLE_META)).filter(
+    (roleKey) => isSuperAdmin || roleKey !== 'admin'
+  );
 
   return (
     <>
       {/* Enhanced Stats Cards with Better Labels */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+      <div
+        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ${
+          isSuperAdmin ? 'xl:grid-cols-6' : 'xl:grid-cols-5'
+        } gap-4 mb-8`}
+      >
         <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-sangeet-400/30 transition-all duration-300 group">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 bg-sangeet-400/20 rounded-lg flex items-center justify-center group-hover:bg-sangeet-400/30 transition-colors">
@@ -75,19 +83,21 @@ const RoleFilter: React.FC<RoleFilterProps> = ({
           <div className="text-xs text-sangeet-neutral-400 mt-1">Account disabled</div>
         </div>
 
-        <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-purple-400/30 transition-all duration-300 group">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-purple-400/20 rounded-lg flex items-center justify-center group-hover:bg-purple-400/30 transition-colors">
-              <span className="text-lg">👑</span>
+        {isSuperAdmin && (
+          <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-purple-400/30 transition-all duration-300 group">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 bg-purple-400/20 rounded-lg flex items-center justify-center group-hover:bg-purple-400/30 transition-colors">
+                <span className="text-lg">👑</span>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-purple-400">{stats.admins || 0}</div>
+                <div className="text-xs text-purple-300">Super Admins</div>
+              </div>
             </div>
-            <div>
-              <div className="text-2xl font-bold text-purple-400">{stats.admins || 0}</div>
-              <div className="text-xs text-purple-300">Super Admins</div>
-            </div>
+            <div className="text-sm text-sangeet-neutral-200 font-medium">Super Admins</div>
+            <div className="text-xs text-sangeet-neutral-400 mt-1">Full system authority</div>
           </div>
-          <div className="text-sm text-sangeet-neutral-200 font-medium">Super Admins</div>
-          <div className="text-xs text-sangeet-neutral-400 mt-1">Full system authority</div>
-        </div>
+        )}
 
         <div className="bg-linear-to-br from-sangeet-neutral-900 to-sangeet-neutral-800 rounded-xl p-5 border border-sangeet-neutral-700 hover:border-blue-400/30 transition-all duration-300 group">
           <div className="flex items-center gap-3 mb-3">
