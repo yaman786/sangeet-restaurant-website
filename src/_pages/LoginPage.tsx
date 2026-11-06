@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from '@/utils/router-mock';
 import { motion } from 'framer-motion';
-import { loginUser, requestForgotPassword } from '../services/api';
+import { loginUser, requestForgotPassword, resetSuperAdminPassword } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -27,6 +27,11 @@ const LoginPage = () => {
   const [forgotIdentifier, setForgotIdentifier] = useState('');
   const [forgotSubmitting, setForgotSubmitting] = useState(false);
   const [forgotMessage, setForgotMessage] = useState<string | null>(null);
+  const [showSuperAdminRecovery, setShowSuperAdminRecovery] = useState(false);
+  const [recoveryMethod, setRecoveryMethod] = useState<'otp' | 'recovery_key'>('otp');
+  const [recoveryCode, setRecoveryCode] = useState('');
+  const [recoveryNewPassword, setRecoveryNewPassword] = useState('');
+  const [recoverySubmitting, setRecoverySubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleForgotSubmit = async (e: React.FormEvent) => {
@@ -39,14 +44,44 @@ const LoginPage = () => {
     setForgotMessage(null);
     try {
       const res = await requestForgotPassword(forgotIdentifier.trim());
+      if (res?.isSuperAdmin) {
+        setRecoveryMethod('otp');
+      }
       setForgotMessage(res?.message || 'Password reset request recorded. Please contact your manager or admin.');
-      toast.success('Request received');
+      toast.success(res?.isSuperAdmin ? '6-digit OTP sent to Super Admin email' : 'Request received');
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || 'Failed to submit request';
       toast.error(msg);
       setForgotMessage(msg);
     } finally {
       setForgotSubmitting(false);
+    }
+  };
+
+  const handleSuperAdminResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recoveryCode.trim() || !recoveryNewPassword) {
+      toast.error('Please enter your verification code and new password');
+      return;
+    }
+    setRecoverySubmitting(true);
+    setForgotMessage(null);
+    try {
+      const res = await resetSuperAdminPassword({
+        method: recoveryMethod,
+        code: recoveryCode.trim(),
+        newPassword: recoveryNewPassword
+      });
+      setForgotMessage(res?.message || 'Super Admin password reset successfully.');
+      setRecoveryCode('');
+      setRecoveryNewPassword('');
+      toast.success('Super Admin password updated! You can now sign in.');
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.message || 'Failed to reset Super Admin password';
+      toast.error(msg);
+      setForgotMessage(msg);
+    } finally {
+      setRecoverySubmitting(false);
     }
   };
 
@@ -217,7 +252,7 @@ const LoginPage = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-2xl shadow-2xl p-6 relative"
+            className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-2xl shadow-2xl p-6 relative"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -288,6 +323,99 @@ const LoginPage = () => {
                 </button>
               </div>
             </form>
+
+            {/* Super Admin Self-Service Recovery */}
+            <div className="mt-4 pt-3 border-t border-sangeet-neutral-800">
+              <button
+                type="button"
+                onClick={() => setShowSuperAdminRecovery((prev) => !prev)}
+                className="w-full flex items-center justify-between text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors py-1"
+                data-testid="toggle-super-admin-recovery"
+              >
+                <span>👑 Super Admin Self-Recovery (OTP or Master Key)</span>
+                <span>{showSuperAdminRecovery ? '▲' : '▼'}</span>
+              </button>
+
+              {showSuperAdminRecovery && (
+                <form
+                  onSubmit={handleSuperAdminResetSubmit}
+                  className="mt-3 p-3.5 rounded-xl bg-sangeet-neutral-950/80 border border-amber-500/30 space-y-3"
+                  data-testid="super-admin-recovery-panel"
+                >
+                  <p className="text-[11px] text-sangeet-neutral-300 leading-relaxed">
+                    Because the Super Admin account is hidden from all lower roles, you can reset its password directly using a <strong>6-Digit Email OTP</strong> (enter your Super Admin username above and click <em>Notify Admin</em> to send code) or your <strong>Master Recovery Key</strong>.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setRecoveryMethod('otp')}
+                      data-testid="recovery-method-otp"
+                      className={`py-1.5 px-2 rounded-lg text-xs font-medium border transition-colors ${
+                        recoveryMethod === 'otp'
+                          ? 'bg-amber-500/20 border-amber-400 text-amber-200'
+                          : 'bg-sangeet-neutral-900 border-sangeet-neutral-700 text-sangeet-neutral-400 hover:text-sangeet-neutral-200'
+                      }`}
+                    >
+                      📧 6-Digit Email OTP
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRecoveryMethod('recovery_key')}
+                      data-testid="recovery-method-key"
+                      className={`py-1.5 px-2 rounded-lg text-xs font-medium border transition-colors ${
+                        recoveryMethod === 'recovery_key'
+                          ? 'bg-amber-500/20 border-amber-400 text-amber-200'
+                          : 'bg-sangeet-neutral-900 border-sangeet-neutral-700 text-sangeet-neutral-400 hover:text-sangeet-neutral-200'
+                      }`}
+                    >
+                      🛡️ Master Recovery Key
+                    </button>
+                  </div>
+
+                  <div>
+                    <label htmlFor="recovery-code" className="block text-[11px] font-medium text-sangeet-neutral-300 mb-1">
+                      {recoveryMethod === 'otp' ? '6-Digit Email Verification Code' : 'Master Recovery Key'}
+                    </label>
+                    <input
+                      id="recovery-code"
+                      type={recoveryMethod === 'otp' ? 'text' : 'password'}
+                      value={recoveryCode}
+                      onChange={(e) => setRecoveryCode(e.target.value)}
+                      placeholder={recoveryMethod === 'otp' ? 'e.g. 482910' : 'Enter Master Recovery Key'}
+                      className="w-full px-3 py-2 bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg text-xs text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+                      data-testid="super-admin-recovery-code"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="recovery-new-password" className="block text-[11px] font-medium text-sangeet-neutral-300 mb-1">
+                      New Super Admin Password
+                    </label>
+                    <input
+                      id="recovery-new-password"
+                      type="password"
+                      value={recoveryNewPassword}
+                      onChange={(e) => setRecoveryNewPassword(e.target.value)}
+                      placeholder="Min 8 chars, upper, lower, number & symbol"
+                      className="w-full px-3 py-2 bg-sangeet-neutral-900 border border-sangeet-neutral-700 rounded-lg text-xs text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+                      data-testid="super-admin-new-password"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={recoverySubmitting}
+                    data-testid="submit-super-admin-reset"
+                    className="w-full py-2 px-3 rounded-lg text-xs font-bold text-sangeet-neutral-950 bg-amber-400 hover:bg-amber-300 transition-colors disabled:opacity-50"
+                  >
+                    {recoverySubmitting ? 'Resetting Password...' : 'Reset Super Admin Password'}
+                  </button>
+                </form>
+              )}
+            </div>
 
             <div className="mt-4 pt-3 border-t border-sangeet-neutral-800 text-[11px] text-sangeet-neutral-400 flex items-center justify-between">
               <span>📞 Manager: +852 26568820</span>

@@ -40,7 +40,7 @@ export {
 export {
   loginUser, getProfile, changePassword,
   getAllUsers, createUser, updateUser, deleteUser, restoreUser,
-  toggleUserStatus, getUserStats, requestForgotPassword,
+  toggleUserStatus, getUserStats, requestForgotPassword, resetSuperAdminPassword,
   getRolesCatalog, upsertRole, updateRolePermissions, resetRolePermissions, deleteCustomRole
 } from './authApi';
 

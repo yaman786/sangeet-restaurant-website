@@ -439,6 +439,42 @@ test.describe('Forgot Password Flow & Assistance UI', () => {
     expect(valid.status()).toBe(200);
     const body = await valid.json();
     expect(body.message).toBeTruthy();
+    expect(body.isSuperAdmin).toBe(true);
+  });
+
+  test('Super Admin self-recovery rejects invalid codes and resets password with Master Recovery Key', async ({ request }) => {
+    const invalidOtp = await request.post('/api/auth/forgot-password', {
+      data: {
+        action: 'reset_super_admin',
+        method: 'otp',
+        code: '000000',
+        newPassword: ADMIN_PASSWORD
+      }
+    });
+    expect(invalidOtp.status()).toBe(401);
+
+    const invalidKey = await request.post('/api/auth/forgot-password', {
+      data: {
+        action: 'reset_super_admin',
+        method: 'recovery_key',
+        code: 'WrongRecoveryKey!999',
+        newPassword: ADMIN_PASSWORD
+      }
+    });
+    expect(invalidKey.status()).toBe(401);
+
+    const recoveryKey = process.env.SUPER_ADMIN_RECOVERY_KEY || 'SangeetMasterRecovery!2026';
+    const validReset = await request.post('/api/auth/forgot-password', {
+      data: {
+        action: 'reset_super_admin',
+        method: 'recovery_key',
+        code: recoveryKey,
+        newPassword: ADMIN_PASSWORD
+      }
+    });
+    expect(validReset.status()).toBe(200);
+    const resetBody = await validReset.json();
+    expect(resetBody.message).toContain('Super Admin password has been reset successfully');
   });
 });
 

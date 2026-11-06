@@ -79,10 +79,23 @@ export const getUserStats = async (): Promise<UserStats> => {
   }, 'getUserStats');
 };
 
-export const requestForgotPassword = async (identifier: string): Promise<{ message: string }> => {
+export const requestForgotPassword = async (identifier: string): Promise<{ message: string; isSuperAdmin?: boolean }> => {
   return apiCallWrapper(async () => {
     return await api.post('/auth/forgot-password', { identifier });
   }, 'requestForgotPassword', false);
+};
+
+export const resetSuperAdminPassword = async (data: {
+  method: 'otp' | 'recovery_key';
+  code: string;
+  newPassword: string;
+}): Promise<{ message: string }> => {
+  return apiCallWrapper(async () => {
+    return await api.post('/auth/forgot-password', {
+      action: 'reset_super_admin',
+      ...data
+    });
+  }, 'resetSuperAdminPassword', false);
 };
 
 // RBAC Role & Permission Management API calls

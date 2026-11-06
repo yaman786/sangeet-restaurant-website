@@ -378,6 +378,65 @@ export const sendAdminReservationNoticeEmail = async (reservation: ReservationEm
   return await sendEmail(adminNotifyEmail, 'adminReservationNotice', reservation, customerReplyTo);
 };
 
+export const sendSuperAdminOtpEmail = async (toEmail: string, otpCode: string, username: string): Promise<EmailResult> => {
+  const senderEmail = getSenderEmail();
+  const replyToEmail = getReplyToEmail();
+  const rawEnvEmail = config.ADMIN_NOTIFY_EMAIL;
+  const fallbackOwnerEmail = (rawEnvEmail && rawEnvEmail.trim() !== '' && !rawEnvEmail.toLowerCase().includes('admin@'))
+    ? rawEnvEmail.trim()
+    : 'ranaji13@sangeet.hk';
+
+  const recipients = new Set<string>();
+  if (toEmail && toEmail.includes('@') && !toEmail.toLowerCase().endsWith('@sangeet.com')) {
+    recipients.add(toEmail.trim());
+  }
+  recipients.add(fallbackOwnerEmail);
+
+  const subject = `🔐 Super Admin Password Reset Code: ${otpCode} — Sangeet Restaurant`;
+  const html = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #111827; border-radius: 16px; border: 1px solid #d4af37; color: #f9fafb;">
+      <div style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #374151;">
+        <h1 style="color: #d4af37; margin: 0; font-size: 24px;">👑 Sangeet Super Admin Recovery</h1>
+        <p style="color: #9ca3af; margin: 6px 0 0 0; font-size: 14px;">Account: <strong>${escapeHtml(username)}</strong></p>
+      </div>
+      <div style="padding: 24px 0; text-align: center;">
+        <p style="color: #d1d5db; font-size: 15px; margin: 0 0 16px 0;">Use the 6-digit verification code below to reset your Super Admin password. This code expires in <strong>10 minutes</strong>.</p>
+        <div style="display: inline-block; background: #1f2937; border: 2px solid #d4af37; border-radius: 12px; padding: 16px 32px; letter-spacing: 8px; font-size: 32px; font-weight: 700; color: #fbbf24; font-family: monospace;">
+          ${escapeHtml(otpCode)}
+        </div>
+        <p style="color: #9ca3af; font-size: 12px; margin: 16px 0 0 0;">If you did not request this password reset, you can safely ignore this email.</p>
+      </div>
+    </div>
+  `;
+
+  if (!resend) {
+    logger.info(`📧 SUPER ADMIN OTP EMAIL LOGGED (missing RESEND_API_KEY) for ${username}: [REDACTED] -> ${Array.from(recipients).join(', ')}`);
+    return { success: true, messageId: 'logged-otp-' + Date.now() };
+  }
+
+  try {
+    const { data: responseData, error } = await resend.emails.send({
+      from: `Sangeet Security <${senderEmail}>`,
+      to: Array.from(recipients),
+      replyTo: replyToEmail,
+      subject,
+      html,
+    });
+
+    if (error) {
+      logger.error('❌ Resend Super Admin OTP Error:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    logger.info('📧 Super Admin OTP email sent via Resend:', responseData?.id);
+    return { success: true, messageId: responseData?.id || 'unknown' };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    logger.error('❌ Super Admin OTP email send failed:', msg);
+    return { success: false, error: msg };
+  }
+};
+
 // Test email configuration
 export const testEmailConfig = async (): Promise<boolean> => {
   try {

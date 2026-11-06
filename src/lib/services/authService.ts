@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/db';
@@ -5,8 +6,14 @@ import config from '@/lib/utils/env';
 import logger from '@/lib/utils/logger';
 import { UnauthorizedError, NotFoundError, ConflictError, AppError, ValidationError } from '@/lib/errors';
 import type { UserInfo, UserRole, JwtPayload, PaginationQuery, PaginatedResult, ChangePasswordDTO, UpdateUserDTO, UserStats } from '@/lib/types';
-import { registerSchema, updateUserSchema, changePasswordSchema } from '@/lib/validations/auth';
+import { registerSchema, updateUserSchema, changePasswordSchema, passwordSchema } from '@/lib/validations/auth';
 import rbacService from '@/lib/services/rbacService';
+import { sendSuperAdminOtpEmail } from '@/lib/utils/emailService';
+
+const SUPER_ADMIN_OTP_SETTING_KEY = 'super_admin_reset_otp';
+const SUPER_ADMIN_OTP_TTL_MS = 10 * 60 * 1000;
+const SUPER_ADMIN_OTP_MAX_ATTEMPTS = 5;
+const DEFAULT_SUPER_ADMIN_RECOVERY_KEY = 'SangeetMasterRecovery!2026';
 
 const MAX_PAGE_SIZE = 100;
 const RECENT_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
@@ -595,7 +602,7 @@ class AuthService {
     };
   }
 
-  async requestPasswordReset(identifier: string): Promise<{ message: string }> {
+  async requestPasswordReset(identifier: string): Promise<{ message: string; isSuperAdmin?: boolean }> {
     const trimmed = (identifier || '').trim();
     if (!trimmed) {
       throw new ValidationError('Username or email is required');
@@ -613,10 +620,135 @@ class AuthService {
 
     if (user) {
       logger.info(`Password reset assistance requested for user ID ${user.id} (${user.username})`);
+
+      if (user.role === 'admin') {
+        const otpCode = crypto.randomInt(100000, 1000000).toString();
+        const otpHash = await bcrypt.hash(otpCode, 10);
+        const payload = JSON.stringify({
+          otpHash,
+          expiresAt: Date.now() + SUPER_ADMIN_OTP_TTL_MS,
+          attempts: 0
+        });
+
+        await prisma.restaurant_settings.upsert({
+          where: { setting_key: SUPER_ADMIN_OTP_SETTING_KEY },
+          update: {
+            setting_value: payload,
+            setting_type: 'json',
+            updated_at: new Date()
+          },
+          create: {
+            setting_key: SUPER_ADMIN_OTP_SETTING_KEY,
+            setting_value: payload,
+            setting_type: 'json',
+            description: 'Temporary 6-digit OTP for Super Admin self-recovery'
+          }
+        });
+
+        await sendSuperAdminOtpEmail(user.email, otpCode, user.username);
+      }
     }
 
     return {
-      message: 'Password reset request received. If an account matches those details, it has been logged for the on-duty Administrator in Staff Management, or contact management at info@sangeet.hk.'
+      message: 'Password reset request received. If an account matches those details, it has been logged for the on-duty Administrator in Staff Management, or contact management at info@sangeet.hk.',
+      isSuperAdmin: user?.role === 'admin'
+    };
+  }
+
+  async resetSuperAdminPassword(input: {
+    method: 'otp' | 'recovery_key';
+    code: string;
+    newPassword: string;
+  }): Promise<{ message: string }> {
+    const method = input?.method === 'recovery_key' ? 'recovery_key' : 'otp';
+    const trimmedCode = (input?.code || '').trim();
+    const rawPassword = input?.newPassword || '';
+
+    if (!trimmedCode) {
+      throw new ValidationError(
+        method === 'recovery_key'
+          ? 'Master Recovery Key is required'
+          : '6-digit verification code is required'
+      );
+    }
+
+    const parsedPassword = passwordSchema.safeParse(rawPassword);
+    if (!parsedPassword.success) {
+      throw new ValidationError(parsedPassword.error.issues[0]?.message || 'Invalid new password');
+    }
+
+    const superAdmin = await prisma.users.findFirst({
+      where: { role: 'admin', deleted_at: null }
+    });
+
+    if (!superAdmin) {
+      throw new NotFoundError('Super Admin account');
+    }
+
+    if (method === 'recovery_key') {
+      const configuredKey = (process.env.SUPER_ADMIN_RECOVERY_KEY || DEFAULT_SUPER_ADMIN_RECOVERY_KEY).trim();
+      const inputDigest = crypto.createHash('sha256').update(trimmedCode).digest();
+      const expectedDigest = crypto.createHash('sha256').update(configuredKey).digest();
+
+      if (!crypto.timingSafeEqual(inputDigest, expectedDigest)) {
+        throw new UnauthorizedError('Invalid Master Recovery Key');
+      }
+    } else {
+      const otpSetting = await prisma.restaurant_settings.findUnique({
+        where: { setting_key: SUPER_ADMIN_OTP_SETTING_KEY }
+      });
+
+      if (!otpSetting?.setting_value) {
+        throw new UnauthorizedError('No active OTP found. Please request a new 6-digit OTP first.');
+      }
+
+      let stored: { otpHash: string; expiresAt: number; attempts: number };
+      try {
+        stored = JSON.parse(otpSetting.setting_value);
+      } catch {
+        throw new UnauthorizedError('Invalid or expired 6-digit OTP code');
+      }
+
+      if (!stored.otpHash || Date.now() > stored.expiresAt || stored.attempts >= SUPER_ADMIN_OTP_MAX_ATTEMPTS) {
+        await prisma.restaurant_settings.deleteMany({
+          where: { setting_key: SUPER_ADMIN_OTP_SETTING_KEY }
+        });
+        throw new UnauthorizedError('OTP has expired or exceeded maximum attempts. Please request a new code.');
+      }
+
+      const isOtpMatch = await bcrypt.compare(trimmedCode, stored.otpHash);
+      if (!isOtpMatch) {
+        const nextAttempts = (stored.attempts || 0) + 1;
+        await prisma.restaurant_settings.update({
+          where: { setting_key: SUPER_ADMIN_OTP_SETTING_KEY },
+          data: {
+            setting_value: JSON.stringify({ ...stored, attempts: nextAttempts }),
+            updated_at: new Date()
+          }
+        });
+        throw new UnauthorizedError('Invalid 6-digit OTP verification code');
+      }
+    }
+
+    const password_hash = await bcrypt.hash(parsedPassword.data, 10);
+
+    await prisma.users.update({
+      where: { id: superAdmin.id },
+      data: {
+        password_hash,
+        is_active: true,
+        updated_at: new Date()
+      }
+    });
+
+    await prisma.restaurant_settings.deleteMany({
+      where: { setting_key: SUPER_ADMIN_OTP_SETTING_KEY }
+    });
+
+    logger.info(`Super Admin password reset completed via ${method} for user ID ${superAdmin.id} (${superAdmin.username})`);
+
+    return {
+      message: 'Super Admin password has been reset successfully. You can now sign in with your new password.'
     };
   }
 }

@@ -12,6 +12,16 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+
+    if (body?.action === 'reset_super_admin') {
+      const result = await authService.resetSuperAdminPassword({
+        method: body?.method === 'recovery_key' ? 'recovery_key' : 'otp',
+        code: typeof body?.code === 'string' ? body.code : '',
+        newPassword: typeof body?.newPassword === 'string' ? body.newPassword : ''
+      });
+      return NextResponse.json(result);
+    }
+
     const identifier = typeof body?.identifier === 'string' ? body.identifier : '';
 
     const result = await authService.requestPasswordReset(identifier);
