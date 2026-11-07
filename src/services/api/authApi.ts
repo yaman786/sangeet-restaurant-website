@@ -2,7 +2,7 @@ import api, { apiCallWrapper } from './client';
 import { UserInfo, UserRow, UserStats, PaginatedResult } from '@/lib/types';
 import type { AdminModuleMeta, RoleDefinition, RoleTier } from '@/lib/rbac';
 
-export const loginUser = async (credentials: Record<string, string>) => {
+export const loginUser = async (credentials: Record<string, any>) => {
   try {
     const result = await apiCallWrapper(async () => {
       const response = await api.post('/auth/login', credentials);

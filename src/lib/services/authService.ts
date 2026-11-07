@@ -22,6 +22,7 @@ interface LoginInput {
   email?: string;
   username?: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 class AuthService {
@@ -90,7 +91,7 @@ class AuthService {
   }
 
   async login(credentials: LoginInput) {
-    const { email, username, password } = credentials;
+    const { email, username, password, rememberMe = false } = credentials;
     const identifier = (username || email || '').trim();
 
     if (!identifier) {
@@ -143,16 +144,19 @@ class AuthService {
       is_super_admin: isSuperAdmin
     };
 
+    const maxAgeSeconds = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24;
+
     const token = jwt.sign(
       payload,
       config.JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: rememberMe ? '30d' : '24h' }
     );
 
     const { password_hash: _passwordHash, ...userWithoutPassword } = user;
 
     return {
       token,
+      maxAgeSeconds,
       user: {
         ...userWithoutPassword,
         permissions,

@@ -13,9 +13,9 @@ export async function POST(req: NextRequest) {
     }
 
     const rawBody = await req.json();
-    const { username, password } = loginSchema.parse(rawBody);
+    const { username, password, rememberMe } = loginSchema.parse(rawBody);
 
-    const { token, user } = await authService.login({ username, password });
+    const { token, maxAgeSeconds, user } = await authService.login({ username, password, rememberMe });
 
     const response = NextResponse.json({
       message: 'Login successful',
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24 // 24 hours
+      maxAge: maxAgeSeconds // 30 days if rememberMe is true, otherwise 24 hours
     });
 
     return response;

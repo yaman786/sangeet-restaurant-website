@@ -18,6 +18,7 @@ async function loginAsAdmin(page: Page) {
   await expect(page.getByTestId('login-mode-mobile')).toBeVisible();
   await expect(page.getByTestId('login-mode-email')).toBeVisible();
   await expect(page.getByTestId('login-phone-prefix')).toContainText('+852');
+  await expect(page.getByTestId('remember-me-checkbox')).toBeVisible();
   await page.locator('#username').fill(ADMIN_LOGIN_ID);
   await expect(page.locator('#username')).toHaveValue(ADMIN_LOGIN_ID);
   await page.locator('#password').fill(ADMIN_PASSWORD);
@@ -214,6 +215,13 @@ test.describe('Staff Management (admin)', () => {
     expect(localDigitsLoginRes.status()).toBe(200);
     const emailLoginRes = await anonBefore.post('/api/auth/login', { data: { username: QA_EMAIL, password: QA_PASSWORD } });
     expect(emailLoginRes.status()).toBe(200);
+    expect(emailLoginRes.headers()['set-cookie']).toContain('Max-Age=86400');
+
+    const rememberedLoginRes = await anonBefore.post('/api/auth/login', {
+      data: { username: QA_EMAIL, password: QA_PASSWORD, rememberMe: true }
+    });
+    expect(rememberedLoginRes.status()).toBe(200);
+    expect(rememberedLoginRes.headers()['set-cookie']).toContain('Max-Age=2592000');
     await anonBefore.dispose();
 
     // 1. Archive (soft-delete) user from Active view

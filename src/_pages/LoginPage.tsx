@@ -12,9 +12,11 @@ import Image from 'next/image';
 
 import logoImage from '../assets/images/logo.png';
 
+const REMEMBER_STORAGE_KEY = 'sangeet_remembered_login';
+
 const LoginPage = () => {
   const { login } = useAuth();
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       username: '',
@@ -24,6 +26,7 @@ const LoginPage = () => {
 
   const [error, setError] = useState('');
   const [loginMode, setLoginMode] = useState<'mobile' | 'email'>('mobile');
+  const [rememberMe, setRememberMe] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotMode, setForgotMode] = useState<'mobile' | 'email'>('mobile');
   const [forgotIdentifier, setForgotIdentifier] = useState('');
@@ -35,6 +38,24 @@ const LoginPage = () => {
   const [recoveryNewPassword, setRecoveryNewPassword] = useState('');
   const [recoverySubmitting, setRecoverySubmitting] = useState(false);
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    try {
+      const savedRaw = localStorage.getItem(REMEMBER_STORAGE_KEY);
+      if (savedRaw) {
+        const saved = JSON.parse(savedRaw);
+        if (saved && typeof saved.identifier === 'string' && saved.identifier.trim()) {
+          if (saved.mode === 'mobile' || saved.mode === 'email') {
+            setLoginMode(saved.mode);
+          }
+          setValue('username', saved.identifier);
+          setRememberMe(true);
+        }
+      }
+    } catch {
+      // Ignore storage access errors
+    }
+  }, [setValue]);
 
   const formatIdentifierWithHkPrefix = (raw: string, mode: 'mobile' | 'email'): string => {
     const trimmed = raw.trim();
@@ -105,8 +126,21 @@ const LoginPage = () => {
 
     try {
       const resolvedUsername = formatIdentifierWithHkPrefix(data.username || '', loginMode);
-      const response = await loginUser({ ...data, username: resolvedUsername });
+      const response = await loginUser({ ...data, username: resolvedUsername, rememberMe });
       const { user } = response as any;
+
+      try {
+        if (rememberMe) {
+          localStorage.setItem(
+            REMEMBER_STORAGE_KEY,
+            JSON.stringify({ identifier: (data.username || '').trim(), mode: loginMode })
+          );
+        } else {
+          localStorage.removeItem(REMEMBER_STORAGE_KEY);
+        }
+      } catch {
+        // Ignore storage write errors
+      }
 
       login(user);
       const nameToDisplay = user.full_name?.split(' ')[0] || user.username || 'Admin';
@@ -270,6 +304,26 @@ const LoginPage = () => {
               {errors.password && (
                 <p className="mt-1 text-sm text-red-400">{errors.password.message as string}</p>
               )}
+            </div>
+
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center justify-between pt-0.5">
+              <label
+                htmlFor="remember-me"
+                className="inline-flex items-center gap-2.5 cursor-pointer select-none group"
+              >
+                <input
+                  id="remember-me"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  data-testid="remember-me-checkbox"
+                  className="w-4 h-4 rounded-sm border-sangeet-neutral-600 bg-sangeet-neutral-800 text-sangeet-400 accent-sangeet-400 focus:ring-2 focus:ring-sangeet-400 focus:ring-offset-0 cursor-pointer"
+                />
+                <span className="text-xs text-sangeet-neutral-300 group-hover:text-sangeet-neutral-100 transition-colors">
+                  Remember me for 30 days
+                </span>
+              </label>
             </div>
 
             {/* Submit Button */}
