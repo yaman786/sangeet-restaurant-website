@@ -225,7 +225,7 @@ const LoginPage = () => {
                     id="username"
                     {...register('username')}
                     className="w-full px-4 py-3 bg-transparent text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden"
-                    placeholder="9384 3768"
+                    placeholder="9123 4567"
                   />
                 </div>
               ) : (
@@ -234,7 +234,7 @@ const LoginPage = () => {
                   id="username"
                   {...register('username')}
                   className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent transition-all duration-200"
-                  placeholder="e.g. ranaji13@sangeet.hk or name@gmail.com"
+                  placeholder="e.g. name@gmail.com"
                 />
               )}
               {errors.username && (
@@ -393,7 +393,7 @@ const LoginPage = () => {
                       type="text"
                       value={forgotIdentifier}
                       onChange={(e) => setForgotIdentifier(e.target.value)}
-                      placeholder="9384 3768"
+                      placeholder="9123 4567"
                       className="w-full px-3 py-2.5 bg-transparent text-sm text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden"
                       required
                     />

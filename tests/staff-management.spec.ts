@@ -1,7 +1,7 @@
 import { test, expect, request as playwrightRequest, type Page, type APIRequestContext } from '@playwright/test';
 
 const ADMIN_USERNAME = 'admin';
-const ADMIN_PHONE_LOCAL = '93843768';
+const ADMIN_LOGIN_ID = process.env.E2E_ADMIN_LOGIN_ID || ADMIN_USERNAME;
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || 'SangeetAdmin!2026';
 
 const suffix = Date.now().toString(36);
@@ -18,8 +18,8 @@ async function loginAsAdmin(page: Page) {
   await expect(page.getByTestId('login-mode-mobile')).toBeVisible();
   await expect(page.getByTestId('login-mode-email')).toBeVisible();
   await expect(page.getByTestId('login-phone-prefix')).toContainText('+852');
-  await page.locator('#username').fill(ADMIN_PHONE_LOCAL);
-  await expect(page.locator('#username')).toHaveValue(ADMIN_PHONE_LOCAL);
+  await page.locator('#username').fill(ADMIN_LOGIN_ID);
+  await expect(page.locator('#username')).toHaveValue(ADMIN_LOGIN_ID);
   await page.locator('#password').fill(ADMIN_PASSWORD);
   await expect(page.locator('#password')).toHaveValue(ADMIN_PASSWORD);
   await page.click('button[type="submit"]');

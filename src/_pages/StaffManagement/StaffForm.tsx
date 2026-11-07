@@ -85,7 +85,7 @@ const StaffForm: React.FC<StaffFormProps> = ({
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/^\+?852\s*/, '') })}
                 className="w-full px-4 py-3 bg-transparent text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-hidden"
-                placeholder="9384 3768"
+                placeholder="9123 4567"
                 maxLength={20}
                 required
               />
