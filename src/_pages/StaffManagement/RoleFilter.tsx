@@ -140,7 +140,7 @@ const RoleFilter: React.FC<RoleFilterProps> = ({
               <input
                 id="staff-search"
                 type="text"
-                placeholder="Search by name, username, or email..."
+                placeholder="Search by name, mobile number, or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200"

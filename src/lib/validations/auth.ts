@@ -35,7 +35,7 @@ const optionalEmailSchema = z
   .pipe(z.string().email('Invalid email address').optional());
 
 export const loginSchema = z.object({
-  username: z.string().min(1, 'Mobile number, email, or username is required'),
+  username: z.string().min(1, 'Mobile number or email is required'),
   password: z.string().min(1, 'Password is required')
 });
 

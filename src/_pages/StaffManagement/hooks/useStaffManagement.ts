@@ -264,7 +264,7 @@ export const useStaffManagement = () => {
       type: 'restore',
       user,
       title: 'Restore User Account',
-      message: `Restore ${user.full_name || user.username} (@${user.username}) back to the active team?`,
+      message: `Restore ${user.full_name || user.phone || user.email} back to the active team?`,
       confirmText: 'Restore Account',
       confirmStyle: 'bg-green-500 hover:bg-green-600',
       onConfirm: () => restoreMutation.mutateAsync(userId),

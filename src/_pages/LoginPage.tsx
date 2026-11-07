@@ -37,7 +37,7 @@ const LoginPage = () => {
   const handleForgotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotIdentifier.trim()) {
-      toast.error('Please enter your username or email');
+      toast.error('Please enter your mobile number or email');
       return;
     }
     setForgotSubmitting(true);
@@ -163,14 +163,14 @@ const LoginPage = () => {
             {/* Primary Login Identifier Field */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                Mobile Number, Email, or Username
+                Mobile Number or Email
               </label>
               <input
                 type="text"
                 id="username"
                 {...register('username')}
                 className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent transition-all duration-200"
-                placeholder="e.g. +852 9123 4567 or name@gmail.com"
+                placeholder="e.g. +852 9384 3768 or name@gmail.com"
               />
               {errors.username && (
                 <p className="mt-1 text-sm text-red-400">{errors.username.message as string}</p>
@@ -286,14 +286,14 @@ const LoginPage = () => {
             <form onSubmit={handleForgotSubmit} className="space-y-4">
               <div>
                 <label htmlFor="forgot-identifier" className="block text-xs font-medium text-sangeet-neutral-300 mb-1">
-                  Your Mobile Number, Email, or Username
+                  Your Mobile Number or Registered Email
                 </label>
                 <input
                   id="forgot-identifier"
                   type="text"
                   value={forgotIdentifier}
                   onChange={(e) => setForgotIdentifier(e.target.value)}
-                  placeholder="e.g. +852 9123 4567 or staff@gmail.com"
+                  placeholder="e.g. +852 9384 3768 or staff@gmail.com"
                   className="w-full px-3 py-2.5 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sm text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent transition-all"
                   required
                 />
@@ -343,7 +343,7 @@ const LoginPage = () => {
                   data-testid="super-admin-recovery-panel"
                 >
                   <p className="text-[11px] text-sangeet-neutral-300 leading-relaxed">
-                    Because the Super Admin account is hidden from all lower roles, you can reset its password directly using a <strong>6-Digit Email OTP</strong> (enter your Super Admin username above and click <em>Notify Admin</em> to send code) or your <strong>Master Recovery Key</strong>.
+                    Because the Super Admin account is hidden from all lower roles, you can reset its password directly using a <strong>6-Digit Email OTP</strong> (enter your Super Admin mobile number or email above and click <em>Notify Admin</em> to send code) or your <strong>Master Recovery Key</strong>.
                   </p>
 
                   <div className="grid grid-cols-2 gap-2">

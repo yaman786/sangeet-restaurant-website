@@ -113,8 +113,6 @@ const StaffTable: React.FC<StaffTableProps> = ({
                           {!user.email.endsWith('@staff.sangeet.local')
                             ? `✉️ ${user.email}`
                             : 'No email linked'}
-                          {' • '}
-                          <span className="text-sangeet-neutral-500">@{user.username}</span>
                         </p>
                       </div>
                     </div>
