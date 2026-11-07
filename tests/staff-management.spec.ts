@@ -1,6 +1,7 @@
 import { test, expect, request as playwrightRequest, type Page, type APIRequestContext } from '@playwright/test';
 
 const ADMIN_USERNAME = 'admin';
+const ADMIN_PHONE_LOCAL = '93843768';
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || 'SangeetAdmin!2026';
 
 const suffix = Date.now().toString(36);
@@ -14,8 +15,11 @@ const row = (page: Page, username: string) => page.getByTestId(`staff-row-${user
 
 async function loginAsAdmin(page: Page) {
   await page.goto('/admin/login', { waitUntil: 'networkidle' });
-  await page.locator('#username').fill(ADMIN_USERNAME);
-  await expect(page.locator('#username')).toHaveValue(ADMIN_USERNAME);
+  await expect(page.getByTestId('login-mode-mobile')).toBeVisible();
+  await expect(page.getByTestId('login-mode-email')).toBeVisible();
+  await expect(page.getByTestId('login-phone-prefix')).toContainText('+852');
+  await page.locator('#username').fill(ADMIN_PHONE_LOCAL);
+  await expect(page.locator('#username')).toHaveValue(ADMIN_PHONE_LOCAL);
   await page.locator('#password').fill(ADMIN_PASSWORD);
   await expect(page.locator('#password')).toHaveValue(ADMIN_PASSWORD);
   await page.click('button[type="submit"]');
@@ -80,9 +84,10 @@ test.describe('Staff Management (admin)', () => {
     await page.locator('#staff-add-user').click();
     await expect(page.getByTestId('staff-form')).toBeVisible();
     await expect(page.locator('#staff-username')).toHaveCount(0);
+    await expect(page.getByTestId('staff-phone-prefix')).toContainText('+852');
 
     await page.locator('#staff-full-name').fill('QA Kitchen Tester');
-    await page.locator('#staff-phone').fill(QA_PHONE);
+    await page.locator('#staff-phone').fill(phoneDigits);
     await page.locator('#staff-email').fill(QA_EMAIL);
     await page.locator('#staff-password').fill(QA_PASSWORD);
     await page.locator('#staff-role').selectOption('kitchen');
@@ -99,7 +104,7 @@ test.describe('Staff Management (admin)', () => {
   test('rejects duplicate mobile numbers or emails with a clear error', async () => {
     await page.locator('#staff-add-user').click();
     await page.locator('#staff-full-name').fill('Duplicate Person');
-    await page.locator('#staff-phone').fill(QA_PHONE);
+    await page.locator('#staff-phone').fill(phoneDigits);
     await page.locator('#staff-email').fill(`other_${QA_EMAIL}`);
     await page.locator('#staff-password').fill(QA_PASSWORD);
     await page.locator('#staff-form-submit').click();
@@ -303,7 +308,7 @@ test.describe('Staff Management (admin)', () => {
     await page.getByTestId('tab-team-directory').click();
     await page.locator('#staff-add-user').click();
     await page.locator('#staff-full-name').fill('QA Bar Specialist');
-    await page.locator('#staff-phone').fill(barPhone);
+    await page.locator('#staff-phone').fill(barPhoneDigits);
     await page.locator('#staff-password').fill(QA_PASSWORD);
     await page.locator('#staff-role').selectOption('bar_staff');
     await page.locator('#staff-form-submit').click();
@@ -321,12 +326,13 @@ test.describe('Staff Management (admin)', () => {
       });
     }
 
-    // 4. Sign in as the Bar Staff user using their MOBILE NUMBER in an isolated browser context and verify Dashboard Cards
+    // 4. Sign in as the Bar Staff user using their 8-digit MOBILE NUMBER (with locked +852 prefix) and verify Dashboard Cards
     const barContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const barPage = await barContext.newPage();
     await barPage.goto('/admin/login', { waitUntil: 'networkidle' });
-    await barPage.locator('#username').fill(barPhone);
-    await expect(barPage.locator('#username')).toHaveValue(barPhone);
+    await expect(barPage.getByTestId('login-phone-prefix')).toContainText('+852');
+    await barPage.locator('#username').fill(barPhoneDigits);
+    await expect(barPage.locator('#username')).toHaveValue(barPhoneDigits);
     await barPage.locator('#password').fill(QA_PASSWORD);
     await expect(barPage.locator('#password')).toHaveValue(QA_PASSWORD);
     await barPage.click('button[type="submit"]');

@@ -158,6 +158,17 @@ export const useStaffManagement = () => {
     onError: (err) => toast.error(getErrorMessage(err, 'Failed to create user')),
   });
 
+  const formatHkPhoneWithPrefix = (raw: string): string => {
+    const trimmed = raw.trim();
+    if (!trimmed) return '';
+    const digits = trimmed.replace(/\D/g, '');
+    if (!digits) return trimmed;
+    if (digits.startsWith('852') && digits.length > 8) {
+      return `+${digits}`;
+    }
+    return `+852${digits}`;
+  };
+
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.full_name.trim() || !formData.phone.trim() || !formData.password) {
@@ -169,7 +180,7 @@ export const useStaffManagement = () => {
       username: formData.username.trim(),
       email: formData.email.trim(),
       full_name: formData.full_name.trim(),
-      phone: formData.phone.trim(),
+      phone: formatHkPhoneWithPrefix(formData.phone),
     });
   };
 
@@ -194,7 +205,7 @@ export const useStaffManagement = () => {
       username: rest.username.trim(),
       email: rest.email.trim(),
       full_name: rest.full_name.trim(),
-      phone: rest.phone.trim(),
+      phone: formatHkPhoneWithPrefix(rest.phone),
     };
     if (password) updateData.password = password;
     updateMutation.mutate({ id: editingUser.id, data: updateData });
@@ -300,13 +311,14 @@ export const useStaffManagement = () => {
   const openEditModal = (user: UserInfo) => {
     setEditingUser(user);
     const cleanEmail = user.email?.endsWith('@staff.sangeet.local') ? '' : user.email;
+    const localPhone = (user.phone || '').replace(/^\+?852\s*/, '');
     setFormData({
       username: user.username,
       email: cleanEmail,
       password: '',
       role: user.role,
       full_name: user.full_name || '',
-      phone: user.phone || '',
+      phone: localPhone,
       is_active: user.is_active,
     });
     setShowEditModal(true);

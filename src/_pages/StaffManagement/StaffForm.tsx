@@ -71,16 +71,25 @@ const StaffForm: React.FC<StaffFormProps> = ({
             <label htmlFor="staff-phone" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
               Mobile Number (Primary Login) *
             </label>
-            <input
-              id="staff-phone"
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200"
-              placeholder="e.g. +852 9123 4567"
-              maxLength={20}
-              required
-            />
+            <div className="flex items-stretch rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 focus-within:border-sangeet-400 focus-within:ring-2 focus-within:ring-sangeet-400/20 overflow-hidden transition-all duration-200">
+              <span
+                data-testid="staff-phone-prefix"
+                className="inline-flex items-center gap-1.5 px-3.5 bg-sangeet-neutral-900/90 border-r border-sangeet-neutral-600 text-sangeet-300 font-semibold text-sm select-none whitespace-nowrap"
+              >
+                <span>🇭🇰</span>
+                <span>+852</span>
+              </span>
+              <input
+                id="staff-phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/^\+?852\s*/, '') })}
+                className="w-full px-4 py-3 bg-transparent text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:outline-hidden"
+                placeholder="9384 3768"
+                maxLength={20}
+                required
+              />
+            </div>
           </div>
           <div>
             <label htmlFor="staff-email" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">

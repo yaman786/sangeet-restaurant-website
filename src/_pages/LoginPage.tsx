@@ -23,7 +23,9 @@ const LoginPage = () => {
   });
 
   const [error, setError] = useState('');
+  const [loginMode, setLoginMode] = useState<'mobile' | 'email'>('mobile');
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotMode, setForgotMode] = useState<'mobile' | 'email'>('mobile');
   const [forgotIdentifier, setForgotIdentifier] = useState('');
   const [forgotSubmitting, setForgotSubmitting] = useState(false);
   const [forgotMessage, setForgotMessage] = useState<string | null>(null);
@@ -34,6 +36,18 @@ const LoginPage = () => {
   const [recoverySubmitting, setRecoverySubmitting] = useState(false);
   const navigate = useNavigate();
 
+  const formatIdentifierWithHkPrefix = (raw: string, mode: 'mobile' | 'email'): string => {
+    const trimmed = raw.trim();
+    if (mode === 'mobile' && /^\+?[\d\s\-()]+$/.test(trimmed)) {
+      const digits = trimmed.replace(/\D/g, '');
+      if (digits.startsWith('852') && digits.length > 8) {
+        return `+${digits}`;
+      }
+      return `+852${digits}`;
+    }
+    return trimmed;
+  };
+
   const handleForgotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotIdentifier.trim()) {
@@ -43,7 +57,8 @@ const LoginPage = () => {
     setForgotSubmitting(true);
     setForgotMessage(null);
     try {
-      const res = await requestForgotPassword(forgotIdentifier.trim());
+      const resolvedIdentifier = formatIdentifierWithHkPrefix(forgotIdentifier, forgotMode);
+      const res = await requestForgotPassword(resolvedIdentifier);
       if (res?.isSuperAdmin) {
         setRecoveryMethod('otp');
       }
@@ -89,7 +104,8 @@ const LoginPage = () => {
     setError('');
 
     try {
-      const response = await loginUser(data);
+      const resolvedUsername = formatIdentifierWithHkPrefix(data.username || '', loginMode);
+      const response = await loginUser({ ...data, username: resolvedUsername });
       const { user } = response as any;
 
       login(user);
@@ -160,18 +176,67 @@ const LoginPage = () => {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Mobile / Email Toggle */}
+            <div className="grid grid-cols-2 gap-1.5 p-1 bg-sangeet-neutral-950 border border-sangeet-neutral-700 rounded-xl">
+              <button
+                type="button"
+                data-testid="login-mode-mobile"
+                onClick={() => setLoginMode('mobile')}
+                className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                  loginMode === 'mobile'
+                    ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-md'
+                    : 'text-sangeet-neutral-400 hover:text-sangeet-neutral-200'
+                }`}
+              >
+                <span>📱</span>
+                <span>Mobile Number</span>
+              </button>
+              <button
+                type="button"
+                data-testid="login-mode-email"
+                onClick={() => setLoginMode('email')}
+                className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                  loginMode === 'email'
+                    ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-md'
+                    : 'text-sangeet-neutral-400 hover:text-sangeet-neutral-200'
+                }`}
+              >
+                <span>✉️</span>
+                <span>Email</span>
+              </button>
+            </div>
+
             {/* Primary Login Identifier Field */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                Mobile Number or Email
+                {loginMode === 'mobile' ? 'Mobile Number' : 'Email Address'}
               </label>
-              <input
-                type="text"
-                id="username"
-                {...register('username')}
-                className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent transition-all duration-200"
-                placeholder="e.g. +852 9384 3768 or name@gmail.com"
-              />
+              {loginMode === 'mobile' ? (
+                <div className="flex items-stretch rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 focus-within:ring-2 focus-within:ring-sangeet-400 focus-within:border-transparent overflow-hidden transition-all duration-200">
+                  <span
+                    data-testid="login-phone-prefix"
+                    className="inline-flex items-center gap-1.5 px-3.5 bg-sangeet-neutral-900/90 border-r border-sangeet-neutral-600 text-sangeet-300 font-semibold text-sm select-none whitespace-nowrap"
+                  >
+                    <span>🇭🇰</span>
+                    <span>+852</span>
+                  </span>
+                  <input
+                    type="text"
+                    id="username"
+                    {...register('username')}
+                    className="w-full px-4 py-3 bg-transparent text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden"
+                    placeholder="9384 3768"
+                  />
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  id="username"
+                  {...register('username')}
+                  className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent transition-all duration-200"
+                  placeholder="e.g. ranaji13@sangeet.hk or name@gmail.com"
+                />
+              )}
               {errors.username && (
                 <p className="mt-1 text-sm text-red-400">{errors.username.message as string}</p>
               )}
@@ -284,19 +349,66 @@ const LoginPage = () => {
             </p>
 
             <form onSubmit={handleForgotSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-sangeet-neutral-950 border border-sangeet-neutral-700 rounded-xl">
+                <button
+                  type="button"
+                  data-testid="forgot-mode-mobile"
+                  onClick={() => setForgotMode('mobile')}
+                  className={`py-1.5 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                    forgotMode === 'mobile'
+                      ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-sm'
+                      : 'text-sangeet-neutral-400 hover:text-sangeet-neutral-200'
+                  }`}
+                >
+                  <span>📱</span>
+                  <span>Mobile Number</span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="forgot-mode-email"
+                  onClick={() => setForgotMode('email')}
+                  className={`py-1.5 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                    forgotMode === 'email'
+                      ? 'bg-sangeet-400 text-sangeet-neutral-950 shadow-sm'
+                      : 'text-sangeet-neutral-400 hover:text-sangeet-neutral-200'
+                  }`}
+                >
+                  <span>✉️</span>
+                  <span>Email</span>
+                </button>
+              </div>
+
               <div>
                 <label htmlFor="forgot-identifier" className="block text-xs font-medium text-sangeet-neutral-300 mb-1">
-                  Your Mobile Number or Registered Email
+                  {forgotMode === 'mobile' ? 'Your Mobile Number' : 'Your Registered Email'}
                 </label>
-                <input
-                  id="forgot-identifier"
-                  type="text"
-                  value={forgotIdentifier}
-                  onChange={(e) => setForgotIdentifier(e.target.value)}
-                  placeholder="e.g. +852 9384 3768 or staff@gmail.com"
-                  className="w-full px-3 py-2.5 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sm text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent transition-all"
-                  required
-                />
+                {forgotMode === 'mobile' ? (
+                  <div className="flex items-stretch rounded-lg bg-sangeet-neutral-800 border border-sangeet-neutral-600 focus-within:ring-2 focus-within:ring-sangeet-400 focus-within:border-transparent overflow-hidden transition-all">
+                    <span className="inline-flex items-center gap-1 px-3 bg-sangeet-neutral-900/90 border-r border-sangeet-neutral-600 text-sangeet-300 font-semibold text-xs select-none whitespace-nowrap">
+                      <span>🇭🇰</span>
+                      <span>+852</span>
+                    </span>
+                    <input
+                      id="forgot-identifier"
+                      type="text"
+                      value={forgotIdentifier}
+                      onChange={(e) => setForgotIdentifier(e.target.value)}
+                      placeholder="9384 3768"
+                      className="w-full px-3 py-2.5 bg-transparent text-sm text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden"
+                      required
+                    />
+                  </div>
+                ) : (
+                  <input
+                    id="forgot-identifier"
+                    type="text"
+                    value={forgotIdentifier}
+                    onChange={(e) => setForgotIdentifier(e.target.value)}
+                    placeholder="e.g. staff@gmail.com"
+                    className="w-full px-3 py-2.5 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sm text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent transition-all"
+                    required
+                  />
+                )}
               </div>
 
               {forgotMessage && (
