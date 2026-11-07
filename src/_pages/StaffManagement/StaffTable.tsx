@@ -80,6 +80,7 @@ const StaffTable: React.FC<StaffTableProps> = ({
                 <tr
                   key={user.id}
                   data-testid={`staff-row-${user.username}`}
+                  data-phone={user.phone || ''}
                   className="hover:bg-sangeet-neutral-800/30 transition-colors duration-200 group"
                 >
                   {/* User Details */}
@@ -103,14 +104,18 @@ const StaffTable: React.FC<StaffTableProps> = ({
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-sangeet-neutral-400 truncate">
-                          @{user.username} • {user.email}
-                        </p>
                         {user.phone && (
-                          <p className="text-xs text-sangeet-neutral-500 mt-1 flex items-center gap-1">
-                            <span>📞</span> {user.phone}
+                          <p className="text-sm font-medium text-sangeet-300 flex items-center gap-1.5">
+                            <span>📱</span> {user.phone}
                           </p>
                         )}
+                        <p className="text-xs text-sangeet-neutral-400 truncate mt-0.5">
+                          {!user.email.endsWith('@staff.sangeet.local')
+                            ? `✉️ ${user.email}`
+                            : 'No email linked'}
+                          {' • '}
+                          <span className="text-sangeet-neutral-500">@{user.username}</span>
+                        </p>
                       </div>
                     </div>
                   </td>

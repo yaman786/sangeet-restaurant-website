@@ -40,21 +40,76 @@ class AuthService {
     }
   }
 
+  private normalizePhone(raw?: string | null): string | null {
+    if (!raw) return null;
+    const cleaned = raw.trim().replace(/[\s\-().]/g, '');
+    return cleaned.length > 0 ? cleaned.slice(0, 20) : null;
+  }
+
+  private getPhoneLookupVariants(input: string): string[] {
+    const trimmed = input.trim();
+    if (!trimmed) return [];
+    const stripped = trimmed.replace(/[\s\-().]/g, '');
+    const digitsOnly = stripped.replace(/\D/g, '');
+    if (digitsOnly.length < 6) return [];
+
+    const variants = new Set<string>([trimmed, stripped, digitsOnly, `+${digitsOnly}`]);
+    if (digitsOnly.startsWith('852') && digitsOnly.length > 8) {
+      const localHk = digitsOnly.slice(3);
+      variants.add(localHk);
+      variants.add(`+852${localHk}`);
+      variants.add(`+852 ${localHk}`);
+    } else if (digitsOnly.length === 8) {
+      variants.add(`+852${digitsOnly}`);
+      variants.add(`852${digitsOnly}`);
+      variants.add(`+852 ${digitsOnly}`);
+    }
+    return Array.from(variants).filter((v) => v.length <= 20);
+  }
+
+  private async generateUniqueUsername(fullName: string, phone?: string | null): Promise<string> {
+    const baseName = fullName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 28) || 'staff';
+    const digits = (phone || '').replace(/\D/g, '');
+    const tail = digits.slice(-4) || Math.floor(1000 + Math.random() * 9000).toString();
+    const candidateBase = `${baseName}_${tail}`.slice(0, 42);
+
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const candidate = attempt === 0 ? candidateBase : `${candidateBase}_${attempt + 1}`;
+      const exists = await prisma.users.findFirst({
+        where: { username: { equals: candidate, mode: 'insensitive' } },
+        select: { id: true }
+      });
+      if (!exists) return candidate;
+    }
+
+    return `staff_${Date.now().toString(36)}`;
+  }
+
   async login(credentials: LoginInput) {
     const { email, username, password } = credentials;
     const identifier = (username || email || '').trim();
 
     if (!identifier) {
-      throw new UnauthorizedError('Email or username is required');
+      throw new UnauthorizedError('Mobile number, email, or username is required');
+    }
+
+    const phoneVariants = this.getPhoneLookupVariants(identifier);
+    const orConditions: any[] = [
+      { username: { equals: identifier, mode: 'insensitive' } },
+      { email: { equals: identifier, mode: 'insensitive' } }
+    ];
+    if (phoneVariants.length > 0) {
+      orConditions.push({ phone: { in: phoneVariants } });
     }
 
     const user = await prisma.users.findFirst({
       where: {
         deleted_at: null,
-        OR: [
-          { username: { equals: identifier, mode: 'insensitive' } },
-          { email: { equals: identifier, mode: 'insensitive' } }
-        ]
+        OR: orConditions
       }
     });
 
@@ -199,6 +254,7 @@ class AuthService {
         { username: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
         { full_name: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -243,6 +299,7 @@ class AuthService {
 
     const validatedData = registerSchema.parse(data);
     const { username, email, password, role = 'waiter', full_name, phone } = validatedData;
+    const normalizedPhone = this.normalizePhone(phone);
 
     await this.assertValidRoleKey(role);
 
@@ -250,27 +307,47 @@ class AuthService {
       throw new ConflictError('Only one Super Admin is permitted in the system. Assign General Manager (GM) for executive access.');
     }
 
-    const existing = await prisma.users.findFirst({
-      where: {
-        deleted_at: null,
-        OR: [
-          { username: { equals: username, mode: 'insensitive' } },
-          { email: { equals: email, mode: 'insensitive' } }
-        ]
-      }
-    });
-
-    if (existing) {
-      throw new ConflictError('Username or email already exists');
+    if (!username && !normalizedPhone) {
+      throw new ValidationError('Mobile number is required');
     }
+
+    const conflictChecks: any[] = [];
+    if (username) {
+      conflictChecks.push({ username: { equals: username, mode: 'insensitive' } });
+    }
+    if (email) {
+      conflictChecks.push({ email: { equals: email, mode: 'insensitive' } });
+    }
+    if (normalizedPhone) {
+      const phoneVariants = this.getPhoneLookupVariants(normalizedPhone);
+      if (phoneVariants.length > 0) {
+        conflictChecks.push({ phone: { in: phoneVariants } });
+      }
+    }
+
+    if (conflictChecks.length > 0) {
+      const existing = await prisma.users.findFirst({
+        where: {
+          deleted_at: null,
+          OR: conflictChecks
+        }
+      });
+
+      if (existing) {
+        throw new ConflictError('Username, mobile number, or email already exists');
+      }
+    }
+
+    const resolvedUsername = username || (await this.generateUniqueUsername(full_name, normalizedPhone));
+    const resolvedEmail = email || `${resolvedUsername}@staff.sangeet.local`;
 
     // Free any legacy soft-deleted rows that still hold the unique username/email
     const staleDeleted = await prisma.users.findMany({
       where: {
         deleted_at: { not: null },
         OR: [
-          { username: { equals: username, mode: 'insensitive' } },
-          { email: { equals: email, mode: 'insensitive' } }
+          { username: { equals: resolvedUsername, mode: 'insensitive' } },
+          { email: { equals: resolvedEmail, mode: 'insensitive' } }
         ]
       },
       select: { id: true, username: true, email: true }
@@ -291,12 +368,12 @@ class AuthService {
 
     const user = await prisma.users.create({
       data: {
-        username,
-        email,
+        username: resolvedUsername,
+        email: resolvedEmail,
         password_hash: passwordHash,
         role,
         full_name,
-        phone: phone || null
+        phone: normalizedPhone
       },
       select: {
         id: true, username: true, email: true, role: true,
@@ -376,25 +453,37 @@ class AuthService {
       await this.assertAnotherActiveAdminExists(targetId);
     }
 
-    const identityConditions: Array<{ username: { equals: string; mode: 'insensitive' } } | { email: { equals: string; mode: 'insensitive' } }> = [];
+    const normalizedPhone = parsed.phone !== undefined ? this.normalizePhone(parsed.phone) : undefined;
+    const identityConditions: any[] = [];
     if (parsed.username) identityConditions.push({ username: { equals: parsed.username, mode: 'insensitive' } });
     if (parsed.email) identityConditions.push({ email: { equals: parsed.email, mode: 'insensitive' } });
+    if (normalizedPhone) {
+      const phoneVariants = this.getPhoneLookupVariants(normalizedPhone);
+      if (phoneVariants.length > 0) {
+        identityConditions.push({ phone: { in: phoneVariants } });
+      }
+    }
     if (identityConditions.length > 0) {
       const conflict = await prisma.users.findFirst({
         where: { deleted_at: null, OR: identityConditions, NOT: { id: targetId } }
       });
       if (conflict) {
-        throw new ConflictError('Username or email already exists');
+        throw new ConflictError('Username, mobile number, or email already exists');
       }
     }
 
+    const resolvedEmailUpdate =
+      data.email !== undefined && String(data.email).trim() === ''
+        ? `${parsed.username || target.username}@staff.sangeet.local`
+        : parsed.email;
+
     const updateData: any = {
       username: parsed.username,
-      email: parsed.email,
+      email: resolvedEmailUpdate,
       role: parsed.role,
       full_name: parsed.full_name,
       is_active: parsed.is_active,
-      phone: parsed.phone === undefined ? undefined : (parsed.phone || null),
+      phone: normalizedPhone,
       updated_at: new Date()
     };
 
@@ -608,12 +697,18 @@ class AuthService {
       throw new ValidationError('Username or email is required');
     }
 
+    const phoneVariants = this.getPhoneLookupVariants(trimmed);
+    const resetOrConditions: any[] = [
+      { email: { equals: trimmed, mode: 'insensitive' } },
+      { username: { equals: trimmed, mode: 'insensitive' } }
+    ];
+    if (phoneVariants.length > 0) {
+      resetOrConditions.push({ phone: { in: phoneVariants } });
+    }
+
     const user = await prisma.users.findFirst({
       where: {
-        OR: [
-          { email: { equals: trimmed, mode: 'insensitive' } },
-          { username: { equals: trimmed, mode: 'insensitive' } }
-        ],
+        OR: resetOrConditions,
         deleted_at: null
       }
     });

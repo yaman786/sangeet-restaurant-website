@@ -4,7 +4,9 @@ const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || 'SangeetAdmin!2026';
 
 const suffix = Date.now().toString(36);
-const QA_USERNAME = `qa_staff_${suffix}`;
+const phoneDigits = String(Date.now()).slice(-8);
+const QA_PHONE = `+852${phoneDigits}`;
+const QA_USERNAME = `qa_kitchen_tester_${phoneDigits.slice(-4)}`;
 const QA_EMAIL = `${QA_USERNAME}@example.com`;
 const QA_PASSWORD = 'QaStaff!2026x';
 
@@ -74,13 +76,13 @@ test.describe('Staff Management (admin)', () => {
     await expect(adminRow).toBeVisible();
   });
 
-  test('creates a staff member through the UI', async () => {
+  test('creates a staff member through the UI (mobile number mandatory, no username input)', async () => {
     await page.locator('#staff-add-user').click();
     await expect(page.getByTestId('staff-form')).toBeVisible();
+    await expect(page.locator('#staff-username')).toHaveCount(0);
 
     await page.locator('#staff-full-name').fill('QA Kitchen Tester');
-    await page.locator('#staff-phone').fill('+85212345678');
-    await page.locator('#staff-username').fill(QA_USERNAME);
+    await page.locator('#staff-phone').fill(QA_PHONE);
     await page.locator('#staff-email').fill(QA_EMAIL);
     await page.locator('#staff-password').fill(QA_PASSWORD);
     await page.locator('#staff-role').selectOption('kitchen');
@@ -89,19 +91,20 @@ test.describe('Staff Management (admin)', () => {
     const created = row(page, QA_USERNAME);
     await expect(created).toBeVisible({ timeout: 15000 });
     await expect(created).toContainText('QA Kitchen Tester');
+    await expect(created).toContainText(QA_PHONE);
     await expect(created).toContainText('Kitchen Staff');
     await expect(created).toContainText('Active Account');
   });
 
-  test('rejects duplicate usernames with a clear error', async () => {
+  test('rejects duplicate mobile numbers or emails with a clear error', async () => {
     await page.locator('#staff-add-user').click();
     await page.locator('#staff-full-name').fill('Duplicate Person');
-    await page.locator('#staff-username').fill(QA_USERNAME);
+    await page.locator('#staff-phone').fill(QA_PHONE);
     await page.locator('#staff-email').fill(`other_${QA_EMAIL}`);
     await page.locator('#staff-password').fill(QA_PASSWORD);
     await page.locator('#staff-form-submit').click();
 
-    await expect(page.getByText('Username or email already exists')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Username, mobile number, or email already exists')).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: 'Cancel' }).click();
     await expect(page.getByTestId('staff-form')).toHaveCount(0);
   });
@@ -198,8 +201,12 @@ test.describe('Staff Management (admin)', () => {
   });
 
   test('archives a staff member, restores them from Archive, and permanently deletes them', async () => {
-    // Verify email-based login works before deletion
+    // Verify mobile number AND email-based login both work before deletion
     const anonBefore = await playwrightRequest.newContext({ baseURL: process.env.BASE_URL || 'http://localhost:3000' });
+    const phoneLoginRes = await anonBefore.post('/api/auth/login', { data: { username: QA_PHONE, password: QA_PASSWORD } });
+    expect(phoneLoginRes.status()).toBe(200);
+    const localDigitsLoginRes = await anonBefore.post('/api/auth/login', { data: { username: phoneDigits, password: QA_PASSWORD } });
+    expect(localDigitsLoginRes.status()).toBe(200);
     const emailLoginRes = await anonBefore.post('/api/auth/login', { data: { username: QA_EMAIL, password: QA_PASSWORD } });
     expect(emailLoginRes.status()).toBe(200);
     await anonBefore.dispose();
@@ -250,7 +257,9 @@ test.describe('Staff Management (admin)', () => {
   test('manages hospitality roles, creates custom role, and enforces role-based dashboard cards', async ({ browser }) => {
     const customRoleName = `Sommelier ${suffix}`;
     const customRoleKey = `sommelier_${suffix}`;
-    const barStaffUser = `qa_bar_${suffix}`;
+    const barPhoneDigits = String((Number(phoneDigits) + 1) % 100000000).padStart(8, '9');
+    const barPhone = `+852${barPhoneDigits}`;
+    const barStaffUser = `qa_bar_specialist_${barPhoneDigits.slice(-4)}`;
 
     await openStaffManagement(page);
 
@@ -290,12 +299,11 @@ test.describe('Staff Management (admin)', () => {
       });
     }
 
-    // 3. Switch back to Team Directory and create a Bar Staff user
+    // 3. Switch back to Team Directory and create a Bar Staff user (with mandatory mobile number & optional email left blank!)
     await page.getByTestId('tab-team-directory').click();
     await page.locator('#staff-add-user').click();
     await page.locator('#staff-full-name').fill('QA Bar Specialist');
-    await page.locator('#staff-username').fill(barStaffUser);
-    await page.locator('#staff-email').fill(`${barStaffUser}@sangeet.hk`);
+    await page.locator('#staff-phone').fill(barPhone);
     await page.locator('#staff-password').fill(QA_PASSWORD);
     await page.locator('#staff-role').selectOption('bar_staff');
     await page.locator('#staff-form-submit').click();
@@ -303,6 +311,8 @@ test.describe('Staff Management (admin)', () => {
     const barRow = row(page, barStaffUser);
     await expect(barRow).toBeVisible({ timeout: 15000 });
     await expect(barRow).toContainText('Bar Staff');
+    await expect(barRow).toContainText(barPhone);
+    await expect(barRow).toContainText('No email linked');
 
     if (process.env.CAPTURE_LIVE_RBAC_SCREENSHOTS === '1') {
       await page.screenshot({
@@ -311,12 +321,12 @@ test.describe('Staff Management (admin)', () => {
       });
     }
 
-    // 4. Sign in as the Bar Staff user in an isolated browser context and verify Dashboard Cards
+    // 4. Sign in as the Bar Staff user using their MOBILE NUMBER in an isolated browser context and verify Dashboard Cards
     const barContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const barPage = await barContext.newPage();
     await barPage.goto('/admin/login', { waitUntil: 'networkidle' });
-    await barPage.locator('#username').fill(barStaffUser);
-    await expect(barPage.locator('#username')).toHaveValue(barStaffUser);
+    await barPage.locator('#username').fill(barPhone);
+    await expect(barPage.locator('#username')).toHaveValue(barPhone);
     await barPage.locator('#password').fill(QA_PASSWORD);
     await expect(barPage.locator('#password')).toHaveValue(QA_PASSWORD);
     await barPage.click('button[type="submit"]');

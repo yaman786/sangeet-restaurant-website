@@ -160,8 +160,8 @@ export const useStaffManagement = () => {
 
   const handleCreateUser = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.username.trim() || !formData.email.trim() || !formData.password || !formData.full_name.trim()) {
-      toast.error('Please fill in all required fields');
+    if (!formData.full_name.trim() || !formData.phone.trim() || !formData.password) {
+      toast.error('Please enter full name, mobile number, and password');
       return;
     }
     createMutation.mutate({
@@ -299,9 +299,10 @@ export const useStaffManagement = () => {
 
   const openEditModal = (user: UserInfo) => {
     setEditingUser(user);
+    const cleanEmail = user.email?.endsWith('@staff.sangeet.local') ? '' : user.email;
     setFormData({
       username: user.username,
-      email: user.email,
+      email: cleanEmail,
       password: '',
       role: user.role,
       full_name: user.full_name || '',
@@ -379,7 +380,8 @@ export const useStaffManagement = () => {
         !term ||
         user.username.toLowerCase().includes(term) ||
         user.email.toLowerCase().includes(term) ||
-        (user.full_name || '').toLowerCase().includes(term);
+        (user.full_name || '').toLowerCase().includes(term) ||
+        (user.phone || '').toLowerCase().includes(term);
       const matchesRole = filterRole === 'all' || user.role === filterRole;
       const matchesStatus =
         filterStatus === 'all' ||

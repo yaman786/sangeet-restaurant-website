@@ -45,10 +45,10 @@ const StaffForm: React.FC<StaffFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-6 flex-1 overflow-y-auto" data-testid="staff-form">
-      {/* Personal Information */}
+      {/* Personal & Contact Information */}
       <div className="space-y-4">
         <h3 className="text-sm font-semibold text-sangeet-neutral-200 uppercase tracking-wider flex items-center gap-2">
-          <span>👤</span> Personal Information
+          <span>👤</span> Staff Details &amp; Login Credentials
         </h3>
         <div>
           <label htmlFor="staff-full-name" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
@@ -65,49 +65,26 @@ const StaffForm: React.FC<StaffFormProps> = ({
             required
           />
         </div>
-        <div>
-          <label htmlFor="staff-phone" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-            Phone Number
-          </label>
-          <input
-            id="staff-phone"
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200"
-            placeholder="Enter phone number (optional)"
-            maxLength={20}
-          />
-        </div>
-      </div>
 
-      {/* Account Information */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-sangeet-neutral-200 uppercase tracking-wider flex items-center gap-2">
-          <span>🔐</span> Account Information
-        </h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="staff-username" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-              Username *
+            <label htmlFor="staff-phone" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
+              Mobile Number (Primary Login) *
             </label>
             <input
-              id="staff-username"
-              type="text"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              id="staff-phone"
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200"
-              placeholder="Letters, numbers and underscores"
-              minLength={3}
-              maxLength={50}
-              pattern="[a-zA-Z0-9_]+"
-              autoComplete="off"
+              placeholder="e.g. +852 9123 4567"
+              maxLength={20}
               required
             />
           </div>
           <div>
             <label htmlFor="staff-email" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-              Email Address *
+              Email Address <span className="text-xs text-sangeet-neutral-400 font-normal">(Optional)</span>
             </label>
             <input
               id="staff-email"
@@ -115,14 +92,20 @@ const StaffForm: React.FC<StaffFormProps> = ({
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-400 focus:border-sangeet-400 focus:ring-2 focus:ring-sangeet-400/20 focus:outline-hidden transition-all duration-200"
-              placeholder="Enter email address"
+              placeholder="e.g. name@gmail.com (optional)"
               autoComplete="off"
-              required
             />
           </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-2 gap-4">
+      {/* Role & Security */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-sangeet-neutral-200 uppercase tracking-wider flex items-center gap-2">
+          <span>🔐</span> Role &amp; Password
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="staff-password" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
               {isEditing ? 'New Password (leave blank to keep)' : 'Password *'}

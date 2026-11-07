@@ -20,14 +20,28 @@ const usernameSchema = z.string()
   .max(50, 'Username must be at most 50 characters')
   .regex(/^[a-zA-Z0-9_]+$/, 'Only letters, numbers, and underscores allowed');
 
+const optionalUsernameSchema = z
+  .string()
+  .trim()
+  .optional()
+  .transform((val) => (val && val.length > 0 ? val : undefined))
+  .pipe(usernameSchema.optional());
+
+const optionalEmailSchema = z
+  .string()
+  .trim()
+  .optional()
+  .transform((val) => (val && val.length > 0 ? val.toLowerCase() : undefined))
+  .pipe(z.string().email('Invalid email address').optional());
+
 export const loginSchema = z.object({
-  username: z.string().min(1, 'Username is required'),
+  username: z.string().min(1, 'Mobile number, email, or username is required'),
   password: z.string().min(1, 'Password is required')
 });
 
 export const registerSchema = z.object({
-  username: usernameSchema,
-  email: z.string().email('Invalid email address').toLowerCase(),
+  username: optionalUsernameSchema,
+  email: optionalEmailSchema,
   role: roleKeySchema,
   password: passwordSchema,
   full_name: z.string().trim().min(1, 'Name is required').max(100),
@@ -35,8 +49,8 @@ export const registerSchema = z.object({
 });
 
 export const updateUserSchema = z.object({
-  username: usernameSchema.optional(),
-  email: z.string().email('Invalid email address').toLowerCase().optional(),
+  username: optionalUsernameSchema,
+  email: optionalEmailSchema,
   role: roleKeySchema.optional(),
   password: passwordSchema.optional(),
   full_name: z.string().trim().min(1, 'Name is required').max(100).optional(),

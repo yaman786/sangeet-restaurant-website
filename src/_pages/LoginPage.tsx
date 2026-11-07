@@ -160,17 +160,17 @@ const LoginPage = () => {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Username Field */}
+            {/* Primary Login Identifier Field */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-sangeet-neutral-300 mb-2">
-                Username or Email
+                Mobile Number, Email, or Username
               </label>
               <input
                 type="text"
                 id="username"
                 {...register('username')}
                 className="w-full px-4 py-3 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent transition-all duration-200"
-                placeholder="Enter your username or email"
+                placeholder="e.g. +852 9123 4567 or name@gmail.com"
               />
               {errors.username && (
                 <p className="mt-1 text-sm text-red-400">{errors.username.message as string}</p>
@@ -286,14 +286,14 @@ const LoginPage = () => {
             <form onSubmit={handleForgotSubmit} className="space-y-4">
               <div>
                 <label htmlFor="forgot-identifier" className="block text-xs font-medium text-sangeet-neutral-300 mb-1">
-                  Your Username or Registered Email
+                  Your Mobile Number, Email, or Username
                 </label>
                 <input
                   id="forgot-identifier"
                   type="text"
                   value={forgotIdentifier}
                   onChange={(e) => setForgotIdentifier(e.target.value)}
-                  placeholder="e.g. raj_waiter or staff@sangeet.hk"
+                  placeholder="e.g. +852 9123 4567 or staff@gmail.com"
                   className="w-full px-3 py-2.5 bg-sangeet-neutral-800 border border-sangeet-neutral-600 rounded-lg text-sm text-sangeet-neutral-100 placeholder-sangeet-neutral-500 focus:outline-hidden focus:ring-2 focus:ring-sangeet-400 focus:border-transparent transition-all"
                   required
                 />
