@@ -48,7 +48,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const FALLBACK_MENU = [
   {
     id: 1, name: "Butter Chicken", description: "Creamy tomato-based curry with tender chicken", price: 18.99,
-    category_name: "Main Course", image_url: "https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop",
+    category_name: "Main Course", image_url: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&h=600&fit=crop",
     is_vegetarian: false, is_spicy: false, is_popular: true, preparation_time: 20
   }
 ] as any;
