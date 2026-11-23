@@ -20,7 +20,8 @@ import {
   MapPin,
   CreditCard,
   Leaf,
-  Check
+  Check,
+  Truck
 } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { isBarMenuItem } from '@/lib/utils/menuSection';
@@ -312,6 +313,13 @@ const PickupCartPage = () => {
                   </p>
                   <p className="text-sangeet-neutral-400 text-xs sm:text-sm mt-0.5">
                     Please quote your Order # and Name at the reception counter.
+                  </p>
+                  <p
+                    data-testid="pickup-cart-delivery-notice"
+                    className="inline-flex items-center gap-1.5 text-sangeet-300 text-xs sm:text-sm mt-1.5 font-medium"
+                  >
+                    <Truck className="w-3.5 h-3.5 text-sangeet-400 shrink-0" />
+                    <span>Free Delivery: Minimum order of HK$1,000 (HK Island only)</span>
                   </p>
                 </div>
               </div>

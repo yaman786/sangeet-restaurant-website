@@ -6,7 +6,7 @@ import { useNavigate } from '@/utils/router-mock';
 import { fetchMenuItems, fetchMenuCategories, getOrderById } from '../services/api';
 import toast from 'react-hot-toast';
 import MenuView from '../components/MenuView';
-import { ShoppingBag, MapPin, Clock, Sparkles, ChevronRight, ArrowLeft, ListOrdered } from 'lucide-react';
+import { ShoppingBag, MapPin, Clock, Sparkles, ChevronRight, ArrowLeft, ListOrdered, Truck } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { getTableSession, clearTableSession } from '@/lib/utils/tableSession';
 import { isBarMenuItem, isAlcoholicDrink } from '@/lib/utils/menuSection';
@@ -190,7 +190,7 @@ const PickupMenuPage = () => {
           <div className="inline-flex items-center gap-2 bg-sangeet-400/15 border border-sangeet-400/40 px-4 py-1.5 rounded-full mb-4">
             <ShoppingBag className="w-4 h-4 text-sangeet-400" />
             <span className="text-xs sm:text-sm font-semibold text-sangeet-400 uppercase tracking-wider">
-              Online Self Pick-Up • No Delivery
+              Online Self Pick-Up
             </span>
           </div>
 
@@ -211,6 +211,18 @@ const PickupMenuPage = () => {
               <Sparkles className="w-4 h-4 text-sangeet-400 shrink-0" />
               <span>Pay at Counter on Collection</span>
             </div>
+          </div>
+
+          <div
+            data-testid="pickup-free-delivery-notice"
+            className="mt-3.5 inline-flex items-center justify-center gap-2 bg-sangeet-400/12 backdrop-blur-xl border border-sangeet-400/35 px-4 py-2 rounded-2xl sm:rounded-full text-xs sm:text-sm text-sangeet-neutral-100 shadow-glass max-w-full"
+          >
+            <Truck className="w-4 h-4 text-sangeet-400 shrink-0" />
+            <span>
+              <strong className="font-semibold text-sangeet-400">Free Delivery:</strong>{' '}
+              Minimum order of HK$1,000{' '}
+              <span className="text-sangeet-neutral-300 whitespace-nowrap">(HK Island only)</span>
+            </span>
           </div>
         </motion.div>
       </div>
