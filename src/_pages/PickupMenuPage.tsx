@@ -177,7 +177,7 @@ const PickupMenuPage = () => {
       </div>
 
       {/* Hero Header */}
-      <div className="relative min-h-[260px] md:min-h-[300px] w-full flex items-center justify-center pt-8 pb-12 overflow-hidden">
+      <div className="relative min-h-[210px] md:min-h-[245px] w-full flex items-center justify-center pt-7 pb-10 overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-35 mix-blend-luminosity"></div>
         <div className="absolute inset-0 bg-linear-to-t from-sangeet-neutral-900 via-sangeet-neutral-900/75 to-sangeet-neutral-950/85"></div>
 
@@ -187,13 +187,6 @@ const PickupMenuPage = () => {
           transition={{ duration: 0.5, ease: 'easeOut' }}
           className="relative z-10 text-center px-4 max-w-3xl mx-auto"
         >
-          <div className="inline-flex items-center gap-2 bg-sangeet-400/15 border border-sangeet-400/40 px-4 py-1.5 rounded-full mb-4">
-            <ShoppingBag className="w-4 h-4 text-sangeet-400" />
-            <span className="text-xs sm:text-sm font-semibold text-sangeet-400 uppercase tracking-wider">
-              Online Self Pick-Up
-            </span>
-          </div>
-
           <h1 className="font-display text-3xl sm:text-4xl md:text-6xl text-white font-bold mb-4 tracking-tight drop-shadow-2xl">
             Order <span className="text-sangeet-400 italic font-light">Pick-Up</span>
           </h1>

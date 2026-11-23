@@ -7,6 +7,7 @@ test.describe('Pick-Up Page Free Delivery Notice', () => {
     await page.goto('/pickup', { waitUntil: 'networkidle' });
 
     await expect(page.getByText(/no delivery/i)).toHaveCount(0);
+    await expect(page.getByText(/online self pick-up/i)).toHaveCount(0);
     const notice = page.getByTestId('pickup-free-delivery-notice');
     await expect(notice).toBeVisible({ timeout: 15000 });
     await expect(notice).toContainText('Free Delivery:');
