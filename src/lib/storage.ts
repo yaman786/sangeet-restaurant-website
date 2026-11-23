@@ -39,6 +39,7 @@ export async function uploadImage(
     .from(bucket)
     .upload(`public/${Date.now()}-${fileName}`, fileBuffer, {
       contentType,
+      cacheControl: '31536000',
       upsert: false,
     });
 
